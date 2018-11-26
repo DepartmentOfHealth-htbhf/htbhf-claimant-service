@@ -1,0 +1,56 @@
+buildscript {
+    dependencies {
+        classpath 'org.flywaydb:flyway-gradle-plugin:5.2.1'
+    }
+
+    repositories {
+        jcenter()
+    }
+}
+
+apply plugin: 'org.flywaydb.flyway'
+
+dependencies {
+    compile postgres
+}
+
+
+
+flyway {
+    url = "$dbUrlPrefix$databaseHostName:$databasePort/$dbName"
+    driver = dbDriver
+    user = dbUser
+    password = dbPassword
+
+    locations = ['filesystem:db/src/main/resources/db/migration']
+}
+
+task create(type: Exec) {
+    commandLine 'createdb', "$dbName"
+}
+
+task drop(type: Exec) {
+    commandLine 'dropdb', "$dbName"
+}
+
+task migrate {
+    doLast {
+        tasks.flywayMigrate.execute()
+    }
+}
+
+task reset {
+    doLast {
+        tasks.drop.execute()
+        tasks.create.execute()
+        tasks.migrate.execute()
+    }
+}
+
+task testFlyway() {
+    doFirst {
+        if (flywayMigrate in gradle.taskGraph.allTasks) flyway.url = "jdbc:postgresql://localhost:5432/claimant"
+    }
+
+    finalizedBy 'flywayMigrate'
+}

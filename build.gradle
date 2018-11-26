@@ -1,0 +1,58 @@
+buildscript {
+    apply from: "external-dependencies.gradle"
+
+    dependencies {
+        classpath springBootGradlePlugin, gradleVersionsPlugin, dependencyManagementPlugin
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'java'
+
+apply plugin: 'io.spring.dependency-management'
+
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+
+
+
+    task unitTest(type: Test) {
+        exclude '**/functional/**', '**/repository/**'
+        outputs.upToDateWhen { false }
+    }
+
+    task functionalTest(type: Test) {
+        include '**/functional/**', '**/repository/**'
+        outputs.upToDateWhen { false }
+    }
+}
+
+allprojects {
+    apply plugin: 'idea'
+    task wrapper(type: Wrapper) {
+        gradleVersion = '4.0'
+    }
+    apply from: "${rootProject.projectDir}/external-dependencies.gradle"
+}
+
+def testCounter = 0
+allprojects {
+    tasks.withType(Test) {
+        afterSuite { testDescriptor, testResult ->
+            testCounter += testResult.testCount
+        }
+    }
+}
+
+

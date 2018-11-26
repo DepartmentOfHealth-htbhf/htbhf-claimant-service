@@ -1,0 +1,23 @@
+spring:
+    datasource:
+        url: jdbc:postgresql://localhost/claimant
+        username: postgres
+        password: password
+        driver-class-name: org.postgresql.Driver
+        type: com.zaxxer.hikari.HikariDataSource
+        hikari:
+            connectionTimeout: 5000
+    jpa:
+        properties.hibernate.dialect: org.hibernate.dialect.PostgreSQL9Dialect
+        properties.hibernate.temp.use_jdbc_metadata_defaults: false
+        properties.hibernate.connection.CharSet: utf8
+        properties.hibernate.connection.characterEncoding: utf8
+        properties.hibernate.connection.useUnicode: true
+        properties.hibernate.connection.releaseMode: after_transaction
+    application:
+        name: claimant/api
+    boot:
+        admin:
+            url: http://localhost:8080
+    jackson:
+      default-property-inclusion: NON_NULL
