@@ -26,6 +26,9 @@ branches:
   except:
   - /^v\d/
 
+services:
+  - postgresql
+
 #Build and perform release (if needed)
 # note that we can't restart failed builds in Travis as the shipkit publishing step will fail if it has already run for that version. Must create a new commit.
 script:
