@@ -11,37 +11,74 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'org.shipkit.java' version '2.0.31'
+}
 apply plugin: 'java'
-
 apply plugin: 'io.spring.dependency-management'
+
+group = 'uk.gov.dhsc.htbhf'
+
+allprojects {
+    apply plugin: 'jacoco'
+    apply plugin: 'idea'
+    apply from: "${rootProject.projectDir}/external-dependencies.gradle"
+
+    repositories {
+        jcenter()
+    }
+
+    jacoco {
+        toolVersion = "0.8.2"
+    }
+}
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'jacoco'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    repositories {
-        jcenter()
-        mavenLocal()
+    test {
+        reports {
+            junitXml.enabled = false
+            html.enabled = true
+        }
     }
 
-
-
-    task unitTest(type: Test) {
-        exclude '**/functional/**', '**/repository/**'
-        outputs.upToDateWhen { false }
-    }
-
-    task functionalTest(type: Test) {
-        include '**/functional/**', '**/repository/**'
-        outputs.upToDateWhen { false }
+    jacocoTestReport {
+        additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+        classDirectories =  files(sourceSets.main.output)
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            csv.enabled = false
+        }
     }
 }
 
-allprojects {
-    apply plugin: 'idea'
-    apply from: "${rootProject.projectDir}/external-dependencies.gradle"
+task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+    dependsOn = subprojects.test
+    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories = files(subprojects.sourceSets.main.output)
+    executionData = files(subprojects.jacocoTestReport.executionData)
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
+    onlyIf = {
+        true
+    }
+    doFirst {
+        executionData = files(executionData.findAll {
+            it.exists()
+        })
+    }
 }
 
 def testCounter = 0

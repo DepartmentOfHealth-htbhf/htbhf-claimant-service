@@ -1,0 +1,32 @@
+//This default Shipkit configuration file was created automatically and is intended to be checked-in.
+//
+//     https://github.com/mockito/shipkit/blob/master/docs/getting-started.md
+//
+shipkit {
+   gitHub.repository = "DepartmentOfHealth-htbhf/htbhf-claimant-service"
+
+   gitHub.readOnlyAuthToken = "765881d6a8c080bc220404116459dcfd4a0d4dfd"
+
+   gitHub.writeAuthToken = System.getenv("GH_WRITE_TOKEN")
+}
+
+allprojects {
+   plugins.withId("org.shipkit.bintray") {
+
+       //Bintray configuration is handled by JFrog Bintray Gradle Plugin
+       //For reference see the official documentation: https://github.com/bintray/gradle-bintray-plugin
+       bintray {
+
+           key = System.getenv("BINTRAY_API_KEY")
+
+           pkg {
+               repo = 'maven'                       // https://bintray.com/departmentofhealth-htbhf/maven
+               name = 'htbhf-claimant-service'   // https://bintray.com/departmentofhealth-htbhf/maven/htbhf-claimant-service
+               userOrg = 'departmentofhealth-htbhf' // https://bintray.com/departmentofhealth-htbhf
+               user = System.getenv('BINTRAY_USER')
+               licenses = ['MIT']
+               labels = ['help to buy healthy food', 'claimant service']
+           }
+       }
+   }
+}
