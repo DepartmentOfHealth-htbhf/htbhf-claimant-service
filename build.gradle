@@ -43,7 +43,7 @@ subprojects {
 
     test {
         reports {
-            junitXml.enabled = false
+            junitXml.enabled = true
             html.enabled = true
         }
     }
@@ -79,6 +79,12 @@ task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
             it.exists()
         })
     }
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/tests")
+    // Include the results from the `test` task in all subprojects
+    reportOn subprojects*.test
 }
 
 def testCounter = 0
