@@ -4,8 +4,7 @@ buildscript {
     dependencies {
         classpath 'org.flywaydb:flyway-gradle-plugin:5.2.1',springBootGradlePlugin, gradleVersionsPlugin, dependencyManagementPlugin
     }
-
-
+    
     repositories {
         jcenter()
     }
@@ -17,7 +16,7 @@ dependencies {
     compile postgres
 }
 
-
+bintrayUpload.enabled = false
 
 flyway {
     url = "$dbUrlPrefix$databaseHostName:$databasePort/$dbName"
