@@ -16,7 +16,7 @@ Collaboration
 Commands
 -------------
 
-- To run migrations: `gradle db:flywayMigrate` (can be abbreviated to `gradle db:flyM`)
+- To run migrations: `gradle flywayMigrate` (when run from the top-level project, must be run as: `./gradlew htbhf-claimaint-service-db:flywayMigrate`)
 - run `gradle -PdbName=claimant-test db:migrate` to upgrade the database
 - run `gradle -PdbName=claimant-test db:drop` to drop the database
 - run `gradle -PdbName=claimant-test db:create` to create the database
