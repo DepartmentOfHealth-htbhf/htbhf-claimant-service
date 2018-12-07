@@ -1,10 +1,14 @@
 buildscript {
-    apply from: "external-dependencies.gradle"
+
     apply from: "default-properties.gradle"
 
-    dependencies {
-        classpath springBootGradlePlugin, gradleVersionsPlugin, dependencyManagementPlugin
+    ext {
+        springBootVersion = '2.1.0.RELEASE'
+        spockVersion = '1.2-groovy-2.4'
+        HikariCPVersion = '2.7.8'
+        postgresVersion = '9.4.1212'
     }
+
     repositories {
         jcenter()
         mavenCentral()
@@ -12,14 +16,12 @@ buildscript {
 }
 
 plugins {
-    id 'com.github.kt3k.coveralls' version '2.8.2'
     id 'org.shipkit.java' version '2.0.31'
 }
 
 allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'idea'
-    apply from: "${rootProject.projectDir}/external-dependencies.gradle"
 
     group = 'uk.gov.dhsc.htbhf'
 
@@ -36,8 +38,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.11
+    targetCompatibility = 1.11
 
     test {
         reports {
@@ -93,5 +95,21 @@ allprojects {
         }
     }
 }
+
+task copyReports() {
+    copy {
+        from 'api/build/reports'
+        into 'build/reports'
+    }
+    copy {
+        from 'src/documentation/gh-pages'
+        into 'build/reports'
+    }
+    copy {
+        from 'smoke_tests/build/reports/tests/test'
+        into 'build/reports/smoke_tests'
+    }
+}
+
 
 
