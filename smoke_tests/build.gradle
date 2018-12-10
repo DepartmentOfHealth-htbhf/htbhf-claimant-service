@@ -1,0 +1,28 @@
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+group = 'uk.gov.dhsc.htbhf'
+sourceCompatibility = 1.11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation "org.spockframework:spock-core:1.2-groovy-2.4"
+    testImplementation "com.jayway.restassured:rest-assured:2.4.1"
+    testImplementation "com.jayway.jsonpath:json-path:2.0.0"
+    testImplementation "com.jayway.restassured:json-schema-validator:2.5.0"
+    testImplementation "org.skyscreamer:jsonassert:1.5.0"
+    testImplementation 'javax.xml.bind:jaxb-api:2.3.0'
+
+}
+
+test {
+    systemProperty "base_url", System.getProperty("base_url")
+    reports {
+        junitXml.enabled = false
+        html.enabled = true
+    }
+}

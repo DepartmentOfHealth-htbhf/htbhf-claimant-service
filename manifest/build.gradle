@@ -1,0 +1,10 @@
+// this project exists only to publish the manifest file to bintray
+
+task copyManifest(type: Copy) {
+    from '../manifest.yml'
+    into 'src/main/resources'
+}
+
+processResources {
+    dependsOn copyManifest
+}
