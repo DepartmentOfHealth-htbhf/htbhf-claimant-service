@@ -1,22 +1,38 @@
 db
 =============
 
-Responsibility
+This sub-project is responsible for the definition of the Database Schema, using the Postgresql dialect.
+
+
+DB upgrade scripts
 -------------
 
-Definition of the Database Schema
+Database migrations will be performed by [Flyway](https://flywaydb.org/documentation/),
+using migration scripts in src/main/resources/db.migration.
+There is a strong naming convention for these scripts:
+```
+V_major_minor__description.sql
+```
+For example: `V1_001__create_claimant_table.sql`.
 
+Please note that to ensure correct ordering on the filesystem minor version numbers should be 3 digits long.
 
-Collaboration
--------------
+Try to ensure that each migration script runs as quickly as possible, and avoid actions that create broader or longer-lasting locks than necessary.
+Try not to make large data changes in the same script as a EXCLUSIVE lock task like `alter table`.
+Flyway creates a transaction per migration script and if you mix the two the non blocking data task becomes a blocking one because of the lock required for the schema change, for example.
+When altering indexes make sure to use CONCURRENT wherever possible.
 
-- Postgres Database
+See the following links for an idea of what is likely to create blocking locks:
+- https://www.citusdata.com/blog/2018/02/15/when-postgresql-blocks/
+- https://www.postgresql.org/docs/9.4/mvcc-intro.html
 
 
 Commands
 -------------
 
-- To run migrations: `gradle flywayMigrate` (when run from the top-level project, must be run as: `./gradlew htbhf-claimaint-service-db:flywayMigrate`)
+Please note that database upgrades should normally be performed by the application during deployment, so you won't need to run any of the commands listed below.
+
+- To run migrations stand-alone: `gradle flywayMigrate` (when run from the top-level project, must be run as: `./gradlew htbhf-claimaint-service-db:flywayMigrate`)
 - run `gradle -PdbName=claimant-test db:migrate` to upgrade the database
 - run `gradle -PdbName=claimant-test db:drop` to drop the database
 - run `gradle -PdbName=claimant-test db:create` to create the database
