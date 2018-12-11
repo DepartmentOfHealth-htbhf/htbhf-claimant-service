@@ -36,7 +36,7 @@ deploy:
 
 after_success:
 - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport coveralls testReport
-- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./${BIN_DIR}/trigger_java_cd_build.sh
+- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./${BIN_DIR}trigger_java_cd_build.sh
 
 #don't build tags
 branches:
