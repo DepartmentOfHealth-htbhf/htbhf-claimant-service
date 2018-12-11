@@ -1,12 +1,12 @@
 ---
 applications:
-- name: htbhf-claimant-service-((suffix))
+- name: htbhf-claimant-service((suffix))
   buildpacks:
   - java_buildpack
   health-check-type: http
   health-check-http-endpoint: /actuator/health
   routes:
-    - route: htbhf-claimant-service-((suffix)).apps.internal
+    - route: htbhf-claimant-service((suffix)).apps.internal
   env:
     JBP_CONFIG_OPEN_JDK_JRE: '{jre: { version: 11.+ }}'
   services:
