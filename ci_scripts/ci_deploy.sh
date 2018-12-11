@@ -27,4 +27,9 @@ if [[ ! -e ${BIN_DIR}/deploy_scripts_${DEPLOY_SCRIPT_VERSION} ]]; then
     cd ..
 fi
 
+# determine APP_PATH
+APP_VERSION=`cat version.properties | grep "version" | cut -d'=' -f2`
+APP_PATH="api/build/libs/$APP_NAME-$APP_VERSION.jar"
+export APP_PATH
+
 /bin/bash ${BIN_DIR}/deploy.sh
