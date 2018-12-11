@@ -46,7 +46,7 @@ branches:
 #Build and perform release (if needed)
 # note that we can't restart failed builds in Travis as the shipkit publishing step will fail if it has already run for that version. Must create a new commit.
 script:
-- ./gradlew clean build check -s && ./gradlew ciPerformRelease -s
+- ./gradlew clean build check -s && ./ci_scripts/ci_deploy.sh && ./gradlew ciPerformRelease -s
 
 
 env:
