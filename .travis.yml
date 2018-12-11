@@ -21,7 +21,7 @@ before_script:
 - psql -c 'CREATE DATABASE claimant;' -U postgres
 - psql -c "CREATE USER claimant_admin WITH PASSWORD 'claimant_admin';" -U postgres
 - psql -c "GRANT ALL PRIVILEGES ON DATABASE claimant TO claimant_admin;" -U postgres
-- ./gradlew :htbhf-claimant-service-db:flywayMigrate -s
+#- ./gradlew :htbhf-claimant-service-db:flywayMigrate -s
 
 
 deploy:
@@ -30,12 +30,12 @@ deploy:
   skip-cleanup: true
   github-token: $GH_WRITE_TOKEN  # Set in the settings page of your repository, as a secure variable
   keep-history: true
-  local-dir: build/reports/tests
+  local-dir: build/reports
   on:
     branch: master
 
 after_success:
-- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport coveralls testReport
+- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport :htbhf-claimant-service:coveralls testReport copyReports
 - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./${BIN_DIR}/trigger_java_cd_build.sh
 
 #don't build tags
@@ -46,4 +46,12 @@ branches:
 #Build and perform release (if needed)
 # note that we can't restart failed builds in Travis as the shipkit publishing step will fail if it has already run for that version. Must create a new commit.
 script:
-- ./gradlew build -s && ./gradlew ciPerformRelease -s
+- ./gradlew clean build check -s && ./gradlew ciPerformRelease -s
+
+
+env:
+  global:
+    - APP_NAME=htbhf-claimant-service
+    - CF_DOMAIN=apps.internal
+    - SMOKE_TESTS=./ci_scripts/smoke_tests.sh
+    - BIN_DIR=./bin

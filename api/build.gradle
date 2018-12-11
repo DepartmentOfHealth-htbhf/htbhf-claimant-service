@@ -10,9 +10,22 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'io.franzbecker.gradle-lombok' version '1.14'
+    id "org.owasp.dependencycheck" version "4.0.0.1"
+    id "com.github.spotbugs" version "1.6.5"
+    id 'pmd'
+    id 'checkstyle'
+}
 apply plugin: 'java'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+
+lombok {
+    version = '1.18.4'
+    sha256 = ""
+}
 
 group = 'uk.gov.dhsc.htbhf'
 sourceCompatibility = 1.11
@@ -35,4 +48,22 @@ dependencies {
     // TODO: Remove junit in favour of spock
     testCompile("junit:junit")
 
+}
+
+
+test {
+    reports {
+        junitXml.enabled = false
+        html.enabled = true
+    }
+}
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+checkstyle {
+    toolVersion "8.15"
 }
