@@ -50,9 +50,9 @@ subprojects {
     }
 
     jacocoTestReport {
-        additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
-        sourceDirectories = files(sourceSets.main.allSource.srcDirs)
-        classDirectories =  files(sourceSets.main.output)
+        additionalSourceDirs.from(files(sourceSets.main.allSource.srcDirs))
+        sourceDirectories.from(files(sourceSets.main.allSource.srcDirs))
+        classDirectories.from(files(sourceSets.main.output))
         reports {
             html.enabled = true
             xml.enabled = true
@@ -63,10 +63,10 @@ subprojects {
 
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
     dependsOn = subprojects.test
-    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories = files(subprojects.sourceSets.main.output)
-    executionData = files(subprojects.jacocoTestReport.executionData)
+    additionalSourceDirs.from(files(subprojects.sourceSets.main.allSource.srcDirs))
+    sourceDirectories.from(files(subprojects.sourceSets.main.allSource.srcDirs))
+    classDirectories.from(files(subprojects.sourceSets.main.output))
+    executionData.from(files(subprojects.jacocoTestReport.executionData))
     reports {
         html.enabled = true
         xml.enabled = true
