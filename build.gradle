@@ -96,21 +96,22 @@ allprojects {
     }
 }
 
-task copyReports() {
-    copy {
-        from 'api/build/reports'
-        into 'build/reports'
-        outputs.upToDateWhen { false }
-    }
-    copy {
-        from 'src/documentation/gh-pages'
-        into 'build/reports'
-    }
-    copy {
-        from 'smoke_tests/build/reports/tests/test'
-        into 'build/reports/smoke_tests'
-    }
+task copyApiReports(type: Copy) {
+    from(file('api/build/reports'))
+    into(file('build/reports'))
+    outputs.upToDateWhen { false }
+}
+task copyAdditionalDocumentation(type: Copy) {
+    from(file('src/documentation/gh-pages'))
+    into(file('build/reports'))
+}
+task copySmokeTestReports(type: Copy) {
+    from(file('smoke_tests/build/reports/tests/test'))
+    into(file('build/reports/smoke_tests'))
 }
 
+task copyReports() {
+    dependsOn copyApiReports, copyAdditionalDocumentation, copySmokeTestReports
+}
 
 
