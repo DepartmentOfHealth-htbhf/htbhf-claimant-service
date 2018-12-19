@@ -19,6 +19,7 @@ plugins {
     id 'checkstyle'
 }
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
@@ -74,5 +75,6 @@ checkstyle {
 //TODO - Add rule set files here...
 pmdMain {
     ignoreFailures = false
-    ruleSetFiles = []
+    ruleSetFiles = files("../config/pmd/rulesets.xml")
+    ruleSets = [] // Remove built-in rule sets
 }
