@@ -41,6 +41,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'com.zaxxer:HikariCP'
     implementation 'org.postgresql:postgresql'
+    //TODO: Remove Flyway dependency version into parent project and use in here and in db sub-project.
+    implementation  'org.flywaydb:flyway-core:5.2.4'
+    implementation project(':htbhf-claimant-service-db')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.spockframework:spock-core:1.2-groovy-2.4"
@@ -66,4 +69,10 @@ tasks.withType(com.github.spotbugs.SpotBugsTask) {
 
 checkstyle {
     toolVersion "8.15"
+}
+
+//TODO - Add rule set files here...
+pmdMain {
+    ignoreFailures = false
+    ruleSetFiles = []
 }
