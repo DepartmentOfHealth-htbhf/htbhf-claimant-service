@@ -19,7 +19,7 @@ class DatabaseMigratorTest {
     DatabaseMigrator databaseMigrator;
 
     @Test
-    void shouldInvokeFlywayDBMigration() {
+    void shouldInvokeFlywayDatabaseMigration() {
         // Given
 
         // When
