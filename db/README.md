@@ -59,3 +59,26 @@ sudo -u postgres psql
     GRANT ALL PRIVILEGES ON DATABASE claimant TO claimant_admin;
     \q
 ```
+
+Accessing PaaS databases
+-------------
+Sourced from: https://docs.cloud.service.gov.uk/deploying_services/postgresql/#connect-to-a-postgresql-service-from-your-local-machine
+
+Having logged into the Paas:
+```
+cf login -a ${CF_API} -u ${CF_USER} -p "${CF_PASS}" -s ${CF_SPACE} -o ${CF_ORG}
+```
+And installed the `conduit` plugin:
+```
+cf install-plugin conduit
+```
+To use the psql command line, run:
+```
+cf conduit htbhf-claimant-service-postgres -- psql
+```
+Or, to connect the conduit and use a different application:
+```
+cf conduit htbhf-claimant-service-postgres
+```
+The output will provide connection details - the username & password change every time.
+Note that the jdbcuri includes `&ssl=true` - which should be removed for a successful connection.
