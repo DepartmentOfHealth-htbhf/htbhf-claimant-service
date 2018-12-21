@@ -1,9 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.domain.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 /**
- * Test data factory for {@link uk.gov.dhsc.htbhf.claimant.domain.Claimant} objects.
+ * Test data factory for {@link Claimant} objects.
  */
 public class ClaimantTestDataFactory {
 

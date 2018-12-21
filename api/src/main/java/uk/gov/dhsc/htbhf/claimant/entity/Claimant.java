@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.domain;
+package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
