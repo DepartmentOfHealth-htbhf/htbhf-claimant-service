@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Claimant.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.entity</a> &gt; <span class="el_source">Claimant.java</span></div><h1>Claimant.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.entity;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.validator.constraints.Length;
+
+import java.util.UUID;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
+/**
+ * Domain object for a Claimant.
+ */
+@Entity
+<span class="nc bnc" id="L23" title="All 30 branches missed.">@Data</span>
+<span class="nc" id="L24">@Builder</span>
+@Table(name = &quot;claimant&quot;)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+<span class="nc" id="L27">@AllArgsConstructor</span>
+public class Claimant {
+
+    @Id
+    @GeneratedValue(generator = &quot;UUID&quot;)
+    @GenericGenerator(
+            name = &quot;UUID&quot;,
+            strategy = &quot;org.hibernate.id.UUIDGenerator&quot;
+    )
+<span class="nc" id="L36">    private UUID id;</span>
+
+    @Length(max = 500)
+    @Column(name = &quot;first_name&quot;)
+<span class="nc" id="L40">    private String firstName;</span>
+
+    @NotNull
+    @Length(min = 1, max = 500)
+    @Column(name = &quot;second_name&quot;)
+<span class="nc" id="L45">    private String secondName;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
