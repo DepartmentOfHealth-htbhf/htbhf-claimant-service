@@ -7,6 +7,28 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
  */
 public class ClaimantTestDataFactory {
 
+    private static final String LONG_NAME = "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" + //100
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" + //200
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" + //300
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" + //400
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" +
+                    "This name is way too long" + //500
+                    "This name is way too long";
+
     /**
      * Builds a valid Claimant.
      * @return The built Claimant
@@ -25,32 +47,23 @@ public class ClaimantTestDataFactory {
     }
 
     /**
+     * Builds a Claimant with the given first name.
+     * @param firstName The first name to use.
+     * @return The built Claimant
+     */
+    public static Claimant aClaimantWithFirstName(String firstName) {
+        return Claimant.builder().firstName(firstName).secondName("Smith").build();
+    }
+
+    /**
      * Builds an invalid Claimant with a too long second name
      * @return The built Claimant
      */
     public static Claimant aClaimantWithTooLongSecondName() {
-        return aClaimantWithSecondName("This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" + //100
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" + //200
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" + //300
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" + //400
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" +
-                "This name is way too long" + //500
-                "This name is way too long"
-                );
+        return aClaimantWithSecondName(LONG_NAME);
     }
 
+    public static Claimant aClaimantWithTooLongFirstName() {
+        return aClaimantWithFirstName(LONG_NAME);
+    }
 }

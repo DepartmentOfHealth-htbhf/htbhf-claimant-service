@@ -34,7 +34,7 @@ class ClaimantTest {
     }
 
     @Test
-    void shouldValidateClaimantWithNoSurname() {
+    void shouldFailToValidateClaimantWithNoSurname() {
         //Given
         Claimant claimant = ClaimantTestDataFactory.aClaimantWithSecondName(null);
         //When
@@ -44,7 +44,18 @@ class ClaimantTest {
     }
 
     @Test
-    void shouldValidateClaimantWithTooLongSurname() {
+    void shouldFailToValidateClaimantWithTooLongFirstName() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongFirstName();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).isNotEmpty();
+        assertViolationPresent(violations, "length must be between 0 and 500", "firstName");
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithTooLongSurname() {
         //Given
         Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongSecondName();
         //When
@@ -55,7 +66,7 @@ class ClaimantTest {
     }
 
     @Test
-    void shouldValidateClaimantWithBlankSurname() {
+    void shouldFailToValidateClaimantWithBlankSurname() {
         //Given
         Claimant claimant = ClaimantTestDataFactory.aClaimantWithSecondName("");
         //When

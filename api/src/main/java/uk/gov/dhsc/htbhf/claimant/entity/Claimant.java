@@ -35,6 +35,7 @@ public class Claimant {
     )
     private UUID id;
 
+    @Length(max = 500)
     @Column(name = "first_name")
     private String firstName;
 
