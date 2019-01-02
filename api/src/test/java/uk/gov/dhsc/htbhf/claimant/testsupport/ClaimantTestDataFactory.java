@@ -1,12 +1,16 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 /**
  * Test data factory for {@link Claimant} objects.
  */
-public class ClaimantTestDataFactory {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ClaimantTestDataFactory {
 
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     private static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
             + "This name is way too long"
@@ -28,8 +32,10 @@ public class ClaimantTestDataFactory {
             + "This name is way too long"
             + "This name is way too long" //500
             + "This name is way too long";
+
     /**
      * Builds a valid Claimant.
+     *
      * @return The built Claimant
      */
     public static Claimant aValidClaimant() {
@@ -38,6 +44,7 @@ public class ClaimantTestDataFactory {
 
     /**
      * Builds a Claimant with the given second name.
+     *
      * @param secondName The second name to use
      * @return The built Claimant
      */
@@ -47,6 +54,7 @@ public class ClaimantTestDataFactory {
 
     /**
      * Builds a Claimant with the given first name.
+     *
      * @param firstName The first name to use.
      * @return The built Claimant
      */
@@ -55,7 +63,8 @@ public class ClaimantTestDataFactory {
     }
 
     /**
-     * Builds an invalid Claimant with a too long second name
+     * Builds an invalid Claimant with a too long second name.
+     *
      * @return The built Claimant
      */
     public static Claimant aClaimantWithTooLongSecondName() {
