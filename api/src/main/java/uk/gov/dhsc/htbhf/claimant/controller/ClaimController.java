@@ -11,6 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 
+import javax.validation.Valid;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -24,7 +26,7 @@ public class ClaimController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    public void newClaim(@RequestBody ClaimDTO claimDTO) {
+    public void newClaim(@RequestBody @Valid ClaimDTO claimDTO) {
         Claim claim = conversionService.convert(claimDTO, Claim.class);
         claimService.createClaim(claim);
     }

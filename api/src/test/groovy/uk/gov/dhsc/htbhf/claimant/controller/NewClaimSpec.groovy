@@ -20,7 +20,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimDTO
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-class NewClaimSpec extends Specification{
+class NewClaimSpec extends Specification {
 
     @LocalServerPort
     int port
@@ -43,16 +43,16 @@ class NewClaimSpec extends Specification{
 
     def "An invalid claim"(ClaimDTO claim, String expectedErrorMessage, String expectedField) {
         expect:
-        ResponseEntity<ErrorAttributes> response = restTemplate.postForEntity(endpointUrl, claim, ErrorAttributes.class)
+        ResponseEntity<String> response = restTemplate.postForEntity(endpointUrl, claim, String.class)
         assertThat(response.statusCode).is(BAD_REQUEST)
         assertThat(response.body).isNotNull()
 
         where:
-        claim | expectedErrorMessage | expectedField
-        aClaimDTOWithSecondNameTooLong() | "Name too long" | "secondName"
-        aClaimDTOWithNoSecondName() | "Name too long" | "secondName"
-        aClaimDTOWithEmptySecondName() | "Name too long" | "secondName"
-        aClaimDTOWithFirstNameTooLong() | "Name too long" | "firstName"
+        claim                            | expectedErrorMessage | expectedField
+        aClaimDTOWithSecondNameTooLong() | "Name too long"      | "secondName"
+        aClaimDTOWithNoSecondName()      | "Name too long"      | "secondName"
+        aClaimDTOWithEmptySecondName()   | "Name too long"      | "secondName"
+        aClaimDTOWithFirstNameTooLong()  | "Name too long"      | "firstName"
 
     }
 }
