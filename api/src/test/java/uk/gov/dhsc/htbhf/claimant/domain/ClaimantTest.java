@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ClaimantTest {
 
-    Validator validator;
+    private Validator validator;
 
     @BeforeEach
     void setup() {
@@ -51,7 +51,17 @@ class ClaimantTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "length must be between 0 and 500", "secondName");
+        assertViolationPresent(violations, "length must be between 1 and 500", "secondName");
+    }
+
+    @Test
+    void shouldValidateClaimantWithBlankSurname() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithSecondName("");
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertViolationPresent(violations, "length must be between 1 and 500", "secondName");
     }
 
     //TODO - Change to use custom AssertJ assertion (http://joel-costigliola.github.io/assertj/assertj-core-custom-assertions.html)

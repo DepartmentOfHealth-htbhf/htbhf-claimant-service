@@ -39,7 +39,7 @@ public class Claimant {
     private String firstName;
 
     @NotNull
-    @Length(max = 500)
+    @Length(min = 1, max = 500)
     @Column(name = "second_name")
     private String secondName;
 }
