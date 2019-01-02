@@ -38,6 +38,9 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // spring-boot-start-web includes insecure version of databind. Upgrading to fixed version until this is fixed in spring-boot-starter-web.
+    // https://app.snyk.io/org/departmentofhealth-htbhf/project/c7503341-dc5a-4940-8620-9720ffc8ae26?utm_campaign=weekly_report&utm_source=Project
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'com.zaxxer:HikariCP'
