@@ -7,28 +7,27 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
  */
 public class ClaimantTestDataFactory {
 
-    private static final String LONG_NAME = "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" + //100
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" + //200
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" + //300
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" + //400
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" +
-                    "This name is way too long" + //500
-                    "This name is way too long";
-
+    private static final String LONG_NAME = "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long" //100
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long" //200
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long" //300
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long" //400
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long"
+            + "This name is way too long" //500
+            + "This name is way too long";
     /**
      * Builds a valid Claimant.
      * @return The built Claimant
