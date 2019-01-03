@@ -2,6 +2,8 @@
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -18,7 +22,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @ControllerAdvice
-<span class="fc" id="L21">@Slf4j</span>
+<span class="fc" id="L25">@Slf4j</span>
 @RequiredArgsConstructor
 public class ErrorHandler {
 
@@ -36,22 +40,22 @@ public class ErrorHandler {
     @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleValidationErrors(MethodArgumentNotValidException exception) {
-<span class="fc" id="L39">        log.info(&quot;Validation error&quot;, exception);</span>
-<span class="fc" id="L40">        List&lt;ErrorResponse.FieldError&gt; fieldErrors = exception.getBindingResult().getFieldErrors()</span>
-<span class="fc" id="L41">                .stream()</span>
-<span class="fc" id="L42">                .map(error -&gt; ErrorResponse.FieldError.builder()</span>
-<span class="fc" id="L43">                        .message(error.getDefaultMessage())</span>
-<span class="fc" id="L44">                        .field(error.getField())</span>
-<span class="fc" id="L45">                        .build())</span>
-<span class="fc" id="L46">                .collect(toList());</span>
+<span class="fc" id="L43">        log.info(&quot;Validation error&quot;, exception);</span>
+<span class="fc" id="L44">        List&lt;ErrorResponse.FieldError&gt; fieldErrors = exception.getBindingResult().getFieldErrors()</span>
+<span class="fc" id="L45">                .stream()</span>
+<span class="fc" id="L46">                .map(error -&gt; ErrorResponse.FieldError.builder()</span>
+<span class="fc" id="L47">                        .message(error.getDefaultMessage())</span>
+<span class="fc" id="L48">                        .field(error.getField())</span>
+<span class="fc" id="L49">                        .build())</span>
+<span class="fc" id="L50">                .collect(toList());</span>
 
-<span class="fc" id="L48">        return ErrorResponse.builder()</span>
-<span class="fc" id="L49">                .fieldErrors(fieldErrors)</span>
-<span class="fc" id="L50">                .requestId(requestContext.getRequestId())</span>
-<span class="fc" id="L51">                .status(BAD_REQUEST.value())</span>
-<span class="fc" id="L52">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
-<span class="fc" id="L53">                .message(VALIDATION_ERROR_MESSAGE)</span>
-<span class="fc" id="L54">                .build();</span>
+<span class="fc" id="L52">        return ErrorResponse.builder()</span>
+<span class="fc" id="L53">                .fieldErrors(fieldErrors)</span>
+<span class="fc" id="L54">                .requestId(requestContext.getRequestId())</span>
+<span class="fc" id="L55">                .status(BAD_REQUEST.value())</span>
+<span class="fc" id="L56">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
+<span class="fc" id="L57">                .message(VALIDATION_ERROR_MESSAGE)</span>
+<span class="fc" id="L58">                .build();</span>
     }
 
     /**
@@ -64,14 +68,35 @@ public class ErrorHandler {
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ResponseBody
     public ErrorResponse handleError(Exception exception) {
-<span class="fc" id="L67">        log.error(&quot;An error occurred&quot;, exception);</span>
+<span class="fc" id="L71">        log.error(&quot;An error occurred&quot;, exception);</span>
 
-<span class="fc" id="L69">        return ErrorResponse.builder()</span>
-<span class="fc" id="L70">                .requestId(requestContext.getRequestId())</span>
-<span class="fc" id="L71">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
-<span class="fc" id="L72">                .status(INTERNAL_SERVER_ERROR.value())</span>
-<span class="fc" id="L73">                .message(&quot;An internal server error occurred&quot;)</span>
-<span class="fc" id="L74">                .build();</span>
+<span class="fc" id="L73">        return ErrorResponse.builder()</span>
+<span class="fc" id="L74">                .requestId(requestContext.getRequestId())</span>
+<span class="fc" id="L75">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
+<span class="fc" id="L76">                .status(INTERNAL_SERVER_ERROR.value())</span>
+<span class="fc" id="L77">                .message(&quot;An internal server error occurred&quot;)</span>
+<span class="fc" id="L78">                .build();</span>
     }
+
+    /**
+     * Handles invalid request messages which are unable to be read.
+     *
+     * @param exception Exception
+     * @return ErrorResponse object
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleMessageNotReadableErrors(HttpMessageNotReadableException exception) throws IOException {
+<span class="fc" id="L91">        String requestBody = IOUtils.toString(exception.getHttpInputMessage().getBody(), Charset.defaultCharset());</span>
+<span class="fc" id="L92">        log.info(&quot;Unable to read message: {}&quot;, requestBody, exception);</span>
+
+<span class="fc" id="L94">        return ErrorResponse.builder()</span>
+<span class="fc" id="L95">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
+<span class="fc" id="L96">                .status(BAD_REQUEST.value())</span>
+<span class="fc" id="L97">                .message(&quot;Unable to read request body: &quot; + requestBody)</span>
+<span class="fc" id="L98">                .build();</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
