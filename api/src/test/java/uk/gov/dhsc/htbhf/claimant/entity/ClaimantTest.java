@@ -1,8 +1,7 @@
-package uk.gov.dhsc.htbhf.claimant.domain;
+package uk.gov.dhsc.htbhf.claimant.entity;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory;
 
 import java.util.Set;

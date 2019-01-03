@@ -12,7 +12,11 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.*
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithEmptySecondName
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithFirstNameTooLong
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithNoSecondName
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithSecondNameTooLong
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
@@ -38,26 +42,16 @@ class NewClaimSpec extends Specification {
 
     def "An invalid claim"(ClaimDTO claim, String expectedErrorMessage, String expectedField) {
         expect:
-        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(endpointUrl, claim, ErrorResponse.class)
-        assertErrorResponse(response, expectedField, expectedErrorMessage)
+        ResponseEntity<String> response = restTemplate.postForEntity(endpointUrl, claim, String.class)
+        assertThat(response.statusCode).is(BAD_REQUEST)
+        assertThat(response.body).isNotNull()
 
         where:
-        claim                            | expectedErrorMessage               | expectedField
-        aClaimDTOWithSecondNameTooLong() | "length must be between 1 and 500" | "claimant.secondName"
-        aClaimDTOWithNoSecondName()      | "must not be null"                 | "claimant.secondName"
-        aClaimDTOWithEmptySecondName()   | "length must be between 1 and 500" | "claimant.secondName"
-        aClaimDTOWithFirstNameTooLong()  | "length must be between 0 and 500" | "claimant.firstName"
+        claim                            | expectedErrorMessage | expectedField
+        aClaimDTOWithSecondNameTooLong() | "Name too long"      | "secondName"
+        aClaimDTOWithNoSecondName()      | "Name too long"      | "secondName"
+        aClaimDTOWithEmptySecondName()   | "Name too long"      | "secondName"
+        aClaimDTOWithFirstNameTooLong()  | "Name too long"      | "firstName"
 
-    }
-
-    private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
-        assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
-        assertThat(response.body.fieldErrors.size()).isEqualTo(1)
-        assertThat(response.body.fieldErrors[0].field).isEqualTo(expectedField)
-        assertThat(response.body.fieldErrors[0].message).isEqualTo(expectedErrorMessage)
-        assertThat(response.body.requestId).isNotNull()
-        assertThat(response.body.timestamp).isNotNull()
-        assertThat(response.body.status).isEqualTo(BAD_REQUEST.value())
-        assertThat(response.body.message).isEqualTo("There were validation issues with the request.")
     }
 }

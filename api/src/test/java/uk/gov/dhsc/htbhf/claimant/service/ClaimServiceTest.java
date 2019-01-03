@@ -23,7 +23,9 @@ public class ClaimServiceTest {
     @Test
     public void shouldSaveClaimant() {
         //given
-        Claim claim = Claim.builder().claimant(aValidClaimant()).build();
+        Claim claim = Claim.builder()
+                .claimant(aValidClaimant())
+                .build();
 
         //when
         claimService.createClaim(claim);
