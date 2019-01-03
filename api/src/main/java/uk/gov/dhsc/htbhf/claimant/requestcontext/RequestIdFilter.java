@@ -6,19 +6,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
+import java.util.UUID;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.UUID;
 
 @Component
 public class RequestIdFilter extends OncePerRequestFilter {
 
-    /** The name of the request ID in the MDC context. Must match the name in logback configuration. */
+    /**
+     * The name of the request ID in the MDC context. Must match the name in logback configuration.
+     */
     private static final String MDC_KEY = "request.id";
-    /** The name of the request id header. */
+    /**
+     * The name of the request id header.
+     */
     private static final String REQUEST_ID_HEADER = "X-REQUEST-ID";
 
     private final RequestContext requestContext;

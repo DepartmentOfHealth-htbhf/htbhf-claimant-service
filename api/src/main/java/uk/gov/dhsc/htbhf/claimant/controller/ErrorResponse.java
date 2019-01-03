@@ -10,12 +10,12 @@ import java.util.List;
  */
 @Data
 @Builder
-class ErrorResponse {
-    List<FieldError> fieldErrors;
-    String requestId;
-    String timestamp;
-    Integer status;
-    String message;
+public class ErrorResponse {
+    private List<FieldError> fieldErrors;
+    private String requestId;
+    private String timestamp;
+    private Integer status;
+    private String message;
 
 
     /**
@@ -23,7 +23,7 @@ class ErrorResponse {
      */
     @Data
     @Builder
-    static class FieldError {
+    public static class FieldError {
         private String message;
         private String field;
     }

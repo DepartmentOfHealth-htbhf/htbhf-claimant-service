@@ -2,21 +2,23 @@ package uk.gov.dhsc.htbhf.claimant.controller
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.ResponseEntity
 import spock.lang.Specification
+import uk.gov.dhsc.htbhf.claimant.entity.Claim
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
+import uk.gov.dhsc.htbhf.claimant.service.ClaimService
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
+import static org.mockito.ArgumentMatchers.any
+import static org.mockito.Mockito.when
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithEmptySecondName
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithFirstNameTooLong
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithNoSecondName
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithSecondNameTooLong
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
@@ -26,6 +28,9 @@ class NewClaimSpec extends Specification {
 
     @Autowired
     TestRestTemplate restTemplate
+
+    @MockBean
+    ClaimService claimService
 
     URI endpointUrl = URI.create("/claim")
 
@@ -40,18 +45,43 @@ class NewClaimSpec extends Specification {
         assertThat(response.statusCode).isEqualTo(CREATED)
     }
 
-    def "An invalid claim"(ClaimDTO claim, String expectedErrorMessage, String expectedField) {
+    def "An invalid claim returns an error response"(ClaimDTO claim, String expectedErrorMessage, String expectedField) {
         expect:
-        ResponseEntity<String> response = restTemplate.postForEntity(endpointUrl, claim, String.class)
-        assertThat(response.statusCode).is(BAD_REQUEST)
-        assertThat(response.body).isNotNull()
+        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(endpointUrl, claim, ErrorResponse.class)
+        assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        claim                            | expectedErrorMessage | expectedField
-        aClaimDTOWithSecondNameTooLong() | "Name too long"      | "secondName"
-        aClaimDTOWithNoSecondName()      | "Name too long"      | "secondName"
-        aClaimDTOWithEmptySecondName()   | "Name too long"      | "secondName"
-        aClaimDTOWithFirstNameTooLong()  | "Name too long"      | "firstName"
+        claim                            | expectedErrorMessage               | expectedField
+        aClaimDTOWithSecondNameTooLong() | "length must be between 1 and 500" | "claimant.secondName"
+        aClaimDTOWithNoSecondName()      | "must not be null"                 | "claimant.secondName"
+        aClaimDTOWithEmptySecondName()   | "length must be between 1 and 500" | "claimant.secondName"
+        aClaimDTOWithFirstNameTooLong()  | "length must be between 0 and 500" | "claimant.firstName"
+    }
 
+    def "Internal service errors return an error response"() {
+        given: "A valid claim request"
+        def claim = aValidClaimDTO()
+
+        when: "An internal error occurs"
+        when(claimService.createClaim(any(Claim.class) as Claim)).thenThrow(new RuntimeException())
+        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(endpointUrl, claim, ErrorResponse.class)
+
+        then: "An error response is returned"
+        assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR)
+        assertThat(response.body.message).isEqualTo("An internal server error occurred")
+        assertThat(response.body.status).isEqualTo(INTERNAL_SERVER_ERROR.value())
+        assertThat(response.body.timestamp).isNotNull()
+        assertThat(response.body.requestId).isNotNull()
+    }
+
+    private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
+        assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
+        assertThat(response.body.fieldErrors.size()).isEqualTo(1)
+        assertThat(response.body.fieldErrors[0].field).isEqualTo(expectedField)
+        assertThat(response.body.fieldErrors[0].message).isEqualTo(expectedErrorMessage)
+        assertThat(response.body.requestId).isNotNull()
+        assertThat(response.body.timestamp).isNotNull()
+        assertThat(response.body.status).isEqualTo(BAD_REQUEST.value())
+        assertThat(response.body.message).isEqualTo("There were validation issues with the request.")
     }
 }

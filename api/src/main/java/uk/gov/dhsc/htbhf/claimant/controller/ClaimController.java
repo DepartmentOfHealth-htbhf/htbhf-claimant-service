@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController()
 @RequestMapping(value = "/claim", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
+@Slf4j
 public class ClaimController {
 
     private final ClaimService claimService;
@@ -27,6 +29,7 @@ public class ClaimController {
     @PostMapping
     @ResponseStatus(CREATED)
     public void newClaim(@RequestBody @Valid ClaimDTO claimDTO) {
+        log.info("Received claim");
         Claim claim = converter.convert(claimDTO);
         claimService.createClaim(claim);
     }

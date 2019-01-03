@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class ClaimDTOToClaimConverterTest {
 
-    ClaimDTOToClaimConverter converter = new ClaimDTOToClaimConverter();
+    private ClaimDTOToClaimConverter converter = new ClaimDTOToClaimConverter();
 
     @Test
     void shouldConvertClaimDTOToEquivalentClaimObject() {
@@ -33,7 +33,9 @@ class ClaimDTOToClaimConverterTest {
 
     @Test
     void shouldNotConvertNullClaimDTO() {
-        assertThatIllegalArgumentException().isThrownBy(() -> { converter.convert(null); });
+        assertThatIllegalArgumentException().isThrownBy(() -> {
+            converter.convert(null);
+        });
     }
 
 }
