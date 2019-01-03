@@ -57,22 +57,6 @@ class NewClaimSpec extends Specification {
         "{}"                             | "must not be null"                 | "claimant"
     }
 
-    def "An empty body returns an error"() {
-        given: "An empty request body"
-        def requestBody = ""
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON)
-        def requestEntity = new RequestEntity<>(requestBody, headers, HttpMethod.POST, endpointUrl)
-
-        when: "The request is received"
-        def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
-
-        then: "An error is returned"
-        assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
-        assertThat(response.body.timestamp).isNotNull()
-        assertThat(response.body.message).isEqualTo("Unable to read request body: ")
-    }
-
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
         assertThat(response.body.fieldErrors.size()).isEqualTo(1)
