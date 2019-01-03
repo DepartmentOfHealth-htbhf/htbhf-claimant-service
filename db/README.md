@@ -7,8 +7,11 @@ This sub-project is responsible for the definition of the Database Schema, using
 DB upgrade scripts
 -------------
 
-Database migrations will be performed by [Flyway](https://flywaydb.org/documentation/),
-using migration scripts in src/main/resources/db.migration.
+Database migrations will be performed by [Flyway](https://flywaydb.org/documentation/), invoked automagically by spring
+(Search [Spring Boot properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+for 'flyway' to find the relevant properties, as configured in api/src/main/resources/application.yml).
+
+Flyway uses migration scripts in src/main/resources/db.migration.
 There is a strong naming convention for these scripts:
 ```
 V_major_minor__description.sql
