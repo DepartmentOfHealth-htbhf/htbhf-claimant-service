@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.controller
 
-
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -72,7 +71,6 @@ class NewClaimSpec extends Specification {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
         assertThat(response.body.timestamp).isNotNull()
         assertThat(response.body.message).isEqualTo("Unable to read request body: ")
-
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
