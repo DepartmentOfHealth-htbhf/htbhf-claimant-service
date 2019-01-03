@@ -12,8 +12,8 @@ import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -43,7 +43,7 @@ public class ErrorHandler {
                         .message(error.getDefaultMessage())
                         .field(error.getField())
                         .build())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         return ErrorResponse.builder()
                 .fieldErrors(fieldErrors)

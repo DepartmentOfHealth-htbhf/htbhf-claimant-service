@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 
 /**
- * Converts a {@link ClaimDTO}s into a {@link Claim}.
+ * Converts a {@link ClaimDTO} into a {@link Claim}.
  */
 @Component
 public class ClaimDTOToClaimConverter {
