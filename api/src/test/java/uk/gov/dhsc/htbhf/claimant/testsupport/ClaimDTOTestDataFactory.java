@@ -57,4 +57,5 @@ public final class ClaimDTOTestDataFactory {
                 ClaimantDTO.builder().firstName("James").secondName("").build()
         ).build();
     }
+
 }

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
@@ -15,5 +16,6 @@ public class ClaimDTO {
 
     @JsonProperty("claimant")
     @Valid
+    @NotNull
     private ClaimantDTO claimant;
 }

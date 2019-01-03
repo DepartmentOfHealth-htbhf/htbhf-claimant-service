@@ -1,13 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.controller
 
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import spock.lang.Specification
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
@@ -35,15 +35,18 @@ class NewClaimSpec extends Specification {
         def claim = aValidClaimDTO()
 
         when: "The request is received"
-        ResponseEntity<Void> response = restTemplate.postForEntity(endpointUrl, claim, Void.class)
+        def response = restTemplate.postForEntity(endpointUrl, claim, Void.class)
 
         then: "A created response is returned"
         assertThat(response.statusCode).isEqualTo(CREATED)
     }
 
-    def "An invalid claim returns an error response"(ClaimDTO claim, String expectedErrorMessage, String expectedField) {
+    def "An invalid claim returns an error response"(Object claim, String expectedErrorMessage, String expectedField) {
         expect:
-        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(endpointUrl, claim, ErrorResponse.class)
+        def headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON)
+        def requestEntity = new RequestEntity<>(claim, headers, HttpMethod.POST, endpointUrl)
+        def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
         assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
@@ -52,9 +55,25 @@ class NewClaimSpec extends Specification {
         aClaimDTOWithNoSecondName()      | "must not be null"                 | "claimant.secondName"
         aClaimDTOWithEmptySecondName()   | "length must be between 1 and 500" | "claimant.secondName"
         aClaimDTOWithFirstNameTooLong()  | "length must be between 0 and 500" | "claimant.firstName"
+        "{}"                             | "must not be null"                 | "claimant"
     }
 
+    def "An empty body returns an error"() {
+        given: "An empty request body"
+        def requestBody = ""
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON)
+        def requestEntity = new RequestEntity<>(requestBody, headers, HttpMethod.POST, endpointUrl)
 
+        when: "The request is received"
+        def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
+
+        then: "An error is returned"
+        assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
+        assertThat(response.body.timestamp).isNotNull()
+        assertThat(response.body.message).isEqualTo("Unable to read request body: ")
+
+    }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
