@@ -82,6 +82,7 @@ public class ErrorHandler {
      * Handles invalid request messages which are unable to be read.
      *
      * @param exception Exception
+     * @throws IOException exception from retrieving the message body.
      * @return ErrorResponse object
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
