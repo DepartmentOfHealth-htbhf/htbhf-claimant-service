@@ -7,17 +7,13 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.ResponseEntity
 import spock.lang.Specification
-import uk.gov.dhsc.htbhf.claimant.entity.Claim
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
-import static org.mockito.ArgumentMatchers.any
-import static org.mockito.Mockito.when
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -58,21 +54,7 @@ class NewClaimSpec extends Specification {
         aClaimDTOWithFirstNameTooLong()  | "length must be between 0 and 500" | "claimant.firstName"
     }
 
-    def "Internal service errors return an error response"() {
-        given: "A valid claim request"
-        def claim = aValidClaimDTO()
 
-        when: "An internal error occurs"
-        when(claimService.createClaim(any(Claim.class) as Claim)).thenThrow(new RuntimeException())
-        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(endpointUrl, claim, ErrorResponse.class)
-
-        then: "An error response is returned"
-        assertThat(response.statusCode).isEqualTo(INTERNAL_SERVER_ERROR)
-        assertThat(response.body.message).isEqualTo("An internal server error occurred")
-        assertThat(response.body.status).isEqualTo(INTERNAL_SERVER_ERROR.value())
-        assertThat(response.body.timestamp).isNotNull()
-        assertThat(response.body.requestId).isNotNull()
-    }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
