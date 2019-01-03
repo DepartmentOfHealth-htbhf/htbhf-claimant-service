@@ -1,13 +1,11 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import lombok.NoArgsConstructor;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
-@NoArgsConstructor
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UseUtilityClass"})
 public final class ClaimRequestTestDataFactory {
 
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     private static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
             + "This name is way too long"

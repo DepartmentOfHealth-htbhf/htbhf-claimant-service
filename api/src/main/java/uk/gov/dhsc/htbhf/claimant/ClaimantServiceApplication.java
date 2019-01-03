@@ -19,7 +19,6 @@ public class ClaimantServiceApplication {
     }
 
     @Bean
-    @SuppressWarnings("PMD.LawOfDemeter")
     public Flyway flyway(DataSource dataSource) {
         return Flyway.configure().dataSource(dataSource).load();
     }

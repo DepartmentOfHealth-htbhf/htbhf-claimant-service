@@ -27,7 +27,7 @@ public class RequestIdFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            final String token;
+            String token;
             if (StringUtils.isEmpty(request.getHeader(REQUEST_ID_HEADER))) {
                 token = UUID.randomUUID().toString();
             } else {
