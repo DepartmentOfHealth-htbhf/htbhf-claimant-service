@@ -38,6 +38,9 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // spring-boot-start-web includes insecure version of databind. Upgrading to fixed version until this is fixed in spring-boot-starter-web.
+    // https://app.snyk.io/org/departmentofhealth-htbhf/project/c7503341-dc5a-4940-8620-9720ffc8ae26?utm_campaign=weekly_report&utm_source=Project
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'com.zaxxer:HikariCP'
@@ -51,6 +54,7 @@ dependencies {
     testImplementation "org.mockito:mockito-junit-jupiter:2.23.4"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.vintage:junit-vintage-engine:${junitVersion}"
     testImplementation "org.assertj:assertj-core:3.11.1"
     testImplementation "com.h2database:h2:1.4.197"
 
@@ -59,6 +63,7 @@ dependencies {
 
 
 test {
+    useJUnitPlatform()
     reports {
         junitXml.enabled = false
         html.enabled = true
@@ -84,4 +89,24 @@ pmdTest {
     ignoreFailures = false
     ruleSetFiles = files("../config/pmd/test-rulesets.xml")
     ruleSets = [] // Remove built-in rule sets
+}
+
+
+task delombok(type: io.franzbecker.gradle.lombok.task.DelombokTask, dependsOn: compileJava) {
+    ext.outputDir = file("$buildDir/delombok")
+    outputs.dir(outputDir)
+    classpath += sourceSets.main.runtimeClasspath
+    sourceSets.main.java.srcDirs.each {
+        inputs.dir(it)
+        args(it, "-d", outputDir)
+    }
+    doFirst {
+        outputDir.deleteDir()
+    }
+}
+
+javadoc {
+    dependsOn delombok
+    source = delombok.outputDir
+    // failOnError = false
 }
