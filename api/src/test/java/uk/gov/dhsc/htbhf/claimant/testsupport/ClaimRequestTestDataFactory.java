@@ -54,7 +54,7 @@ public final class ClaimRequestTestDataFactory {
 
     public static ClaimDTO aClaimDTOWithEmptySecondName() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName("James").secondName(null).build()
+                ClaimantDTO.builder().firstName("James").secondName("").build()
         ).build();
     }
 }
