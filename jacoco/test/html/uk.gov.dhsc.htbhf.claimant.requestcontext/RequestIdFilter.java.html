@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestIdFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.requestcontext</a> &gt; <span class="el_source">RequestIdFilter.java</span></div><h1>RequestIdFilter.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.requestcontext;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.UUID;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.springframework.util.StringUtils.isEmpty;
+
+@Component
+@RequiredArgsConstructor
+public class RequestIdFilter extends OncePerRequestFilter {
+
+    /**
+     * The name of the request ID in the MDC context. Must match the name in logback configuration.
+     */
+    public static final String MDC_KEY = &quot;request.id&quot;;
+    /**
+     * The name of the request id header.
+     */
+    public static final String REQUEST_ID_HEADER = &quot;X-REQUEST-ID&quot;;
+
+    private final RequestContext requestContext;
+    private final MDCWrapper mdcWrapper;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        try {
+<span class="fc" id="L35">            String token = request.getHeader(REQUEST_ID_HEADER);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">            if (isEmpty(token)) {</span>
+<span class="fc" id="L37">                token = UUID.randomUUID().toString();</span>
+            }
+<span class="fc" id="L39">            mdcWrapper.put(MDC_KEY, token);</span>
+<span class="fc" id="L40">            requestContext.setRequestId(token);</span>
+
+<span class="fc" id="L42">            filterChain.doFilter(request, response);</span>
+        } finally {
+<span class="fc" id="L44">            mdcWrapper.remove(MDC_KEY);</span>
+        }
+
+<span class="fc" id="L47">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
