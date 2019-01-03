@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,18 +19,16 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @ControllerAdvice
 @Slf4j
+@RequiredArgsConstructor
 public class ErrorHandler {
 
     private static final String VALIDATION_ERROR_MESSAGE = "There were validation issues with the request.";
-    private final RequestContext requestContext;
 
-    @Autowired
-    public ErrorHandler(RequestContext requestContext) {
-        this.requestContext = requestContext;
-    }
+    private final RequestContext requestContext;
 
     /**
      * Handles validation errors and parses them into a an {@link ErrorResponse}.
+     *
      * @param exception validation exception
      * @return ErrorResponse object
      */
@@ -44,7 +42,7 @@ public class ErrorHandler {
                 .map(error -> ErrorResponse.FieldError.builder()
                         .message(error.getDefaultMessage())
                         .field(error.getField())
-                .build())
+                        .build())
                 .collect(Collectors.toList());
 
         return ErrorResponse.builder()
@@ -58,6 +56,7 @@ public class ErrorHandler {
 
     /**
      * Handles all exceptions not handled by other exception handler methods.
+     *
      * @param exception Exception
      * @return ErrorResponse object
      */

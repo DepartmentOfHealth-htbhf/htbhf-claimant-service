@@ -33,9 +33,7 @@ class ClaimDTOToClaimConverterTest {
 
     @Test
     void shouldNotConvertNullClaimDTO() {
-        assertThatIllegalArgumentException().isThrownBy(() -> {
-            converter.convert(null);
-        });
+        assertThatIllegalArgumentException().isThrownBy(() -> converter.convert(null));
     }
 
 }
