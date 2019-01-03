@@ -82,20 +82,21 @@ public class ErrorHandler {
      * Handles invalid request messages which are unable to be read.
      *
      * @param exception Exception
+     * @throws IOException exception from retrieving the message body.
      * @return ErrorResponse object
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleMessageNotReadableErrors(HttpMessageNotReadableException exception) throws IOException {
-<span class="fc" id="L91">        String requestBody = IOUtils.toString(exception.getHttpInputMessage().getBody(), Charset.defaultCharset());</span>
-<span class="fc" id="L92">        log.info(&quot;Unable to read message: {}&quot;, requestBody, exception);</span>
+<span class="fc" id="L92">        String requestBody = IOUtils.toString(exception.getHttpInputMessage().getBody(), Charset.defaultCharset());</span>
+<span class="fc" id="L93">        log.info(&quot;Unable to read message: {}&quot;, requestBody, exception);</span>
 
-<span class="fc" id="L94">        return ErrorResponse.builder()</span>
-<span class="fc" id="L95">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
-<span class="fc" id="L96">                .status(BAD_REQUEST.value())</span>
-<span class="fc" id="L97">                .message(&quot;Unable to read request body: &quot; + requestBody)</span>
-<span class="fc" id="L98">                .build();</span>
+<span class="fc" id="L95">        return ErrorResponse.builder()</span>
+<span class="fc" id="L96">                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))</span>
+<span class="fc" id="L97">                .status(BAD_REQUEST.value())</span>
+<span class="fc" id="L98">                .message(&quot;Unable to read request body: &quot; + requestBody)</span>
+<span class="fc" id="L99">                .build();</span>
     }
 
 }
