@@ -3,12 +3,6 @@ language: java
 jdk:
   - openjdk11
 
-addons:
-  postgresql: "9.5"
-
-services:
-- postgresql
-
 before_cache:
 - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
 - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -17,12 +11,6 @@ cache:
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - bin/
-
-before_script:
-- psql -c 'CREATE DATABASE claimant;' -U postgres
-- psql -c "CREATE USER claimant_admin WITH PASSWORD 'claimant_admin';" -U postgres
-- psql -c "GRANT ALL PRIVILEGES ON DATABASE claimant TO claimant_admin;" -U postgres
-#- ./gradlew :htbhf-claimant-service-db:flywayMigrate -s
 
 
 deploy:
