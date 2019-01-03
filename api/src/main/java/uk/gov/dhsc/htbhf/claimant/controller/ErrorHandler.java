@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -73,4 +77,25 @@ public class ErrorHandler {
                 .message("An internal server error occurred")
                 .build();
     }
+
+    /**
+     * Handles invalid request messages which are unable to be read.
+     *
+     * @param exception Exception
+     * @return ErrorResponse object
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleMessageNotReadableErrors(HttpMessageNotReadableException exception) throws IOException {
+        String requestBody = IOUtils.toString(exception.getHttpInputMessage().getBody(), Charset.defaultCharset());
+        log.info("Unable to read message: {}", requestBody, exception);
+
+        return ErrorResponse.builder()
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .status(BAD_REQUEST.value())
+                .message("Unable to read request body: " + requestBody)
+                .build();
+    }
+
 }
