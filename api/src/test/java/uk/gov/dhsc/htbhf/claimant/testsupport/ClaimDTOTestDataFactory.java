@@ -30,31 +30,31 @@ public final class ClaimDTOTestDataFactory {
 
     public static ClaimDTO aValidClaimDTO() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName("James").secondName("Smith").build()
+                ClaimantDTO.builder().firstName("James").lastName("Smith").build()
         ).build();
     }
 
-    public static ClaimDTO aClaimDTOWithSecondNameTooLong() {
+    public static ClaimDTO aClaimDTOWithLastNameTooLong() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName("James").secondName(LONG_NAME).build()
+                ClaimantDTO.builder().firstName("James").lastName(LONG_NAME).build()
         ).build();
     }
 
     public static ClaimDTO aClaimDTOWithFirstNameTooLong() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName(LONG_NAME).secondName("Smith").build()
+                ClaimantDTO.builder().firstName(LONG_NAME).lastName("Smith").build()
         ).build();
     }
 
-    public static ClaimDTO aClaimDTOWithNoSecondName() {
+    public static ClaimDTO aClaimDTOWithNoLastName() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName("James").secondName(null).build()
+                ClaimantDTO.builder().firstName("James").lastName(null).build()
         ).build();
     }
 
-    public static ClaimDTO aClaimDTOWithEmptySecondName() {
+    public static ClaimDTO aClaimDTOWithEmptyLastName() {
         return ClaimDTO.builder().claimant(
-                ClaimantDTO.builder().firstName("James").secondName("").build()
+                ClaimantDTO.builder().firstName("James").lastName("").build()
         ).build();
     }
 

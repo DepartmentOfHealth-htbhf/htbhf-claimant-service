@@ -34,6 +34,6 @@ class ClaimantRepositoryTest {
         assertThat(expectedClaimant).isNotNull();
         assertThat(actualClaimant).isNotNull();
         assertThat(actualClaimant.getFirstName()).isEqualTo(expectedClaimant.getFirstName());
-        assertThat(actualClaimant.getSecondName()).isEqualTo(expectedClaimant.getSecondName());
+        assertThat(actualClaimant.getLastName()).isEqualTo(expectedClaimant.getLastName());
     }
 }

@@ -35,11 +35,11 @@ class ClaimantTest {
     @Test
     void shouldFailToValidateClaimantWithNoSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithSecondName(null);
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithLastName(null);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertViolationPresent(violations, "must not be null", "secondName");
+        assertViolationPresent(violations, "must not be null", "lastName");
     }
 
     @Test
@@ -56,22 +56,22 @@ class ClaimantTest {
     @Test
     void shouldFailToValidateClaimantWithTooLongSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongSecondName();
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongLastName();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "length must be between 1 and 500", "secondName");
+        assertViolationPresent(violations, "length must be between 1 and 500", "lastName");
     }
 
     @Test
     void shouldFailToValidateClaimantWithBlankSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithSecondName("");
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithLastName("");
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertViolationPresent(violations, "length must be between 1 and 500", "secondName");
+        assertViolationPresent(violations, "length must be between 1 and 500", "lastName");
     }
 
     //TODO - Change to use custom AssertJ assertion (http://joel-costigliola.github.io/assertj/assertj-core-custom-assertions.html)

@@ -20,6 +20,6 @@ public class ClaimantDTO {
 
     @NotNull
     @Length(min = 1, max = 500)
-    @JsonProperty("secondName")
-    private String secondName;
+    @JsonProperty("lastName")
+    private String lastName;
 }

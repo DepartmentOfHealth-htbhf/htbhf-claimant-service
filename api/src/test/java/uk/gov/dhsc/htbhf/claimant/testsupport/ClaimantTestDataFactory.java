@@ -39,17 +39,17 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aValidClaimant() {
-        return Claimant.builder().firstName("Joe").secondName("Blogger").build();
+        return Claimant.builder().firstName("Joe").lastName("Blogger").build();
     }
 
     /**
-     * Builds a Claimant with the given second name.
+     * Builds a Claimant with the given last name.
      *
-     * @param secondName The second name to use
+     * @param lastName The last name to use
      * @return The built Claimant
      */
-    public static Claimant aClaimantWithSecondName(String secondName) {
-        return Claimant.builder().firstName("Joe").secondName(secondName).build();
+    public static Claimant aClaimantWithLastName(String lastName) {
+        return Claimant.builder().firstName("Joe").lastName(lastName).build();
     }
 
     /**
@@ -59,7 +59,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstName(String firstName) {
-        return Claimant.builder().firstName(firstName).secondName("Smith").build();
+        return Claimant.builder().firstName(firstName).lastName("Smith").build();
     }
 
     /**
@@ -67,8 +67,8 @@ public final class ClaimantTestDataFactory {
      *
      * @return The built Claimant
      */
-    public static Claimant aClaimantWithTooLongSecondName() {
-        return aClaimantWithSecondName(LONG_NAME);
+    public static Claimant aClaimantWithTooLongLastName() {
+        return aClaimantWithLastName(LONG_NAME);
     }
 
     public static Claimant aClaimantWithTooLongFirstName() {
