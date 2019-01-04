@@ -47,6 +47,8 @@ dependencies {
     implementation 'org.postgresql:postgresql'
     implementation "org.flywaydb:flyway-core:${flywayVersion}"
     implementation "commons-io:commons-io:2.5"
+    implementation "io.springfox:springfox-swagger2:${springFoxVersion}"
+    implementation "io.springfox:springfox-bean-validators:${springFoxVersion}"
     implementation project(':htbhf-claimant-service-db')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -60,6 +62,8 @@ dependencies {
     testImplementation "com.h2database:h2:1.4.197"
 
 
+    // When editing the api documentation, this is useful to be able to view the swagger-ui on http://localhost:8080/swagger-ui.html
+    // implementation "io.springfox:springfox-swagger-ui:${springFoxVersion}"
 }
 
 
@@ -111,3 +115,4 @@ javadoc {
     source = delombok.outputDir
     failOnError = true
 }
+

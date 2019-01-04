@@ -9,6 +9,7 @@ buildscript {
         HikariCPVersion = '2.7.8'
         postgresVersion = '9.5'
         flywayVersion = '5.2.4'
+        springFoxVersion = '2.9.2'
     }
 
     repositories {
@@ -115,5 +116,4 @@ task copySmokeTestReports(type: Copy) {
 task copyReports() {
     dependsOn copyApiReports, copyAdditionalDocumentation, copySmokeTestReports
 }
-
 

@@ -50,7 +50,7 @@ class ClaimantTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "length must be between 0 and 500", "firstName");
+        assertViolationPresent(violations, "size must be between 0 and 500", "firstName");
     }
 
     @Test
@@ -61,7 +61,7 @@ class ClaimantTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "length must be between 1 and 500", "lastName");
+        assertViolationPresent(violations, "size must be between 1 and 500", "lastName");
     }
 
     @Test
@@ -71,7 +71,7 @@ class ClaimantTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertViolationPresent(violations, "length must be between 1 and 500", "lastName");
+        assertViolationPresent(violations, "size must be between 1 and 500", "lastName");
     }
 
     //TODO - Change to use custom AssertJ assertion (http://joel-costigliola.github.io/assertj/assertj-core-custom-assertions.html)

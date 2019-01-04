@@ -9,4 +9,6 @@ import lombok.Data;
 public class RequestContext {
 
     private String requestId;
+    private String method;
+    private String servletPath;
 }

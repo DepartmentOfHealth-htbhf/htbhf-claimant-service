@@ -35,7 +35,7 @@ class ErrorSpec extends Specification{
     @MockBean
     ClaimService claimService
 
-    URI endpointUrl = URI.create("/claim")
+    URI endpointUrl = URI.create("/v1/claims")
 
     def "Internal service errors return an error response"() {
         given: "A valid claim request"

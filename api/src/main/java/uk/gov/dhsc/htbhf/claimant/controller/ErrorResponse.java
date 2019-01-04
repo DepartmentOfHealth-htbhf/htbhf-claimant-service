@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import java.util.List;
  */
 @Data
 @Builder
+@ApiModel(description = "The format of all error responses")
 public class ErrorResponse {
     private List<FieldError> fieldErrors;
     private String requestId;
@@ -24,7 +26,7 @@ public class ErrorResponse {
     @Data
     @Builder
     public static class FieldError {
-        private String message;
         private String field;
+        private String message;
     }
 }

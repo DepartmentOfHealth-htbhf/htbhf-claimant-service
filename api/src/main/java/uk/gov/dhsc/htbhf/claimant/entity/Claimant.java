@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.validator.constraints.Length;
 
 import java.util.UUID;
 import javax.persistence.Column;
@@ -15,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * Domain object for a Claimant.
@@ -35,12 +35,12 @@ public class Claimant {
     )
     private UUID id;
 
-    @Length(max = 500)
+    @Size(max = 500)
     @Column(name = "first_name")
     private String firstName;
 
     @NotNull
-    @Length(min = 1, max = 500)
+    @Size(min = 1, max = 500)
     @Column(name = "last_name")
     private String lastName;
 }

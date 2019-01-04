@@ -18,6 +18,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.MDC_KEY;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,6 +70,23 @@ class RequestIdFilterTest {
         inOrder.verify(requestContext).setRequestId(anyString());
         inOrder.verify(filterChain).doFilter(request, response);
         inOrder.verify(mdcWrapper).remove(MDC_KEY);
+    }
+
+    @Test
+    void shouldPopulateMethodAndServletPathOfRequestContext() throws Exception {
+        // Given
+        String method = "POST";
+        given(request.getMethod()).willReturn(method);
+        String servletPath = "/my/path";
+        given(request.getServletPath()).willReturn(servletPath);
+
+        // When
+        filter.doFilterInternal(request, response, filterChain);
+
+        // Then
+
+        verify(requestContext).setMethod(method);
+        verify(requestContext).setServletPath(servletPath);
     }
 
     @Test
