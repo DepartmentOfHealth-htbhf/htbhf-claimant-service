@@ -28,7 +28,7 @@ class ClaimDTOToClaimConverterTest {
         Claimant claimant = result.getClaimant();
         assertThat(claimant).isNotNull();
         assertThat(claimant.getFirstName()).isEqualTo(claimantDTO.getFirstName());
-        assertThat(claimant.getSecondName()).isEqualTo(claimantDTO.getSecondName());
+        assertThat(claimant.getLastName()).isEqualTo(claimantDTO.getLastName());
     }
 
     @Test

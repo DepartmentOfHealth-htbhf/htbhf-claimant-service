@@ -41,6 +41,6 @@ public class Claimant {
 
     @NotNull
     @Length(min = 1, max = 500)
-    @Column(name = "second_name")
-    private String secondName;
+    @Column(name = "last_name")
+    private String lastName;
 }

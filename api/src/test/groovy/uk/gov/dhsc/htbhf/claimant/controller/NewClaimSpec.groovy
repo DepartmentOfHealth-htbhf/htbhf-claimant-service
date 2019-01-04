@@ -49,12 +49,12 @@ class NewClaimSpec extends Specification {
         assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        claim                            | expectedErrorMessage               | expectedField
-        aClaimDTOWithSecondNameTooLong() | "length must be between 1 and 500" | "claimant.secondName"
-        aClaimDTOWithNoSecondName()      | "must not be null"                 | "claimant.secondName"
-        aClaimDTOWithEmptySecondName()   | "length must be between 1 and 500" | "claimant.secondName"
-        aClaimDTOWithFirstNameTooLong()  | "length must be between 0 and 500" | "claimant.firstName"
-        "{}"                             | "must not be null"                 | "claimant"
+        claim                           | expectedErrorMessage               | expectedField
+        aClaimDTOWithLastNameTooLong()  | "length must be between 1 and 500" | "claimant.lastName"
+        aClaimDTOWithNoLastName()       | "must not be null"                 | "claimant.lastName"
+        aClaimDTOWithEmptyLastName()    | "length must be between 1 and 500" | "claimant.lastName"
+        aClaimDTOWithFirstNameTooLong() | "length must be between 0 and 500" | "claimant.firstName"
+        "{}"                            | "must not be null"                 | "claimant"
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {

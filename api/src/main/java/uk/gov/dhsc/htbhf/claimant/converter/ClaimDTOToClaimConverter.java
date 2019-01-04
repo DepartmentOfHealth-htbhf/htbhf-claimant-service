@@ -18,7 +18,7 @@ public class ClaimDTOToClaimConverter {
                 .claimant(
                         Claimant.builder()
                                 .firstName(source.getClaimant().getFirstName())
-                                .secondName(source.getClaimant().getSecondName())
+                                .lastName(source.getClaimant().getLastName())
                                 .build()
                 )
                 .build();
