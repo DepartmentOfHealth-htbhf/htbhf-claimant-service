@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/travis/com/DepartmentOfHealth-htbhf/htbhf-claimant-service/master.svg)](https://travis-ci.com/DepartmentOfHealth-htbhf/htbhf-claimant-service)
 [![Known Vulnerabilities](https://snyk.io/test/github/DepartmentOfHealth-htbhf/htbhf-claimant-service/badge.svg?targetFile=build.gradle)](https://snyk.io/test/github/DepartmentOfHealth-htbhf/htbhf-claimant-service?targetFile=build.gradle)
-[![Coverage Status](https://img.shields.io/coveralls/github/DepartmentOfHealth-htbhf/htbhf-claimant-service/master.svg)](https://coveralls.io/github/DepartmentOfHealth-htbhf/htbhf-claimant-service?branch=master)
+[![Coverage Status](https://codecov.io/gh/DepartmentOfHealth-htbhf/htbhf-claimant-service/branch/master/graph/badge.svg)](https://codecov.io/gh/DepartmentOfHealth-htbhf/htbhf-claimant-service)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 [View latest test reports](https://departmentofhealth-htbhf.github.io/htbhf-claimant-service/)
