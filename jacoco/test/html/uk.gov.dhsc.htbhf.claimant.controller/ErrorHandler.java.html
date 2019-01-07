@@ -40,14 +40,14 @@ public class ErrorHandler {
     @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleValidationErrors(MethodArgumentNotValidException exception) {
-<span class="fc" id="L43">        log.info(&quot;Validation error&quot;, exception);</span>
-<span class="fc" id="L44">        List&lt;ErrorResponse.FieldError&gt; fieldErrors = exception.getBindingResult().getFieldErrors()</span>
-<span class="fc" id="L45">                .stream()</span>
-<span class="fc" id="L46">                .map(error -&gt; ErrorResponse.FieldError.builder()</span>
-<span class="fc" id="L47">                        .message(error.getDefaultMessage())</span>
-<span class="fc" id="L48">                        .field(error.getField())</span>
-<span class="fc" id="L49">                        .build())</span>
-<span class="fc" id="L50">                .collect(toList());</span>
+<span class="fc" id="L43">        List&lt;ErrorResponse.FieldError&gt; fieldErrors = exception.getBindingResult().getFieldErrors()</span>
+<span class="fc" id="L44">                .stream()</span>
+<span class="fc" id="L45">                .map(error -&gt; ErrorResponse.FieldError.builder()</span>
+<span class="fc" id="L46">                        .message(error.getDefaultMessage())</span>
+<span class="fc" id="L47">                        .field(error.getField())</span>
+<span class="fc" id="L48">                        .build())</span>
+<span class="fc" id="L49">                .collect(toList());</span>
+<span class="fc" id="L50">        log.warn(&quot;Validation error(s) for {} to {}: {}&quot;, requestContext.getMethod(), requestContext.getServletPath(), fieldErrors);</span>
 
 <span class="fc" id="L52">        return ErrorResponse.builder()</span>
 <span class="fc" id="L53">                .fieldErrors(fieldErrors)</span>

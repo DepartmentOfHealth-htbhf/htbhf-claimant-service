@@ -38,12 +38,14 @@ public class RequestIdFilter extends OncePerRequestFilter {
             }
 <span class="fc" id="L39">            mdcWrapper.put(MDC_KEY, token);</span>
 <span class="fc" id="L40">            requestContext.setRequestId(token);</span>
+<span class="fc" id="L41">            requestContext.setMethod(request.getMethod());</span>
+<span class="fc" id="L42">            requestContext.setServletPath(request.getServletPath());</span>
 
-<span class="fc" id="L42">            filterChain.doFilter(request, response);</span>
+<span class="fc" id="L44">            filterChain.doFilter(request, response);</span>
         } finally {
-<span class="fc" id="L44">            mdcWrapper.remove(MDC_KEY);</span>
+<span class="fc" id="L46">            mdcWrapper.remove(MDC_KEY);</span>
         }
 
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L49">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

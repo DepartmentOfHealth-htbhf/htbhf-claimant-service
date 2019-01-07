@@ -6,19 +6,26 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.web.context.WebApplicationContext;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 
+/**
+ * The starting point for spring boot, this class enables SpringFox for documenting the api using swagger
+ * and defines a number of beans.
+ * See also: {@link ApiDocumentation}.
+ */
 @SpringBootApplication
-<span class="fc" id="L12">public class ClaimantServiceApplication {</span>
+@EnableSwagger2
+<span class="fc" id="L19">public class ClaimantServiceApplication {</span>
 
     public static void main(String[] args) {
-<span class="nc" id="L15">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
-<span class="nc" id="L16">    }</span>
+<span class="nc" id="L22">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
+<span class="nc" id="L23">    }</span>
 
     @Bean
     @Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
     public RequestContext requestContext() {
-<span class="fc" id="L21">        return new RequestContext();</span>
+<span class="fc" id="L28">        return new RequestContext();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
