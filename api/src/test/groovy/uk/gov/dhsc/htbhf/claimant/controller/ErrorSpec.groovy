@@ -74,6 +74,6 @@ class ErrorSpec extends Specification{
         then: "An error is returned"
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
         assertThat(response.body.timestamp).isNotNull()
-        assertThat(response.body.message).isEqualTo("Unable to read request body: ")
+        assertThat(response.body.requestId).isNotEmpty()
     }
 }
