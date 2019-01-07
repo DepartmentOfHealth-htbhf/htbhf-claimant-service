@@ -2,55 +2,68 @@ package uk.gov.dhsc.htbhf.claimant.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @ControllerAdvice
 @Slf4j
 @RequiredArgsConstructor
-public class ErrorHandler {
+public class ErrorHandler extends ResponseEntityExceptionHandler {
 
     private static final String VALIDATION_ERROR_MESSAGE = "There were validation issues with the request.";
 
     private final RequestContext requestContext;
 
-    /**
-     * Handles validation errors and parses them into a an {@link ErrorResponse}.
-     *
-     * @param exception validation exception
-     * @return ErrorResponse object
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(BAD_REQUEST)
-    @ResponseBody
-    public ErrorResponse handleValidationErrors(MethodArgumentNotValidException exception) {
-        List<ErrorResponse.FieldError> fieldErrors = exception.getBindingResult().getFieldErrors()
-                .stream()
-                .map(error -> ErrorResponse.FieldError.builder()
+    @Override
+    public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception,
+                                                               HttpHeaders headers,
+                                                               HttpStatus status,
+                                                               WebRequest request) {
+
+        ErrorResponse errorResponse = convertAndLogBindingResult(exception.getBindingResult());
+        return handleExceptionInternal(exception, errorResponse, headers, BAD_REQUEST, request);
+    }
+
+    @Override
+    public ResponseEntity<Object> handleBindException(BindException exception, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ErrorResponse errorResponse = convertAndLogBindingResult(exception.getBindingResult());
+        return handleExceptionInternal(exception, errorResponse, headers, BAD_REQUEST, request);
+    }
+
+    private ErrorResponse convertAndLogBindingResult(BindingResult bindingResult) {
+        final List<ErrorResponse.FieldError> errors = new ArrayList<>();
+        bindingResult.getFieldErrors().forEach(error ->
+                errors.add(ErrorResponse.FieldError.builder()
                         .message(error.getDefaultMessage())
                         .field(error.getField())
-                        .build())
-                .collect(toList());
-        log.warn("Validation error(s) for {} to {}: {}", requestContext.getMethod(), requestContext.getServletPath(), fieldErrors);
+                        .build()));
+        bindingResult.getGlobalErrors().forEach(error ->
+                errors.add(ErrorResponse.FieldError.builder()
+                        .message(error.getDefaultMessage())
+                        .field(error.getObjectName())
+                        .build()));
+
+        log.warn("Binding error(s) during {} request to {}: {}", requestContext.getMethod(), requestContext.getServletPath(), errors);
 
         return ErrorResponse.builder()
-                .fieldErrors(fieldErrors)
+                .fieldErrors(errors)
                 .requestId(requestContext.getRequestId())
                 .status(BAD_REQUEST.value())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
@@ -58,45 +71,33 @@ public class ErrorHandler {
                 .build();
     }
 
-    /**
-     * Handles all exceptions not handled by other exception handler methods.
-     *
-     * @param exception Exception
-     * @return ErrorResponse object
-     */
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    @ResponseBody
-    public ErrorResponse handleError(Exception exception) {
-        log.error("An error occurred", exception);
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<Object> handleOthers(Exception exception, WebRequest request) {
+        log.error("An error occurred during {} request to {}:", requestContext.getMethod(), requestContext.getServletPath(), exception);
 
-        return ErrorResponse.builder()
+        ErrorResponse body = ErrorResponse.builder()
                 .requestId(requestContext.getRequestId())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                 .status(INTERNAL_SERVER_ERROR.value())
                 .message("An internal server error occurred")
                 .build();
+
+        return handleExceptionInternal(exception, body, new HttpHeaders(), INTERNAL_SERVER_ERROR, request);
     }
 
-    /**
-     * Handles invalid request messages which are unable to be read.
-     *
-     * @param exception Exception
-     * @throws IOException exception from retrieving the message body.
-     * @return ErrorResponse object
-     */
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(BAD_REQUEST)
-    @ResponseBody
-    public ErrorResponse handleMessageNotReadableErrors(HttpMessageNotReadableException exception) throws IOException {
-        String requestBody = IOUtils.toString(exception.getHttpInputMessage().getBody(), Charset.defaultCharset());
-        log.info("Unable to read message: {}", requestBody, exception);
-
-        return ErrorResponse.builder()
-                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
-                .status(BAD_REQUEST.value())
-                .message("Unable to read request body: " + requestBody)
-                .build();
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        Object response = body;
+        if (response == null) {
+            log.warn("Handling {} during {} request to {}: {}",
+                    ex.getClass().getSimpleName(), requestContext.getMethod(), requestContext.getServletPath(), ex.getMessage());
+            response = ErrorResponse.builder()
+                    .requestId(requestContext.getRequestId())
+                    .status(status.value())
+                    .message(status.getReasonPhrase())
+                    .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                    .build();
+        }
+        return super.handleExceptionInternal(ex, response, headers, status, request);
     }
-
 }
