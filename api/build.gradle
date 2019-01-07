@@ -95,7 +95,9 @@ pmdTest {
     ruleSetFiles = files("../config/pmd/test-rulesets.xml")
     ruleSets = [] // Remove built-in rule sets
 }
-
+spotbugsTest {
+    excludeFilter = file("../config/spotbugs/test-exclude.xml")
+}
 
 task delombok(type: io.franzbecker.gradle.lombok.task.DelombokTask, dependsOn: compileJava) {
     ext.outputDir = file("$buildDir/delombok")
