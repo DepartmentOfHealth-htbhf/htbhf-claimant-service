@@ -1,0 +1,102 @@
+swagger: "2.0"
+info:
+  description: "Responsible for the persistence and retrieval of Claims (and Claimants)\
+    \ for Help To Buy Healthy Food"
+  title: "Claimant Service"
+  contact:
+    name: "Department Of Health"
+    url: "https://github.com/DepartmentOfHealth-htbhf"
+    email: "dh-htbhf-team@equalexperts.com"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+host: "N/A"
+basePath: "/"
+tags:
+- name: "claim-controller"
+  description: "Endpoints for dealing with claims, e.g. persisting a claim."
+paths:
+  /v1/claims:
+    post:
+      tags:
+      - "claim-controller"
+      summary: "Persist a new claim."
+      operationId: "newClaimUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "claimDTO"
+        description: "The claim to persist"
+        required: false
+        schema:
+          $ref: "#/definitions/ClaimDTO"
+      responses:
+        201:
+          description: "Created"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+      deprecated: false
+definitions:
+  ClaimDTO:
+    type: "object"
+    properties:
+      claimant:
+        description: "The person making the claim"
+        $ref: "#/definitions/ClaimantDTO"
+    title: "ClaimDTO"
+    description: "A claim (application) for help to buy healthy foods. Contains all\
+      \ details that need to be persisted as part of the application."
+  ClaimantDTO:
+    type: "object"
+    properties:
+      firstName:
+        type: "string"
+        example: "Jo"
+        description: "First (given) name"
+        minLength: 0
+        maxLength: 500
+      lastName:
+        type: "string"
+        example: "Bloggs"
+        description: "Last (family) name"
+        minLength: 1
+        maxLength: 500
+    title: "ClaimantDTO"
+    description: "A claimant for help to buy healthy foods."
+  ErrorResponse:
+    type: "object"
+    properties:
+      fieldErrors:
+        type: "array"
+        items:
+          $ref: "#/definitions/FieldError"
+      message:
+        type: "string"
+      requestId:
+        type: "string"
+      status:
+        type: "integer"
+        format: "int32"
+      timestamp:
+        type: "string"
+    title: "ErrorResponse"
+    description: "The format of all error responses"
+  FieldError:
+    type: "object"
+    properties:
+      field:
+        type: "string"
+      message:
+        type: "string"
+    title: "FieldError"

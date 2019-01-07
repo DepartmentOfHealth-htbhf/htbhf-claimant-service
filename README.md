@@ -9,4 +9,6 @@
 
 This is a Spring Boot project to provide a rest service responsible for storing the details of claimants.
 
+Documentation of the API is available online when the service is running (e.g. http://localhost:8080/v2/api-docs),
+and is also available as [swagger.yml](swagger.yml) - paste the contents into https://editor.swagger.io/ for a friendly UI.
 

@@ -27,6 +27,7 @@ public class ApiDocumentation {
     @Bean
     public Docket apiDocket() {
         return new Docket(DocumentationType.SWAGGER_2)
+                .host("N/A")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))
                 .paths(PathSelectors.any())
