@@ -38,6 +38,8 @@ public class RequestIdFilter extends OncePerRequestFilter {
             }
             mdcWrapper.put(MDC_KEY, token);
             requestContext.setRequestId(token);
+            requestContext.setMethod(request.getMethod());
+            requestContext.setServletPath(request.getServletPath());
 
             filterChain.doFilter(request, response);
         } finally {

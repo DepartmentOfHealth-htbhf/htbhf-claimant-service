@@ -27,7 +27,7 @@ class NewClaimSpec extends Specification {
     @MockBean
     ClaimService claimService
 
-    URI endpointUrl = URI.create("/claim")
+    URI endpointUrl = URI.create("/v1/claims")
 
     def "A new valid claim is accepted"() {
         given: "A valid claim request"
@@ -50,10 +50,10 @@ class NewClaimSpec extends Specification {
 
         where:
         claim                           | expectedErrorMessage               | expectedField
-        aClaimDTOWithLastNameTooLong()  | "length must be between 1 and 500" | "claimant.lastName"
+        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500" | "claimant.lastName"
         aClaimDTOWithNoLastName()       | "must not be null"                 | "claimant.lastName"
-        aClaimDTOWithEmptyLastName()    | "length must be between 1 and 500" | "claimant.lastName"
-        aClaimDTOWithFirstNameTooLong() | "length must be between 0 and 500" | "claimant.firstName"
+        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500" | "claimant.lastName"
+        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500" | "claimant.firstName"
         "{}"                            | "must not be null"                 | "claimant"
     }
 

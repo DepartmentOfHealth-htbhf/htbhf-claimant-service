@@ -14,6 +14,7 @@ check_variable_is_set(){
     fi
 }
 
+check_variable_is_set APP_NAME
 check_variable_is_set BIN_DIR
 check_variable_is_set DEPLOY_SCRIPTS_URL
 check_variable_is_set DEPLOY_SCRIPT_VERSION
@@ -28,8 +29,7 @@ if [[ ! -e ${BIN_DIR}/deploy_scripts_${DEPLOY_SCRIPT_VERSION} ]]; then
 fi
 
 # determine APP_PATH
-APP_VERSION=`cat version.properties | grep "version" | cut -d'=' -f2`
-APP_PATH="api/build/libs/$APP_NAME-$APP_VERSION.jar"
-export APP_PATH
+export APP_VERSION=`cat version.properties | grep "version" | cut -d'=' -f2`
+export APP_PATH="api/build/libs/$APP_NAME-$APP_VERSION.jar"
 
 /bin/bash ${BIN_DIR}/deploy.sh

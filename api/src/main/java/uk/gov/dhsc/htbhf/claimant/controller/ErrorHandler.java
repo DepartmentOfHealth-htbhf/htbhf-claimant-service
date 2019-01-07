@@ -40,7 +40,6 @@ public class ErrorHandler {
     @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleValidationErrors(MethodArgumentNotValidException exception) {
-        log.info("Validation error", exception);
         List<ErrorResponse.FieldError> fieldErrors = exception.getBindingResult().getFieldErrors()
                 .stream()
                 .map(error -> ErrorResponse.FieldError.builder()
@@ -48,6 +47,7 @@ public class ErrorHandler {
                         .field(error.getField())
                         .build())
                 .collect(toList());
+        log.warn("Validation error(s) for {} to {}: {}", requestContext.getMethod(), requestContext.getServletPath(), fieldErrors);
 
         return ErrorResponse.builder()
                 .fieldErrors(fieldErrors)
