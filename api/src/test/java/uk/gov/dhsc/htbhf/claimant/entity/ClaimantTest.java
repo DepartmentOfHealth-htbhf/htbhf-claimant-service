@@ -10,7 +10,8 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.assertion.ConstraintViolationAssert.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.LONG_NAME;
 
 class ClaimantTest {
 
@@ -29,17 +30,17 @@ class ClaimantTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).isEmpty();
+        assertThat(violations).hasNoViolations();
     }
 
     @Test
-    void shouldFailToValidateClaimantWithNoSurname() {
+    void shouldFailToValidateClaimantWithNoLastName() {
         //Given
         Claimant claimant = ClaimantTestDataFactory.aClaimantWithLastName(null);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertViolationPresent(violations, "must not be null", "lastName");
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "lastName");
     }
 
     @Test
@@ -49,8 +50,7 @@ class ClaimantTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "size must be between 0 and 500", "firstName");
+        assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 500", "firstName");
     }
 
     @Test
@@ -60,8 +60,7 @@ class ClaimantTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).isNotEmpty();
-        assertViolationPresent(violations, "size must be between 1 and 500", "lastName");
+        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
     }
 
     @Test
@@ -71,15 +70,19 @@ class ClaimantTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertViolationPresent(violations, "size must be between 1 and 500", "lastName");
+        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
     }
 
-    //TODO - Change to use custom AssertJ assertion (http://joel-costigliola.github.io/assertj/assertj-core-custom-assertions.html)
-    private void assertViolationPresent(Set<ConstraintViolation<Claimant>> violations, String message, String path) {
-        assertThat(violations).isNotEmpty();
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<Claimant> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo(message);
-        assertThat(violation.getPropertyPath().toString()).isEqualTo(path);
+    @Test
+    void shouldFailToValidateClaimantWithInvalidFirstNameAndSurname() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithFirstNameAndLastName(LONG_NAME, "");
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasTotalViolations(2)
+                .hasViolation("size must be between 1 and 500", "lastName")
+                .hasViolation("size must be between 0 and 500", "firstName");
     }
+
 }

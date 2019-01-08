@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UseUtilityClass"})
+@SuppressWarnings("PMD.UseUtilityClass")
 public final class ClaimDTOTestDataFactory {
 
     private static final String LONG_NAME = "This name is way too long"
