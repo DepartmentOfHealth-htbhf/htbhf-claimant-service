@@ -10,8 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ClaimantTestDataFactory {
 
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-    private static final String LONG_NAME = "This name is way too long"
+    public static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
             + "This name is way too long"
             + "This name is way too long" //100
@@ -60,6 +59,17 @@ public final class ClaimantTestDataFactory {
      */
     public static Claimant aClaimantWithFirstName(String firstName) {
         return Claimant.builder().firstName(firstName).lastName("Smith").build();
+    }
+
+    /**
+     * Builds a Claimant with the given first name and last name.
+     *
+     * @param firstName The first name to use.
+     * @param lastName The last name to use.
+     * @return The built Claimant
+     */
+    public static Claimant aClaimantWithFirstNameAndLastName(String firstName, String lastName) {
+        return Claimant.builder().firstName(firstName).lastName(lastName).build();
     }
 
     /**
