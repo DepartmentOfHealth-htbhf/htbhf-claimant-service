@@ -27,15 +27,16 @@ import static java.util.Collections.emptyList;
     @Bean
     public Docket apiDocket() {
 <span class="fc" id="L29">        return new Docket(DocumentationType.SWAGGER_2)</span>
-<span class="fc" id="L30">                .select()</span>
-<span class="fc" id="L31">                .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))</span>
-<span class="fc" id="L32">                .paths(PathSelectors.any())</span>
-<span class="fc" id="L33">                .build()</span>
-<span class="fc" id="L34">                .apiInfo(getApiInfo());</span>
+<span class="fc" id="L30">                .host(&quot;N/A&quot;)</span>
+<span class="fc" id="L31">                .select()</span>
+<span class="fc" id="L32">                .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))</span>
+<span class="fc" id="L33">                .paths(PathSelectors.any())</span>
+<span class="fc" id="L34">                .build()</span>
+<span class="fc" id="L35">                .apiInfo(getApiInfo());</span>
     }
 
     private ApiInfo getApiInfo() {
-<span class="fc" id="L38">        return new ApiInfo(</span>
+<span class="fc" id="L39">        return new ApiInfo(</span>
                 &quot;Claimant Service&quot;,
                 &quot;Responsible for the persistence and retrieval of Claims (and Claimants) for Help To Buy Healthy Food&quot;,
                 appVersion,
@@ -43,7 +44,7 @@ import static java.util.Collections.emptyList;
                 new Contact(&quot;Department Of Health&quot;, &quot;https://github.com/DepartmentOfHealth-htbhf&quot;, &quot;dh-htbhf-team@equalexperts.com&quot;),
                 &quot;MIT&quot;,
                 &quot;https://opensource.org/licenses/MIT&quot;,
-<span class="fc" id="L46">                emptyList()</span>
+<span class="fc" id="L47">                emptyList()</span>
         );
 
     }

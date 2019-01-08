@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">1</div>
+<div class="counter">2</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.005s</div>
+<div class="counter">0.638s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,12 @@
 </thead>
 <tr>
 <td class="success">contextLoads()</td>
-<td class="success">0.005s</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">swaggerDocumentationRetrieved()</td>
+<td class="success">0.630s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -87,12 +92,66 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>09:24:44.061 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Neither @ContextConfiguration nor @ContextHierarchy found for test class [uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests], using SpringBootContextLoader
-09:24:44.063 [Test worker] [] INFO  o.s.t.c.s.AbstractContextLoader - Could not detect default resource locations for test class [uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
-09:24:44.063 [Test worker] [] INFO  o.s.t.c.s.AnnotationConfigContextLoaderUtils - Could not detect default configuration classes for test class [uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests]: ClaimantServiceApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-09:24:44.069 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplication for test class uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests
-09:24:44.071 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.spockframework.spring.SpringMockTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener]
-09:24:44.072 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@494cd7b0, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@59aa5bb2, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@6635f22a, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@48912e43, org.springframework.test.context.support.DirtiesContextTestExecutionListener@674f91b6, org.springframework.test.context.transaction.TransactionalTestExecutionListener@6c333126, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@25de2a28, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@647cebe6, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@7f2514fe, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@aeaa03d, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@5e314422, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@5d11b7d9, org.spockframework.spring.SpringMockTestExecutionListener@ac4da61]
+<pre>08:16:07.975 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Neither @ContextConfiguration nor @ContextHierarchy found for test class [uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests], using SpringBootContextLoader
+08:16:07.976 [Test worker] [] INFO  o.s.t.c.s.AbstractContextLoader - Could not detect default resource locations for test class [uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplicationTests]: no resource found for suffixes {-context.xml, Context.groovy}.
+08:16:07.984 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.spockframework.spring.SpringMockTestExecutionListener, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener]
+08:16:07.985 [Test worker] [] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@22035e82, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@32902665, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@7d2f4a97, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@1b8e65a2, org.springframework.test.context.support.DirtiesContextTestExecutionListener@23c1cf1f, org.springframework.test.context.transaction.TransactionalTestExecutionListener@10d1660c, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@17adfd73, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@7fe63951, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@5272b885, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@498855c1, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@31367fe6, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@7f54f420, org.spockframework.spring.SpringMockTestExecutionListener@3825cddf]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::        (v2.1.0.RELEASE)
+
+08:16:08.030 [Test worker] [] INFO  u.g.d.h.c.ClaimantServiceApplicationTests - Starting ClaimantServiceApplicationTests on travis-job-7eddd94e-5d8c-4a6c-978e-a02ae3cfe68c with PID 4868 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
+08:16:08.032 [Test worker] [] DEBUG u.g.d.h.c.ClaimantServiceApplicationTests - Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
+08:16:08.033 [Test worker] [] INFO  u.g.d.h.c.ClaimantServiceApplicationTests - No active profile set, falling back to default profiles: default
+08:16:08.671 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data repositories in DEFAULT mode.
+08:16:08.690 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 17ms. Found 1 repository interfaces.
+08:16:08.832 [Test worker] [] INFO  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$9bf7111b] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+08:16:09.498 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 0 (http)
+08:16:09.565 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler [&quot;http-nio-auto-1&quot;]
+08:16:09.587 [Test worker] [] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+08:16:09.589 [Test worker] [] INFO  o.a.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/9.0.12
+08:16:09.624 [Test worker] [] INFO  o.a.c.core.AprLifecycleListener - The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: [/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib]
+08:16:09.911 [Test worker] [] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+08:16:09.913 [Test worker] [] INFO  o.s.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 1876 ms
+08:16:10.751 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'characterEncodingFilter' to: [/*]
+08:16:10.752 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'webMvcMetricsFilter' to: [/*]
+08:16:10.752 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+08:16:10.753 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'formContentFilter' to: [/*]
+08:16:10.753 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestContextFilter' to: [/*]
+08:16:10.753 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'httpTraceFilter' to: [/*]
+08:16:10.753 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestIdFilter' to: [/*]
+08:16:10.753 [Test worker] [] INFO  o.s.b.w.s.ServletRegistrationBean - Servlet dispatcherServlet mapped to [/]
+08:16:10.822 [Test worker] [] DEBUG u.g.d.h.c.r.RequestIdFilter - Filter 'requestIdFilter' configured for use
+08:16:10.959 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Starting...
+08:16:10.977 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Start completed.
+08:16:10.977 [Test worker] [] INFO  o.f.c.i.database.DatabaseFactory - Database: jdbc:h2:mem:test (H2 1.4)
+08:16:11.044 [Test worker] [] INFO  o.f.core.internal.command.DbValidate - Successfully validated 2 migrations (execution time 00:00.021s)
+08:16:11.169 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Current version of schema &quot;PUBLIC&quot;: 1.002
+08:16:11.170 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
+08:16:11.299 [Test worker] [] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [
+	name: default
+	...]
+08:16:11.318 [Test worker] [] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+08:16:11.376 [Test worker] [] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+08:16:11.789 [Test worker] [] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration$JpaWebMvcConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+08:16:12.008 [Test worker] [] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+08:16:12.215 [Test worker] [] INFO  s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
+08:16:12.454 [Test worker] [] INFO  o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+08:16:12.973 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
+08:16:12.977 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+08:16:12.995 [Test worker] [] INFO  s.d.s.w.s.ApiListingReferenceScanner - Scanning for api listing references
+08:16:13.082 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-auto-1&quot;]
+08:16:13.089 [Test worker] [] INFO  o.a.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+08:16:13.121 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 36908 (http) with context path ''
+08:16:13.127 [Test worker] [] INFO  u.g.d.h.c.ClaimantServiceApplicationTests - Started ClaimantServiceApplicationTests in 5.135 seconds (JVM running for 31.779)
+08:16:13.302 [http-nio-auto-1-exec-1] [] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+08:16:13.303 [http-nio-auto-1-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+08:16:13.330 [http-nio-auto-1-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 27 ms
 </pre>
 </span>
 </div>
@@ -104,7 +163,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 7, 2019, 9:24:55 AM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 8, 2019, 8:16:23 AM</p>
 </div>
 </div>
 </body>
