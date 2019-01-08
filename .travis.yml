@@ -24,7 +24,7 @@ deploy:
     branch: master
 
 after_success:
-- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport :htbhf-claimant-service:coveralls testReport copyReports
+- test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport testReport copyReports && bash <(curl -s https://codecov.io/bash)
 - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./${BIN_DIR}/trigger_java_cd_build.sh
 
 #don't build tags
