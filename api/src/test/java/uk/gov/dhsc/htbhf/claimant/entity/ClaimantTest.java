@@ -1,10 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory;
 
 import java.util.Set;
+import java.util.UUID;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -83,6 +85,16 @@ class ClaimantTest {
         assertThat(violations).hasTotalViolations(2)
                 .hasViolation("size must be between 1 and 500", "lastName")
                 .hasViolation("size must be between 0 and 500", "firstName");
+    }
+
+    @Test
+    void shouldAlwaysReturnAnIdFromGetId() {
+        //Given
+        Claimant claimant = Claimant.builder().build();
+        //When
+        UUID id = claimant.getId();
+        //Then
+        Assertions.assertThat(id).isNotNull();
     }
 
 }

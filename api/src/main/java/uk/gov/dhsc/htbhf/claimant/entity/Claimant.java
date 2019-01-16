@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -33,6 +34,7 @@ public class Claimant {
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator"
     )
+    @Getter(AccessLevel.NONE)
     private UUID id;
 
     @Size(max = 500)
@@ -46,4 +48,17 @@ public class Claimant {
 
     @Column(name = "nino")
     private String nino;
+
+    /**
+     * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
+     * persistence and they will be the same.
+     *
+     * @return The id for the Claimant.
+     */
+    public UUID getId() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+        return this.id;
+    }
 }
