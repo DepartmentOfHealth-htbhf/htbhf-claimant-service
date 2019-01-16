@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
@@ -27,4 +28,10 @@ public class ClaimantDTO {
     @JsonProperty("lastName")
     @ApiModelProperty(notes = "Last (family) name", example = "Bloggs")
     private String lastName;
+
+    @NotNull
+    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-zA-Z]")
+    @JsonProperty("nino")
+    @ApiModelProperty(notes = "National Insurance number", example = "QQ123456C")
+    private String nino;
 }

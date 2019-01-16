@@ -5,10 +5,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
-import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 
 class ClaimDTOToClaimConverterTest {
 
@@ -17,7 +17,7 @@ class ClaimDTOToClaimConverterTest {
     @Test
     void shouldConvertClaimDTOToEquivalentClaimObject() {
         // Given
-        ClaimDTO claimDTO = ClaimDTOTestDataFactory.aValidClaimDTO();
+        ClaimDTO claimDTO = aValidClaimDTO();
         ClaimantDTO claimantDTO = claimDTO.getClaimant();
 
         // When
@@ -29,6 +29,7 @@ class ClaimDTOToClaimConverterTest {
         assertThat(claimant).isNotNull();
         assertThat(claimant.getFirstName()).isEqualTo(claimantDTO.getFirstName());
         assertThat(claimant.getLastName()).isEqualTo(claimantDTO.getLastName());
+        assertThat(claimant.getNino()).isEqualTo(claimantDTO.getNino());
     }
 
     @Test

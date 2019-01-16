@@ -42,19 +42,21 @@ class NewClaimSpec extends Specification {
 
     def "An invalid claim returns an error response"(Object claim, String expectedErrorMessage, String expectedField) {
         expect:
-        def headers = new HttpHeaders();
+        def headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
         def requestEntity = new RequestEntity<>(claim, headers, HttpMethod.POST, endpointUrl)
         def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
         assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        claim                           | expectedErrorMessage             | expectedField
-        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500" | "claimant.lastName"
-        aClaimDTOWithNoLastName()       | "must not be null"               | "claimant.lastName"
-        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500" | "claimant.lastName"
-        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500" | "claimant.firstName"
-        "{}"                            | "must not be null"               | "claimant"
+        claim                           | expectedErrorMessage                       | expectedField
+        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500"           | "claimant.lastName"
+        aClaimDTOWithNoLastName()       | "must not be null"                         | "claimant.lastName"
+        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500"           | "claimant.lastName"
+        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500"           | "claimant.firstName"
+        aClaimDTOWithoutNino()          | "must not be null"                         | "claimant.nino"
+        aClaimDTOWithInvalidNino()      | "must match \"[a-zA-Z]{2}\\d{6}[a-zA-Z]\"" | "claimant.nino"
+        "{}"                            | "must not be null"                         | "claimant"
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
