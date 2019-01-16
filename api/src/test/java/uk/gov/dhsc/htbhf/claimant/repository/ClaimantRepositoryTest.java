@@ -27,13 +27,6 @@ class ClaimantRepositoryTest {
 
         //Then
         assertThat(savedClaimant.getId()).isNotNull();
-        assertClaimantsMatchIgnoringId(savedClaimant, claimant);
-    }
-
-    private void assertClaimantsMatchIgnoringId(Claimant actualClaimant, Claimant expectedClaimant) {
-        assertThat(expectedClaimant).isNotNull();
-        assertThat(actualClaimant).isNotNull();
-        assertThat(actualClaimant.getFirstName()).isEqualTo(expectedClaimant.getFirstName());
-        assertThat(actualClaimant.getLastName()).isEqualTo(expectedClaimant.getLastName());
+        assertThat(savedClaimant).isEqualTo(claimant);
     }
 }

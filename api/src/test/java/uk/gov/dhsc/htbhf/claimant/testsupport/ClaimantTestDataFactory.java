@@ -10,6 +10,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ClaimantTestDataFactory {
 
+    private static final String VALID_NINO = "QQ123456C";
+
     public static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
             + "This name is way too long"
@@ -38,7 +40,11 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aValidClaimant() {
-        return Claimant.builder().firstName("Joe").lastName("Blogger").build();
+        return Claimant.builder()
+                .firstName("Joe")
+                .lastName("Blogger")
+                .nino(VALID_NINO)
+                .build();
     }
 
     /**
@@ -48,7 +54,11 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithLastName(String lastName) {
-        return Claimant.builder().firstName("Joe").lastName(lastName).build();
+        return Claimant.builder()
+                .firstName("Joe")
+                .lastName(lastName)
+                .nino(VALID_NINO)
+                .build();
     }
 
     /**
@@ -58,7 +68,11 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstName(String firstName) {
-        return Claimant.builder().firstName(firstName).lastName("Smith").build();
+        return Claimant.builder()
+                .firstName(firstName)
+                .lastName("Smith")
+                .nino(VALID_NINO)
+                .build();
     }
 
     /**
@@ -69,7 +83,11 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstNameAndLastName(String firstName, String lastName) {
-        return Claimant.builder().firstName(firstName).lastName(lastName).build();
+        return Claimant.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .nino(VALID_NINO)
+                .build();
     }
 
     /**
@@ -81,6 +99,11 @@ public final class ClaimantTestDataFactory {
         return aClaimantWithLastName(LONG_NAME);
     }
 
+    /**
+     * Builds an invalid Claimant with a too long first name.
+     *
+     * @return The built Claimant
+     */
     public static Claimant aClaimantWithTooLongFirstName() {
         return aClaimantWithFirstName(LONG_NAME);
     }
