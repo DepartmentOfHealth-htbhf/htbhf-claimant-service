@@ -97,4 +97,14 @@ class ClaimantTest {
         Assertions.assertThat(id).isNotNull();
     }
 
+    @Test
+    void shouldReturnTheSameIdIfOneIsSet() {
+        //Given
+        UUID id = UUID.randomUUID();
+        //When
+        Claimant claimant = Claimant.builder().id(id).build();
+        //Then
+        Assertions.assertThat(id).isEqualTo(claimant.getId());
+    }
+
 }
