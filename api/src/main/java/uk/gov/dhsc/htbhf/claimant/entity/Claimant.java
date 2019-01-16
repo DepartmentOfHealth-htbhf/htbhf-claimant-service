@@ -29,11 +29,6 @@ import javax.validation.constraints.Size;
 public class Claimant {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
     @Getter(AccessLevel.NONE)
     private UUID id;
 
