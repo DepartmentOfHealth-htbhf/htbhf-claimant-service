@@ -43,4 +43,7 @@ public class Claimant {
     @Size(min = 1, max = 500)
     @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "nino")
+    private String nino;
 }
