@@ -30,7 +30,7 @@ public class ClaimantDTO {
     private String lastName;
 
     @NotNull
-    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-zA-Z]")
+    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-dA-D]")
     @JsonProperty("nino")
     @ApiModelProperty(notes = "National Insurance number", example = "QQ123456C")
     private String nino;

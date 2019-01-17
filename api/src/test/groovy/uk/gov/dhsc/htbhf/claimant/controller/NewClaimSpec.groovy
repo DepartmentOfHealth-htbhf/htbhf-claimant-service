@@ -50,7 +50,7 @@ class NewClaimSpec extends Specification {
         aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500"           | "claimant.lastName"
         aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500"           | "claimant.firstName"
         aClaimDTOWithoutNino()          | "must not be null"                         | "claimant.nino"
-        aClaimDTOWithInvalidNino()      | "must match \"[a-zA-Z]{2}\\d{6}[a-zA-Z]\"" | "claimant.nino"
+        aClaimDTOWithInvalidNino()      | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
         "{}"                            | "must not be null"                         | "claimant"
     }
 

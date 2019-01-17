@@ -121,14 +121,14 @@ class ClaimantTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI"})
+    @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI", "ZQQ123456CZ", "QQ123456T"})
     void shouldFailToValidateClaimantWithInvalidFormatNino(String invalidNino) {
         //Given
         Claimant claimant = ClaimantTestDataFactory.aClaimantWithNino(invalidNino);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("must match \"[a-zA-Z]{2}\\d{6}[a-zA-Z]\"", "nino");
+        assertThat(violations).hasSingleConstraintViolation("must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "nino");
     }
 
 }

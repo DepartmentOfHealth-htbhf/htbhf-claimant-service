@@ -41,7 +41,7 @@ public class Claimant {
     private String lastName;
 
     @NotNull
-    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-zA-Z]")
+    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-dA-D]")
     @Column(name = "nino")
     private String nino;
 
