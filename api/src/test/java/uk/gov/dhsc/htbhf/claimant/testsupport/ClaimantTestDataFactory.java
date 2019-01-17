@@ -42,7 +42,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aValidClaimant() {
-        return buildClaimant(VALID_FIRST_NAME, VALID_LAST_NAME, VALID_NINO);
+        return aValidClaimantBuilder().build();
     }
 
     /**
@@ -52,7 +52,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithLastName(String lastName) {
-        return buildClaimant(VALID_FIRST_NAME, lastName, VALID_NINO);
+        return aValidClaimantBuilder().lastName(lastName).build();
     }
 
     /**
@@ -62,7 +62,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstName(String firstName) {
-        return buildClaimant(firstName, VALID_LAST_NAME, VALID_NINO);
+        return aValidClaimantBuilder().firstName(firstName).build();
     }
 
     /**
@@ -72,7 +72,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithNino(String nino) {
-        return buildClaimant(VALID_FIRST_NAME, VALID_LAST_NAME, nino);
+        return aValidClaimantBuilder().nino(nino).build();
     }
 
     /**
@@ -83,7 +83,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstNameAndLastName(String firstName, String lastName) {
-        return buildClaimant(firstName, lastName, VALID_NINO);
+        return aValidClaimantBuilder().firstName(firstName).lastName(lastName).build();
     }
 
     /**
@@ -104,11 +104,10 @@ public final class ClaimantTestDataFactory {
         return aClaimantWithFirstName(LONG_NAME);
     }
 
-    private static Claimant buildClaimant(String firstName, String lastName, String nino) {
+    private static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .nino(nino)
-                .build();
+                .firstName(VALID_FIRST_NAME)
+                .lastName(VALID_LAST_NAME)
+                .nino(VALID_NINO);
     }
 }
