@@ -39,8 +39,8 @@ public final class ClaimDTOTestDataFactory {
 
     public static ClaimDTO aClaimDTOWithLastNameTooLong() {
         return ClaimDTO.builder()
-                        .claimant(buildClaimantDTO(VALID_FIRST_NAME, LONG_NAME, VALID_NINO))
-                        .build();
+                .claimant(buildClaimantDTO(VALID_FIRST_NAME, LONG_NAME, VALID_NINO))
+                .build();
     }
 
     public static ClaimDTO aClaimDTOWithFirstNameTooLong() {
@@ -51,8 +51,8 @@ public final class ClaimDTOTestDataFactory {
 
     public static ClaimDTO aClaimDTOWithNoLastName() {
         return ClaimDTO.builder()
-                        .claimant(buildClaimantDTO(VALID_FIRST_NAME, null, VALID_NINO))
-                        .build();
+                .claimant(buildClaimantDTO(VALID_FIRST_NAME, null, VALID_NINO))
+                .build();
     }
 
     public static ClaimDTO aClaimDTOWithEmptyLastName() {
