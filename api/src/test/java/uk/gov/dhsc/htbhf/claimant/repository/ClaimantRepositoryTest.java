@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
 import javax.validation.ConstraintViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,7 +13,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
 @SpringBootTest
-@Transactional
 class ClaimantRepositoryTest {
 
     @Autowired

@@ -2,12 +2,10 @@ package uk.gov.dhsc.htbhf.claimant.controller
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import spock.lang.Specification
-import uk.gov.dhsc.htbhf.claimant.service.ClaimService
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
@@ -23,9 +21,6 @@ class NewClaimSpec extends Specification {
 
     @Autowired
     TestRestTemplate restTemplate
-
-    @MockBean
-    ClaimService claimService
 
     URI endpointUrl = URI.create("/v1/claims")
 
