@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import javax.validation.ConstraintViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
@@ -17,9 +17,6 @@ class ClaimantRepositoryTest {
 
     @Autowired
     private ClaimantRepository claimantRepository;
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Test
     void saveAndRetrieveClaimant() {
@@ -39,11 +36,10 @@ class ClaimantRepositoryTest {
         //Given
         Claimant invalidClaimant = aClaimantWithTooLongFirstName();
         //When
-        Throwable thrown = catchThrowableOfType(() -> {
+        Throwable thrown = catchThrowable(() -> {
             claimantRepository.save(invalidClaimant);
-            entityManager.flush();
-        }, ConstraintViolationException.class);
+        });
         //Then
-        assertThat(thrown).isNotNull().hasMessageContaining("size must be between 0 and 500");
+        assertThat(thrown).hasRootCauseInstanceOf(ConstraintViolationException.class);
     }
 }

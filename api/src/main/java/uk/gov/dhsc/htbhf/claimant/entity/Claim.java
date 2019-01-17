@@ -12,5 +12,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class Claim {
 
+    @NotNull
+    @Valid
     private Claimant claimant;
 }
