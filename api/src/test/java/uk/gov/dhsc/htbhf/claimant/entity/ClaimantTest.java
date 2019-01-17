@@ -3,6 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory;
 
 import java.util.Set;
@@ -105,6 +107,28 @@ class ClaimantTest {
         Claimant claimant = Claimant.builder().id(id).build();
         //Then
         Assertions.assertThat(id).isEqualTo(claimant.getId());
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithNoNino() {
+        //Given
+        String nino = null;
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithNino(nino);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "nino");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI", "ZQQ123456CZ", "QQ123456T"})
+    void shouldFailToValidateClaimantWithInvalidFormatNino(String invalidNino) {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aClaimantWithNino(invalidNino);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "nino");
     }
 
 }

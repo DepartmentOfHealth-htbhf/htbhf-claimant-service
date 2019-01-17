@@ -2,12 +2,10 @@ package uk.gov.dhsc.htbhf.claimant.controller
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import spock.lang.Specification
-import uk.gov.dhsc.htbhf.claimant.service.ClaimService
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
@@ -24,9 +22,6 @@ class NewClaimSpec extends Specification {
     @Autowired
     TestRestTemplate restTemplate
 
-    @MockBean
-    ClaimService claimService
-
     URI endpointUrl = URI.create("/v1/claims")
 
     def "A new valid claim is accepted"() {
@@ -42,19 +37,21 @@ class NewClaimSpec extends Specification {
 
     def "An invalid claim returns an error response"(Object claim, String expectedErrorMessage, String expectedField) {
         expect:
-        def headers = new HttpHeaders();
+        def headers = new HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_JSON)
         def requestEntity = new RequestEntity<>(claim, headers, HttpMethod.POST, endpointUrl)
         def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
         assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        claim                           | expectedErrorMessage             | expectedField
-        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500" | "claimant.lastName"
-        aClaimDTOWithNoLastName()       | "must not be null"               | "claimant.lastName"
-        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500" | "claimant.lastName"
-        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500" | "claimant.firstName"
-        "{}"                            | "must not be null"               | "claimant"
+        claim                           | expectedErrorMessage                       | expectedField
+        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500"           | "claimant.lastName"
+        aClaimDTOWithNoLastName()       | "must not be null"                         | "claimant.lastName"
+        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500"           | "claimant.lastName"
+        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500"           | "claimant.firstName"
+        aClaimDTOWithoutNino()          | "must not be null"                         | "claimant.nino"
+        aClaimDTOWithInvalidNino()      | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "{}"                            | "must not be null"                         | "claimant"
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {

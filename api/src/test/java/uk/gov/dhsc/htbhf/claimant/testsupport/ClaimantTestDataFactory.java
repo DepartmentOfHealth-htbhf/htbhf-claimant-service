@@ -11,6 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 public final class ClaimantTestDataFactory {
 
     private static final String VALID_NINO = "QQ123456C";
+    private static final String VALID_FIRST_NAME = "Joe";
+    private static final String VALID_LAST_NAME = "Blogger";
 
     public static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
@@ -40,11 +42,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aValidClaimant() {
-        return Claimant.builder()
-                .firstName("Joe")
-                .lastName("Blogger")
-                .nino(VALID_NINO)
-                .build();
+        return aValidClaimantBuilder().build();
     }
 
     /**
@@ -54,11 +52,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithLastName(String lastName) {
-        return Claimant.builder()
-                .firstName("Joe")
-                .lastName(lastName)
-                .nino(VALID_NINO)
-                .build();
+        return aValidClaimantBuilder().lastName(lastName).build();
     }
 
     /**
@@ -68,11 +62,17 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstName(String firstName) {
-        return Claimant.builder()
-                .firstName(firstName)
-                .lastName("Smith")
-                .nino(VALID_NINO)
-                .build();
+        return aValidClaimantBuilder().firstName(firstName).build();
+    }
+
+    /**
+     * Builds a Claimant with the given national insurance number.
+     *
+     * @param nino The national insurance number to use.
+     * @return The built Claimant
+     */
+    public static Claimant aClaimantWithNino(String nino) {
+        return aValidClaimantBuilder().nino(nino).build();
     }
 
     /**
@@ -83,11 +83,7 @@ public final class ClaimantTestDataFactory {
      * @return The built Claimant
      */
     public static Claimant aClaimantWithFirstNameAndLastName(String firstName, String lastName) {
-        return Claimant.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .nino(VALID_NINO)
-                .build();
+        return aValidClaimantBuilder().firstName(firstName).lastName(lastName).build();
     }
 
     /**
@@ -106,5 +102,12 @@ public final class ClaimantTestDataFactory {
      */
     public static Claimant aClaimantWithTooLongFirstName() {
         return aClaimantWithFirstName(LONG_NAME);
+    }
+
+    private static Claimant.ClaimantBuilder aValidClaimantBuilder() {
+        return Claimant.builder()
+                .firstName(VALID_FIRST_NAME)
+                .lastName(VALID_LAST_NAME)
+                .nino(VALID_NINO);
     }
 }

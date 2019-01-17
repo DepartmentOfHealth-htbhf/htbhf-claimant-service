@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 /**
@@ -39,6 +40,8 @@ public class Claimant {
     @Column(name = "last_name")
     private String lastName;
 
+    @NotNull
+    @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-dA-D]")
     @Column(name = "nino")
     private String nino;
 

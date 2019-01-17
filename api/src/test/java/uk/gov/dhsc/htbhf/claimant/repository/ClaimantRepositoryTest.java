@@ -5,13 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
-import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
 @SpringBootTest
-@Transactional
 class ClaimantRepositoryTest {
 
     @Autowired
@@ -28,5 +29,17 @@ class ClaimantRepositoryTest {
         //Then
         assertThat(savedClaimant.getId()).isNotNull();
         assertThat(savedClaimant).isEqualTo(claimant);
+    }
+
+    @Test
+    void anInvalidClaimantIsNotSaved() {
+        //Given
+        Claimant invalidClaimant = aClaimantWithTooLongFirstName();
+        //When
+        Throwable thrown = catchThrowable(() -> {
+            claimantRepository.save(invalidClaimant);
+        });
+        //Then
+        assertThat(thrown).hasRootCauseInstanceOf(ConstraintViolationException.class);
     }
 }
