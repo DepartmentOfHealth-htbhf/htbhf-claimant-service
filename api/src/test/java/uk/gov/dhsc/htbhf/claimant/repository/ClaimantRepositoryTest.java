@@ -42,12 +42,10 @@ class ClaimantRepositoryTest {
         //Given
         Claimant invalidClaimant = aClaimantWithTooLongFirstName();
         //When
-        Throwable thrown = catchThrowableOfType(() ->
-                {
-                    claimantRepository.save(invalidClaimant);
-                    entityManager.flush();
-                }
-                , ConstraintViolationException.class);
+        Throwable thrown = catchThrowableOfType(() -> {
+            claimantRepository.save(invalidClaimant);
+            entityManager.flush();
+        }, ConstraintViolationException.class);
         //Then
         assertThat(thrown).isNotNull().hasMessageContaining("size must be between 0 and 500");
     }
