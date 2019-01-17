@@ -5,23 +5,27 @@ import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 /**
  * Converts a {@link ClaimDTO} into a {@link Claim}.
  */
 @Component
-<span class="fc" id="L13">public class ClaimDTOToClaimConverter {</span>
+<span class="fc" id="L14">public class ClaimDTOToClaimConverter {</span>
 
     public Claim convert(ClaimDTO source) {
-<span class="fc" id="L16">        Assert.notNull(source, &quot;source ClaimDTO must not be null&quot;);</span>
-<span class="fc" id="L17">        return Claim.builder()</span>
-<span class="fc" id="L18">                .claimant(</span>
-<span class="fc" id="L19">                        Claimant.builder()</span>
-<span class="fc" id="L20">                                .firstName(source.getClaimant().getFirstName())</span>
-<span class="fc" id="L21">                                .lastName(source.getClaimant().getLastName())</span>
-<span class="fc" id="L22">                                .build()</span>
-                )
-<span class="fc" id="L24">                .build();</span>
+<span class="fc" id="L17">        Assert.notNull(source, &quot;source ClaimDTO must not be null&quot;);</span>
+<span class="fc" id="L18">        return Claim.builder()</span>
+<span class="fc" id="L19">                .claimant(buildClaimant(source.getClaimant()))</span>
+<span class="fc" id="L20">                .build();</span>
+    }
+
+    private Claimant buildClaimant(ClaimantDTO claimant) {
+<span class="fc" id="L24">        return Claimant.builder()</span>
+<span class="fc" id="L25">                .firstName(claimant.getFirstName())</span>
+<span class="fc" id="L26">                .lastName(claimant.getLastName())</span>
+<span class="fc" id="L27">                .nino(claimant.getNino())</span>
+<span class="fc" id="L28">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
