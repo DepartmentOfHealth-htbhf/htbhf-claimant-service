@@ -16,20 +16,29 @@ check_variable_is_set(){
 
 check_variable_is_set APP_NAME
 check_variable_is_set BIN_DIR
-check_variable_is_set DEPLOY_SCRIPTS_URL
-check_variable_is_set DEPLOY_SCRIPT_VERSION
+check_variable_is_set GH_WRITE_TOKEN
 
+# download the deployment script(s)
 echo "Installing deploy scripts"
-if [[ ! -e ${BIN_DIR}/deploy_scripts_${DEPLOY_SCRIPT_VERSION} ]]; then
-    mkdir -p ${BIN_DIR}
-    cd ${BIN_DIR}
-    wget "${DEPLOY_SCRIPTS_URL}/${DEPLOY_SCRIPT_VERSION}.zip" -q -O deploy_scripts.zip && unzip -j -o deploy_scripts.zip && rm deploy_scripts.zip
-    touch deploy_scripts_${DEPLOY_SCRIPT_VERSION}
-    cd ..
-fi
+mkdir -p ${BIN_DIR}
+rm -rf ${BIN_DIR}/deployment-scripts
+mkdir ${BIN_DIR}/deployment-scripts
+
+curl -H "Authorization: token ${GH_WRITE_TOKEN}" -s https://api.github.com/repos/DepartmentOfHealth-htbhf/htbhf-deployment-scripts/releases/latest \
+| grep zipball_url \
+| cut -d'"' -f4 \
+| wget -qO deployment-scripts.zip -i -
+
+unzip deployment-scripts.zip
+mv -f DepartmentOfHealth-htbhf-htbhf-deployment-scripts-*/* ${BIN_DIR}/deployment-scripts
+rm -rf DepartmentOfHealth-htbhf-htbhf-deployment-scripts-*
+rm deployment-scripts.zip
+
+export SCRIPT_DIR=${BIN_DIR}/deployment-scripts
 
 # determine APP_PATH
 export APP_VERSION=`cat version.properties | grep "version" | cut -d'=' -f2`
 export APP_PATH="api/build/libs/$APP_NAME-$APP_VERSION.jar"
 
-/bin/bash ${BIN_DIR}/deploy.sh
+# run the deployment script
+/bin/bash ${SCRIPT_DIR}/deploy.sh
