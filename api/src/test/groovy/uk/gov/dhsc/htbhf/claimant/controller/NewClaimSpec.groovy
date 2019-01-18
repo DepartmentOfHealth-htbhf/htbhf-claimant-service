@@ -6,15 +6,38 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import spock.lang.Specification
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
+
+    private static final String LONG_NAME = "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" + //100
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" + //200
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" + //300
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" + //400
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" +
+            "This name is way too long" + //500
+            "This name is way too long";
 
     @LocalServerPort
     int port
@@ -29,29 +52,48 @@ class NewClaimSpec extends Specification {
         def claim = aValidClaimDTO()
 
         when: "The request is received"
-        def response = restTemplate.postForEntity(endpointUrl, claim, Void.class)
+        def response = restTemplate.exchange(buildRequestEntity(claim), Void.class)
 
         then: "A created response is returned"
         assertThat(response.statusCode).isEqualTo(CREATED)
     }
 
-    def "An invalid claim returns an error response"(Object claim, String expectedErrorMessage, String expectedField) {
+    def "A single invalid field on a claim returns the correct error response"(String fieldName, String value, String expectedErrorMessage, String expectedField) {
         expect:
-        def headers = new HttpHeaders()
-        headers.setContentType(MediaType.APPLICATION_JSON)
-        def requestEntity = new RequestEntity<>(claim, headers, HttpMethod.POST, endpointUrl)
-        def response = restTemplate.exchange(requestEntity, ErrorResponse.class)
+        def claim = createClaimWithProperty(fieldName, value)
+        def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
         assertErrorResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        claim                           | expectedErrorMessage                       | expectedField
-        aClaimDTOWithLastNameTooLong()  | "size must be between 1 and 500"           | "claimant.lastName"
-        aClaimDTOWithNoLastName()       | "must not be null"                         | "claimant.lastName"
-        aClaimDTOWithEmptyLastName()    | "size must be between 1 and 500"           | "claimant.lastName"
-        aClaimDTOWithFirstNameTooLong() | "size must be between 0 and 500"           | "claimant.firstName"
-        aClaimDTOWithoutNino()          | "must not be null"                         | "claimant.nino"
-        aClaimDTOWithInvalidNino()      | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "{}"                            | "must not be null"                         | "claimant"
+        fieldName   | value         | expectedErrorMessage                       | expectedField
+        "lastName"  | LONG_NAME     | "size must be between 1 and 500"           | "claimant.lastName"
+        "lastName"  | null          | "must not be null"                         | "claimant.lastName"
+        "lastName"  | ""            | "size must be between 1 and 500"           | "claimant.lastName"
+        "firstName" | LONG_NAME     | "size must be between 0 and 500"           | "claimant.firstName"
+        "nino"      | null          | "must not be null"                         | "claimant.nino"
+        "nino"      | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"      | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"      | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"      | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"      | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"      | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+    }
+
+    def "An empty claim returns an error response"() {
+        given: "An empty claim request"
+        def claim = "{}"
+
+        when: "The request is received"
+        def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
+
+        then: "A created response is returned"
+        assertErrorResponse(response, "claimant", "must not be null")
+    }
+
+    private RequestEntity buildRequestEntity(Object requestObject) {
+        def headers = new HttpHeaders()
+        headers.setContentType(MediaType.APPLICATION_JSON)
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, endpointUrl)
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
@@ -63,5 +105,12 @@ class NewClaimSpec extends Specification {
         assertThat(response.body.timestamp).isNotNull()
         assertThat(response.body.status).isEqualTo(BAD_REQUEST.value())
         assertThat(response.body.message).isEqualTo("There were validation issues with the request.")
+    }
+
+    //This needs to be done in its own method because Spock won't allow this to be done it a test method.
+    private ClaimDTO createClaimWithProperty(String fieldName, String value) {
+        def claimDTO = aValidClaimDTO()
+        claimDTO.claimant."$fieldName" = value
+        return claimDTO
     }
 }
