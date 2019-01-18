@@ -6,6 +6,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import spock.lang.Specification
+import spock.lang.Unroll
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
@@ -58,7 +59,8 @@ class NewClaimSpec extends Specification {
         assertThat(response.statusCode).isEqualTo(CREATED)
     }
 
-    def "A single invalid field on a claim returns the correct error response"(String fieldName, String value, String expectedErrorMessage, String expectedField) {
+    @Unroll
+    def "Field [#fieldName] with invalid value [#value] on a claim returns the correct error response"(String fieldName, String value, String expectedErrorMessage, String expectedField) {
         expect:
         def claim = createClaimWithProperty(fieldName, value)
         def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
