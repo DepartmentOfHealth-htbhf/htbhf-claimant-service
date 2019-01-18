@@ -37,7 +37,7 @@ class NewClaimSpec extends Specification {
             "This name is way too long" +
             "This name is way too long" +
             "This name is way too long" + //500
-            "This name is way too long";
+            "This name is way too long"
 
     @LocalServerPort
     int port
