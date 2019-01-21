@@ -1,1 +1,1 @@
-CREATE INDEX nino_index ON claimant (nino);
+CREATE INDEX claimant_nino_idx ON claimant (nino);
