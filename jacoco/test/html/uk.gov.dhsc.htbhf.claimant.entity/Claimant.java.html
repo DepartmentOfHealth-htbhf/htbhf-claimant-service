@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -45,6 +46,9 @@ public class Claimant {
     @Column(name = &quot;nino&quot;)
     private String nino;
 
+    @Column(name = &quot;date_of_birth&quot;)
+    private LocalDate dateOfBirth;
+
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
      * persistence and they will be the same.
@@ -52,10 +56,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L56">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L60">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L58">        return this.id;</span>
+<span class="fc" id="L62">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
