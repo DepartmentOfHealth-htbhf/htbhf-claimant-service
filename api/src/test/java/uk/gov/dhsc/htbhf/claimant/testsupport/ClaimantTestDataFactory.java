@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
+import java.time.LocalDate;
+
 /**
  * Test data factory for {@link Claimant} objects.
  */
@@ -13,6 +15,7 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_NINO = "QQ123456C";
     private static final String VALID_FIRST_NAME = "Joe";
     private static final String VALID_LAST_NAME = "Blogger";
+    private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
 
     public static final String LONG_NAME = "This name is way too long"
             + "This name is way too long"
@@ -108,6 +111,7 @@ public final class ClaimantTestDataFactory {
         return Claimant.builder()
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)
-                .nino(VALID_NINO);
+                .nino(VALID_NINO)
+                .dateOfBirth(VALID_DOB);
     }
 }

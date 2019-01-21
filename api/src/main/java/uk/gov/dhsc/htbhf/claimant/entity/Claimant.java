@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,6 +45,9 @@ public class Claimant {
     @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-dA-D]")
     @Column(name = "nino")
     private String nino;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
