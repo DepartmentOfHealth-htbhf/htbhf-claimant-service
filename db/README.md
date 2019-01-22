@@ -71,6 +71,8 @@ Having logged into the Paas:
 ```
 cf login -a ${CF_API} -u ${CF_USER} -p "${CF_PASS}" -s ${CF_SPACE} -o ${CF_ORG}
 ```
+(And having already created the database: `cf create-service postgres small-ha-10.5 htbhf-claimant-service-postgres`)
+
 And installed the `conduit` plugin:
 ```
 cf install-plugin conduit
