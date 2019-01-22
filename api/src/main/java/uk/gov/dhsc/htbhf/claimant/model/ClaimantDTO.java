@@ -8,7 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -34,4 +36,9 @@ public class ClaimantDTO {
     @JsonProperty("nino")
     @ApiModelProperty(notes = "National Insurance number", example = "QQ123456C")
     private String nino;
+
+    @JsonProperty("dateOfBirth")
+    @Past
+    @ApiModelProperty(notes = "The date of birth, in the format YYYY-MM-DD", example = "1985-12-30")
+    private LocalDate dateOfBirth;
 }
