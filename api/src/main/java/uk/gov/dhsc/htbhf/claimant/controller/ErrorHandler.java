@@ -1,10 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,7 +20,9 @@ import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -71,6 +76,27 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
                 .build();
     }
 
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        if(ex.getCause() instanceof InvalidFormatException) {
+            InvalidFormatException cause = (InvalidFormatException) ex.getCause();
+            String path = cause.getPath().stream().map(JsonMappingException.Reference::getFieldName).collect(Collectors.joining("."));
+            ErrorResponse.FieldError fieldError = ErrorResponse.FieldError.builder()
+                    .message(cause.getMessage())
+                    .field(path)
+                    .build();
+            ErrorResponse response = ErrorResponse.builder()
+                    .fieldErrors(Collections.singletonList(fieldError))
+                    .requestId(requestContext.getRequestId())
+                    .status(BAD_REQUEST.value())
+                    .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                    .message(VALIDATION_ERROR_MESSAGE)
+                    .build();
+            return handleExceptionInternal(ex, response, headers, BAD_REQUEST, request);
+        }
+        return super.handleHttpMessageNotReadable(ex, headers, status, request);
+    }
+
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleOthers(Exception exception, WebRequest request) {
         log.error("An error occurred during {} request to {}:", requestContext.getMethod(), requestContext.getServletPath(), exception);
@@ -84,6 +110,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
         return handleExceptionInternal(exception, body, new HttpHeaders(), INTERNAL_SERVER_ERROR, request);
     }
+
 
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {

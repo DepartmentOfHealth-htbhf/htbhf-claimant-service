@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -86,6 +87,11 @@ class ErrorHandlerTest {
         assertThat(fieldErrors.get(0).getMessage()).isEqualTo(ERROR_MESSAGE_1);
         assertThat(fieldErrors.get(1).getField()).isEqualTo("object2");
         assertThat(fieldErrors.get(1).getMessage()).isEqualTo(ERROR_MESSAGE_2);
+    }
+
+    @Test
+    void shouldExtractDetailFromHttpMessageNotReadableException() {
+        //TODO - Continue from here, write test for handleHttpMessageNotReadable method
     }
 
 }
