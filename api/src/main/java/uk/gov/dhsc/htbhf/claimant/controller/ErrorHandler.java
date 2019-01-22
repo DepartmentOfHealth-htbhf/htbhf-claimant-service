@@ -32,7 +32,8 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RequiredArgsConstructor
 public class ErrorHandler extends ResponseEntityExceptionHandler {
 
-    private static final String VALIDATION_ERROR_MESSAGE = "There were validation issues with the request.";
+    public static final String VALIDATION_ERROR_MESSAGE = "There were validation issues with the request.";
+    public static final String UNREADABLE_ERROR_MESSAGE = "The request could not be parsed.";
 
     private final RequestContext requestContext;
 
@@ -77,12 +78,15 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        if(ex.getCause() instanceof InvalidFormatException) {
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
+                                                                  HttpHeaders headers,
+                                                                  HttpStatus status,
+                                                                  WebRequest request) {
+        if (ex.getCause() instanceof InvalidFormatException) {
             InvalidFormatException cause = (InvalidFormatException) ex.getCause();
             String path = cause.getPath().stream().map(JsonMappingException.Reference::getFieldName).collect(Collectors.joining("."));
             ErrorResponse.FieldError fieldError = ErrorResponse.FieldError.builder()
-                    .message(cause.getMessage())
+                    .message(String.format("'%s' could not be parsed as a %s", cause.getValue(), cause.getTargetType().getSimpleName()))
                     .field(path)
                     .build();
             ErrorResponse response = ErrorResponse.builder()
@@ -90,7 +94,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
                     .requestId(requestContext.getRequestId())
                     .status(BAD_REQUEST.value())
                     .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
-                    .message(VALIDATION_ERROR_MESSAGE)
+                    .message(UNREADABLE_ERROR_MESSAGE)
                     .build();
             return handleExceptionInternal(ex, response, headers, BAD_REQUEST, request);
         }
@@ -110,7 +114,6 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
         return handleExceptionInternal(exception, body, new HttpHeaders(), INTERNAL_SERVER_ERROR, request);
     }
-
 
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {

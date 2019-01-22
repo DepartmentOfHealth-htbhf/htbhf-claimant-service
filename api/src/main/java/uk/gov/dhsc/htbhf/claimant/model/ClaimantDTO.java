@@ -1,14 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import javax.validation.constraints.NotNull;
@@ -41,7 +39,6 @@ public class ClaimantDTO {
 
     @JsonProperty("dateOfBirth")
     @Past
-    @Pattern(regexp = "([0-2]?[0-9]{3}-[0-1]?[0-9]-[0-3]?[0-9])")
-    @ApiModelProperty(notes = "The date of birth", example = "1985-12-30")
+    @ApiModelProperty(notes = "The date of birth, in the format YYYY-MM-DD", example = "1985-12-30")
     private LocalDate dateOfBirth;
 }

@@ -71,7 +71,7 @@ class NewClaimSpec extends Specification {
         expect:
         def claim = createClaimWithProperty(fieldName, value)
         def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
-        assertErrorResponse(response, expectedField, expectedErrorMessage)
+        assertValidationResponse(response, expectedField, expectedErrorMessage)
 
         where:
         fieldName     | value         | expectedErrorMessage                       | expectedField
@@ -86,7 +86,7 @@ class NewClaimSpec extends Specification {
         "nino"        | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
         "nino"        | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
         "nino"        | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "dateOfBirth" | "2999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+        "dateOfBirth" | "2099-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
     }
 
     @Unroll
@@ -94,7 +94,7 @@ class NewClaimSpec extends Specification {
         expect:
         def claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString)
         def response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class)
-        assertErrorResponse(response, "claimant", "must match \"yyyy-MM-dd\"")
+        assertErrorResponse(response, "claimant.dateOfBirth", "'${dateString}' could not be parsed as a LocalDate", "The request could not be parsed.")
 
         where:
         dateString   | fieldName
@@ -118,7 +118,7 @@ class NewClaimSpec extends Specification {
         def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
 
         then: "A created response is returned"
-        assertErrorResponse(response, "claimant", "must not be null")
+        assertValidationResponse(response, "claimant", "must not be null")
     }
 
     private RequestEntity buildRequestEntity(Object requestObject) {
@@ -127,15 +127,19 @@ class NewClaimSpec extends Specification {
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, endpointUrl)
     }
 
-    private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedErrorMessage) {
+    private void assertValidationResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage) {
+        assertErrorResponse(response, expectedField, expectedFieldMessage, "There were validation issues with the request.")
+    }
+
+    private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage, String expectedErrorMessage) {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
         assertThat(response.body.fieldErrors.size()).isEqualTo(1)
         assertThat(response.body.fieldErrors[0].field).isEqualTo(expectedField)
-        assertThat(response.body.fieldErrors[0].message).isEqualTo(expectedErrorMessage)
+        assertThat(response.body.fieldErrors[0].message).isEqualTo(expectedFieldMessage)
         assertThat(response.body.requestId).isNotNull()
         assertThat(response.body.timestamp).isNotNull()
         assertThat(response.body.status).isEqualTo(BAD_REQUEST.value())
-        assertThat(response.body.message).isEqualTo("There were validation issues with the request.")
+        assertThat(response.body.message).isEqualTo(expectedErrorMessage)
     }
 
     //This needs to be done in its own method because Spock won't allow this to be done it a test method.
