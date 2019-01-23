@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">4.442s</div>
+<div class="counter">5.013s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,72 +79,72 @@
 </thead>
 <tr>
 <td class="success">A new valid claim is accepted</td>
-<td class="success">3.829s</td>
+<td class="success">4.452s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">An empty claim returns an error response</td>
-<td class="success">0.038s</td>
+<td class="success">0.030s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid date [1999/12/31] returns an error response</td>
-<td class="success">0.027s</td>
+<td class="success">0.039s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid date [29-11-1909] returns an error response</td>
-<td class="success">0.062s</td>
+<td class="success">0.078s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid date [Foo] returns an error response</td>
-<td class="success">0.026s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">Field [dateOfBirth] with invalid value [2099-12-31] on a claim returns the correct error response</td>
 <td class="success">0.034s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">Field [dateOfBirth] with invalid value [2099-12-31] on a claim returns the correct error response</td>
+<td class="success">0.036s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">Field [firstName] with invalid value [This name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too long] on a claim returns the correct error response</td>
-<td class="success">0.021s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [lastName] with invalid value [This name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too longThis name is way too long] on a claim returns the correct error response</td>
-<td class="success">0.143s</td>
+<td class="success">0.105s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [lastName] with invalid value [] on a claim returns the correct error response</td>
-<td class="success">0.026s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [lastName] with invalid value [null] on a claim returns the correct error response</td>
-<td class="success">0.037s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [888888888] on a claim returns the correct error response</td>
-<td class="success">0.028s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [ABCDEFGHI] on a claim returns the correct error response</td>
-<td class="success">0.028s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [QQ123456T] on a claim returns the correct error response</td>
-<td class="success">0.025s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [YYHU456781] on a claim returns the correct error response</td>
-<td class="success">0.026s</td>
+<td class="success">0.024s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -154,12 +154,12 @@
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [] on a claim returns the correct error response</td>
-<td class="success">0.030s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [null] on a claim returns the correct error response</td>
-<td class="success">0.035s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -176,66 +176,66 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.0.RELEASE)
 
-14:26:17.739 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Starting NewClaimSpec on travis-job-68a5405f-ecda-49f2-987a-7aa7544aae88 with PID 4900 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
-14:26:17.739 [Test worker] [] DEBUG u.g.d.h.c.controller.NewClaimSpec - Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
-14:26:17.740 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - No active profile set, falling back to default profiles: default
-14:26:18.301 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data repositories in DEFAULT mode.
-14:26:18.320 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 18ms. Found 1 repository interfaces.
-14:26:18.449 [Test worker] [] INFO  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$2e32f897] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
-14:26:18.676 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 0 (http)
-14:26:18.678 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler [&quot;http-nio-auto-2&quot;]
-14:26:18.687 [Test worker] [] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-14:26:18.688 [Test worker] [] INFO  o.a.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/9.0.12
-14:26:18.718 [Test worker] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-14:26:18.719 [Test worker] [] INFO  o.s.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 977 ms
-14:26:19.348 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'characterEncodingFilter' to: [/*]
-14:26:19.349 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'webMvcMetricsFilter' to: [/*]
-14:26:19.353 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
-14:26:19.354 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'formContentFilter' to: [/*]
-14:26:19.354 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestContextFilter' to: [/*]
-14:26:19.355 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'httpTraceFilter' to: [/*]
-14:26:19.357 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestIdFilter' to: [/*]
-14:26:19.357 [Test worker] [] INFO  o.s.b.w.s.ServletRegistrationBean - Servlet dispatcherServlet mapped to [/]
-14:26:19.359 [Test worker] [] DEBUG u.g.d.h.c.r.RequestIdFilter - Filter 'requestIdFilter' configured for use
-14:26:19.409 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Starting...
-14:26:19.416 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Start completed.
-14:26:19.417 [Test worker] [] INFO  o.f.c.i.database.DatabaseFactory - Database: jdbc:h2:mem:test (H2 1.4)
-14:26:19.457 [Test worker] [] INFO  o.f.core.internal.command.DbValidate - Successfully validated 5 migrations (execution time 00:00.014s)
-14:26:19.497 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Current version of schema &quot;PUBLIC&quot;: 1.005
-14:26:19.498 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
-14:26:19.599 [Test worker] [] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [
+11:35:33.842 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Starting NewClaimSpec on travis-job-4f3c8e72-60e5-4e18-a4ce-60f35b12a1e4 with PID 4954 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
+11:35:33.843 [Test worker] [] DEBUG u.g.d.h.c.controller.NewClaimSpec - Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
+11:35:33.843 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - No active profile set, falling back to default profiles: default
+11:35:34.475 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data repositories in DEFAULT mode.
+11:35:34.494 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 19ms. Found 1 repository interfaces.
+11:35:34.652 [Test worker] [] INFO  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$9e97a641] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+11:35:34.898 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 0 (http)
+11:35:34.901 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler [&quot;http-nio-auto-2&quot;]
+11:35:34.902 [Test worker] [] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+11:35:34.903 [Test worker] [] INFO  o.a.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/9.0.12
+11:35:34.940 [Test worker] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+11:35:34.940 [Test worker] [] INFO  o.s.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 1095 ms
+11:35:35.845 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'characterEncodingFilter' to: [/*]
+11:35:35.846 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'webMvcMetricsFilter' to: [/*]
+11:35:35.846 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+11:35:35.847 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'formContentFilter' to: [/*]
+11:35:35.847 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestContextFilter' to: [/*]
+11:35:35.849 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'httpTraceFilter' to: [/*]
+11:35:35.850 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestIdFilter' to: [/*]
+11:35:35.851 [Test worker] [] INFO  o.s.b.w.s.ServletRegistrationBean - Servlet dispatcherServlet mapped to [/]
+11:35:35.854 [Test worker] [] DEBUG u.g.d.h.c.r.RequestIdFilter - Filter 'requestIdFilter' configured for use
+11:35:35.906 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Starting...
+11:35:35.909 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Start completed.
+11:35:35.909 [Test worker] [] INFO  o.f.c.i.database.DatabaseFactory - Database: jdbc:h2:mem:test (H2 1.4)
+11:35:35.955 [Test worker] [] INFO  o.f.core.internal.command.DbValidate - Successfully validated 5 migrations (execution time 00:00.025s)
+11:35:36.000 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Current version of schema &quot;PUBLIC&quot;: 1.005
+11:35:36.000 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
+11:35:36.110 [Test worker] [] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [
 	name: default
 	...]
-14:26:19.620 [Test worker] [] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
-14:26:19.673 [Test worker] [] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-14:26:20.049 [Test worker] [] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration$JpaWebMvcConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-14:26:20.185 [Test worker] [] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
-14:26:20.364 [Test worker] [] INFO  s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
-14:26:20.572 [Test worker] [] INFO  o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
-14:26:20.975 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
-14:26:20.978 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
-14:26:20.988 [Test worker] [] INFO  s.d.s.w.s.ApiListingReferenceScanner - Scanning for api listing references
-14:26:21.067 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-auto-2&quot;]
-14:26:21.069 [Test worker] [] INFO  o.a.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
-14:26:21.075 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 33941 (http) with context path ''
-14:26:21.077 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Started NewClaimSpec in 3.406 seconds (JVM running for 36.529)
-14:26:21.189 [http-nio-auto-2-exec-1] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-14:26:21.190 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-14:26:21.211 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 20 ms
-14:26:21.360 [http-nio-auto-2-exec-1] [11b72f12-20cb-409d-bd74-b82dd5740e43] INFO  u.g.d.h.c.controller.ClaimController - Received claim
-14:26:21.577 [http-nio-auto-2-exec-2] [1435db56-0ec5-4397-9a06-c2ef91d2ce41] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
-14:26:21.677 [http-nio-auto-2-exec-3] [b970274f-9ba8-467b-baec-3dd1b626e1d0] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=must not be null)]
-14:26:21.718 [http-nio-auto-2-exec-4] [9a92de73-6a63-483f-83c9-c19624451c71] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
-14:26:21.748 [http-nio-auto-2-exec-5] [cf677256-c68d-422a-b9bc-51c1e3d0f709] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.firstName, message=size must be between 0 and 500)]
-14:26:21.788 [http-nio-auto-2-exec-6] [739f8d99-a45a-414f-b81c-4262fe0f44ca] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must not be null)]
-14:26:21.826 [http-nio-auto-2-exec-7] [b85b8b26-4958-4f04-b0e4-6e2f2319c0bf] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:21.865 [http-nio-auto-2-exec-8] [75a9a10c-808b-4ad1-8cdf-49b855ef388c] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:21.900 [http-nio-auto-2-exec-9] [2f33ba5a-8e03-4a1b-bf3b-182b21ad6b19] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:21.946 [http-nio-auto-2-exec-10] [fef12bc4-8549-4d45-8ed5-77c24d8afe3a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:21.976 [http-nio-auto-2-exec-1] [fe5e65b2-7a0d-4ef2-98f3-e22bdb3ca3cd] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:22.002 [http-nio-auto-2-exec-2] [f2c481bc-38be-4e15-9a69-8218e07ec530] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-14:26:22.046 [http-nio-auto-2-exec-3] [9eaf7967-6915-4182-9946-88344e48993b] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must be a past date)]
-14:26:22.214 [http-nio-auto-2-exec-7] [16657e7b-2786-488f-a00d-add746249fa7] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
+11:35:36.130 [Test worker] [] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+11:35:36.184 [Test worker] [] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+11:35:36.616 [Test worker] [] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration$JpaWebMvcConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+11:35:36.767 [Test worker] [] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+11:35:36.991 [Test worker] [] INFO  s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
+11:35:37.259 [Test worker] [] INFO  o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+11:35:37.738 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
+11:35:37.741 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+11:35:37.751 [Test worker] [] INFO  s.d.s.w.s.ApiListingReferenceScanner - Scanning for api listing references
+11:35:37.801 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-auto-2&quot;]
+11:35:37.802 [Test worker] [] INFO  o.a.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+11:35:37.805 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 39505 (http) with context path ''
+11:35:37.807 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Started NewClaimSpec in 4.022 seconds (JVM running for 38.58)
+11:35:37.946 [http-nio-auto-2-exec-1] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+11:35:37.946 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+11:35:37.966 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 19 ms
+11:35:38.098 [http-nio-auto-2-exec-1] [2045659d-ef24-4644-8eec-e94023073ae7] INFO  u.g.d.h.c.controller.ClaimController - Received claim
+11:35:38.303 [http-nio-auto-2-exec-2] [22f6c74e-a553-4c6b-9c2a-bae7ef2b6b7b] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
+11:35:38.375 [http-nio-auto-2-exec-3] [c3ffd4a5-d653-4392-adad-a782ca7343d1] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=must not be null)]
+11:35:38.403 [http-nio-auto-2-exec-4] [cbfe8e0a-6e5a-4ced-bdfb-a940546d0ad8] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
+11:35:38.431 [http-nio-auto-2-exec-5] [fdad49b7-85b3-4893-8d6f-877622486dc6] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.firstName, message=size must be between 0 and 500)]
+11:35:38.459 [http-nio-auto-2-exec-6] [eacb8dcd-c009-487b-8e68-27c862bb8d4a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must not be null)]
+11:35:38.488 [http-nio-auto-2-exec-7] [fc57ec23-42df-4a92-ae08-8ba2836ebf36] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.516 [http-nio-auto-2-exec-8] [6fb602dd-04bc-46c8-bee4-ce2c88e5c13c] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.547 [http-nio-auto-2-exec-9] [31b89a0d-cf2a-4809-9932-92df55fe4d97] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.574 [http-nio-auto-2-exec-10] [6e3459bd-4546-4001-9d9c-bffcb3b8ff13] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.604 [http-nio-auto-2-exec-1] [e03d6a62-661d-4558-90f5-71f0b2eda189] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.634 [http-nio-auto-2-exec-2] [7e01fcc7-3b3d-4543-aeff-6a64900da750] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:35:38.678 [http-nio-auto-2-exec-3] [79725568-d70e-48b0-a423-45f42b18ef7a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must be a past date)]
+11:35:38.885 [http-nio-auto-2-exec-7] [c44f8f37-2bd0-4ded-a964-ffc0f8c0db8a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
 </pre>
 </span>
 </div>
@@ -247,7 +247,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 22, 2019, 2:26:26 PM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 23, 2019, 11:35:43 AM</p>
 </div>
 </div>
 </body>
