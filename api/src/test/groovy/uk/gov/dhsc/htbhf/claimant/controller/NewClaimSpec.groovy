@@ -10,6 +10,7 @@ import org.springframework.http.*
 import spock.lang.Specification
 import spock.lang.Unroll
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository
 
 import java.time.LocalDate
 
@@ -53,6 +54,9 @@ class NewClaimSpec extends Specification {
     @Autowired
     ObjectMapper objectMapper
 
+    @Autowired
+    ClaimantRepository claimantRepository
+
     URI endpointUrl = URI.create("/v1/claims")
 
     def "A new valid claim is accepted"() {
@@ -64,6 +68,15 @@ class NewClaimSpec extends Specification {
 
         then: "A created response is returned"
         assertThat(response.statusCode).isEqualTo(CREATED)
+
+        and: "The claim is persisted"
+        def claims = claimantRepository.findAll()
+        def persistedClaim = claims.iterator().next()
+        assertThat(claims).size().isEqualTo(1)
+        assertThat(persistedClaim.nino).isEqualTo(claim.claimant.nino)
+        assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
+        assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
+        assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
     }
 
     @Unroll
