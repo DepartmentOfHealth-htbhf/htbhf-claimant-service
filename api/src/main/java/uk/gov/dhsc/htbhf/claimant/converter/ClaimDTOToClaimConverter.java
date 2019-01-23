@@ -25,6 +25,7 @@ public class ClaimDTOToClaimConverter {
                 .firstName(claimant.getFirstName())
                 .lastName(claimant.getLastName())
                 .nino(claimant.getNino())
+                .dateOfBirth(claimant.getDateOfBirth())
                 .build();
     }
 }

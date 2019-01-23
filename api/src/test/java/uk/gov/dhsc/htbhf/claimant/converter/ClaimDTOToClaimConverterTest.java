@@ -30,6 +30,7 @@ class ClaimDTOToClaimConverterTest {
         assertThat(claimant.getFirstName()).isEqualTo(claimantDTO.getFirstName());
         assertThat(claimant.getLastName()).isEqualTo(claimantDTO.getLastName());
         assertThat(claimant.getNino()).isEqualTo(claimantDTO.getNino());
+        assertThat(claimant.getDateOfBirth()).isEqualTo(claimantDTO.getDateOfBirth());
     }
 
     @Test
