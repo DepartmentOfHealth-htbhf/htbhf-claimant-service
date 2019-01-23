@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,11 @@ class ClaimantRepositoryTest {
 
     @Autowired
     private ClaimantRepository claimantRepository;
+
+    @AfterEach
+    void afterEach() {
+        claimantRepository.deleteAll();
+    }
 
     @Test
     void saveAndRetrieveClaimant() {
