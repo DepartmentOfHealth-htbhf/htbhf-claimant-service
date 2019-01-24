@@ -13,19 +13,32 @@ public final class ClaimDTOTestDataFactory {
     private static final String VALID_LAST_NAME = "Smith";
     private static final LocalDate VALID_DOB = LocalDate.parse("1985-12-31");
 
+    /**
+     * Builds a valid {@link ClaimDTO}.
+     * @return A valid {@link ClaimDTO}
+     */
     public static ClaimDTO aValidClaimDTO() {
         return ClaimDTO.builder()
-                .claimant(buildClaimantDTO(VALID_FIRST_NAME, VALID_LAST_NAME, VALID_NINO, VALID_DOB))
+                .claimant(aValidClaimantBuilder().build())
                 .build();
     }
 
-    private static ClaimantDTO buildClaimantDTO(String firstName, String lastName, String nino, LocalDate dateOfBirth) {
-        return ClaimantDTO.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .nino(nino)
-                .dateOfBirth(dateOfBirth)
+    /**
+     * Builds a valid {@link ClaimDTO} with the given date of birth.
+     * @return A valid {@link ClaimDTO} with the given date of birth
+     */
+    public static ClaimDTO aClaimDTOWithDateOfBirth(LocalDate dateOfBirth) {
+        return ClaimDTO.builder()
+                .claimant(aValidClaimantBuilder().dateOfBirth(dateOfBirth).build())
                 .build();
+    }
+
+    private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
+        return ClaimantDTO.builder()
+                .firstName(VALID_FIRST_NAME)
+                .lastName(VALID_LAST_NAME)
+                .nino(VALID_NINO)
+                .dateOfBirth(VALID_DOB);
     }
 
 }

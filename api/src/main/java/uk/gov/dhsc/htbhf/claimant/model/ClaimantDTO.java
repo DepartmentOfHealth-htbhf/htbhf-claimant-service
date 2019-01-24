@@ -37,8 +37,9 @@ public class ClaimantDTO {
     @ApiModelProperty(notes = "National Insurance number", example = "QQ123456C")
     private String nino;
 
-    @JsonProperty("dateOfBirth")
+    @NotNull
     @Past
+    @JsonProperty("dateOfBirth")
     @ApiModelProperty(notes = "The date of birth, in the format YYYY-MM-DD", example = "1985-12-30")
     private LocalDate dateOfBirth;
 }

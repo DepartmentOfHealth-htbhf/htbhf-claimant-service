@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory;
 
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 import javax.validation.ConstraintViolation;
@@ -16,6 +17,8 @@ import javax.validation.ValidatorFactory;
 
 import static uk.gov.dhsc.htbhf.claimant.assertion.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.LONG_NAME;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithDateOfBirth;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 
 class ClaimantTest {
 
@@ -113,7 +116,7 @@ class ClaimantTest {
     void shouldFailToValidateClaimantWithNoNino() {
         //Given
         String nino = null;
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithNino(nino);
+        Claimant claimant = aClaimantWithNino(nino);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -124,11 +127,33 @@ class ClaimantTest {
     @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI", "ZQQ123456CZ", "QQ123456T"})
     void shouldFailToValidateClaimantWithInvalidFormatNino(String invalidNino) {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithNino(invalidNino);
+        Claimant claimant = aClaimantWithNino(invalidNino);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "nino");
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithNoDateOfBirth() {
+        //Given
+        LocalDate dateOfBirth = null;
+        Claimant claimant = aClaimantWithDateOfBirth(dateOfBirth);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "dateOfBirth");
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithDateOfBirthInFuture() {
+        //Given
+        LocalDate dateOfBirth = LocalDate.parse("9999-12-30");
+        Claimant claimant = aClaimantWithDateOfBirth(dateOfBirth);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must be a past date", "dateOfBirth");
     }
 
 }

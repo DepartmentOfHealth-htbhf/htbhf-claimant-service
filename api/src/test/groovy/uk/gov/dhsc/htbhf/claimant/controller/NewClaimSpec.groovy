@@ -19,6 +19,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithDateOfBirth
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
@@ -71,8 +72,8 @@ class NewClaimSpec extends Specification {
 
         and: "The claim is persisted"
         def claims = claimantRepository.findAll()
+        assertThat(claims).hasSize(1)
         def persistedClaim = claims.iterator().next()
-        assertThat(claims).size().isEqualTo(1)
         assertThat(persistedClaim.nino).isEqualTo(claim.claimant.nino)
         assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
         assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
@@ -99,7 +100,7 @@ class NewClaimSpec extends Specification {
         "nino"        | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
         "nino"        | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
         "nino"        | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "dateOfBirth" | "2099-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+        "dateOfBirth" | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
     }
 
     @Unroll
@@ -116,13 +117,6 @@ class NewClaimSpec extends Specification {
         "Foo"        | "dateOfBirth"
     }
 
-    private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) {
-        String json = objectMapper.writeValueAsString(originalValue)
-        JSONObject jsonObject = new JSONObject(json)
-        jsonObject.getJSONObject("claimant").put(fieldName, newValue)
-        return jsonObject.toString()
-    }
-
     def "An empty claim returns an error response"() {
         given: "An empty claim request"
         def claim = "{}"
@@ -130,8 +124,27 @@ class NewClaimSpec extends Specification {
         when: "The request is received"
         def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
 
-        then: "A created response is returned"
+        then: "An error response is returned"
         assertValidationResponse(response, "claimant", "must not be null")
+    }
+
+    //This cannot be done in the single field error test above because setting the DOB to null in createClaimWithProperty throws a NPE.
+    def "A claim with no date of birth returns an error response"() {
+        given: "A claim request with no date of birth"
+        def claim = aClaimDTOWithDateOfBirth(null)
+
+        when: "The request is received"
+        def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
+
+        then: "An error response is returned"
+        assertValidationResponse(response, "claimant.dateOfBirth", "must not be null")
+    }
+
+    private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) {
+        String json = objectMapper.writeValueAsString(originalValue)
+        JSONObject jsonObject = new JSONObject(json)
+        jsonObject.getJSONObject("claimant").put(fieldName, newValue)
+        return jsonObject.toString()
     }
 
     private RequestEntity buildRequestEntity(Object requestObject) {
@@ -146,13 +159,14 @@ class NewClaimSpec extends Specification {
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage, String expectedErrorMessage) {
         assertThat(response.statusCode).isEqualTo(BAD_REQUEST)
-        assertThat(response.body.fieldErrors.size()).isEqualTo(1)
-        assertThat(response.body.fieldErrors[0].field).isEqualTo(expectedField)
-        assertThat(response.body.fieldErrors[0].message).isEqualTo(expectedFieldMessage)
-        assertThat(response.body.requestId).isNotNull()
-        assertThat(response.body.timestamp).isNotNull()
-        assertThat(response.body.status).isEqualTo(BAD_REQUEST.value())
-        assertThat(response.body.message).isEqualTo(expectedErrorMessage)
+        def body = response.body
+        assertThat(body.fieldErrors).hasSize(1)
+        assertThat(body.fieldErrors[0].field).isEqualTo(expectedField)
+        assertThat(body.fieldErrors[0].message).isEqualTo(expectedFieldMessage)
+        assertThat(body.requestId).isNotNull()
+        assertThat(body.timestamp).isNotNull()
+        assertThat(body.status).isEqualTo(BAD_REQUEST.value())
+        assertThat(body.message).isEqualTo(expectedErrorMessage)
     }
 
     //This needs to be done in its own method because Spock won't allow this to be done it a test method.
