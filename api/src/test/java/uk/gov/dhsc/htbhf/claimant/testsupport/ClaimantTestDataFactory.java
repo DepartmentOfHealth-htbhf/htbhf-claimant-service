@@ -79,6 +79,16 @@ public final class ClaimantTestDataFactory {
     }
 
     /**
+     * Builds a Claimant with the given date of birth.
+     *
+     * @param dateOfBirth The date of birth to use.
+     * @return The built Claimant
+     */
+    public static Claimant aClaimantWithDateOfBirth(LocalDate dateOfBirth) {
+        return aValidClaimantBuilder().dateOfBirth(dateOfBirth).build();
+    }
+
+    /**
      * Builds a Claimant with the given first name and last name.
      *
      * @param firstName The first name to use.
