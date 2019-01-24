@@ -14,6 +14,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -46,6 +47,8 @@ public class Claimant {
     @Column(name = &quot;nino&quot;)
     private String nino;
 
+    @NotNull
+    @Past
     @Column(name = &quot;date_of_birth&quot;)
     private LocalDate dateOfBirth;
 
@@ -56,10 +59,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L60">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L63">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L62">        return this.id;</span>
+<span class="fc" id="L65">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
