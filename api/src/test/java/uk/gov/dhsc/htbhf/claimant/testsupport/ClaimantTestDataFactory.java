@@ -1,43 +1,25 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
+import java.nio.CharBuffer;
 import java.time.LocalDate;
 
 /**
  * Test data factory for {@link Claimant} objects.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ClaimantTestDataFactory {
+
+    // Create a string 501 characters long
+    public static final String LONG_NAME = CharBuffer.allocate(501).toString().replace('\0', 'A');
 
     private static final String VALID_NINO = "QQ123456C";
     private static final String VALID_FIRST_NAME = "Joe";
     private static final String VALID_LAST_NAME = "Blogger";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
+    private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
-    public static final String LONG_NAME = "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long" //100
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long" //200
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long" //300
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long" //400
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long"
-            + "This name is way too long" //500
-            + "This name is way too long";
 
     /**
      * Builds a valid Claimant.
@@ -122,6 +104,7 @@ public final class ClaimantTestDataFactory {
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
-                .dateOfBirth(VALID_DOB);
+                .dateOfBirth(VALID_DOB)
+                .cardDeliveryAddress(VALID_ADDRESS);
     }
 }

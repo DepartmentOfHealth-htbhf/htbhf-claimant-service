@@ -5,7 +5,6 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.time.LocalDate;
 
-@SuppressWarnings("PMD.UseUtilityClass")
 public final class ClaimDTOTestDataFactory {
 
     private static final String VALID_NINO = "QQ123456C";
