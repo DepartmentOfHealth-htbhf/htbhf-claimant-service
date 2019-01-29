@@ -62,7 +62,7 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
         assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
-        assertAddress(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
+        assertAddressEqual(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
     }
 
     @Unroll
@@ -73,19 +73,19 @@ class NewClaimSpec extends Specification {
         assertValidationResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        fieldName             | value         | expectedErrorMessage                       | expectedField
-        "lastName"            | LONG_STRING   | "size must be between 1 and 500"           | "claimant.lastName"
-        "lastName"            | null          | "must not be null"                         | "claimant.lastName"
-        "lastName"            | ""            | "size must be between 1 and 500"           | "claimant.lastName"
-        "firstName"           | LONG_STRING   | "size must be between 0 and 500"           | "claimant.firstName"
-        "nino"                | null          | "must not be null"                         | "claimant.nino"
-        "nino"                | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"                | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"                | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"                | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"                | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"                | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "dateOfBirth"         | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+        fieldName     | value         | expectedErrorMessage                       | expectedField
+        "lastName"    | LONG_STRING   | "size must be between 1 and 500"           | "claimant.lastName"
+        "lastName"    | null          | "must not be null"                         | "claimant.lastName"
+        "lastName"    | ""            | "size must be between 1 and 500"           | "claimant.lastName"
+        "firstName"   | LONG_STRING   | "size must be between 0 and 500"           | "claimant.firstName"
+        "nino"        | null          | "must not be null"                         | "claimant.nino"
+        "nino"        | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"        | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"        | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"        | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"        | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"        | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "dateOfBirth" | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
     }
 
     @Unroll
@@ -106,6 +106,7 @@ class NewClaimSpec extends Specification {
         "postcode"     | "A"         | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
         "postcode"     | "11AA21"    | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
         "postcode"     | ""          | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
+        "postcode"     | null        | "must not be null"               | "claimant.cardDeliveryAddress.postcode"
     }
 
     @Unroll
@@ -145,7 +146,8 @@ class NewClaimSpec extends Specification {
         assertValidationResponse(response, "claimant.dateOfBirth", "must not be null")
     }
 
-    private assertAddress(Address actual, AddressDTO expected) {
+    private assertAddressEqual(Address actual, AddressDTO expected) {
+        assertThat(actual).isNotNull()
         assertThat(actual.addressLine1).isEqualTo(expected.addressLine1)
         assertThat(actual.addressLine2).isEqualTo(expected.addressLine2)
         assertThat(actual.townOrCity).isEqualTo(expected.townOrCity)
