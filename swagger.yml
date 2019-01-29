@@ -48,6 +48,35 @@ paths:
           description: "Not Found"
       deprecated: false
 definitions:
+  AddressDTO:
+    type: "object"
+    properties:
+      addressLine1:
+        type: "string"
+        example: "Flat B"
+        description: "First line of the card delivery address"
+        minLength: 1
+        maxLength: 500
+      addressLine2:
+        type: "string"
+        example: "123 Fake Street"
+        description: "Second line of the card delivery address"
+        minLength: 0
+        maxLength: 500
+      postcode:
+        type: "string"
+        example: "AA1 1AA"
+        description: "The postcode to send the address to."
+        pattern: "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\\
+          s?[0-9][A-Za-z]{2})"
+      townOrCity:
+        type: "string"
+        example: "London"
+        description: "Town or city of the card delivery address"
+        minLength: 1
+        maxLength: 500
+    title: "AddressDTO"
+    description: "An address for help to buy healthy foods."
   ClaimDTO:
     type: "object"
     properties:
@@ -60,6 +89,9 @@ definitions:
   ClaimantDTO:
     type: "object"
     properties:
+      cardDeliveryAddress:
+        description: "The address to send the card to"
+        $ref: "#/definitions/AddressDTO"
       dateOfBirth:
         type: "string"
         format: "date"

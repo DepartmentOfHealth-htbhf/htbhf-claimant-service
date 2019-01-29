@@ -1,33 +1,22 @@
-package uk.gov.dhsc.htbhf.claimant.entity;
+package uk.gov.dhsc.htbhf.claimant.model;
 
-import lombok.AccessLevel;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-/**
- * Domain object for an Address.
- */
-@Entity
 @Data
 @Builder
-@Table(name = "address")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor
-public class Address {
+@AllArgsConstructor(onConstructor_ = {@JsonCreator})
+@ApiModel(description = "An address for help to buy healthy foods.")
+public class AddressDTO {
 
     /**
      * Regex for matching UK postcodes matching BS7666 format.
@@ -37,40 +26,26 @@ public class Address {
     public static final String UK_POST_CODE_REGEX = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})"
             + "|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\s?[0-9][A-Za-z]{2})";
 
-    @Id
-    @Getter(AccessLevel.NONE)
-    @Access(AccessType.PROPERTY)
-    private UUID id;
-
     @NotNull
     @Size(min = 1, max = 500)
-    @Column(name = "address_line_1")
+    @JsonProperty("addressLine1")
+    @ApiModelProperty(notes = "First line of the card delivery address", example = "Flat B")
     private String addressLine1;
 
     @Size(max = 500)
-    @Column(name = "address_line_2")
+    @JsonProperty("addressLine2")
+    @ApiModelProperty(notes = "Second line of the card delivery address", example = "123 Fake Street")
     private String addressLine2;
 
     @NotNull
     @Size(min = 1, max = 500)
-    @Column(name = "town_or_city")
+    @JsonProperty("townOrCity")
+    @ApiModelProperty(notes = "Town or city of the card delivery address", example = "London")
     private String townOrCity;
 
     @NotNull
     @Pattern(regexp = UK_POST_CODE_REGEX, message = "invalid postcode format")
-    @Column(name = "postcode")
+    @JsonProperty("postcode")
+    @ApiModelProperty(notes = "The postcode to send the address to.", example = "AA1 1AA")
     private String postcode;
-
-    /**
-     * Adding a custom getter for the id so that we can compare an Address object before and after its initial
-     * persistence and they will be the same.
-     *
-     * @return The id for the Address.
-     */
-    public UUID getId() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
-        return this.id;
-    }
 }

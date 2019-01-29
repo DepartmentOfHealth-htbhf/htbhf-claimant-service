@@ -9,42 +9,26 @@ import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
 import spock.lang.Specification
 import spock.lang.Unroll
+import uk.gov.dhsc.htbhf.claimant.entity.Address
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository
 
+import java.nio.CharBuffer
 import java.time.LocalDate
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithDateOfBirth
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
 
-    private static final String LONG_NAME = "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" + //100
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" + //200
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" + //300
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" + //400
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" +
-            "This name is way too long" + //500
-            "This name is way too long"
+    // Create a string 501 characters long
+    private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A')
 
     @LocalServerPort
     int port
@@ -78,6 +62,7 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
         assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
+        assertAddress(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
     }
 
     @Unroll
@@ -88,19 +73,39 @@ class NewClaimSpec extends Specification {
         assertValidationResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        fieldName     | value         | expectedErrorMessage                       | expectedField
-        "lastName"    | LONG_NAME     | "size must be between 1 and 500"           | "claimant.lastName"
-        "lastName"    | null          | "must not be null"                         | "claimant.lastName"
-        "lastName"    | ""            | "size must be between 1 and 500"           | "claimant.lastName"
-        "firstName"   | LONG_NAME     | "size must be between 0 and 500"           | "claimant.firstName"
-        "nino"        | null          | "must not be null"                         | "claimant.nino"
-        "nino"        | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "dateOfBirth" | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+        fieldName             | value         | expectedErrorMessage                       | expectedField
+        "lastName"            | LONG_STRING   | "size must be between 1 and 500"           | "claimant.lastName"
+        "lastName"            | null          | "must not be null"                         | "claimant.lastName"
+        "lastName"            | ""            | "size must be between 1 and 500"           | "claimant.lastName"
+        "firstName"           | LONG_STRING   | "size must be between 0 and 500"           | "claimant.firstName"
+        "nino"                | null          | "must not be null"                         | "claimant.nino"
+        "nino"                | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"                | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"                | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"                | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"                | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "nino"                | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
+        "dateOfBirth"         | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+    }
+
+    @Unroll
+    def "Field [#fieldName] with invalid value [#value] on an address returns the correct error response"(String fieldName, String value, String expectedErrorMessage, String expectedField) {
+        expect:
+        def claim = createClaimWithAddressProperty(fieldName, value)
+        def response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class)
+        assertValidationResponse(response, expectedField, expectedErrorMessage)
+
+        where:
+        fieldName      | value       | expectedErrorMessage             | expectedField
+        "addressLine1" | null        | "must not be null"               | "claimant.cardDeliveryAddress.addressLine1"
+        "addressLine1" | LONG_STRING | "size must be between 1 and 500" | "claimant.cardDeliveryAddress.addressLine1"
+        "addressLine2" | LONG_STRING | "size must be between 0 and 500" | "claimant.cardDeliveryAddress.addressLine2"
+        "townOrCity"   | null        | "must not be null"               | "claimant.cardDeliveryAddress.townOrCity"
+        "townOrCity"   | LONG_STRING | "size must be between 1 and 500" | "claimant.cardDeliveryAddress.townOrCity"
+        "postcode"     | "AA1122BB"  | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
+        "postcode"     | "A"         | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
+        "postcode"     | "11AA21"    | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
+        "postcode"     | ""          | "invalid postcode format"        | "claimant.cardDeliveryAddress.postcode"
     }
 
     @Unroll
@@ -140,6 +145,13 @@ class NewClaimSpec extends Specification {
         assertValidationResponse(response, "claimant.dateOfBirth", "must not be null")
     }
 
+    private assertAddress(Address actual, AddressDTO expected) {
+        assertThat(actual.addressLine1).isEqualTo(expected.addressLine1)
+        assertThat(actual.addressLine2).isEqualTo(expected.addressLine2)
+        assertThat(actual.townOrCity).isEqualTo(expected.townOrCity)
+        assertThat(actual.postcode).isEqualTo(expected.postcode)
+    }
+
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) {
         String json = objectMapper.writeValueAsString(originalValue)
         JSONObject jsonObject = new JSONObject(json)
@@ -172,8 +184,15 @@ class NewClaimSpec extends Specification {
     //This needs to be done in its own method because Spock won't allow this to be done it a test method.
     private ClaimDTO createClaimWithProperty(String fieldName, String value) {
         def claimDTO = aValidClaimDTO()
-        Object valueToSet = isLocalDateField(fieldName) ? LocalDate.parse(value) : value;
+        Object valueToSet = isLocalDateField(fieldName) ? LocalDate.parse(value) : value
         claimDTO.claimant."$fieldName" = valueToSet
+        return claimDTO
+    }
+
+    //This needs to be done in its own method because Spock won't allow this to be done it a test method.
+    private ClaimDTO createClaimWithAddressProperty(String fieldName, String value) {
+        def claimDTO = aValidClaimDTO()
+        claimDTO.claimant.cardDeliveryAddress."$fieldName" = value
         return claimDTO
     }
 
