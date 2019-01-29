@@ -16,7 +16,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.anAd
 public class AddressTest extends AbstractValidationTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"EC11BB", "W1A0AX", "M11AE", "B338TH", "CR26XH", "DN551PT"})
+    @ValueSource(strings = {"EC11BB", "W1A0AX", "M11AE", "B338TH", "CR26XH", "DN551PT", "DN55 1PT"})
     void shouldValidateAddressSuccessfully(String postcode) {
         //Given
         var address = anAddressWithPostcode(postcode);
