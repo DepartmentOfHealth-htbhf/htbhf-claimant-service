@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -11,24 +10,13 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 
 import static uk.gov.dhsc.htbhf.claimant.assertion.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.LONG_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithDateOfBirth;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 
-class ClaimantTest {
-
-    private Validator validator;
-
-    @BeforeEach
-    void setup() {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        validator = validatorFactory.getValidator();
-    }
+class ClaimantTest extends AbstractValidationTest {
 
     @Test
     void shouldValidateClaimantSuccessfully() {
