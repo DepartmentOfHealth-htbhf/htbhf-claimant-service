@@ -55,6 +55,9 @@ public class Claimant {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name = "expected_delivery_date")
+    private LocalDate expectedDeliveryDate;
+
     @OneToOne(mappedBy = "claimant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Address cardDeliveryAddress;
 
