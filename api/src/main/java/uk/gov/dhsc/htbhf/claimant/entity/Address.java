@@ -12,14 +12,13 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.UK_POST_CODE_REGEX;
 
 /**
  * Domain object for an Address.
@@ -32,22 +31,10 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class Address {
 
-    /**
-     * Regex for matching UK postcodes matching BS7666 format.
-     * { @see https://www.gov.uk/government/publications/bulk-data-transfer-for-sponsors-xml-schema } The format is in the file BulkDataCommon-v2.1.xsd
-     * { @see https://stackoverflow.com/questions/164979/uk-postcode-regex-comprehensive }
-     */
-    public static final String UK_POST_CODE_REGEX = "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})"
-            + "|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\s?[0-9][A-Za-z]{2})";
-
     @Id
     @Getter(AccessLevel.NONE)
     @Access(AccessType.PROPERTY)
     private UUID id;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
-    private Claimant claimant;
 
     @NotNull
     @Size(min = 1, max = 500)

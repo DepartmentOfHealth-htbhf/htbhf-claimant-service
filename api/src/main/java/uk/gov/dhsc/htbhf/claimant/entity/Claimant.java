@@ -12,7 +12,6 @@ import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -58,7 +57,7 @@ public class Claimant {
     @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
-    @OneToOne(mappedBy = "claimant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
     /**

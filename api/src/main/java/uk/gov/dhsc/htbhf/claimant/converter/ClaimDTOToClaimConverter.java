@@ -13,6 +13,12 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 @Component
 public class ClaimDTOToClaimConverter {
 
+    private final AddressDTOToAddressConverter addressConverter;
+
+    public ClaimDTOToClaimConverter(AddressDTOToAddressConverter addressConverter) {
+        this.addressConverter = addressConverter;
+    }
+
     public Claim convert(ClaimDTO source) {
         Assert.notNull(source, "source ClaimDTO must not be null");
         return Claim.builder()
@@ -27,6 +33,7 @@ public class ClaimDTOToClaimConverter {
                 .dateOfBirth(claimant.getDateOfBirth())
                 .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
                 .nino(claimant.getNino())
+                .cardDeliveryAddress(addressConverter.convert(claimant.getCardDeliveryAddress()))
                 .build();
     }
 }

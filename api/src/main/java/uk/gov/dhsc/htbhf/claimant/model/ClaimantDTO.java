@@ -10,6 +10,7 @@ import lombok.Data;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.DateWithinRelativeRange;
 
 import java.time.LocalDate;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
@@ -51,4 +52,9 @@ public class ClaimantDTO {
     @DateWithinRelativeRange(monthsInPast = 1, monthsInFuture = 8,
             message = "must not be more than one month in the past or 8 months in the future")
     private LocalDate expectedDeliveryDate;
+
+    @Valid
+    @JsonProperty("cardDeliveryAddress")
+    @ApiModelProperty(notes = "The address to send the card to")
+    private AddressDTO cardDeliveryAddress;
 }
