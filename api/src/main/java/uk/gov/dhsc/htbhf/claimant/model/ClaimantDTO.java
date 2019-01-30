@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.DateWithinRelativeRange;
 
 import java.time.LocalDate;
 import javax.validation.Valid;
@@ -43,6 +44,14 @@ public class ClaimantDTO {
     @JsonProperty("dateOfBirth")
     @ApiModelProperty(notes = "The date of birth, in the format YYYY-MM-DD", example = "1985-12-30")
     private LocalDate dateOfBirth;
+
+    @JsonProperty("expectedDeliveryDate")
+    @ApiModelProperty(notes = "If the claimant is pregnant, this is the expected date of delivery (due date) of their baby, in the format YYYY-MM-DD."
+            + " The due date must be between one month in the past and 8 months in the future.",
+            example = "2019-12-30")
+    @DateWithinRelativeRange(monthsInPast = 1, monthsInFuture = 8,
+            message = "must not be more than one month in the past or 8 months in the future")
+    private LocalDate expectedDeliveryDate;
 
     @Valid
     @JsonProperty("cardDeliveryAddress")

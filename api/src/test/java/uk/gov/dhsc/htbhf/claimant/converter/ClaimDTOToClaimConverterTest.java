@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimDTOToClaimConverterTest {
@@ -31,7 +31,7 @@ class ClaimDTOToClaimConverterTest {
     @Test
     void shouldConvertClaimDTOToEquivalentClaimObject() {
         // Given
-        ClaimDTO claimDTO = aValidClaimDTO();
+        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimantDTO = claimDTO.getClaimant();
         when(addressConverter.convert(claimantDTO.getCardDeliveryAddress())).thenReturn(ADDRESS);
 
@@ -46,6 +46,7 @@ class ClaimDTOToClaimConverterTest {
         assertThat(claimant.getLastName()).isEqualTo(claimantDTO.getLastName());
         assertThat(claimant.getNino()).isEqualTo(claimantDTO.getNino());
         assertThat(claimant.getDateOfBirth()).isEqualTo(claimantDTO.getDateOfBirth());
+        assertThat(claimant.getExpectedDeliveryDate()).isEqualTo(claimantDTO.getExpectedDeliveryDate());
         assertThat(claimant.getCardDeliveryAddress()).isEqualTo(ADDRESS);
         verify(addressConverter).convert(claimDTO.getClaimant().getCardDeliveryAddress());
     }

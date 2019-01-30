@@ -6,6 +6,8 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.time.LocalDate;
 
+import static java.time.LocalDate.now;
+
 public final class ClaimDTOTestDataFactory {
 
     private static final String VALID_NINO = "QQ123456C";
@@ -24,6 +26,18 @@ public final class ClaimDTOTestDataFactory {
     public static ClaimDTO aValidClaimDTO() {
         return ClaimDTO.builder()
                 .claimant(aValidClaimantBuilder().build())
+                .build();
+    }
+
+    /**
+     * Builds a valid {@link ClaimDTO}.
+     * @return A valid {@link ClaimDTO}
+     */
+    public static ClaimDTO aValidClaimDTOWithNoNullFields() {
+        return ClaimDTO.builder()
+                .claimant(aValidClaimantBuilder()
+                        .expectedDeliveryDate(now().plusMonths(4))
+                        .build())
                 .build();
     }
 

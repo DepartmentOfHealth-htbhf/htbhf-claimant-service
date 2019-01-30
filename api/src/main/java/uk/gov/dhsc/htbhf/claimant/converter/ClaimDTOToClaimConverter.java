@@ -31,6 +31,7 @@ public class ClaimDTOToClaimConverter {
                 .firstName(claimant.getFirstName())
                 .lastName(claimant.getLastName())
                 .dateOfBirth(claimant.getDateOfBirth())
+                .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
                 .nino(claimant.getNino())
                 .cardDeliveryAddress(addressConverter.convert(claimant.getCardDeliveryAddress()))
                 .build();
