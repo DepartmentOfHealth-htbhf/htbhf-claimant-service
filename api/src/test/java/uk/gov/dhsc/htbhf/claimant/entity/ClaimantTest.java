@@ -144,4 +144,40 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("must be a past date", "dateOfBirth");
     }
 
+    @Test
+    void shouldValidateClaimantWithoutExpectedDueDate() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+                .expectedDeliveryDate(null)
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithExpectedDueDate() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+                .expectedDeliveryDate(LocalDate.now())
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithExpectedDueDateInThePast() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+                .expectedDeliveryDate(LocalDate.now().minusYears(3))
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
 }
