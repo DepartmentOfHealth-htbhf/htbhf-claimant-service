@@ -51,17 +51,6 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
-    // TODO remove this once the card delivery address field is made mandatory
-    /**
-     * Builds a valid {@link ClaimDTO} with no address.
-     * @return A valid {@link ClaimDTO} with no address
-     */
-    public static ClaimDTO aClaimDTOWithNoAddress() {
-        return ClaimDTO.builder()
-                .claimant(aValidClaimantBuilder().cardDeliveryAddress(null).build())
-                .build();
-    }
-
     private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()
                 .firstName(VALID_FIRST_NAME)

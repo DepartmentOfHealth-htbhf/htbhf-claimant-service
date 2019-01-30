@@ -13,12 +13,9 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithNoAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,18 +49,6 @@ class ClaimDTOToClaimConverterTest {
         assertThat(claimant.getExpectedDeliveryDate()).isEqualTo(claimantDTO.getExpectedDeliveryDate());
         assertThat(claimant.getCardDeliveryAddress()).isEqualTo(ADDRESS);
         verify(addressConverter).convert(claimDTO.getClaimant().getCardDeliveryAddress());
-    }
-
-    // TODO remove this test once the card delivery address field is made mandatory
-    @Test
-    void shouldNotConvertCardDeliveryAddressWhenNotPresent() {
-        // Given
-        ClaimDTO claimDTO = aClaimDTOWithNoAddress();
-
-        // When
-        converter.convert(claimDTO);
-
-        verify(addressConverter, never()).convert(any());
     }
 
     @Test

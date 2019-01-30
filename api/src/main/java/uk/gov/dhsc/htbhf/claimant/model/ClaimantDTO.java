@@ -53,6 +53,7 @@ public class ClaimantDTO {
             message = "must not be more than one month in the past or 8 months in the future")
     private LocalDate expectedDeliveryDate;
 
+    @NotNull
     @Valid
     @JsonProperty("cardDeliveryAddress")
     @ApiModelProperty(notes = "The address to send the card to")
