@@ -21,11 +21,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithDateOfBirth
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithNoAddress
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
@@ -67,27 +63,6 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
         assertThat(persistedClaim.expectedDeliveryDate).isEqualTo(claim.claimant.expectedDeliveryDate)
         assertAddressEqual(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
-    }
-
-    // TODO remove this test once the card delivery address field is made mandatory
-    def "A new valid claim is accepted with no card delivery address"() {
-        given: "A valid claim request"
-        def claim = aClaimDTOWithNoAddress()
-
-        when: "The request is received"
-        def response = restTemplate.exchange(buildRequestEntity(claim), Void.class)
-
-        then: "A created response is returned"
-        assertThat(response.statusCode).isEqualTo(CREATED)
-
-        and: "The claim is persisted"
-        def claims = claimantRepository.findAll()
-        assertThat(claims).hasSize(1)
-        def persistedClaim = claims.iterator().next()
-        assertThat(persistedClaim.nino).isEqualTo(claim.claimant.nino)
-        assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
-        assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
-        assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
     }
 
     @Unroll

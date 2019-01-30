@@ -60,4 +60,23 @@ public class ClaimControllerIntegrationTest {
         assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimDTO.getClaimant().getExpectedDeliveryDate());
     }
 
+    // TODO remove this test once the card delivery address field is made mandatory
+    @Test
+    void shouldPersistNewClaimantWithNoCardDeliveryAddress() {
+        // Given
+        ClaimDTO claimDTO = ClaimDTOTestDataFactory.aClaimDTOWithNoAddress();
+
+        // When
+        controller.newClaim(claimDTO);
+
+        // Then
+        Iterable<Claimant> claimants = claimantRepository.findAll();
+        assertThat(claimants).hasSize(1);
+        Claimant persistedClaim = claimants.iterator().next();
+        assertThat(persistedClaim.getNino()).isEqualTo(claimDTO.getClaimant().getNino());
+        assertThat(persistedClaim.getFirstName()).isEqualTo(claimDTO.getClaimant().getFirstName());
+        assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
+        assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
+        assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimDTO.getClaimant().getExpectedDeliveryDate());
+    }
 }
