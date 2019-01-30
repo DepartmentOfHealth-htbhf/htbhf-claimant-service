@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
@@ -42,4 +43,9 @@ public class ClaimantDTO {
     @JsonProperty("dateOfBirth")
     @ApiModelProperty(notes = "The date of birth, in the format YYYY-MM-DD", example = "1985-12-30")
     private LocalDate dateOfBirth;
+
+    @Valid
+    @JsonProperty("cardDeliveryAddress")
+    @ApiModelProperty(notes = "The address to send the card to")
+    private AddressDTO cardDeliveryAddress;
 }
