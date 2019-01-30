@@ -12,7 +12,6 @@ import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -58,7 +57,7 @@ public class Claimant {
     @Column(name = &quot;expected_delivery_date&quot;)
     private LocalDate expectedDeliveryDate;
 
-    @OneToOne(mappedBy = &quot;claimant&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
     /**
@@ -68,10 +67,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L72">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L71">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L74">        return this.id;</span>
+<span class="fc" id="L73">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
