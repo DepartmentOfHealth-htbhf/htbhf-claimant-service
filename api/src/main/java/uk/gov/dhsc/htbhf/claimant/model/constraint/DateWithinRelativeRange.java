@@ -77,10 +77,11 @@ class DateWithinRelativeRangeValidator implements ConstraintValidator<DateWithin
     }
 
     private boolean isWithinValidRange(LocalDate value) {
-        LocalDate lastValidDate = LocalDate.now().plusMonths(monthsInFuture);
+        LocalDate now = LocalDate.now();
+        LocalDate lastValidDate = now.plusMonths(monthsInFuture);
         boolean isBeforeEnd = value.isBefore(lastValidDate) || value.isEqual(lastValidDate);
 
-        LocalDate firstValidDate = LocalDate.now().minusMonths(monthsInPast);
+        LocalDate firstValidDate = now.minusMonths(monthsInPast);
         boolean isAfterStart = value.isAfter(firstValidDate) || value.isEqual(firstValidDate);
 
         return isAfterStart && isBeforeEnd;

@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +23,7 @@ public class ClaimControllerIntegrationTest {
     ClaimantRepository claimantRepository;
 
     @Test
-    void shouldPersistNewClaimant() {
+    void shouldPersistNewClaimantWithoutOptionalFields() {
         // Given
         ClaimDTO claimDTO = ClaimDTOTestDataFactory.aValidClaimDTO();
 
@@ -35,11 +34,11 @@ public class ClaimControllerIntegrationTest {
         Iterable<Claimant> claimants = claimantRepository.findAll();
         assertThat(claimants).hasSize(1);
         Claimant persistedClaim = claimants.iterator().next();
-        AssertionsForClassTypes.assertThat(persistedClaim.getNino()).isEqualTo(claimDTO.getClaimant().getNino());
-        AssertionsForClassTypes.assertThat(persistedClaim.getFirstName()).isEqualTo(claimDTO.getClaimant().getFirstName());
-        AssertionsForClassTypes.assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
-        AssertionsForClassTypes.assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
-        AssertionsForClassTypes.assertThat(persistedClaim.getExpectedDeliveryDate()).isNull();
+        assertThat(persistedClaim.getNino()).isEqualTo(claimDTO.getClaimant().getNino());
+        assertThat(persistedClaim.getFirstName()).isEqualTo(claimDTO.getClaimant().getFirstName());
+        assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
+        assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
+        assertThat(persistedClaim.getExpectedDeliveryDate()).isNull();
     }
 
     @Test
@@ -54,11 +53,11 @@ public class ClaimControllerIntegrationTest {
         Iterable<Claimant> claimants = claimantRepository.findAll();
         assertThat(claimants).hasSize(1);
         Claimant persistedClaim = claimants.iterator().next();
-        AssertionsForClassTypes.assertThat(persistedClaim.getNino()).isEqualTo(claimDTO.getClaimant().getNino());
-        AssertionsForClassTypes.assertThat(persistedClaim.getFirstName()).isEqualTo(claimDTO.getClaimant().getFirstName());
-        AssertionsForClassTypes.assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
-        AssertionsForClassTypes.assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
-        AssertionsForClassTypes.assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimDTO.getClaimant().getExpectedDeliveryDate());
+        assertThat(persistedClaim.getNino()).isEqualTo(claimDTO.getClaimant().getNino());
+        assertThat(persistedClaim.getFirstName()).isEqualTo(claimDTO.getClaimant().getFirstName());
+        assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
+        assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
+        assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimDTO.getClaimant().getExpectedDeliveryDate());
     }
 
 }
