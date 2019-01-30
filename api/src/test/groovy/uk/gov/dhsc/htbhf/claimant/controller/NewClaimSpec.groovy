@@ -21,10 +21,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithDateOfBirth
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {

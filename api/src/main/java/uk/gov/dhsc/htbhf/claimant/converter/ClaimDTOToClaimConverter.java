@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
@@ -33,7 +34,13 @@ public class ClaimDTOToClaimConverter {
                 .dateOfBirth(claimant.getDateOfBirth())
                 .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
                 .nino(claimant.getNino())
-                .cardDeliveryAddress(addressConverter.convert(claimant.getCardDeliveryAddress()))
+                .cardDeliveryAddress(convertCardDeliveryAddress(claimant))
                 .build();
+    }
+
+    private Address convertCardDeliveryAddress(ClaimantDTO claimant) {
+        return claimant.getCardDeliveryAddress() == null
+                ? null
+                : addressConverter.convert(claimant.getCardDeliveryAddress());
     }
 }
