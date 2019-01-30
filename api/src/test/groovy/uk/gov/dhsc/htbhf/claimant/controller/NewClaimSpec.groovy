@@ -21,6 +21,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithDateOfBirth
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithNoAddress
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
@@ -47,7 +49,7 @@ class NewClaimSpec extends Specification {
 
     def "A new valid claim is accepted"() {
         given: "A valid claim request"
-        def claim = aValidClaimDTO()
+        def claim = aValidClaimDTOWithNoNullFields()
 
         when: "The request is received"
         def response = restTemplate.exchange(buildRequestEntity(claim), Void.class)
@@ -63,6 +65,7 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.firstName).isEqualTo(claim.claimant.firstName)
         assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
+        assertThat(persistedClaim.expectedDeliveryDate).isEqualTo(claim.claimant.expectedDeliveryDate)
         assertAddressEqual(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
     }
 
@@ -95,19 +98,21 @@ class NewClaimSpec extends Specification {
         assertValidationResponse(response, expectedField, expectedErrorMessage)
 
         where:
-        fieldName     | value         | expectedErrorMessage                       | expectedField
-        "lastName"    | LONG_STRING   | "size must be between 1 and 500"           | "claimant.lastName"
-        "lastName"    | null          | "must not be null"                         | "claimant.lastName"
-        "lastName"    | ""            | "size must be between 1 and 500"           | "claimant.lastName"
-        "firstName"   | LONG_STRING   | "size must be between 0 and 500"           | "claimant.firstName"
-        "nino"        | null          | "must not be null"                         | "claimant.nino"
-        "nino"        | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "nino"        | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"" | "claimant.nino"
-        "dateOfBirth" | "9999-12-31"  | "must be a past date"                      | "claimant.dateOfBirth"
+        fieldName              | value         | expectedErrorMessage                                                    | expectedField
+        "lastName"             | LONG_STRING   | "size must be between 1 and 500"                                        | "claimant.lastName"
+        "lastName"             | null          | "must not be null"                                                      | "claimant.lastName"
+        "lastName"             | ""            | "size must be between 1 and 500"                                        | "claimant.lastName"
+        "firstName"            | LONG_STRING   | "size must be between 0 and 500"                                        | "claimant.firstName"
+        "nino"                 | null          | "must not be null"                                                      | "claimant.nino"
+        "nino"                 | ""            | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "nino"                 | "YYHU456781"  | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "nino"                 | "888888888"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "nino"                 | "ABCDEFGHI"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "nino"                 | "ZQQ123456CZ" | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "nino"                 | "QQ123456T"   | "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\""                              | "claimant.nino"
+        "dateOfBirth"          | "9999-12-31"  | "must be a past date"                                                   | "claimant.dateOfBirth"
+        "expectedDeliveryDate" | "9999-12-31"  | "must not be more than one month in the past or 8 months in the future" | "claimant.expectedDeliveryDate"
+        "expectedDeliveryDate" | "1990-12-31"  | "must not be more than one month in the past or 8 months in the future" | "claimant.expectedDeliveryDate"
     }
 
     @Unroll
@@ -136,13 +141,16 @@ class NewClaimSpec extends Specification {
         expect:
         def claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString)
         def response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class)
-        assertErrorResponse(response, "claimant.dateOfBirth", "'${dateString}' could not be parsed as a LocalDate", "The request could not be parsed.")
+        assertErrorResponse(response, "claimant.${fieldName}", "'${dateString}' could not be parsed as a LocalDate", "The request could not be parsed.")
 
         where:
         dateString   | fieldName
         "29-11-1909" | "dateOfBirth"
         "1999/12/31" | "dateOfBirth"
         "Foo"        | "dateOfBirth"
+        "29-11-1909" | "expectedDeliveryDate"
+        "1999/12/31" | "expectedDeliveryDate"
+        "Foo"        | "expectedDeliveryDate"
     }
 
     def "An empty claim returns an error response"() {
@@ -221,6 +229,7 @@ class NewClaimSpec extends Specification {
     }
 
     private boolean isLocalDateField(String fieldName) {
-        fieldName.equalsIgnoreCase("dateOfBirth")
+        List dateFields = Arrays.asList("dateOfBirth", "expectedDeliveryDate")
+        return dateFields.contains(fieldName)
     }
 }

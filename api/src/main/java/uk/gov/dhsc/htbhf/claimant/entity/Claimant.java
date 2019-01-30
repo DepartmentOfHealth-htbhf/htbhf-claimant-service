@@ -55,6 +55,7 @@ public class Claimant {
     private LocalDate dateOfBirth;
 
     @Column(name = "expected_delivery_date")
+    // no validation here as we don't want to prevent re-saving a claimant 6 months after initially created
     private LocalDate expectedDeliveryDate;
 
     @OneToOne(cascade = CascadeType.ALL)
