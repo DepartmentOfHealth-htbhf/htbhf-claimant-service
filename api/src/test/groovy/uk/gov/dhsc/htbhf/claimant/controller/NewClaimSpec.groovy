@@ -88,6 +88,7 @@ class NewClaimSpec extends Specification {
         "dateOfBirth"          | "9999-12-31"  | "must be a past date"                                                   | "claimant.dateOfBirth"
         "expectedDeliveryDate" | "9999-12-31"  | "must not be more than one month in the past or 8 months in the future" | "claimant.expectedDeliveryDate"
         "expectedDeliveryDate" | "1990-12-31"  | "must not be more than one month in the past or 8 months in the future" | "claimant.expectedDeliveryDate"
+        "cardDeliveryAddress"  | null          | "must not be null"                                                      | "claimant.cardDeliveryAddress"
     }
 
     @Unroll

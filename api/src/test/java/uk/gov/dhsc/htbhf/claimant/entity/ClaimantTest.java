@@ -180,4 +180,16 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasNoViolations();
     }
 
+    @Test
+    void shouldFailToValidateClaimantWithoutCardDeliveryAddress() {
+        //Given
+        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+                .cardDeliveryAddress(null)
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "cardDeliveryAddress");
+    }
+
 }

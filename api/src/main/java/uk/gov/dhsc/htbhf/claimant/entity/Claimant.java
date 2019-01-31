@@ -58,6 +58,7 @@ public class Claimant {
     // no validation here as we don't want to prevent re-saving a claimant 6 months after initially created
     private LocalDate expectedDeliveryDate;
 
+    @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
