@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">33</div>
+<div class="counter">34</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">5.487s</div>
+<div class="counter">5.668s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,42 +79,47 @@
 </thead>
 <tr>
 <td class="success">A claim with no date of birth returns an error response</td>
-<td class="success">0.030s</td>
+<td class="success">0.040s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">A new valid claim is accepted</td>
-<td class="success">4.427s</td>
+<td class="success">4.564s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">An empty claim returns an error response</td>
-<td class="success">0.025s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [addressLine1] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on an address returns the correct error response</td>
-<td class="success">0.029s</td>
+<td class="success">0.026s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [addressLine1] with invalid value [null] on an address returns the correct error response</td>
-<td class="success">0.032s</td>
+<td class="success">0.031s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [addressLine2] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on an address returns the correct error response</td>
-<td class="success">0.022s</td>
+<td class="success">0.026s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Field [cardDeliveryAddress] with invalid value [null] on a claim returns the correct error response</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid date [1999/12/31] returns an error response</td>
-<td class="success">0.028s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid date [29-11-1909] returns an error response</td>
-<td class="success">0.082s</td>
+<td class="success">0.077s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -124,12 +129,12 @@
 </tr>
 <tr>
 <td class="success">Field [dateOfBirth] with invalid value [9999-12-31] on a claim returns the correct error response</td>
-<td class="success">0.040s</td>
+<td class="success">0.043s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [expectedDeliveryDate] with invalid date [1999/12/31] returns an error response</td>
-<td class="success">0.023s</td>
+<td class="success">0.020s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -139,42 +144,42 @@
 </tr>
 <tr>
 <td class="success">Field [expectedDeliveryDate] with invalid date [Foo] returns an error response</td>
-<td class="success">0.029s</td>
+<td class="success">0.024s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [expectedDeliveryDate] with invalid value [1990-12-31] on a claim returns the correct error response</td>
-<td class="success">0.023s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [expectedDeliveryDate] with invalid value [9999-12-31] on a claim returns the correct error response</td>
-<td class="success">0.030s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">Field [firstName] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on a claim returns the correct error response</td>
-<td class="success">0.040s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">Field [lastName] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on a claim returns the correct error response</td>
-<td class="success">0.128s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">Field [lastName] with invalid value [] on a claim returns the correct error response</td>
 <td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Field [lastName] with invalid value [null] on a claim returns the correct error response</td>
+<td class="success">Field [firstName] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on a claim returns the correct error response</td>
+<td class="success">0.038s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Field [lastName] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on a claim returns the correct error response</td>
+<td class="success">0.143s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Field [lastName] with invalid value [] on a claim returns the correct error response</td>
 <td class="success">0.032s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">Field [lastName] with invalid value [null] on a claim returns the correct error response</td>
+<td class="success">0.037s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">Field [nino] with invalid value [888888888] on a claim returns the correct error response</td>
-<td class="success">0.032s</td>
+<td class="success">0.038s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -184,42 +189,42 @@
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [QQ123456T] on a claim returns the correct error response</td>
-<td class="success">0.030s</td>
+<td class="success">0.033s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [YYHU456781] on a claim returns the correct error response</td>
-<td class="success">0.038s</td>
+<td class="success">0.028s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [ZQQ123456CZ] on a claim returns the correct error response</td>
-<td class="success">0.025s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [] on a claim returns the correct error response</td>
-<td class="success">0.032s</td>
+<td class="success">0.040s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [nino] with invalid value [null] on a claim returns the correct error response</td>
-<td class="success">0.038s</td>
+<td class="success">0.033s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [postcode] with invalid value [11AA21] on an address returns the correct error response</td>
-<td class="success">0.026s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [postcode] with invalid value [AA1122BB] on an address returns the correct error response</td>
-<td class="success">0.026s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field [postcode] with invalid value [A] on an address returns the correct error response</td>
-<td class="success">0.028s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -229,17 +234,17 @@
 </tr>
 <tr>
 <td class="success">Field [postcode] with invalid value [null] on an address returns the correct error response</td>
-<td class="success">0.025s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">Field [townOrCity] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on an address returns the correct error response</td>
 <td class="success">0.032s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">Field [townOrCity] with invalid value [AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA] on an address returns the correct error response</td>
+<td class="success">0.023s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">Field [townOrCity] with invalid value [null] on an address returns the correct error response</td>
-<td class="success">0.025s</td>
+<td class="success">0.026s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -256,80 +261,81 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.0.RELEASE)
 
-15:49:21.602 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Starting NewClaimSpec on travis-job-c579971e-26a0-4883-bb08-0fa185940944 with PID 4950 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
-15:49:21.607 [Test worker] [] DEBUG u.g.d.h.c.controller.NewClaimSpec - Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
-15:49:21.611 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - No active profile set, falling back to default profiles: default
-15:49:22.235 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data repositories in DEFAULT mode.
-15:49:22.252 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 16ms. Found 1 repository interfaces.
-15:49:22.407 [Test worker] [] INFO  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$581f9eb9] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
-15:49:22.632 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 0 (http)
-15:49:22.637 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler [&quot;http-nio-auto-2&quot;]
-15:49:22.639 [Test worker] [] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
-15:49:22.640 [Test worker] [] INFO  o.a.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/9.0.12
-15:49:22.681 [Test worker] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring embedded WebApplicationContext
-15:49:22.683 [Test worker] [] INFO  o.s.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 1069 ms
-15:49:23.362 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'characterEncodingFilter' to: [/*]
-15:49:23.364 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'webMvcMetricsFilter' to: [/*]
-15:49:23.364 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
-15:49:23.365 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'formContentFilter' to: [/*]
-15:49:23.365 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestContextFilter' to: [/*]
-15:49:23.365 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'httpTraceFilter' to: [/*]
-15:49:23.366 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestIdFilter' to: [/*]
-15:49:23.367 [Test worker] [] INFO  o.s.b.w.s.ServletRegistrationBean - Servlet dispatcherServlet mapped to [/]
-15:49:23.371 [Test worker] [] DEBUG u.g.d.h.c.r.RequestIdFilter - Filter 'requestIdFilter' configured for use
-15:49:23.424 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Starting...
-15:49:23.431 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Start completed.
-15:49:23.440 [Test worker] [] INFO  o.f.c.i.database.DatabaseFactory - Database: jdbc:h2:mem:test (H2 1.4)
-15:49:23.493 [Test worker] [] INFO  o.f.core.internal.command.DbValidate - Successfully validated 9 migrations (execution time 00:00.030s)
-15:49:23.526 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Current version of schema &quot;PUBLIC&quot;: 1.009
-15:49:23.530 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
-15:49:23.636 [Test worker] [] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [
+11:30:14.249 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Starting NewClaimSpec on travis-job-4db2ef44-e36e-4019-85ec-111f3e8e16eb with PID 4958 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
+11:30:14.250 [Test worker] [] DEBUG u.g.d.h.c.controller.NewClaimSpec - Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
+11:30:14.254 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - No active profile set, falling back to default profiles: default
+11:30:14.836 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data repositories in DEFAULT mode.
+11:30:14.853 [Test worker] [] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 16ms. Found 1 repository interfaces.
+11:30:14.983 [Test worker] [] INFO  o.s.c.s.PostProcessorRegistrationDelegate$BeanPostProcessorChecker - Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$becda673] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+11:30:15.223 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 0 (http)
+11:30:15.226 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler [&quot;http-nio-auto-2&quot;]
+11:30:15.227 [Test worker] [] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+11:30:15.228 [Test worker] [] INFO  o.a.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/9.0.12
+11:30:15.266 [Test worker] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+11:30:15.267 [Test worker] [] INFO  o.s.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 1009 ms
+11:30:16.001 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'characterEncodingFilter' to: [/*]
+11:30:16.003 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'webMvcMetricsFilter' to: [/*]
+11:30:16.003 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+11:30:16.003 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'formContentFilter' to: [/*]
+11:30:16.004 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestContextFilter' to: [/*]
+11:30:16.004 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'httpTraceFilter' to: [/*]
+11:30:16.004 [Test worker] [] INFO  o.s.b.w.s.FilterRegistrationBean - Mapping filter: 'requestIdFilter' to: [/*]
+11:30:16.004 [Test worker] [] INFO  o.s.b.w.s.ServletRegistrationBean - Servlet dispatcherServlet mapped to [/]
+11:30:16.008 [Test worker] [] DEBUG u.g.d.h.c.r.RequestIdFilter - Filter 'requestIdFilter' configured for use
+11:30:16.066 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Starting...
+11:30:16.077 [Test worker] [] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Start completed.
+11:30:16.077 [Test worker] [] INFO  o.f.c.i.database.DatabaseFactory - Database: jdbc:h2:mem:test (H2 1.4)
+11:30:16.126 [Test worker] [] INFO  o.f.core.internal.command.DbValidate - Successfully validated 10 migrations (execution time 00:00.026s)
+11:30:16.160 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Current version of schema &quot;PUBLIC&quot;: 1.010
+11:30:16.162 [Test worker] [] INFO  o.f.core.internal.command.DbMigrate - Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
+11:30:16.276 [Test worker] [] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [
 	name: default
 	...]
-15:49:23.662 [Test worker] [] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
-15:49:23.745 [Test worker] [] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
-15:49:24.146 [Test worker] [] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration$JpaWebMvcConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-15:49:24.300 [Test worker] [] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
-15:49:24.491 [Test worker] [] INFO  s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
-15:49:24.730 [Test worker] [] INFO  o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
-15:49:25.243 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
-15:49:25.245 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
-15:49:25.255 [Test worker] [] INFO  s.d.s.w.s.ApiListingReferenceScanner - Scanning for api listing references
-15:49:25.340 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-auto-2&quot;]
-15:49:25.341 [Test worker] [] INFO  o.a.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
-15:49:25.344 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 42683 (http) with context path ''
-15:49:25.345 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Started NewClaimSpec in 3.782 seconds (JVM running for 40.985)
-15:49:25.448 [http-nio-auto-2-exec-1] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
-15:49:25.448 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
-15:49:25.473 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 24 ms
-15:49:25.654 [http-nio-auto-2-exec-1] [9f647ccf-1b7c-4a72-8f26-df1b58ed85c9] INFO  u.g.d.h.c.controller.ClaimController - Received claim
-15:49:25.774 [Test worker] [] INFO  o.h.h.i.QueryTranslatorFactoryInitiator - HHH000397: Using ASTQueryTranslatorFactory
-15:49:26.057 [http-nio-auto-2-exec-2] [2d12eb19-d2d1-4843-bb6c-cb70b4dee575] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
-15:49:26.146 [http-nio-auto-2-exec-3] [97e74415-35db-4f89-ba14-b7e22237617f] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=must not be null)]
-15:49:26.183 [http-nio-auto-2-exec-4] [d06a3577-ca0b-4f8b-b325-eb73dcd9c937] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
-15:49:26.235 [http-nio-auto-2-exec-5] [4f6861b2-872f-4860-af85-2e7232bdc9ad] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.firstName, message=size must be between 0 and 500)]
-15:49:26.282 [http-nio-auto-2-exec-6] [51f7f9d4-8296-4856-8ade-18b789c127d2] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must not be null)]
-15:49:26.323 [http-nio-auto-2-exec-7] [4d5327d2-56a1-4766-b4fd-82d9b1cd675c] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.377 [http-nio-auto-2-exec-8] [18ab6e48-3c23-4da9-8b93-069aa6aafed2] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.421 [http-nio-auto-2-exec-9] [8dee2bd9-bcbd-4aa8-8a05-760c2defe0ef] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.454 [http-nio-auto-2-exec-10] [d899ea1f-b12b-4c80-826c-9e66ca48b8f8] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.488 [http-nio-auto-2-exec-1] [6fa674a6-8706-4eae-b643-cfc79b4834ef] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.524 [http-nio-auto-2-exec-2] [d812d57f-8a3c-4cda-94e8-b1e776ee1696] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
-15:49:26.576 [http-nio-auto-2-exec-3] [1046ba36-e9d3-42e3-9253-5ecc1dc607f4] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must be a past date)]
-15:49:26.608 [http-nio-auto-2-exec-4] [376ebd1f-6417-4ec0-b688-22fa39a46c8c] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.expectedDeliveryDate, message=must not be more than one month in the past or 8 months in the future)]
-15:49:26.641 [http-nio-auto-2-exec-5] [f8dd9782-b4e3-4c75-94a3-1a53f5af5c59] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.expectedDeliveryDate, message=must not be more than one month in the past or 8 months in the future)]
-15:49:26.684 [http-nio-auto-2-exec-6] [c942d7fc-b6c9-4fde-9024-5131083abb1d] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine1, message=must not be null)]
-15:49:26.717 [http-nio-auto-2-exec-7] [879f838f-234a-4535-8f3e-2c8ff36203ba] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine1, message=size must be between 1 and 500)]
-15:49:26.759 [http-nio-auto-2-exec-8] [b62f717d-660f-4181-9acd-e4d2fe28b4e7] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine2, message=size must be between 0 and 500)]
-15:49:26.789 [http-nio-auto-2-exec-9] [27426a04-05e2-461b-b3a0-5daa2155aafe] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.townOrCity, message=must not be null)]
-15:49:26.831 [http-nio-auto-2-exec-10] [6258de83-a7f7-49b0-8048-e25bbaa60078] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.townOrCity, message=size must be between 1 and 500)]
-15:49:26.869 [http-nio-auto-2-exec-1] [e8de40ec-5240-49c5-b807-d0438d31db1e] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
-15:49:26.904 [http-nio-auto-2-exec-2] [e0db8b0e-1a0b-4936-b357-df87cfaa2752] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
-15:49:26.936 [http-nio-auto-2-exec-3] [9af62983-abba-43a1-a69a-386faa44b9a2] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
-15:49:26.967 [http-nio-auto-2-exec-4] [26ed9e66-8fae-4b86-8145-92d00b14ee3a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
-15:49:27.002 [http-nio-auto-2-exec-5] [0ed62889-37a9-4b8d-9978-41f4312490b4] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=must not be null)]
-15:49:27.274 [http-nio-auto-2-exec-2] [74c5fa62-0b2e-44d4-b710-dfd2a7249d1a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
-15:49:27.301 [http-nio-auto-2-exec-3] [69c214d0-4702-4c3a-8e48-8990713da626] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must not be null)]
+11:30:16.292 [Test worker] [] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+11:30:16.368 [Test worker] [] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+11:30:16.744 [Test worker] [] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration$JpaWebMvcConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+11:30:16.888 [Test worker] [] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+11:30:17.117 [Test worker] [] INFO  s.d.s.w.PropertySourcedRequestMappingHandlerMapping - Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
+11:30:17.496 [Test worker] [] INFO  o.s.s.c.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+11:30:18.121 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Context refreshed
+11:30:18.124 [Test worker] [] INFO  s.d.s.w.p.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+11:30:18.147 [Test worker] [] INFO  s.d.s.w.s.ApiListingReferenceScanner - Scanning for api listing references
+11:30:18.245 [Test worker] [] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-auto-2&quot;]
+11:30:18.246 [Test worker] [] INFO  o.a.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+11:30:18.250 [Test worker] [] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 44000 (http) with context path ''
+11:30:18.251 [Test worker] [] INFO  u.g.d.h.c.controller.NewClaimSpec - Started NewClaimSpec in 4.038 seconds (JVM running for 41.786)
+11:30:18.375 [http-nio-auto-2-exec-1] [] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+11:30:18.376 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+11:30:18.395 [http-nio-auto-2-exec-1] [] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 19 ms
+11:30:18.546 [http-nio-auto-2-exec-1] [df3725e0-69bd-49c1-b52b-194529dd9ed1] INFO  u.g.d.h.c.controller.ClaimController - Received claim
+11:30:18.653 [Test worker] [] INFO  o.h.h.i.QueryTranslatorFactoryInitiator - HHH000397: Using ASTQueryTranslatorFactory
+11:30:18.861 [http-nio-auto-2-exec-2] [63015d60-b32c-4b2f-8619-603c6a871741] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
+11:30:18.955 [http-nio-auto-2-exec-3] [a0186584-17d4-4709-9e3b-881df6fc1d57] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=must not be null)]
+11:30:18.997 [http-nio-auto-2-exec-4] [2405c1b6-6b1f-46b9-9199-c65172b2f802] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.lastName, message=size must be between 1 and 500)]
+11:30:19.046 [http-nio-auto-2-exec-5] [a9b591a7-83f9-4a2a-8b2e-58a1c4b7977a] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.firstName, message=size must be between 0 and 500)]
+11:30:19.087 [http-nio-auto-2-exec-6] [879f0019-010c-41a5-8ceb-891c82b615cb] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must not be null)]
+11:30:19.136 [http-nio-auto-2-exec-7] [c5c67970-eca4-4eee-8a4d-c012f0a740d8] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.169 [http-nio-auto-2-exec-8] [6de19494-5062-4ebc-99f5-66b64f771a46] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.212 [http-nio-auto-2-exec-9] [1036870f-c6db-429b-a7c7-54eef0817f29] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.249 [http-nio-auto-2-exec-10] [054c61c9-abb9-4566-b116-49a2bcb46499] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.285 [http-nio-auto-2-exec-1] [8b0cd139-fded-43f0-9802-91c23868acdf] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.323 [http-nio-auto-2-exec-2] [110f7bfb-a98b-4c61-aa41-770fcf451457] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.nino, message=must match &quot;[a-zA-Z]{2}\d{6}[a-dA-D]&quot;)]
+11:30:19.376 [http-nio-auto-2-exec-3] [4af64c1e-5e7f-4994-9433-7f5a28bf54c6] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must be a past date)]
+11:30:19.413 [http-nio-auto-2-exec-4] [1e57cebf-82e7-4feb-aa27-1250a31c101f] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.expectedDeliveryDate, message=must not be more than one month in the past or 8 months in the future)]
+11:30:19.454 [http-nio-auto-2-exec-5] [c75573bd-8b38-404c-a86b-4ebc8a3cc622] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.expectedDeliveryDate, message=must not be more than one month in the past or 8 months in the future)]
+11:30:19.490 [http-nio-auto-2-exec-6] [1140751b-47aa-4585-ad29-4e689a22014c] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress, message=must not be null)]
+11:30:19.535 [http-nio-auto-2-exec-7] [56e080e0-5ce3-4fab-9df3-b1c9c5f85d85] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine1, message=must not be null)]
+11:30:19.566 [http-nio-auto-2-exec-8] [39cf6732-daec-472e-bfef-3eb45054e5c7] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine1, message=size must be between 1 and 500)]
+11:30:19.600 [http-nio-auto-2-exec-9] [8ebf2aa9-d2a6-458c-9b22-452469ca1d01] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.addressLine2, message=size must be between 0 and 500)]
+11:30:19.637 [http-nio-auto-2-exec-10] [9ea8c944-0981-43d3-9541-73f20b13f944] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.townOrCity, message=must not be null)]
+11:30:19.667 [http-nio-auto-2-exec-1] [fae6168e-a4f4-42f8-b10d-37cd912bb574] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.townOrCity, message=size must be between 1 and 500)]
+11:30:19.696 [http-nio-auto-2-exec-2] [e87455f2-0caa-41b4-9dd2-4d058cd87529] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
+11:30:19.727 [http-nio-auto-2-exec-3] [dfacf3b8-c6f4-41f4-ae11-394d32ee295e] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
+11:30:19.758 [http-nio-auto-2-exec-4] [5076ae40-5e0e-4078-8182-5ae02e27c43d] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
+11:30:19.783 [http-nio-auto-2-exec-5] [a597cdf3-de12-4654-b126-57c28184df13] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=invalid postcode format)]
+11:30:19.836 [http-nio-auto-2-exec-6] [fd16b64c-1a65-4489-960d-2281f625f55e] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.cardDeliveryAddress.postcode, message=must not be null)]
+11:30:20.069 [http-nio-auto-2-exec-3] [a46334d3-ad6e-4a43-81cf-be615dfa8aea] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
+11:30:20.103 [http-nio-auto-2-exec-4] [d467bb75-66b9-457d-b920-2cf45d9bccc8] WARN  u.g.d.h.c.controller.ErrorHandler - Binding error(s) during POST request to /v1/claims: [ErrorResponse.FieldError(field=claimant.dateOfBirth, message=must not be null)]
 </pre>
 </span>
 </div>
@@ -341,7 +347,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 30, 2019, 3:54:36 PM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at Jan 31, 2019, 11:35:14 AM</p>
 </div>
 </div>
 </body>

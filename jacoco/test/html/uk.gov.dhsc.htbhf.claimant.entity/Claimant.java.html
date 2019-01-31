@@ -58,6 +58,7 @@ public class Claimant {
     // no validation here as we don't want to prevent re-saving a claimant 6 months after initially created
     private LocalDate expectedDeliveryDate;
 
+    @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
@@ -68,10 +69,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L72">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L73">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L74">        return this.id;</span>
+<span class="fc" id="L75">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
