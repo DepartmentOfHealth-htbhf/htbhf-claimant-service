@@ -8,8 +8,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import javax.validation.ConstraintViolationException;
 
+import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
@@ -47,5 +49,18 @@ class ClaimantRepositoryTest {
         });
         //Then
         assertThat(thrown).hasRootCauseInstanceOf(ConstraintViolationException.class);
+    }
+
+    @Test
+    void shouldHandleSqlInjectionAttempts() {
+        //Given
+        Claimant sqlInjectionClaimant = aClaimantWithLastName("Robert'); DROP TABLE CLAIMANT; --)");
+
+        //When
+        claimantRepository.save(sqlInjectionClaimant);
+
+        // if the sql injection was successful then findAll will fail
+        //Then
+        assertThat(size(claimantRepository.findAll())).isEqualTo(1);
     }
 }
