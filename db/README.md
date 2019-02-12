@@ -77,7 +77,7 @@ And installed the `conduit` plugin:
 ```
 cf install-plugin conduit
 ```
-To use the psql command line, run:
+To use the psql command line, run: (you will need to have `psql` installed - see https://www.postgresql.org/download/)
 ```
 cf conduit htbhf-claimant-service-postgres -- psql
 ```
@@ -87,3 +87,10 @@ cf conduit htbhf-claimant-service-postgres
 ```
 The output will provide connection details - the username & password change every time.
 Note that the jdbcuri includes `&ssl=true` - which should be removed for a successful connection.
+
+Querying the db for claimants
+-------------
+If you have successfully run the psql command over the cf conduit (see above), then you can run the following sql to select all claimants in the db:
+```
+\copy (select * from claimant inner join address on claimant.card_delivery_address_id = address.id) to '/path/to/file.csv' DELIMITER ',' CSV HEADER;
+```
