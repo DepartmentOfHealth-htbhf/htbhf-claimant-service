@@ -9,6 +9,7 @@ import lombok.Data;
 public class RequestContext {
 
     private String requestId;
+    private String sessionId;
     private String method;
     private String servletPath;
 }

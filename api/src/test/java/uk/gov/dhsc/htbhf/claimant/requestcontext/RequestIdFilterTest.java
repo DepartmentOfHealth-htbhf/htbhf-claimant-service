@@ -13,13 +13,17 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.BDDMockito.anyString;
+import static org.mockito.BDDMockito.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.inOrder;
+import static org.mockito.BDDMockito.verify;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.MDC_KEY;
+import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.REQUEST_ID_HEADER;
+import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.REQUEST_ID_MDC_KEY;
+import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.SESSION_ID_HEADER;
+import static uk.gov.dhsc.htbhf.claimant.requestcontext.RequestIdFilter.SESSION_ID_MDC_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class RequestIdFilterTest {
@@ -42,7 +46,7 @@ class RequestIdFilterTest {
     void shouldAssignRequestIdToMDCAndRequestContext() throws Exception {
         // Given
         String requestId = "MyRequestId";
-        given(request.getHeader(RequestIdFilter.REQUEST_ID_HEADER)).willReturn(requestId);
+        given(request.getHeader(REQUEST_ID_HEADER)).willReturn(requestId);
 
         // When
         filter.doFilterInternal(request, response, filterChain);
@@ -50,10 +54,29 @@ class RequestIdFilterTest {
         // Then
         InOrder inOrder = inOrder(mdcWrapper, requestContext, filterChain);
 
-        inOrder.verify(mdcWrapper).put(MDC_KEY, requestId);
+        inOrder.verify(mdcWrapper).put(REQUEST_ID_MDC_KEY, requestId);
         inOrder.verify(requestContext).setRequestId(requestId);
         inOrder.verify(filterChain).doFilter(request, response);
-        inOrder.verify(mdcWrapper).remove(MDC_KEY);
+        inOrder.verify(mdcWrapper).remove(REQUEST_ID_MDC_KEY);
+    }
+
+    @Test
+    void shouldAssignSessionIdToMDCAndRequestContext() throws Exception {
+        // Given
+        String sessionId = "MySessionId";
+        willReturn("stop mockito reporting strict stubbing argument mismatch.").given(request).getHeader(anyString());
+        willReturn(sessionId).given(request).getHeader(SESSION_ID_HEADER);
+
+        // When
+        filter.doFilterInternal(request, response, filterChain);
+
+        // Then
+        InOrder inOrder = inOrder(mdcWrapper, requestContext, filterChain);
+
+        inOrder.verify(mdcWrapper).put(SESSION_ID_MDC_KEY, sessionId);
+        inOrder.verify(requestContext).setSessionId(sessionId);
+        inOrder.verify(filterChain).doFilter(request, response);
+        inOrder.verify(mdcWrapper).remove(SESSION_ID_MDC_KEY);
     }
 
     @Test
@@ -66,10 +89,10 @@ class RequestIdFilterTest {
         // Then
         InOrder inOrder = inOrder(mdcWrapper, requestContext, filterChain);
 
-        inOrder.verify(mdcWrapper).put(eq(MDC_KEY), anyString());
+        inOrder.verify(mdcWrapper).put(eq(REQUEST_ID_MDC_KEY), anyString());
         inOrder.verify(requestContext).setRequestId(anyString());
         inOrder.verify(filterChain).doFilter(request, response);
-        inOrder.verify(mdcWrapper).remove(MDC_KEY);
+        inOrder.verify(mdcWrapper).remove(REQUEST_ID_MDC_KEY);
     }
 
     @Test
@@ -102,10 +125,10 @@ class RequestIdFilterTest {
         assertThat(thrown).isEqualTo(exception);
 
         InOrder inOrder = inOrder(mdcWrapper, requestContext, filterChain);
-        inOrder.verify(mdcWrapper).put(eq(MDC_KEY), anyString());
+        inOrder.verify(mdcWrapper).put(eq(REQUEST_ID_MDC_KEY), anyString());
         inOrder.verify(requestContext).setRequestId(anyString());
         inOrder.verify(filterChain).doFilter(request, response);
-        inOrder.verify(mdcWrapper).remove(MDC_KEY);
+        inOrder.verify(mdcWrapper).remove(REQUEST_ID_MDC_KEY);
     }
 
 }
