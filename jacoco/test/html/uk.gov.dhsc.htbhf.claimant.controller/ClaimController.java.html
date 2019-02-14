@@ -37,7 +37,7 @@ public class ClaimController {
     @ApiOperation(&quot;Persist a new claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public void newClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L40">        log.info(&quot;Received claim&quot;);</span>
+<span class="fc" id="L40">        log.debug(&quot;Received claim&quot;);</span>
 <span class="fc" id="L41">        Claim claim = converter.convert(claimDTO);</span>
 <span class="fc" id="L42">        claimService.createClaim(claim);</span>
 <span class="fc" id="L43">    }</span>
