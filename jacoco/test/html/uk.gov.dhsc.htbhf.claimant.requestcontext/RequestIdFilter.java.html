@@ -20,11 +20,20 @@ public class RequestIdFilter extends OncePerRequestFilter {
     /**
      * The name of the request ID in the MDC context. Must match the name in logback configuration.
      */
-    public static final String MDC_KEY = &quot;request.id&quot;;
+    public static final String REQUEST_ID_MDC_KEY = &quot;request.id&quot;;
     /**
      * The name of the request id header.
      */
     public static final String REQUEST_ID_HEADER = &quot;X-REQUEST-ID&quot;;
+
+    /**
+     * The name of the session ID in the MDC context. Must match the name in logback configuration.
+     */
+    public static final String SESSION_ID_MDC_KEY = &quot;session.id&quot;;
+    /**
+     * The name of the session id header.
+     */
+    public static final String SESSION_ID_HEADER = &quot;X-SESSION-ID&quot;;
 
     private final RequestContext requestContext;
     private final MDCWrapper mdcWrapper;
@@ -32,20 +41,26 @@ public class RequestIdFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-<span class="fc" id="L35">            String token = request.getHeader(REQUEST_ID_HEADER);</span>
-<span class="fc bfc" id="L36" title="All 2 branches covered.">            if (isEmpty(token)) {</span>
-<span class="fc" id="L37">                token = UUID.randomUUID().toString();</span>
+<span class="fc" id="L44">            String requestId = request.getHeader(REQUEST_ID_HEADER);</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">            if (isEmpty(requestId)) {</span>
+<span class="fc" id="L46">                requestId = UUID.randomUUID().toString();</span>
             }
-<span class="fc" id="L39">            mdcWrapper.put(MDC_KEY, token);</span>
-<span class="fc" id="L40">            requestContext.setRequestId(token);</span>
-<span class="fc" id="L41">            requestContext.setMethod(request.getMethod());</span>
-<span class="fc" id="L42">            requestContext.setServletPath(request.getServletPath());</span>
+<span class="fc" id="L48">            mdcWrapper.put(REQUEST_ID_MDC_KEY, requestId);</span>
+<span class="fc" id="L49">            requestContext.setRequestId(requestId);</span>
 
-<span class="fc" id="L44">            filterChain.doFilter(request, response);</span>
+<span class="fc" id="L51">            String sessionId = request.getHeader(SESSION_ID_HEADER);</span>
+<span class="fc" id="L52">            mdcWrapper.put(SESSION_ID_MDC_KEY, sessionId);</span>
+<span class="fc" id="L53">            requestContext.setSessionId(sessionId);</span>
+
+<span class="fc" id="L55">            requestContext.setMethod(request.getMethod());</span>
+<span class="fc" id="L56">            requestContext.setServletPath(request.getServletPath());</span>
+
+<span class="fc" id="L58">            filterChain.doFilter(request, response);</span>
         } finally {
-<span class="fc" id="L46">            mdcWrapper.remove(MDC_KEY);</span>
+<span class="fc" id="L60">            mdcWrapper.remove(REQUEST_ID_MDC_KEY);</span>
+<span class="fc" id="L61">            mdcWrapper.remove(SESSION_ID_MDC_KEY);</span>
         }
 
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
