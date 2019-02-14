@@ -1,1 +1,0 @@
-alter table claimant RENAME COLUMN second_name TO last_name;
