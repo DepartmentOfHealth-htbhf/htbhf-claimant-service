@@ -9,6 +9,7 @@ applications:
     - route: htbhf-claimant-service((app-suffix)).apps.internal
   env:
     JBP_CONFIG_OPEN_JDK_JRE: '{jre: { version: 11.+ }}'
+    APP_VERSION: ((app-version))
   services:
     - htbhf-claimant-service-postgres
     - logit-ssl-drain
