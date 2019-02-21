@@ -94,3 +94,18 @@ If you have successfully run the psql command over the cf conduit (see above), t
 ```
 \copy (select * from claimant inner join address on claimant.card_delivery_address_id = address.id) to '/path/to/file.csv' DELIMITER ',' CSV HEADER;
 ```
+
+Setting the preferred maintenance window
+------------
+Source from https://docs.cloud.service.gov.uk/deploying_services/postgresql/#postgresql-maintenance-amp-backups
+
+Having logged into the Paas:
+```
+cf login -a ${CF_API} -u ${CF_USER} -p "${CF_PASS}" -s ${CF_SPACE} -o ${CF_ORG}
+```
+(And having already created the database: `cf create-service postgres small-ha-10.5 htbhf-claimant-service-postgres`)
+
+Set the preferred maintenance window (For production this is currently every Sunday between 03:00 am and 3:30 am)
+```
+cf update-service htbhf-claimant-service-postgres -c '{"preferred_maintenance_window": "Sun:03:00-Sun:03:30"}'
+```
