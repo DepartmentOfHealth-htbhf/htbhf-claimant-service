@@ -17,7 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.context.request.WebRequest;
-import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
+import uk.gov.dhsc.htbhf.requestcontext.RequestContext;
 
 import java.nio.charset.Charset;
 import java.time.LocalDate;

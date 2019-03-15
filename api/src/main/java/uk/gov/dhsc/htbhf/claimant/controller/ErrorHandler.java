@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import uk.gov.dhsc.htbhf.claimant.requestcontext.RequestContext;
+import uk.gov.dhsc.htbhf.requestcontext.RequestContext;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
