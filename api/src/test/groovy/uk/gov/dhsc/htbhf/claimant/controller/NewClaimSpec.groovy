@@ -4,24 +4,34 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.json.JSONObject
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
+import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Unroll
 import uk.gov.dhsc.htbhf.claimant.entity.Address
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository
 
 import java.nio.CharBuffer
 import java.time.LocalDate
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
+import static org.mockito.ArgumentMatchers.any
+import static org.mockito.ArgumentMatchers.anyString
+import static org.mockito.ArgumentMatchers.eq
+import static org.mockito.BDDMockito.given
+import static org.mockito.BDDMockito.verify
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import static org.springframework.http.HttpStatus.BAD_REQUEST
 import static org.springframework.http.HttpStatus.CREATED
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class NewClaimSpec extends Specification {
@@ -41,11 +51,16 @@ class NewClaimSpec extends Specification {
     @Autowired
     ClaimantRepository claimantRepository
 
+    @MockBean
+    RestTemplate restTemplateWithIdHeaders
+
     URI endpointUrl = URI.create("/v1/claims")
 
     def "A new valid claim is accepted"() {
         given: "A valid claim request"
         def claim = aValidClaimDTOWithNoNullFields()
+        ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponse(), HttpStatus.OK)
+        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse)
 
         when: "The request is received"
         def response = restTemplate.exchange(buildRequestEntity(claim), Void.class)
@@ -63,6 +78,7 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
         assertThat(persistedClaim.expectedDeliveryDate).isEqualTo(claim.claimant.expectedDeliveryDate)
         assertAddressEqual(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
+        verify(restTemplateWithIdHeaders).postForEntity("http://localhost:8100/v1/eligibility", aValidPerson(), EligibilityResponse.class) || true
     }
 
     @Unroll

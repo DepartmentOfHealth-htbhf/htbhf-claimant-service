@@ -13,8 +13,8 @@ public class PersonDTOTestDataFactory {
     private static final String TOWN_OR_CITY = "Springfield";
     private static final String POSTCODE = "AA1 1AA";
     private static final String NINO = "EB123456C";
-    private static final String FIRST_NAME = "Lisa";
-    private static final String LAST_NAME = "Simpson";
+    private static final String FIRST_NAME = "James";
+    private static final String LAST_NAME = "Smith";
 
     public static PersonDTO aValidPerson() {
         return buildDefaultPerson().build();
