@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
  */
 public class EligibilityClientException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public EligibilityClientException(HttpStatus httpStatus) {
         super("Response code from Eligibility service was not OK, received: " + httpStatus.value());
     }

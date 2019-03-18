@@ -37,7 +37,7 @@ public class EligibilityClient {
                 person,
                 EligibilityResponse.class
         );
-        if(HttpStatus.OK != response.getStatusCode()) {
+        if (HttpStatus.OK != response.getStatusCode()) {
             throw new EligibilityClientException(response.getStatusCode());
         }
         return response.getBody();
