@@ -16,14 +16,22 @@ public class ClaimService {
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
+    /**
+     * NOTE: This is only here to keep Checkstyle happy - we'll remove as we resolve the TODOs.
+     * TODO - If there is any Exception catch at this point, we need to throw an Exception to make sure that the
+     *        failure goes back to the UI.
+     * TODO - Add eligibility status to the Claimant and to the database.
+     */
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public void createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
         try {
             client.checkEligibility(claimant);
-        } catch (EligibilityClientException e) {
-            log.error("Unexpected exception caught trying to retrieve the Eligibility status from the Eligibility Service", e);
+        } catch (EligibilityClientException ece) {
+            log.error("Unexpected exception caught trying to determine the Eligibility status from the Eligibility Service", ece);
+        } catch (RuntimeException re) {
+            log.error("Unexpected exception caught trying to call the Eligibility Service", re);
         }
-        //TODO - Add eligibility status to the Claimant and to the database.
         claimantRepository.save(claimant);
         log.info("Saved new claimant: {}", claimant.getId());
     }
