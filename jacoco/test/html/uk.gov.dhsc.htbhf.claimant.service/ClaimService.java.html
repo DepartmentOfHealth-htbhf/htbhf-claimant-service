@@ -5,19 +5,35 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
 @Service
-<span class="fc" id="L11">@Slf4j</span>
+<span class="fc" id="L12">@Slf4j</span>
 @RequiredArgsConstructor
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
+    private final EligibilityClient client;
 
+    /**
+     * NOTE: This is only here to keep Checkstyle happy - we'll remove as we resolve the TODOs.
+     * TODO - If there is any Exception catch at this point, we need to throw an Exception to make sure that the
+     *        failure goes back to the UI.
+     * TODO - Add eligibility status to the Claimant and to the database.
+     */
+    @SuppressWarnings(&quot;PMD.AvoidCatchingGenericException&quot;)
     public void createClaim(Claim claim) {
-<span class="fc" id="L18">        Claimant claimant = claim.getClaimant();</span>
-<span class="fc" id="L19">        claimantRepository.save(claimant);</span>
-<span class="fc" id="L20">        log.info(&quot;Saved new claimant: {}&quot;, claimant.getId());</span>
-<span class="fc" id="L21">    }</span>
+<span class="fc" id="L27">        Claimant claimant = claim.getClaimant();</span>
+        try {
+<span class="fc" id="L29">            client.checkEligibility(claimant);</span>
+<span class="fc" id="L30">        } catch (EligibilityClientException ece) {</span>
+<span class="fc" id="L31">            log.error(&quot;Unexpected exception caught trying to determine the Eligibility status from the Eligibility Service&quot;, ece);</span>
+<span class="nc" id="L32">        } catch (RuntimeException re) {</span>
+<span class="nc" id="L33">            log.error(&quot;Unexpected exception caught trying to call the Eligibility Service&quot;, re);</span>
+<span class="fc" id="L34">        }</span>
+<span class="fc" id="L35">        claimantRepository.save(claimant);</span>
+<span class="fc" id="L36">        log.info(&quot;Saved new claimant: {}&quot;, claimant.getId());</span>
+<span class="fc" id="L37">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
