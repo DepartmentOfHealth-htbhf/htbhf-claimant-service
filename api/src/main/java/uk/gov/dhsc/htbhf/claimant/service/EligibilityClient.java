@@ -1,10 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
 
@@ -35,7 +37,9 @@ public class EligibilityClient {
                 person,
                 EligibilityResponse.class
         );
-        //TODO Log and throw an Exception if not a 200.
+        if(HttpStatus.OK != response.getStatusCode()) {
+            throw new EligibilityClientException(response.getStatusCode());
+        }
         return response.getBody();
     }
 }
