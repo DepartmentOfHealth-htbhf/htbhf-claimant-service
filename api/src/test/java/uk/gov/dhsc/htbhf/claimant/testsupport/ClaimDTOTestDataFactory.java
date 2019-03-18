@@ -10,7 +10,7 @@ import static java.time.LocalDate.now;
 
 public final class ClaimDTOTestDataFactory {
 
-    private static final String VALID_NINO = "QQ123456C";
+    private static final String VALID_NINO = "EB123456C";
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
     private static final LocalDate VALID_DOB = LocalDate.parse("1985-12-31");
