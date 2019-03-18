@@ -44,7 +44,7 @@ public class ClaimantServiceApplicationTests {
         assertThat(jsonAsYaml).containsSequence("swagger: \"2.0\"");
 
         File swaggerFile = new File("../swagger.yml");
-        Files.write(jsonAsYaml, swaggerFile, Charset.defaultCharset());
+        Files.asCharSink(swaggerFile, Charset.defaultCharset()).write(jsonAsYaml);
     }
 
     private String convertJsonToYaml(String response) throws IOException {
