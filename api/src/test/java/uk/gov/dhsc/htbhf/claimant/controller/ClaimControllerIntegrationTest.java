@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory;
 
@@ -63,6 +64,7 @@ public class ClaimControllerIntegrationTest {
         assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
         assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
         assertThat(persistedClaim.getExpectedDeliveryDate()).isNull();
+        assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertAddressEqual(persistedClaim.getCardDeliveryAddress(), claimDTO.getClaimant().getCardDeliveryAddress());
         verify(restTemplateWithIdHeaders).postForEntity(baseUri + ELIGIBILITY_ENDPOINT, aValidPerson(), EligibilityResponse.class);
     }
@@ -86,6 +88,7 @@ public class ClaimControllerIntegrationTest {
         assertThat(persistedClaim.getLastName()).isEqualTo(claimDTO.getClaimant().getLastName());
         assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimDTO.getClaimant().getDateOfBirth());
         assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimDTO.getClaimant().getExpectedDeliveryDate());
+        assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertAddressEqual(persistedClaim.getCardDeliveryAddress(), claimDTO.getClaimant().getCardDeliveryAddress());
         verify(restTemplateWithIdHeaders).postForEntity(baseUri + ELIGIBILITY_ENDPOINT, aValidPerson(), EligibilityResponse.class);
     }

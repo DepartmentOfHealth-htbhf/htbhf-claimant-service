@@ -21,7 +21,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantSuccessfully() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimant();
+        Claimant claimant = ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then

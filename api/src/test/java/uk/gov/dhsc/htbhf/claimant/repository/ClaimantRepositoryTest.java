@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus;
 
 @SpringBootTest
 class ClaimantRepositoryTest {
@@ -29,7 +29,7 @@ class ClaimantRepositoryTest {
     @Test
     void saveAndRetrieveClaimant() {
         //Given
-        Claimant claimant = aValidClaimant();
+        Claimant claimant = aValidClaimantWithEligibilityStatus();
 
         //When
         Claimant savedClaimant = claimantRepository.save(claimant);

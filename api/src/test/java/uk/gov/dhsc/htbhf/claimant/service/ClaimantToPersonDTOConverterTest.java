@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithoutEligibilityStatus;
 
 class ClaimantToPersonDTOConverterTest {
 
@@ -15,7 +15,7 @@ class ClaimantToPersonDTOConverterTest {
 
     @Test
     void shouldConvertValidClaimant() {
-        Claimant claimant = aValidClaimant();
+        Claimant claimant = aClaimantWithoutEligibilityStatus();
 
         PersonDTO person = converter.convert(claimant);
 

@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
 @Service
@@ -15,16 +17,16 @@ public class ClaimService {
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
-    /**
-     * NOTE: This is only here to keep Checkstyle happy - we'll remove as we resolve the TODOs.
-     * TODO - Add eligibility status to the Claimant and to the database. If EligibilityClientException caught, set
-     *        status to error on claimant. Ensure status is also logged.
-     */
     public void createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
+
         try {
-            client.checkEligibility(claimant);
+            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+            claimant.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());
         } finally {
+            if (claimant.getEligibilityStatus() == null) {
+                claimant.setEligibilityStatus(EligibilityStatus.ERROR);
+            }
             claimantRepository.save(claimant);
             log.info("Saved new claimant: {}", claimant.getId());
         }
