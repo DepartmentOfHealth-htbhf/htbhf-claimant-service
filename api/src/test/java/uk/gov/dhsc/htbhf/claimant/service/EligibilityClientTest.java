@@ -25,7 +25,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.ELIGIBILITY_ENDPOINT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithoutEligibilityStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 
@@ -45,7 +45,7 @@ class EligibilityClientTest {
 
     @Test
     void shouldCheckEligibilitySuccessfully() {
-        Claimant claimant = aValidClaimant();
+        Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
         ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(anEligibilityResponse(), HttpStatus.OK);
@@ -62,7 +62,7 @@ class EligibilityClientTest {
 
     @Test
     void shouldThrowAnExceptionWhenPostCallNotOk() {
-        Claimant claimant = aValidClaimant();
+        Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
         ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(anEligibilityResponse(), HttpStatus.BAD_REQUEST);
@@ -79,7 +79,7 @@ class EligibilityClientTest {
 
     @Test
     void shouldThrowAnExceptionWhenPostCallReturnsError() {
-        Claimant claimant = aValidClaimant();
+        Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class)))
