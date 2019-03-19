@@ -5,29 +5,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
 @Service
-<span class="fc" id="L11">@Slf4j</span>
+<span class="fc" id="L13">@Slf4j</span>
 @RequiredArgsConstructor
+@SuppressWarnings(&quot;PMD.DataflowAnomalyAnalysis&quot;) // PMD does not like reassignment of `eligibilityStatus`
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
-    /**
-     * NOTE: This is only here to keep Checkstyle happy - we'll remove as we resolve the TODOs.
-     * TODO - Add eligibility status to the Claimant and to the database. If EligibilityClientException caught, set
-     *        status to error on claimant. Ensure status is also logged.
-     */
     public void createClaim(Claim claim) {
-<span class="fc" id="L24">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L22">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L23">        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;</span>
+
         try {
-<span class="fc" id="L26">            client.checkEligibility(claimant);</span>
+<span class="fc" id="L26">            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L27">            eligibilityStatus = eligibilityResponse.getEligibilityStatus();</span>
         } finally {
-<span class="fc" id="L28">            claimantRepository.save(claimant);</span>
-<span class="fc" id="L29">            log.info(&quot;Saved new claimant: {}&quot;, claimant.getId());</span>
+<span class="fc" id="L29">            claimant.setEligibilityStatus(eligibilityStatus);</span>
+<span class="fc" id="L30">            claimantRepository.save(claimant);</span>
+<span class="fc" id="L31">            log.info(&quot;Saved new claimant: {}&quot;, claimant.getId());</span>
         }
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L33">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
