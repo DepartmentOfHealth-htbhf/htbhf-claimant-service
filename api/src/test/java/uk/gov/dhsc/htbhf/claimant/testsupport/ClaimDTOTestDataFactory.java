@@ -19,20 +19,12 @@ public final class ClaimDTOTestDataFactory {
     public static final String VALID_TOWN_OR_CITY = "Springfield";
     public static final String VALID_POSTCODE = "AA1 1AA";
 
-    /**
-     * Builds a valid {@link ClaimDTO}.
-     * @return A valid {@link ClaimDTO}
-     */
     public static ClaimDTO aValidClaimDTO() {
         return ClaimDTO.builder()
                 .claimant(aValidClaimantBuilder().build())
                 .build();
     }
 
-    /**
-     * Builds a valid {@link ClaimDTO}.
-     * @return A valid {@link ClaimDTO}
-     */
     public static ClaimDTO aValidClaimDTOWithNoNullFields() {
         return ClaimDTO.builder()
                 .claimant(aValidClaimantBuilder()
@@ -41,10 +33,6 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
-    /**
-     * Builds a valid {@link ClaimDTO} with the given date of birth.
-     * @return A valid {@link ClaimDTO} with the given date of birth
-     */
     public static ClaimDTO aClaimDTOWithDateOfBirth(LocalDate dateOfBirth) {
         return ClaimDTO.builder()
                 .claimant(aValidClaimantBuilder().dateOfBirth(dateOfBirth).build())

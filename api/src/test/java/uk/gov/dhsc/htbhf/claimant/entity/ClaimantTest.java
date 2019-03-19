@@ -112,7 +112,7 @@ class ClaimantTest extends AbstractValidationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI", "ZQQ123456CZ", "QQ123456T"})
+    @ValueSource(strings = {"", "YYHU456781", "Y*U", "888888888", "ABCDEFGHI", "ZQQ123456CZ", "QQ123456T", "QQ 12 34 56 D"})
     void shouldFailToValidateClaimantWithInvalidFormatNino(String invalidNino) {
         //Given
         Claimant claimant = aClaimantWithNino(invalidNino);
