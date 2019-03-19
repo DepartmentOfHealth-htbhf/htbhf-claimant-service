@@ -5,12 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -47,19 +47,21 @@ public class ClaimServiceTest {
     }
 
     @Test
-    public void shouldNotSaveClaimantWhenEligibilityThrowsException() {
+    public void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
         Claimant claimant = aValidClaimant();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
-        given(client.checkEligibility(any())).willThrow(new EligibilityClientException(HttpStatus.BAD_REQUEST));
+        RuntimeException testException = new RuntimeException("Test exception");
+        given(client.checkEligibility(any())).willThrow(testException);
 
         //when
-        claimService.createClaim(claim);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(claim), RuntimeException.class);
 
         //then
         //TODO - Add verification to make sure that the status is added to the Claimant before persisting.
+        assertThat(thrown).isEqualTo(testException);
         verify(claimantRepository).save(claim.getClaimant());
         verify(client).checkEligibility(claimant);
     }

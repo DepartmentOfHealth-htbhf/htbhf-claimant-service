@@ -1,9 +1,11 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
@@ -15,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
  * {@link uk.gov.dhsc.htbhf.requestcontext.RequestContextConfiguration}.
  */
 @Component
+@Slf4j
 public class EligibilityClient {
 
     public static final String ELIGIBILITY_ENDPOINT = "/v1/eligibility";
@@ -32,14 +35,20 @@ public class EligibilityClient {
 
     public EligibilityResponse checkEligibility(Claimant claimant) {
         PersonDTO person = claimantToPersonDTOConverter.convert(claimant);
-        ResponseEntity<EligibilityResponse> response = restTemplateWithIdHeaders.postForEntity(
-                eligibilityUri,
-                person,
-                EligibilityResponse.class
-        );
-        if (HttpStatus.OK != response.getStatusCode()) {
-            throw new EligibilityClientException(response.getStatusCode());
+        try {
+            ResponseEntity<EligibilityResponse> response = restTemplateWithIdHeaders.postForEntity(
+                    eligibilityUri,
+                    person,
+                    EligibilityResponse.class
+            );
+
+            if (HttpStatus.OK != response.getStatusCode()) {
+                throw new EligibilityClientException(response.getStatusCode());
+            }
+            return response.getBody();
+        } catch (RestClientException e) {
+            log.error("Exception caught trying to post to {}", eligibilityUri);
+            throw new EligibilityClientException(e, eligibilityUri);
         }
-        return response.getBody();
     }
 }

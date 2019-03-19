@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.RestClientException;
 
 /**
  * Exception used when calling the Eligibility Service from the {@link uk.gov.dhsc.htbhf.claimant.service.EligibilityClient}.
@@ -11,5 +12,9 @@ public class EligibilityClientException extends RuntimeException {
 
     public EligibilityClientException(HttpStatus httpStatus) {
         super("Response code from Eligibility service was not OK, received: " + httpStatus.value());
+    }
+
+    public EligibilityClientException(RestClientException restClientException, String endpointUrl) {
+        super("Exception caught trying to call eligibility service at: " + endpointUrl, restClientException);
     }
 }
