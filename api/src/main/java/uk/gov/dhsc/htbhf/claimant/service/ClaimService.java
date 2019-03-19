@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis") // PMD does not like reassignment of `eligibilityStatus`
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
@@ -19,14 +20,13 @@ public class ClaimService {
 
     public void createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
+        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
 
         try {
             EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-            claimant.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());
+            eligibilityStatus = eligibilityResponse.getEligibilityStatus();
         } finally {
-            if (claimant.getEligibilityStatus() == null) {
-                claimant.setEligibilityStatus(EligibilityStatus.ERROR);
-            }
+            claimant.setEligibilityStatus(eligibilityStatus);
             claimantRepository.save(claimant);
             log.info("Saved new claimant: {}", claimant.getId());
         }
