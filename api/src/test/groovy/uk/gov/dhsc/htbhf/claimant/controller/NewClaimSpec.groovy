@@ -16,14 +16,13 @@ import uk.gov.dhsc.htbhf.claimant.model.AddressDTO
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository
+import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse
 
 import java.nio.CharBuffer
 import java.time.LocalDate
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
-import static org.mockito.ArgumentMatchers.any
-import static org.mockito.ArgumentMatchers.anyString
-import static org.mockito.ArgumentMatchers.eq
+import static org.mockito.ArgumentMatchers.*
 import static org.mockito.BDDMockito.given
 import static org.mockito.BDDMockito.verify
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
