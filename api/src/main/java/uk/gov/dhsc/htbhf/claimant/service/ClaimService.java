@@ -28,7 +28,7 @@ public class ClaimService {
         } finally {
             claimant.setEligibilityStatus(eligibilityStatus);
             claimantRepository.save(claimant);
-            log.info("Saved new claimant: {}", claimant.getId());
+            log.info("Saved new claimant: {} with status {}", claimant.getId(), claimant.getEligibilityStatus());
         }
     }
 }
