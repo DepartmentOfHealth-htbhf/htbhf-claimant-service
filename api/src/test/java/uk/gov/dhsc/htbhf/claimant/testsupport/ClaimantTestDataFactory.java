@@ -12,9 +12,9 @@ public final class ClaimantTestDataFactory {
     // Create a string 501 characters long
     public static final String LONG_NAME = CharBuffer.allocate(501).toString().replace('\0', 'A');
 
-    private static final String VALID_NINO = "QQ123456C";
-    private static final String VALID_FIRST_NAME = "Joe";
-    private static final String VALID_LAST_NAME = "Blogger";
+    private static final String VALID_NINO = "EB123456C";
+    private static final String VALID_FIRST_NAME = "James";
+    private static final String VALID_LAST_NAME = "Smith";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
