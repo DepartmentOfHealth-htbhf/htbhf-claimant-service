@@ -28,7 +28,7 @@ public class ClaimService {
         } finally {
 <span class="fc" id="L29">            claimant.setEligibilityStatus(eligibilityStatus);</span>
 <span class="fc" id="L30">            claimantRepository.save(claimant);</span>
-<span class="fc" id="L31">            log.info(&quot;Saved new claimant: {}&quot;, claimant.getId());</span>
+<span class="fc" id="L31">            log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
         }
 <span class="fc" id="L33">    }</span>
 }
