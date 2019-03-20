@@ -10,7 +10,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -40,19 +42,26 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 
-public class ClaimantServiceIntegrationTests extends AbstractIntegrationTest {
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+public class ClaimantServiceIntegrationTests {
 
     // Create a string 501 characters long
     private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
+
+    @Autowired
+    TestRestTemplate restTemplate;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -106,7 +115,7 @@ public class ClaimantServiceIntegrationTests extends AbstractIntegrationTest {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
+        ClaimantServiceAssertionUtils.assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
         assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR);
         verify(restTemplateWithIdHeaders).postForEntity("http://localhost:8100/v1/eligibility", aValidPerson(), EligibilityResponse.class);
     }
@@ -234,7 +243,7 @@ public class ClaimantServiceIntegrationTests extends AbstractIntegrationTest {
     private RequestEntity buildRequestEntity(Object requestObject) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, endpointUrl);
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
     }
 
     private void assertValidationResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage) {
@@ -242,7 +251,7 @@ public class ClaimantServiceIntegrationTests extends AbstractIntegrationTest {
     }
 
     private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage, String expectedErrorMessage) {
-        super.assertErrorResponse(response, expectedErrorMessage, BAD_REQUEST);
+        ClaimantServiceAssertionUtils.assertErrorResponse(response, expectedErrorMessage, BAD_REQUEST);
         assertFieldErrors(response.getBody(), expectedField, expectedFieldMessage);
     }
 
