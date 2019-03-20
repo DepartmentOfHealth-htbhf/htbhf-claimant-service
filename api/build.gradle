@@ -1,6 +1,5 @@
 buildscript {
     ext {
-        spockVersion = '1.2-groovy-2.4'
         junitVersion = '5.3.2'
         springFoxVersion = '2.9.2'
         jacksonVersion = '2.9.8'
@@ -19,7 +18,6 @@ plugins {
     id 'checkstyle'
 }
 apply plugin: 'java'
-apply plugin: 'groovy'
 apply plugin: 'io.spring.dependency-management'
 
 lombok {
@@ -57,8 +55,6 @@ dependencies {
     implementation project(':htbhf-claimant-service-db')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation "org.spockframework:spock-core:${spockVersion}"
-    testImplementation "org.spockframework:spock-spring:${spockVersion}"
     testImplementation "org.mockito:mockito-junit-jupiter:2.23.4"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"

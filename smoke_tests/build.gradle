@@ -1,6 +1,11 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+        junitVersion = '5.3.2'
+    }
+}
 
 apply plugin: 'java'
-apply plugin: 'groovy'
 
 group = 'uk.gov.dhsc.htbhf'
 sourceCompatibility = 1.11
@@ -10,18 +15,17 @@ repositories {
 }
 
 dependencies {
-    testImplementation "org.spockframework:spock-core:1.2-groovy-2.4"
-    testImplementation "com.jayway.restassured:rest-assured:2.4.1"
-    testImplementation "com.jayway.jsonpath:json-path:2.0.0"
-    testImplementation "com.jayway.restassured:json-schema-validator:2.5.0"
-    testImplementation "org.skyscreamer:jsonassert:1.5.0"
-    testImplementation 'javax.xml.bind:jaxb-api:2.3.0'
-    testImplementation 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
-
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    testImplementation "org.junit.vintage:junit-vintage-engine:${junitVersion}"
 }
 
 test {
     systemProperty "base_url", System.getProperty("base_url")
+    useJUnitPlatform()
     reports {
         junitXml.enabled = false
         html.enabled = true
