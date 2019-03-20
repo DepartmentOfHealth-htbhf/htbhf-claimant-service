@@ -5,22 +5,17 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.web.server.LocalServerPort
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.RequestEntity
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import spock.lang.Specification
 import uk.gov.dhsc.htbhf.claimant.entity.Claim
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService
+import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import static org.mockito.ArgumentMatchers.any
 import static org.mockito.Mockito.when
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
-import static org.springframework.http.HttpStatus.BAD_REQUEST
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
-import static org.springframework.http.HttpStatus.NOT_FOUND
+import static org.springframework.http.HttpStatus.*
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
