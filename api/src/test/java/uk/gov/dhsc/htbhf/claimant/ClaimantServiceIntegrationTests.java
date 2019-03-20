@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -59,6 +60,7 @@ public class ClaimantServiceIntegrationTests {
 
     // Create a string 501 characters long
     private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
+    private static final String ELIGIBILITY_SERVICE_URL = "http://localhost:8100/v1/eligibility";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -96,15 +98,7 @@ public class ClaimantServiceIntegrationTests {
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ELIGIBLE);
-        verify(restTemplateWithIdHeaders).postForEntity("http://localhost:8100/v1/eligibility", aValidPerson(), EligibilityResponse.class);
-    }
-
-    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus) {
-        Iterable<Claimant> claims = claimantRepository.findAll();
-        assertThat(claims).hasSize(1);
-        Claimant persistedClaim = claims.iterator().next();
-        assertClaimantMatchesClaimantDTO(claimantDTO, persistedClaim);
-        assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
+        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @Test
@@ -117,7 +111,7 @@ public class ClaimantServiceIntegrationTests {
         //Then
         ClaimantServiceAssertionUtils.assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
         assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR);
-        verify(restTemplateWithIdHeaders).postForEntity("http://localhost:8100/v1/eligibility", aValidPerson(), EligibilityResponse.class);
+        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @Test
@@ -140,66 +134,7 @@ public class ClaimantServiceIntegrationTests {
         assertValidationResponse(response, expectedField, expectedErrorMessage);
     }
 
-    @ParameterizedTest(name = "Field {0} with invalid value {1} on an address returns the correct error response")
-    @MethodSource("shouldFailWithAddressValidationErrorArguments")
-    void shouldFailWithAddressValidationError(String fieldName, String value, String expectedErrorMessage, String expectedField) {
-        //Given
-        ClaimDTO claim = aValidClaimDTO();
-        modifyFieldOnObject(claim.getClaimant().getCardDeliveryAddress(), fieldName, value);
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
-        //Then
-        assertValidationResponse(response, expectedField, expectedErrorMessage);
-    }
-
-    @ParameterizedTest(name = "Field {0} with invalid value {1} on an error response")
-    @MethodSource("shouldFailWithInvalidDateFormatErrorArguments")
-    void shouldFailWithInvalidDateFormatError(String dateString, String fieldName, String expectedErrorMessage, String expectedField)
-            throws JsonProcessingException, JSONException {
-        //Given
-        String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class);
-        //Then
-        assertErrorResponse(response, expectedField, expectedErrorMessage, "The request could not be parsed.");
-    }
-
-    @Test
-    void shouldReturnErrorGivenAnEmptyClaim() {
-        //Given
-        String claim = "{}";
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
-        //Then
-        assertValidationResponse(response, "claimant", "must not be null");
-    }
-
-    private static Stream<Arguments> shouldFailWithInvalidDateFormatErrorArguments() {
-        return Stream.of(
-                Arguments.of("29-11-1909", "dateOfBirth", "'29-11-1909' could not be parsed as a LocalDate", "claimant.dateOfBirth"),
-                Arguments.of("1999/12/31", "dateOfBirth", "'1999/12/31' could not be parsed as a LocalDate", "claimant.dateOfBirth"),
-                Arguments.of("Foo", "dateOfBirth", "'Foo' could not be parsed as a LocalDate", "claimant.dateOfBirth"),
-                Arguments.of("29-11-1909", "expectedDeliveryDate", "'29-11-1909' could not be parsed as a LocalDate", "claimant.expectedDeliveryDate"),
-                Arguments.of("1999/12/31", "expectedDeliveryDate", "'1999/12/31' could not be parsed as a LocalDate", "claimant.expectedDeliveryDate"),
-                Arguments.of("Foo", "expectedDeliveryDate", "'Foo' could not be parsed as a LocalDate", "claimant.expectedDeliveryDate")
-        );
-    }
-
-    private static Stream<Arguments> shouldFailWithAddressValidationErrorArguments() {
-        return Stream.of(
-                Arguments.of("addressLine1", null, "must not be null", "claimant.cardDeliveryAddress.addressLine1"),
-                Arguments.of("addressLine1", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.addressLine1"),
-                Arguments.of("addressLine2", LONG_STRING, "size must be between 0 and 500", "claimant.cardDeliveryAddress.addressLine2"),
-                Arguments.of("townOrCity", null, "must not be null", "claimant.cardDeliveryAddress.townOrCity"),
-                Arguments.of("townOrCity", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.townOrCity"),
-                Arguments.of("postcode", "AA1122BB", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "A", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "11AA21", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", null, "must not be null", "claimant.cardDeliveryAddress.postcode")
-        );
-    }
-
+    //This is a MethodSource because of the use of LONG_STRING
     private static Stream<Arguments> shouldFailWithValidationErrorArguments() {
         return Stream.of(
                 Arguments.of("lastName", LONG_STRING, "size must be between 1 and 500", "claimant.lastName"),
@@ -221,6 +156,71 @@ public class ClaimantServiceIntegrationTests {
                 Arguments.of("cardDeliveryAddress", null, "must not be null", "claimant.cardDeliveryAddress"),
                 Arguments.of("dateOfBirth", null, "must not be null", "claimant.dateOfBirth")
         );
+    }
+
+    @ParameterizedTest(name = "Field {0} with invalid value {1} on an address returns the correct error response")
+    @MethodSource("shouldFailWithAddressValidationErrorArguments")
+    void shouldFailWithAddressValidationError(String fieldName, String value, String expectedErrorMessage, String expectedField) {
+        //Given
+        ClaimDTO claim = aValidClaimDTO();
+        modifyFieldOnObject(claim.getClaimant().getCardDeliveryAddress(), fieldName, value);
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        //Then
+        assertValidationResponse(response, expectedField, expectedErrorMessage);
+    }
+
+    //This is a MethodSource because of the use of LONG_STRING
+    private static Stream<Arguments> shouldFailWithAddressValidationErrorArguments() {
+        return Stream.of(
+                Arguments.of("addressLine1", null, "must not be null", "claimant.cardDeliveryAddress.addressLine1"),
+                Arguments.of("addressLine1", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.addressLine1"),
+                Arguments.of("addressLine2", LONG_STRING, "size must be between 0 and 500", "claimant.cardDeliveryAddress.addressLine2"),
+                Arguments.of("townOrCity", null, "must not be null", "claimant.cardDeliveryAddress.townOrCity"),
+                Arguments.of("townOrCity", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.townOrCity"),
+                Arguments.of("postcode", "AA1122BB", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
+                Arguments.of("postcode", "A", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
+                Arguments.of("postcode", "11AA21", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
+                Arguments.of("postcode", "", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
+                Arguments.of("postcode", null, "must not be null", "claimant.cardDeliveryAddress.postcode")
+        );
+    }
+
+    @ParameterizedTest(name = "Field {0} with invalid value {1} on an error response")
+    @CsvSource({
+            "29-11-1909, dateOfBirth, '29-11-1909' could not be parsed as a LocalDate, claimant.dateOfBirth",
+            "1999/12/31, dateOfBirth, '1999/12/31' could not be parsed as a LocalDate, claimant.dateOfBirth",
+            "Foo, dateOfBirth, 'Foo' could not be parsed as a LocalDate, claimant.dateOfBirth",
+            "29-11-1909, expectedDeliveryDate, '29-11-1909' could not be parsed as a LocalDate, claimant.expectedDeliveryDate",
+            "1999/12/31, expectedDeliveryDate, '1999/12/31' could not be parsed as a LocalDate, claimant.expectedDeliveryDate",
+            "Foo, expectedDeliveryDate, 'Foo' could not be parsed as a LocalDate, claimant.expectedDeliveryDate"
+    })
+    void shouldFailWithInvalidDateFormatError(String dateString, String fieldName, String expectedErrorMessage, String expectedField)
+            throws JsonProcessingException, JSONException {
+        //Given
+        String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class);
+        //Then
+        assertErrorResponse(response, expectedField, expectedErrorMessage, "The request could not be parsed.");
+    }
+
+    @Test
+    void shouldReturnErrorGivenAnEmptyClaim() {
+        //Given
+        String claim = "{}";
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        //Then
+        assertValidationResponse(response, "claimant", "must not be null");
+    }
+
+    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus) {
+        Iterable<Claimant> claims = claimantRepository.findAll();
+        assertThat(claims).hasSize(1);
+        Claimant persistedClaim = claims.iterator().next();
+        assertClaimantMatchesClaimantDTO(claimantDTO, persistedClaim);
+        assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException, JSONException {
