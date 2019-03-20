@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
+import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import javax.validation.Valid;
 
@@ -25,7 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController()
 @RequestMapping(value = &quot;/v1/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-<span class="fc" id="L28">@Slf4j</span>
+<span class="fc" id="L29">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimController {
 
@@ -37,9 +38,9 @@ public class ClaimController {
     @ApiOperation(&quot;Persist a new claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public void newClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L40">        log.debug(&quot;Received claim&quot;);</span>
-<span class="fc" id="L41">        Claim claim = converter.convert(claimDTO);</span>
-<span class="fc" id="L42">        claimService.createClaim(claim);</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L41">        log.debug(&quot;Received claim&quot;);</span>
+<span class="fc" id="L42">        Claim claim = converter.convert(claimDTO);</span>
+<span class="fc" id="L43">        claimService.createClaim(claim);</span>
+<span class="fc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
