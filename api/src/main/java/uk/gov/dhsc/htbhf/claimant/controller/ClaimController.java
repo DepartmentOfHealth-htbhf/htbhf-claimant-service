@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
+import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import javax.validation.Valid;
 
