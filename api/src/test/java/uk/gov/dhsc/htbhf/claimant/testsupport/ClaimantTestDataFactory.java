@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
@@ -18,7 +19,11 @@ public final class ClaimantTestDataFactory {
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
 
-    public static Claimant aValidClaimant() {
+    public static Claimant aClaimantWithoutEligibilityStatus() {
+        return aValidClaimantBuilder().eligibilityStatus(null).build();
+    }
+
+    public static Claimant aValidClaimantWithEligibilityStatus() {
         return aValidClaimantBuilder().build();
     }
 
@@ -56,6 +61,7 @@ public final class ClaimantTestDataFactory {
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
-                .cardDeliveryAddress(VALID_ADDRESS);
+                .cardDeliveryAddress(VALID_ADDRESS)
+                .eligibilityStatus(EligibilityStatus.ELIGIBLE);
     }
 }

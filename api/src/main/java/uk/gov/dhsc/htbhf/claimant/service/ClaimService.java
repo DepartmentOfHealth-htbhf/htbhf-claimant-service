@@ -5,26 +5,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis") // PMD does not like reassignment of `eligibilityStatus`
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
-    /**
-     * NOTE: This is only here to keep Checkstyle happy - we'll remove as we resolve the TODOs.
-     * TODO - Add eligibility status to the Claimant and to the database. If EligibilityClientException caught, set
-     *        status to error on claimant. Ensure status is also logged.
-     */
     public void createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
+        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
+
         try {
-            client.checkEligibility(claimant);
+            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+            eligibilityStatus = eligibilityResponse.getEligibilityStatus();
         } finally {
+            claimant.setEligibilityStatus(eligibilityStatus);
             claimantRepository.save(claimant);
             log.info("Saved new claimant: {}", claimant.getId());
         }

@@ -15,6 +15,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Address
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse
 
@@ -76,6 +77,7 @@ class NewClaimSpec extends Specification {
         assertThat(persistedClaim.lastName).isEqualTo(claim.claimant.lastName)
         assertThat(persistedClaim.dateOfBirth).isEqualTo(claim.claimant.dateOfBirth)
         assertThat(persistedClaim.expectedDeliveryDate).isEqualTo(claim.claimant.expectedDeliveryDate)
+        assertThat(persistedClaim.eligibilityStatus).isEqualTo(EligibilityStatus.ELIGIBLE)
         assertAddressEqual(persistedClaim.cardDeliveryAddress, claim.claimant.cardDeliveryAddress)
         verify(restTemplateWithIdHeaders).postForEntity("http://localhost:8100/v1/eligibility", aValidPerson(), EligibilityResponse.class) || true
     }

@@ -6,12 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.UUID;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -25,7 +28,7 @@ import javax.validation.constraints.Size;
  */
 @Entity
 @Data
-@Builder
+@Builder(toBuilder = true)
 @Table(name = "claimant")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
@@ -61,6 +64,11 @@ public class Claimant {
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
+
+    @NotNull
+    @Column(name = "eligibility_status")
+    @Enumerated(EnumType.STRING)
+    private EligibilityStatus eligibilityStatus;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
