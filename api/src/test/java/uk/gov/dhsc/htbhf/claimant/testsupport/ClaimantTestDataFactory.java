@@ -15,6 +15,7 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_NINO = "EB123456C";
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
+    private static final String HOUSEHOLD_IDENTIFIER = "household1";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
@@ -62,6 +63,7 @@ public final class ClaimantTestDataFactory {
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
                 .cardDeliveryAddress(VALID_ADDRESS)
-                .eligibilityStatus(EligibilityStatus.ELIGIBLE);
+                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .householdIdentifier(HOUSEHOLD_IDENTIFIER);
     }
 }
