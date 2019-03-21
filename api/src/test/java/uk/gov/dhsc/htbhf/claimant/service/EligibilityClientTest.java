@@ -14,7 +14,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,14 +47,15 @@ class EligibilityClientTest {
         Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
-        ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(anEligibilityResponse(), HttpStatus.OK);
+        EligibilityResponse eligibilityResponse = anEligibilityResponse();
+        ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class)))
                 .willReturn(response);
 
-        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+        EligibilityResponse actualResponse = client.checkEligibility(claimant);
 
-        assertThat(eligibilityResponse).isNotNull();
-        assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse).isEqualTo(eligibilityResponse);
         verify(claimantToPersonDTOConverter).convert(claimant);
         verify(restTemplateWithIdHeaders).postForEntity(baseUri + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
     }

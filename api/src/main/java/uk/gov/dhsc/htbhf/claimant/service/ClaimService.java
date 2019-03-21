@@ -25,6 +25,7 @@ public class ClaimService {
         try {
             EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
             eligibilityStatus = eligibilityResponse.getEligibilityStatus();
+            claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
         } finally {
             claimant.setEligibilityStatus(eligibilityStatus);
             claimantRepository.save(claimant);

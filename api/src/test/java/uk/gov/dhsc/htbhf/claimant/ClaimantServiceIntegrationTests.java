@@ -97,7 +97,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ELIGIBLE);
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ELIGIBLE, "household1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -110,7 +110,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         ClaimantServiceAssertionUtils.assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR);
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR, null);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -215,12 +215,13 @@ public class ClaimantServiceIntegrationTests {
         assertValidationResponse(response, "claimant", "must not be null");
     }
 
-    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus) {
+    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus, String householdIdentifier) {
         Iterable<Claimant> claims = claimantRepository.findAll();
         assertThat(claims).hasSize(1);
         Claimant persistedClaim = claims.iterator().next();
         assertClaimantMatchesClaimantDTO(claimantDTO, persistedClaim);
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
+        assertThat(persistedClaim.getHouseholdIdentifier()).isEqualTo(householdIdentifier);
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException, JSONException {

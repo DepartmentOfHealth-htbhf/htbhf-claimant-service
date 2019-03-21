@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -14,14 +13,20 @@ import javax.validation.ConstraintViolation;
 import static uk.gov.dhsc.htbhf.claimant.assertion.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.LONG_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithDateOfBirth;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithFirstNameAndLastName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongLastName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus;
 
 class ClaimantTest extends AbstractValidationTest {
 
     @Test
     void shouldValidateClaimantSuccessfully() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus();
+        Claimant claimant = aValidClaimantWithEligibilityStatus();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -31,7 +36,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithNoLastName() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithLastName(null);
+        Claimant claimant = aClaimantWithLastName(null);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -41,7 +46,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithTooLongFirstName() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongFirstName();
+        Claimant claimant = aClaimantWithTooLongFirstName();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -51,7 +56,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithTooLongSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithTooLongLastName();
+        Claimant claimant = aClaimantWithTooLongLastName();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -61,7 +66,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithBlankSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithLastName("");
+        Claimant claimant = aClaimantWithLastName("");
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -71,7 +76,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithInvalidFirstNameAndSurname() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aClaimantWithFirstNameAndLastName(LONG_NAME, "");
+        Claimant claimant = aClaimantWithFirstNameAndLastName(LONG_NAME, "");
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -147,8 +152,20 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithoutExpectedDueDate() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+        Claimant claimant = aValidClaimantBuilder()
                 .expectedDeliveryDate(null)
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutHouseholdIdentifier() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder()
+                .householdIdentifier(null)
                 .build();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
@@ -159,7 +176,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithExpectedDueDate() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+        Claimant claimant = aValidClaimantBuilder()
                 .expectedDeliveryDate(LocalDate.now())
                 .build();
         //When
@@ -171,7 +188,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithExpectedDueDateInThePast() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+        Claimant claimant = aValidClaimantBuilder()
                 .expectedDeliveryDate(LocalDate.now().minusYears(3))
                 .build();
         //When
@@ -183,7 +200,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithoutCardDeliveryAddress() {
         //Given
-        Claimant claimant = ClaimantTestDataFactory.aValidClaimantBuilder()
+        Claimant claimant = aValidClaimantBuilder()
                 .cardDeliveryAddress(null)
                 .build();
         //When
