@@ -69,6 +69,9 @@ public class Claimant {
     @Column(name = &quot;eligibility_status&quot;)
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
+    
+    @Column(name = &quot;household_identifier&quot;)
+    private String householdIdentifier;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
@@ -77,10 +80,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L81">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L84">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L83">        return this.id;</span>
+<span class="fc" id="L86">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
