@@ -69,6 +69,9 @@ public class Claimant {
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
+    
+    @Column(name = "household_identifier")
+    private String householdIdentifier;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial

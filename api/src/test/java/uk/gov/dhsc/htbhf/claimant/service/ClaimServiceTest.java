@@ -43,7 +43,11 @@ public class ClaimServiceTest {
         claimService.createClaim(claim);
 
         //then
-        Claimant expectedClaimant = claimant.toBuilder().eligibilityStatus(EligibilityStatus.ELIGIBLE).build();
+        Claimant expectedClaimant = claimant
+                .toBuilder()
+                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .householdIdentifier("household1")
+                .build();
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
     }
