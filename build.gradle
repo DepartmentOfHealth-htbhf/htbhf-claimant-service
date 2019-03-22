@@ -57,6 +57,12 @@ subprojects {
             csv.enabled = false
         }
     }
+
+    task updateConfig() {
+        'git submodule update --init --recursive --remote'.execute()
+    }
+
+    tasks.check.dependsOn updateConfig
 }
 
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
