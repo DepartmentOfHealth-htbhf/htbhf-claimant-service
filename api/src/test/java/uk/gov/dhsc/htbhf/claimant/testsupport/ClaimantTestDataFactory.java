@@ -66,4 +66,8 @@ public final class ClaimantTestDataFactory {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .householdIdentifier(HOUSEHOLD_IDENTIFIER);
     }
+
+    public static Claimant anIncomingClaimant() {
+        return aValidClaimantBuilder().eligibilityStatus(null).householdIdentifier(null).build();
+    }
 }

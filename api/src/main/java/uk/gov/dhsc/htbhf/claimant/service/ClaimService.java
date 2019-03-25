@@ -23,9 +23,13 @@ public class ClaimService {
         EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
 
         try {
-            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-            eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-            claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
+            if (claimantRepository.claimExists(claimant.getNino())) {
+                eligibilityStatus = EligibilityStatus.DUPLICATE;
+            } else {
+                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+                eligibilityStatus = eligibilityResponse.getEligibilityStatus();
+                claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
+            }
         } finally {
             claimant.setEligibilityStatus(eligibilityStatus);
             claimantRepository.save(claimant);

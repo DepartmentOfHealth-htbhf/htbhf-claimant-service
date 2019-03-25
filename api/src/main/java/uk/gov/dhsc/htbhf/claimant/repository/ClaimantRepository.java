@@ -10,4 +10,5 @@ import java.util.UUID;
  */
 public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
 
+    Boolean claimExists(Object any);
 }
