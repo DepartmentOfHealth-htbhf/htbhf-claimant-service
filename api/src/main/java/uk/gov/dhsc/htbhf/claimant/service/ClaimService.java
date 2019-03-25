@@ -23,7 +23,7 @@ public class ClaimService {
         EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
 
         try {
-            if (claimantRepository.claimExists(claimant.getNino())) {
+            if (claimantRepository.claimantExists(claimant.getNino())) {
                 eligibilityStatus = EligibilityStatus.DUPLICATE;
             } else {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);

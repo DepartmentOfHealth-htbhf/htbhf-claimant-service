@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.anIncomingClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,11 +34,11 @@ public class ClaimServiceTest {
     @Test
     public void shouldSaveNewClaimant() {
         //given
-        Claimant claimant = anIncomingClaimant();
+        Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
-        given(claimantRepository.claimExists(any())).willReturn(false);
+        given(claimantRepository.claimantExists(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
 
         //when
@@ -50,18 +50,18 @@ public class ClaimServiceTest {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .householdIdentifier("household1")
                 .build();
-        verify(claimantRepository).claimExists(claimant.getNino());
+        verify(claimantRepository).claimantExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
     }
 
     @Test
     public void shouldSaveDuplicateClaimant() {
-        Claimant claimant = anIncomingClaimant();
+        Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
-        given(claimantRepository.claimExists(any())).willReturn(true);
+        given(claimantRepository.claimantExists(any())).willReturn(true);
 
         claimService.createClaim(claim);
 
@@ -69,7 +69,7 @@ public class ClaimServiceTest {
                 .toBuilder()
                 .eligibilityStatus(EligibilityStatus.DUPLICATE)
                 .build();
-        verify(claimantRepository).claimExists(claimant.getNino());
+        verify(claimantRepository).claimantExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyZeroInteractions(client);
     }
@@ -82,7 +82,7 @@ public class ClaimServiceTest {
      */
     public void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        Claimant claimant = anIncomingClaimant();
+        Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
