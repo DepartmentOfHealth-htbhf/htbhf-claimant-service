@@ -25,6 +25,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
@@ -50,8 +51,11 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.DUPLICATE;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 
@@ -97,7 +101,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ELIGIBLE, "household1");
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "household1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -120,6 +124,23 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.getForEntity("/missing-resource", ErrorResponse.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExists() {
+        //Given
+        ClaimDTO claim = aValidClaimDTO();
+        Claimant claimant = aValidClaimantBuilder()
+                .nino(claim.getClaimant().getNino())
+                .eligibilityStatus(ELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+
+        //Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
     }
 
     @ParameterizedTest(name = "Field {0} with invalid value {1} on a claim returns the correct error response")

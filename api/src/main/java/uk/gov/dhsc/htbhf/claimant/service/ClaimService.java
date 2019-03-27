@@ -12,24 +12,37 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis") // PMD does not like reassignment of `eligibilityStatus`
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
-    public void createClaim(Claim claim) {
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    public Claimant createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
-        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
 
         try {
-            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-            eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-            claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
-        } finally {
-            claimant.setEligibilityStatus(eligibilityStatus);
-            claimantRepository.save(claimant);
-            log.info("Saved new claimant: {} with status {}", claimant.getId(), claimant.getEligibilityStatus());
+            EligibilityStatus eligibilityStatus;
+
+            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {
+                eligibilityStatus = EligibilityStatus.DUPLICATE;
+            } else {
+                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+                eligibilityStatus = eligibilityResponse.getEligibilityStatus();
+                claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
+            }
+
+            saveClaimant(claimant, eligibilityStatus);
+            return claimant;
+        } catch (RuntimeException e) {
+            saveClaimant(claimant, EligibilityStatus.ERROR);
+            throw e;
         }
+    }
+
+    private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
+        claimant.setEligibilityStatus(eligibilityStatus);
+        claimantRepository.save(claimant);
+        log.info("Saved new claimant: {} with status {}", claimant.getId(), claimant.getEligibilityStatus());
     }
 }

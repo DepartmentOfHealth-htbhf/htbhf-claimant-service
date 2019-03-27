@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 
 import java.util.Set;
 import javax.validation.ConstraintViolation;

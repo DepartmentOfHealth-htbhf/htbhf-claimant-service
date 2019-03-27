@@ -11,8 +11,11 @@ import javax.validation.ConstraintViolationException;
 import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.INELIGIBLE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus;
 
 @SpringBootTest
@@ -64,5 +67,43 @@ class ClaimantRepositoryTest {
         //Then
         assertThat(size(claimantRepository.findAll())).isEqualTo(1);
         assertThat(claimantRepository.findAll().iterator().next().getLastName()).isEqualTo(sqlInjectionName);
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenNinoDoesNotExist() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().build();
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenNinoExistsAndStatusIsNotEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantExistsWhenNinoExistsAndStatusIsEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+
+        //Then
+        assertThat(claimantExists).isTrue();
     }
 }

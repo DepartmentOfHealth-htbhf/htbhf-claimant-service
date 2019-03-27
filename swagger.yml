@@ -34,6 +34,10 @@ paths:
         schema:
           $ref: "#/definitions/ClaimDTO"
       responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ClaimResponse"
         201:
           description: "Created"
         400:
@@ -86,6 +90,19 @@ definitions:
     title: "ClaimDTO"
     description: "A claim (application) for help to buy healthy foods. Contains all\
       \ details that need to be persisted as part of the application."
+  ClaimResponse:
+    type: "object"
+    properties:
+      eligibilityStatus:
+        type: "string"
+        enum:
+        - "ELIGIBLE"
+        - "INELIGIBLE"
+        - "PENDING"
+        - "NOMATCH"
+        - "ERROR"
+        - "DUPLICATE"
+    title: "ClaimResponse"
   ClaimantDTO:
     type: "object"
     properties:

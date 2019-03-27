@@ -28,6 +28,10 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().build();
     }
 
+    public static Claimant aValidClaimantWithStatus(EligibilityStatus eligibilityStatus) {
+        return aValidClaimantBuilder().eligibilityStatus(eligibilityStatus).build();
+    }
+
     public static Claimant aClaimantWithLastName(String lastName) {
         return aValidClaimantBuilder().lastName(lastName).build();
     }

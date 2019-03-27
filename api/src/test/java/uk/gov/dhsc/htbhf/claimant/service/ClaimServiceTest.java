@@ -15,7 +15,8 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithoutEligibilityStatus;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,12 +32,13 @@ public class ClaimServiceTest {
     private EligibilityClient client;
 
     @Test
-    public void shouldSaveClaimant() {
+    public void shouldSaveNewClaimant() {
         //given
-        Claimant claimant = aClaimantWithoutEligibilityStatus();
+        Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
+        given(claimantRepository.eligibleClaimExists(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
 
         //when
@@ -48,8 +50,28 @@ public class ClaimServiceTest {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .householdIdentifier("household1")
                 .build();
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
+    }
+
+    @Test
+    public void shouldSaveDuplicateClaimant() {
+        Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = Claim.builder()
+                .claimant(claimant)
+                .build();
+        given(claimantRepository.eligibleClaimExists(any())).willReturn(true);
+
+        claimService.createClaim(claim);
+
+        Claimant expectedClaimant = claimant
+                .toBuilder()
+                .eligibilityStatus(EligibilityStatus.DUPLICATE)
+                .build();
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
+        verify(claimantRepository).save(expectedClaimant);
+        verifyZeroInteractions(client);
     }
 
     @Test
@@ -60,7 +82,7 @@ public class ClaimServiceTest {
      */
     public void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        Claimant claimant = aClaimantWithoutEligibilityStatus();
+        Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
@@ -75,5 +97,6 @@ public class ClaimServiceTest {
         Claimant expectedClaimant = claimant.toBuilder().eligibilityStatus(EligibilityStatus.ERROR).build();
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
     }
 }
