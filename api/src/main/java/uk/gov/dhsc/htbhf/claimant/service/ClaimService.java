@@ -12,7 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.AvoidCatchingGenericException"}) // PMD does not like reassignment of `eligibilityStatus`
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
@@ -20,23 +20,28 @@ public class ClaimService {
 
     public Claimant createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
-        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;
 
         try {
-            if (claimantRepository.claimantExists(claimant.getNino())) {
-                eligibilityStatus = EligibilityStatus.DUPLICATE;
-            } else {
+            EligibilityStatus eligibilityStatus;
+
+            if (claimantDoesNotExist(claimant.getNino())) {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
                 eligibilityStatus = eligibilityResponse.getEligibilityStatus();
                 claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
+            } else {
+                eligibilityStatus = EligibilityStatus.DUPLICATE;
             }
 
             saveClaimant(claimant, eligibilityStatus);
             return claimant;
         } catch (Exception e) {
-            saveClaimant(claimant, eligibilityStatus);
+            saveClaimant(claimant, EligibilityStatus.ERROR);
             throw e;
         }
+    }
+
+    private Boolean claimantDoesNotExist(String nino) {
+        return !claimantRepository.claimantExists(nino);
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
