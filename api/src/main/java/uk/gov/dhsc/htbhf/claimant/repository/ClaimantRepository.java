@@ -15,7 +15,7 @@ public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
     @Query("SELECT COUNT(claimant) FROM Claimant claimant WHERE claimant.nino = :nino AND claimant.eligibilityStatus = 'ELIGIBLE'")
     Long getNumberOfMatchingEligibleClaimants(@Param("nino") String nino);
 
-    default Boolean claimantExists(String nino) {
+    default Boolean eligibleClaimExists(String nino) {
         return getNumberOfMatchingEligibleClaimants(nino) != 0;
     }
 }

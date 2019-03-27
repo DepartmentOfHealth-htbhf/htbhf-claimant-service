@@ -12,36 +12,32 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public Claimant createClaim(Claim claim) {
         Claimant claimant = claim.getClaimant();
 
         try {
             EligibilityStatus eligibilityStatus;
 
-            if (claimantDoesNotExist(claimant.getNino())) {
+            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {
+                eligibilityStatus = EligibilityStatus.DUPLICATE;
+            } else {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
                 eligibilityStatus = eligibilityResponse.getEligibilityStatus();
                 claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());
-            } else {
-                eligibilityStatus = EligibilityStatus.DUPLICATE;
             }
 
             saveClaimant(claimant, eligibilityStatus);
             return claimant;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             saveClaimant(claimant, EligibilityStatus.ERROR);
             throw e;
         }
-    }
-
-    private Boolean claimantDoesNotExist(String nino) {
-        return !claimantRepository.claimantExists(nino);
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {

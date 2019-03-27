@@ -75,7 +75,7 @@ class ClaimantRepositoryTest {
         Claimant claimant = aValidClaimantBuilder().build();
 
         //When
-        Boolean claimantExists = claimantRepository.claimantExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isFalse();
@@ -88,7 +88,7 @@ class ClaimantRepositoryTest {
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.claimantExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isFalse();
@@ -101,7 +101,7 @@ class ClaimantRepositoryTest {
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.claimantExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isTrue();

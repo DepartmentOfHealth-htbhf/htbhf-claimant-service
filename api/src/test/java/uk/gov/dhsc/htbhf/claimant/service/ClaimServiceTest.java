@@ -38,7 +38,7 @@ public class ClaimServiceTest {
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
-        given(claimantRepository.claimantExists(any())).willReturn(false);
+        given(claimantRepository.eligibleClaimExists(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
 
         //when
@@ -50,7 +50,7 @@ public class ClaimServiceTest {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .householdIdentifier("household1")
                 .build();
-        verify(claimantRepository).claimantExists(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
     }
@@ -61,7 +61,7 @@ public class ClaimServiceTest {
         Claim claim = Claim.builder()
                 .claimant(claimant)
                 .build();
-        given(claimantRepository.claimantExists(any())).willReturn(true);
+        given(claimantRepository.eligibleClaimExists(any())).willReturn(true);
 
         claimService.createClaim(claim);
 
@@ -69,7 +69,7 @@ public class ClaimServiceTest {
                 .toBuilder()
                 .eligibilityStatus(EligibilityStatus.DUPLICATE)
                 .build();
-        verify(claimantRepository).claimantExists(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyZeroInteractions(client);
     }
@@ -97,6 +97,6 @@ public class ClaimServiceTest {
         Claimant expectedClaimant = claimant.toBuilder().eligibilityStatus(EligibilityStatus.ERROR).build();
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
-        verify(claimantRepository).claimantExists(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
     }
 }
