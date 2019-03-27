@@ -1,18 +1,30 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithEligibilityStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithStatus;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimControllerTest {
@@ -25,18 +37,32 @@ class ClaimControllerTest {
     @InjectMocks
     ClaimController controller;
 
-    @Test
-    void shouldInvokeClaimServiceWithConvertedClaim() {
+    @ParameterizedTest
+    @MethodSource("provideStatusesForInvokeClaimService")
+    void shouldInvokeClaimServiceWithConvertedClaim(EligibilityStatus eligibilityStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
         Claim convertedClaim = Claim.builder().build();
-        given(converter.convert(dto)).willReturn(convertedClaim);
+        given(converter.convert(any())).willReturn(convertedClaim);
+        given(claimService.createClaim(any())).willReturn(aValidClaimantWithStatus(eligibilityStatus));
 
         // When
-        controller.newClaim(dto);
+        ResponseEntity<ClaimResponse> response =  controller.newClaim(dto);
 
         // Then
+        ClaimResponse claimResponse = aClaimResponseWithEligibilityStatus(eligibilityStatus);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(claimResponse);
+        verify(converter).convert(dto);
         verify(claimService).createClaim(convertedClaim);
+    }
+
+    private static Stream<Arguments> provideStatusesForInvokeClaimService() {
+        return Stream.of(
+                Arguments.of(EligibilityStatus.ELIGIBLE, HttpStatus.CREATED),
+                Arguments.of(EligibilityStatus.DUPLICATE, HttpStatus.OK)
+        );
     }
 
 }

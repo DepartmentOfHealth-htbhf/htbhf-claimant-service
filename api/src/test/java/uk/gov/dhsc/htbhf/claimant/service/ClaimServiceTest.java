@@ -97,5 +97,6 @@ public class ClaimServiceTest {
         Claimant expectedClaimant = claimant.toBuilder().eligibilityStatus(EligibilityStatus.ERROR).build();
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
+        verify(claimantRepository).claimantExists(claimant.getNino());
     }
 }
