@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Set;
 import javax.validation.ConstraintViolation;
 
-import static uk.gov.dhsc.htbhf.claimant.assertion.ConstraintViolationAssert.assertThat;
+import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.anAddressWithAddressLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.anAddressWithAddressLine2;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.anAddressWithPostcode;
