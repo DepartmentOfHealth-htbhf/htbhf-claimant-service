@@ -34,7 +34,11 @@ public class ClaimController {
     private final ClaimDTOToClaimConverter converter;
     private final Map<EligibilityStatus, HttpStatus> statusMap = Map.of(
             EligibilityStatus.ELIGIBLE, HttpStatus.CREATED,
-            EligibilityStatus.DUPLICATE, HttpStatus.OK
+            EligibilityStatus.INELIGIBLE, HttpStatus.OK,
+            EligibilityStatus.PENDING, HttpStatus.OK,
+            EligibilityStatus.NOMATCH, HttpStatus.OK,
+            EligibilityStatus.DUPLICATE, HttpStatus.OK,
+            EligibilityStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
 
     @PostMapping

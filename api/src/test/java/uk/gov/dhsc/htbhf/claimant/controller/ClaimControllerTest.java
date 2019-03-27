@@ -37,7 +37,11 @@ class ClaimControllerTest {
     @ParameterizedTest
     @CsvSource({
             "ELIGIBLE, CREATED",
-            "DUPLICATE, OK"
+            "INELIGIBLE, OK",
+            "PENDING, OK",
+            "NOMATCH, OK",
+            "DUPLICATE, OK",
+            "ERROR, INTERNAL_SERVER_ERROR"
     })
     void shouldInvokeClaimServiceWithConvertedClaim(EligibilityStatus eligibilityStatus, HttpStatus httpStatus) {
         // Given
