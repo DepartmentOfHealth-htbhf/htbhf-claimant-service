@@ -12,25 +12,38 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 @Service
 <span class="fc" id="L13">@Slf4j</span>
 @RequiredArgsConstructor
-@SuppressWarnings(&quot;PMD.DataflowAnomalyAnalysis&quot;) // PMD does not like reassignment of `eligibilityStatus`
 public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
 
-    public void createClaim(Claim claim) {
+    @SuppressWarnings(&quot;PMD.AvoidCatchingGenericException&quot;)
+    public Claimant createClaim(Claim claim) {
 <span class="fc" id="L22">        Claimant claimant = claim.getClaimant();</span>
-<span class="fc" id="L23">        EligibilityStatus eligibilityStatus = EligibilityStatus.ERROR;</span>
 
         try {
-<span class="fc" id="L26">            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
-<span class="fc" id="L27">            eligibilityStatus = eligibilityResponse.getEligibilityStatus();</span>
-<span class="fc" id="L28">            claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());</span>
-        } finally {
-<span class="fc" id="L30">            claimant.setEligibilityStatus(eligibilityStatus);</span>
-<span class="fc" id="L31">            claimantRepository.save(claimant);</span>
-<span class="fc" id="L32">            log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
+            EligibilityStatus eligibilityStatus;
+
+<span class="fc bfc" id="L27" title="All 2 branches covered.">            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {</span>
+<span class="fc" id="L28">                eligibilityStatus = EligibilityStatus.DUPLICATE;</span>
+            } else {
+<span class="fc" id="L30">                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L31">                eligibilityStatus = eligibilityResponse.getEligibilityStatus();</span>
+<span class="fc" id="L32">                claimant.setHouseholdIdentifier(eligibilityResponse.getHouseholdIdentifier());</span>
+            }
+
+<span class="fc" id="L35">            saveClaimant(claimant, eligibilityStatus);</span>
+<span class="fc" id="L36">            return claimant;</span>
+<span class="fc" id="L37">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L38">            saveClaimant(claimant, EligibilityStatus.ERROR);</span>
+<span class="fc" id="L39">            throw e;</span>
         }
-<span class="fc" id="L34">    }</span>
+    }
+
+    private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
+<span class="fc" id="L44">        claimant.setEligibilityStatus(eligibilityStatus);</span>
+<span class="fc" id="L45">        claimantRepository.save(claimant);</span>
+<span class="fc" id="L46">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
+<span class="fc" id="L47">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
