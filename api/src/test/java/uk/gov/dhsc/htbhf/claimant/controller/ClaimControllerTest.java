@@ -2,8 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.controller;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,8 +14,6 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
-
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +35,10 @@ class ClaimControllerTest {
     ClaimController controller;
 
     @ParameterizedTest
-    @MethodSource("provideStatusesForInvokeClaimService")
+    @CsvSource({
+            "ELIGIBLE, CREATED",
+            "DUPLICATE, OK"
+    })
     void shouldInvokeClaimServiceWithConvertedClaim(EligibilityStatus eligibilityStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
@@ -56,13 +56,6 @@ class ClaimControllerTest {
         assertThat(response.getBody()).isEqualTo(claimResponse);
         verify(converter).convert(dto);
         verify(claimService).createClaim(convertedClaim);
-    }
-
-    private static Stream<Arguments> provideStatusesForInvokeClaimService() {
-        return Stream.of(
-                Arguments.of(EligibilityStatus.ELIGIBLE, HttpStatus.CREATED),
-                Arguments.of(EligibilityStatus.DUPLICATE, HttpStatus.OK)
-        );
     }
 
 }
