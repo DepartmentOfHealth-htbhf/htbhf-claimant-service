@@ -48,7 +48,7 @@ public class ClaimServiceTest {
         Claimant expectedClaimant = claimant
                 .toBuilder()
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .householdIdentifier("household1")
+                .householdIdentifier("dwpHousehold1")
                 .build();
         verify(claimantRepository).eligibleClaimExists(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);

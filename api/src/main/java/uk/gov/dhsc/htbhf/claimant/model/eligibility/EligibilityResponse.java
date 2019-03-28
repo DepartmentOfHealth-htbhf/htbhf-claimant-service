@@ -13,6 +13,9 @@ public class EligibilityResponse {
     @JsonProperty("eligibilityStatus")
     private EligibilityStatus eligibilityStatus;
 
-    @JsonProperty("householdIdentifier")
-    private String householdIdentifier;
+    @JsonProperty("dwpHouseholdIdentifier")
+    private String dwpHouseholdIdentifier;
+
+    @JsonProperty("hmrcHouseholdIdentifier")
+    private String hmrcHouseholdIdentifier;
 }
