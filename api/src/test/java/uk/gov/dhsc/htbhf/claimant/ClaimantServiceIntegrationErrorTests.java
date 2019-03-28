@@ -17,12 +17,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertErrorResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 
+/**
+ * This integration test is kept separate from the other Integration Tests as it mocks out the ClaimService
+ * so that it can test the scenario when an Exception is thrown from it.
+ */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class ClaimantServiceIntegrationErrorTests {
 
@@ -39,7 +42,7 @@ public class ClaimantServiceIntegrationErrorTests {
         doThrow(new RuntimeException()).when(claimService).createClaim(any(Claim.class));
         ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI, claim, ErrorResponse.class);
 
-        assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
+        assertInternalServerErrorResponse(response);
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimService).createClaim(claimArgumentCaptor.capture());
         assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
