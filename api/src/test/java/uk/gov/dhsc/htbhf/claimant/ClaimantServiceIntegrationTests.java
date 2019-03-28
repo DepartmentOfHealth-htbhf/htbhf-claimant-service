@@ -14,12 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -45,10 +40,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
+import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
+import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.DUPLICATE;
@@ -113,7 +109,7 @@ public class ClaimantServiceIntegrationTests {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        ClaimantServiceAssertionUtils.assertErrorResponse(response, "An internal server error occurred", INTERNAL_SERVER_ERROR);
+        assertInternalServerErrorResponse(response);
         assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR, null);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
@@ -152,7 +148,7 @@ public class ClaimantServiceIntegrationTests {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationResponse(response, expectedField, expectedErrorMessage);
+        assertValidationErrorInResponse(response, expectedField, expectedErrorMessage);
     }
 
     //This is a MethodSource because of the use of LONG_STRING
@@ -188,7 +184,7 @@ public class ClaimantServiceIntegrationTests {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationResponse(response, expectedField, expectedErrorMessage);
+        assertValidationErrorInResponse(response, expectedField, expectedErrorMessage);
     }
 
     //This is a MethodSource because of the use of LONG_STRING
@@ -223,7 +219,7 @@ public class ClaimantServiceIntegrationTests {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class);
         //Then
-        assertErrorResponse(response, expectedField, expectedErrorMessage, "The request could not be parsed.");
+        assertRequestCouldNotBeParsedErrorResponse(response, expectedField, expectedErrorMessage);
     }
 
     @Test
@@ -233,7 +229,7 @@ public class ClaimantServiceIntegrationTests {
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationResponse(response, "claimant", "must not be null");
+        assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
     private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus, String householdIdentifier) {
@@ -266,22 +262,6 @@ public class ClaimantServiceIntegrationTests {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
-    }
-
-    private void assertValidationResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage) {
-        assertErrorResponse(response, expectedField, expectedFieldMessage, "There were validation issues with the request.");
-    }
-
-    private void assertErrorResponse(ResponseEntity<ErrorResponse> response, String expectedField, String expectedFieldMessage, String expectedErrorMessage) {
-        ClaimantServiceAssertionUtils.assertErrorResponse(response, expectedErrorMessage, BAD_REQUEST);
-        assertFieldErrors(response.getBody(), expectedField, expectedFieldMessage);
-    }
-
-    private void assertFieldErrors(ErrorResponse body, String expectedField, String expectedFieldMessage) {
-        assertThat(body.getFieldErrors()).hasSize(1);
-        ErrorResponse.FieldError fieldError = body.getFieldErrors().get(0);
-        assertThat(fieldError.getField()).isEqualTo(expectedField);
-        assertThat(fieldError.getMessage()).isEqualTo(expectedFieldMessage);
     }
 
 }
