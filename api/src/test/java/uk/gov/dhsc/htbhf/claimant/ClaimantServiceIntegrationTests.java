@@ -97,7 +97,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "household1");
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "dwpHousehold1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
