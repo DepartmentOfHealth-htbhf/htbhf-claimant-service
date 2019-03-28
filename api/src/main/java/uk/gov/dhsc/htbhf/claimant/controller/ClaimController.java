@@ -34,7 +34,11 @@ public class ClaimController {
     private final ClaimDTOToClaimConverter converter;
     private final Map<EligibilityStatus, HttpStatus> statusMap = Map.of(
             EligibilityStatus.ELIGIBLE, HttpStatus.CREATED,
-            EligibilityStatus.DUPLICATE, HttpStatus.OK
+            EligibilityStatus.INELIGIBLE, HttpStatus.OK,
+            EligibilityStatus.PENDING, HttpStatus.OK,
+            EligibilityStatus.NOMATCH, HttpStatus.OK,
+            EligibilityStatus.DUPLICATE, HttpStatus.OK,
+            EligibilityStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
 
     @PostMapping
@@ -50,8 +54,17 @@ public class ClaimController {
 
     private ResponseEntity createResponseFromClaimant(Claimant claimant) {
         EligibilityStatus eligibilityStatus = claimant.getEligibilityStatus();
-        HttpStatus statusCode = statusMap.get(eligibilityStatus);
+        HttpStatus statusCode = getHttpStatus(eligibilityStatus);
         ClaimResponse body = ClaimResponse.builder().eligibilityStatus(eligibilityStatus).build();
         return new ResponseEntity(body, statusCode);
+    }
+
+    private HttpStatus getHttpStatus(EligibilityStatus eligibilityStatus) {
+        HttpStatus statusCode = statusMap.get(eligibilityStatus);
+        if (statusCode == null) {
+            log.warn("eligibility status without HttpStatus: {}", eligibilityStatus);
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        return statusCode;
     }
 }
