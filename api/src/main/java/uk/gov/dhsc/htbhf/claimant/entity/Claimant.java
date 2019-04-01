@@ -70,8 +70,11 @@ public class Claimant {
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
     
-    @Column(name = "household_identifier")
-    private String householdIdentifier;
+    @Column(name = "dwp_household_identifier")
+    private String dwpHouseholdIdentifier;
+
+    @Column(name = "hmrc_household_identifier")
+    private String hmrcHouseholdIdentifier;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial

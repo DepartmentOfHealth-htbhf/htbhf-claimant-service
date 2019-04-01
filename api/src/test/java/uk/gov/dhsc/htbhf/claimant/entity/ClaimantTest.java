@@ -155,10 +155,22 @@ class ClaimantTest extends AbstractValidationTest {
     }
 
     @Test
-    void shouldValidateClaimantWithoutHouseholdIdentifier() {
+    void shouldValidateClaimantWithoutDwpHouseholdIdentifier() {
         //Given
         Claimant claimant = aValidClaimantBuilder()
-                .householdIdentifier(null)
+                .dwpHouseholdIdentifier(null)
+                .build();
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutHmrcHouseholdIdentifier() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder()
+                .hmrcHouseholdIdentifier(null)
                 .build();
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
