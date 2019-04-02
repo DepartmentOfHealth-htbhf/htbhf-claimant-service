@@ -5,7 +5,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -35,15 +34,11 @@ public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
         return countEligibleClaimantsWithNino(nino) != 0;
     }
 
-    default boolean eligibleClaimExistsForHousehold(Optional<String> dwpHouseholdIdentifier, Optional<String> hmrcHouseholdIdentifier) {
-        if (dwpHouseholdIdentifier.isPresent()) {
-            return countEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier.get()) != 0;
-        }
+    default boolean eligibleClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
+        return countEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;
+    }
 
-        if (hmrcHouseholdIdentifier.isPresent()) {
-            return countEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier.get()) != 0;
-        }
-
-        return false;
+    default boolean eligibleClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
+        return countEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;
     }
 }

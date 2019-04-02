@@ -9,8 +9,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
-import java.util.Optional;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -44,11 +42,25 @@ public class ClaimService {
     }
 
     private EligibilityStatus determineEligibilityStatusForHousehold(EligibilityResponse eligibilityResponse) {
-        boolean eligibleClaimExistsForHousehold = claimantRepository.eligibleClaimExistsForHousehold(
-                Optional.ofNullable(eligibilityResponse.getDwpHouseholdIdentifier()),
-                Optional.ofNullable(eligibilityResponse.getHmrcHouseholdIdentifier()));
+        return eligibleClaimExistsForHousehold(eligibilityResponse)
+                ? EligibilityStatus.DUPLICATE
+                : eligibilityResponse.getEligibilityStatus();
+    }
 
-        return eligibleClaimExistsForHousehold ? EligibilityStatus.DUPLICATE : eligibilityResponse.getEligibilityStatus();
+    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
+
+        if (dwpHouseholdIdentifier != null) {
+            return claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
+        }
+
+        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
+
+        if (hmrcHouseholdIdentifier != null) {
+            return claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
+        }
+
+        return false;
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {

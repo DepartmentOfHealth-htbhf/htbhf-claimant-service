@@ -11,11 +11,10 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -103,14 +102,14 @@ public class ClaimServiceTest {
                 .dwpHouseholdIdentifier(claimant.getDwpHouseholdIdentifier())
                 .build();
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
-        given(claimantRepository.eligibleClaimExistsForHousehold(any(), any())).willReturn(true);
+        given(claimantRepository.eligibleClaimExistsForDwpHousehold(anyString())).willReturn(true);
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
 
         claimService.createClaim(buildClaim(claimant));
 
         Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
-        verify(claimantRepository).eligibleClaimExistsForHousehold(Optional.of(claimant.getDwpHouseholdIdentifier()), Optional.empty());
+        verify(claimantRepository).eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verifyZeroInteractions(client);
@@ -124,14 +123,14 @@ public class ClaimServiceTest {
                 .dwpHouseholdIdentifier(null)
                 .build();
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
-        given(claimantRepository.eligibleClaimExistsForHousehold(any(), any())).willReturn(true);
+        given(claimantRepository.eligibleClaimExistsForHmrcHousehold(anyString())).willReturn(true);
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
 
         claimService.createClaim(buildClaim(claimant));
 
         Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
-        verify(claimantRepository).eligibleClaimExistsForHousehold(Optional.empty(), Optional.of(claimant.getHmrcHouseholdIdentifier()));
+        verify(claimantRepository).eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verifyZeroInteractions(client);
