@@ -29,21 +29,22 @@ public class ClaimService {
             } else {
 <span class="fc" id="L30">                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
 <span class="fc" id="L31">                eligibilityStatus = eligibilityResponse.getEligibilityStatus();</span>
-<span class="fc" id="L32">                claimant.setHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L32">                claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L33">                claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
             }
 
-<span class="fc" id="L35">            saveClaimant(claimant, eligibilityStatus);</span>
-<span class="fc" id="L36">            return claimant;</span>
-<span class="fc" id="L37">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L38">            saveClaimant(claimant, EligibilityStatus.ERROR);</span>
-<span class="fc" id="L39">            throw e;</span>
+<span class="fc" id="L36">            saveClaimant(claimant, eligibilityStatus);</span>
+<span class="fc" id="L37">            return claimant;</span>
+<span class="fc" id="L38">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L39">            saveClaimant(claimant, EligibilityStatus.ERROR);</span>
+<span class="fc" id="L40">            throw e;</span>
         }
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L44">        claimant.setEligibilityStatus(eligibilityStatus);</span>
-<span class="fc" id="L45">        claimantRepository.save(claimant);</span>
-<span class="fc" id="L46">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L45">        claimant.setEligibilityStatus(eligibilityStatus);</span>
+<span class="fc" id="L46">        claimantRepository.save(claimant);</span>
+<span class="fc" id="L47">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
+<span class="fc" id="L48">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
