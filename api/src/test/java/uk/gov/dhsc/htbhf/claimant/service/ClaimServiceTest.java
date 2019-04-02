@@ -7,16 +7,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,14 +40,11 @@ public class ClaimServiceTest {
     public void shouldSaveNewClaimant() {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
-        Claim claim = Claim.builder()
-                .claimant(claimant)
-                .build();
-        given(claimantRepository.eligibleClaimExists(any())).willReturn(false);
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
 
         //when
-        claimService.createClaim(claim);
+        claimService.createClaim(buildClaim(claimant));
 
         //then
         Claimant expectedClaimant = claimant
@@ -51,53 +53,95 @@ public class ClaimServiceTest {
                 .dwpHouseholdIdentifier("dwpHousehold1")
                 .hmrcHouseholdIdentifier("hmrcHousehold1")
                 .build();
-        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
     }
 
     @Test
-    public void shouldSaveDuplicateClaimant() {
+    public void shouldSaveDuplicateClaimantForMatchingNino() {
         Claimant claimant = aValidClaimantBuilder().build();
-        Claim claim = Claim.builder()
-                .claimant(claimant)
-                .build();
-        given(claimantRepository.eligibleClaimExists(any())).willReturn(true);
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(true);
 
-        claimService.createClaim(claim);
+        claimService.createClaim(buildClaim(claimant));
 
-        Claimant expectedClaimant = claimant
-                .toBuilder()
-                .eligibilityStatus(EligibilityStatus.DUPLICATE)
-                .build();
-        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
+        verifyNoMoreInteractions(claimantRepository);
         verifyZeroInteractions(client);
     }
 
     @Test
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     /**
-     * This is a false positive. PMD can't follow the data flow of `claim` inside the lambda.
+     * This is a false positive. PMD can't follow the data flow of `claimant` inside the lambda.
      * https://github.com/pmd/pmd/issues/1304
      */
     public void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
-        Claim claim = Claim.builder()
-                .claimant(claimant)
-                .build();
         RuntimeException testException = new RuntimeException("Test exception");
         given(client.checkEligibility(any())).willThrow(testException);
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(claim), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(buildClaim(claimant)), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);
-        Claimant expectedClaimant = claimant.toBuilder().eligibilityStatus(EligibilityStatus.ERROR).build();
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.ERROR);
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
-        verify(claimantRepository).eligibleClaimExists(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+    }
+
+    @Test
+    public void shouldSaveDuplicateClaimantForMatchingDwpHouseholdIdentifier() {
+        Claimant claimant = aValidClaimantBuilder().build();
+        EligibilityResponse eligibilityResponse = aValidEligibilityResponseBuilder()
+                .hmrcHouseholdIdentifier(null)
+                .dwpHouseholdIdentifier(claimant.getDwpHouseholdIdentifier())
+                .build();
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(claimantRepository.eligibleClaimExistsForHousehold(any(), any())).willReturn(true);
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+
+        claimService.createClaim(buildClaim(claimant));
+
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExistsForHousehold(Optional.of(claimant.getDwpHouseholdIdentifier()), Optional.empty());
+        verify(claimantRepository).save(expectedClaimant);
+        verifyNoMoreInteractions(claimantRepository);
+        verifyZeroInteractions(client);
+    }
+
+    @Test
+    public void shouldSaveDuplicateClaimantForMatchingHmrcHouseholdIdentifier() {
+        Claimant claimant = aValidClaimantBuilder().build();
+        EligibilityResponse eligibilityResponse = aValidEligibilityResponseBuilder()
+                .hmrcHouseholdIdentifier(claimant.getHmrcHouseholdIdentifier())
+                .dwpHouseholdIdentifier(null)
+                .build();
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(claimantRepository.eligibleClaimExistsForHousehold(any(), any())).willReturn(true);
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+
+        claimService.createClaim(buildClaim(claimant));
+
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(claimantRepository).eligibleClaimExistsForHousehold(Optional.empty(), Optional.of(claimant.getHmrcHouseholdIdentifier()));
+        verify(claimantRepository).save(expectedClaimant);
+        verifyNoMoreInteractions(claimantRepository);
+        verifyZeroInteractions(client);
+    }
+
+    private Claim buildClaim(Claimant claimant) {
+        return Claim.builder().claimant(claimant).build();
+    }
+
+    private Claimant buildExpectedClaimant(Claimant claimant, EligibilityStatus duplicate) {
+        return claimant.toBuilder().eligibilityStatus(duplicate).build();
     }
 }

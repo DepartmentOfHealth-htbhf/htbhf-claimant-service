@@ -9,6 +9,8 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -24,13 +26,13 @@ public class ClaimService {
         try {
             EligibilityStatus eligibilityStatus;
 
-            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {
+            if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {
                 eligibilityStatus = EligibilityStatus.DUPLICATE;
             } else {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-                eligibilityStatus = eligibilityResponse.getEligibilityStatus();
                 claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
                 claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
+                eligibilityStatus = determineEligibilityStatusForHouseholdIdentifier(eligibilityResponse);
             }
 
             saveClaimant(claimant, eligibilityStatus);
@@ -39,6 +41,14 @@ public class ClaimService {
             saveClaimant(claimant, EligibilityStatus.ERROR);
             throw e;
         }
+    }
+
+    private EligibilityStatus determineEligibilityStatusForHouseholdIdentifier(EligibilityResponse eligibilityResponse) {
+        boolean eligibleClaimExistsForHousehold = claimantRepository.eligibleClaimExistsForHousehold(
+                Optional.ofNullable(eligibilityResponse.getDwpHouseholdIdentifier()),
+                Optional.ofNullable(eligibilityResponse.getHmrcHouseholdIdentifier()));
+
+        return eligibleClaimExistsForHousehold ? EligibilityStatus.DUPLICATE : eligibilityResponse.getEligibilityStatus();
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {

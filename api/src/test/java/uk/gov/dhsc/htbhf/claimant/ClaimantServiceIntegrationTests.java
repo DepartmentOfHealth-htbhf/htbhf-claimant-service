@@ -52,7 +52,10 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELI
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -123,7 +126,7 @@ public class ClaimantServiceIntegrationTests {
     }
 
     @Test
-    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExists() {
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForNino() {
         //Given
         ClaimDTO claim = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder()
@@ -137,6 +140,52 @@ public class ClaimantServiceIntegrationTests {
         //Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
+        //Given
+        String householdIdentifier = "dwpHousehold1";
+        ClaimDTO claim = aValidClaimDTO();
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder()
+                .dwpHouseholdIdentifier(householdIdentifier)
+                .build();
+        claimantRepository.save(claimant);
+
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithDwpHouseholdIdentifier(householdIdentifier);
+        ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
+        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
+
+        //When
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+
+        //Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() {
+        //Given
+        String householdIdentifier = "hmrcHousehold1";
+        ClaimDTO claim = aValidClaimDTO();
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder()
+                .hmrcHouseholdIdentifier(householdIdentifier)
+                .build();
+        claimantRepository.save(claimant);
+
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithHmrcHouseholdIdentifier(householdIdentifier);
+        ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
+        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
+
+        //When
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+
+        //Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @ParameterizedTest(name = "Field {0} with invalid value {1} on a claim returns the correct error response")
