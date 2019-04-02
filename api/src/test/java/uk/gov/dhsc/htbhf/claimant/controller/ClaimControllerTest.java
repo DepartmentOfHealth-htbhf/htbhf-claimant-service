@@ -44,7 +44,7 @@ class ClaimControllerTest {
             "ELIGIBLE, CREATED",
             "INELIGIBLE, OK",
             "PENDING, OK",
-            "NOMATCH, OK",
+            "NOMATCH, NOT_FOUND",
             "DUPLICATE, OK",
             "ERROR, INTERNAL_SERVER_ERROR"
     })

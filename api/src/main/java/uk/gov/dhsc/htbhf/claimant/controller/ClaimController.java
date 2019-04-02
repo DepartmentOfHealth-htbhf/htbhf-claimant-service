@@ -36,7 +36,7 @@ public class ClaimController {
             EligibilityStatus.ELIGIBLE, HttpStatus.CREATED,
             EligibilityStatus.INELIGIBLE, HttpStatus.OK,
             EligibilityStatus.PENDING, HttpStatus.OK,
-            EligibilityStatus.NOMATCH, HttpStatus.OK,
+            EligibilityStatus.NOMATCH, HttpStatus.NOT_FOUND,
             EligibilityStatus.DUPLICATE, HttpStatus.OK,
             EligibilityStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
@@ -52,11 +52,11 @@ public class ClaimController {
         return createResponseFromClaimant(claimant);
     }
 
-    private ResponseEntity createResponseFromClaimant(Claimant claimant) {
+    private ResponseEntity<ClaimResponse> createResponseFromClaimant(Claimant claimant) {
         EligibilityStatus eligibilityStatus = claimant.getEligibilityStatus();
         HttpStatus statusCode = getHttpStatus(eligibilityStatus);
         ClaimResponse body = ClaimResponse.builder().eligibilityStatus(eligibilityStatus).build();
-        return new ResponseEntity(body, statusCode);
+        return new ResponseEntity<>(body, statusCode);
     }
 
     private HttpStatus getHttpStatus(EligibilityStatus eligibilityStatus) {

@@ -16,8 +16,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 
 @ExtendWith(MockitoExtension.class)
 public class ClaimServiceTest {
@@ -39,7 +40,7 @@ public class ClaimServiceTest {
                 .claimant(claimant)
                 .build();
         given(claimantRepository.eligibleClaimExists(any())).willReturn(false);
-        given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
+        given(client.checkEligibility(any())).willReturn(anEligibilityResponseWithStatus(ELIGIBLE));
 
         //when
         claimService.createClaim(claim);
@@ -47,7 +48,7 @@ public class ClaimServiceTest {
         //then
         Claimant expectedClaimant = claimant
                 .toBuilder()
-                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .eligibilityStatus(ELIGIBLE)
                 .dwpHouseholdIdentifier("dwpHousehold1")
                 .hmrcHouseholdIdentifier("hmrcHousehold1")
                 .build();

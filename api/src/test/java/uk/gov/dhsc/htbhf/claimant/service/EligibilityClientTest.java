@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -23,9 +24,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.NOMATCH;
 import static uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.ELIGIBILITY_ENDPOINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithoutEligibilityStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 
 @ExtendWith(SpringExtension.class)
@@ -47,7 +50,7 @@ class EligibilityClientTest {
         Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
-        EligibilityResponse eligibilityResponse = anEligibilityResponse();
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
         ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class)))
                 .willReturn(response);
@@ -61,11 +64,27 @@ class EligibilityClientTest {
     }
 
     @Test
-    void shouldThrowAnExceptionWhenPostCallNotOk() {
+    void shouldCheckEligibilitySuccessfullyWhenNoMatchReturned() {
         Claimant claimant = aClaimantWithoutEligibilityStatus();
         PersonDTO person = aValidPerson();
         given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
-        ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(anEligibilityResponse(), HttpStatus.BAD_REQUEST);
+        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class)))
+                .willThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        EligibilityResponse actualResponse = client.checkEligibility(claimant);
+
+        assertThat(actualResponse).isNotNull();
+        assertThat(actualResponse.getEligibilityStatus()).isEqualTo(NOMATCH);
+        verify(claimantToPersonDTOConverter).convert(claimant);
+        verify(restTemplateWithIdHeaders).postForEntity(baseUri + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
+    }
+
+    @Test
+    void shouldThrowAnExceptionWhenPostCallNotOkOrNotFound() {
+        Claimant claimant = aClaimantWithoutEligibilityStatus();
+        PersonDTO person = aValidPerson();
+        given(claimantToPersonDTOConverter.convert(any())).willReturn(person);
+        ResponseEntity<EligibilityResponse> response = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.BAD_REQUEST);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class)))
                 .willReturn(response);
 
