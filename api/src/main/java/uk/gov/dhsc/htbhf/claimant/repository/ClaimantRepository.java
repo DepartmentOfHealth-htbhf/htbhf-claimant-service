@@ -17,31 +17,31 @@ public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
             + "FROM Claimant claimant "
             + "WHERE claimant.nino = :nino "
             + "AND claimant.eligibilityStatus = 'ELIGIBLE'")
-    Long getNumberOfMatchingEligibleClaimantsWithNino(@Param("nino") String nino);
+    Long countEligibleClaimantsWithNino(@Param("nino") String nino);
 
     @Query("SELECT COUNT(claimant) "
             + "FROM Claimant claimant "
             + "WHERE claimant.dwpHouseholdIdentifier = :dwpHouseholdIdentifier "
             + "AND claimant.eligibilityStatus = 'ELIGIBLE'")
-    Long getNumberOfMatchingEligibleClaimantsWithDwpHouseholdIdentifier(@Param("dwpHouseholdIdentifier") String dwpHouseholdIdentifier);
+    Long countEligibleClaimantsWithDwpHouseholdIdentifier(@Param("dwpHouseholdIdentifier") String dwpHouseholdIdentifier);
 
     @Query("SELECT COUNT(claimant) "
             + "FROM Claimant claimant "
             + "WHERE claimant.hmrcHouseholdIdentifier = :hmrcHouseholdIdentifier "
             + "AND claimant.eligibilityStatus = 'ELIGIBLE'")
-    Long getNumberOfMatchingEligibleClaimantsWithHmrcHouseholdIdentifier(@Param("hmrcHouseholdIdentifier") String hmrcHouseholdIdentifier);
+    Long countEligibleClaimantsWithHmrcHouseholdIdentifier(@Param("hmrcHouseholdIdentifier") String hmrcHouseholdIdentifier);
 
     default boolean eligibleClaimExistsForNino(String nino) {
-        return getNumberOfMatchingEligibleClaimantsWithNino(nino) != 0;
+        return countEligibleClaimantsWithNino(nino) != 0;
     }
 
     default boolean eligibleClaimExistsForHousehold(Optional<String> dwpHouseholdIdentifier, Optional<String> hmrcHouseholdIdentifier) {
         if (dwpHouseholdIdentifier.isPresent()) {
-            return getNumberOfMatchingEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier.get()) != 0;
+            return countEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier.get()) != 0;
         }
 
         if (hmrcHouseholdIdentifier.isPresent()) {
-            return getNumberOfMatchingEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier.get()) != 0;
+            return countEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier.get()) != 0;
         }
 
         return false;

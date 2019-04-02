@@ -32,7 +32,7 @@ public class ClaimService {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
                 claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
                 claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
-                eligibilityStatus = determineEligibilityStatusForHouseholdIdentifier(eligibilityResponse);
+                eligibilityStatus = determineEligibilityStatusForHousehold(eligibilityResponse);
             }
 
             saveClaimant(claimant, eligibilityStatus);
@@ -43,7 +43,7 @@ public class ClaimService {
         }
     }
 
-    private EligibilityStatus determineEligibilityStatusForHouseholdIdentifier(EligibilityResponse eligibilityResponse) {
+    private EligibilityStatus determineEligibilityStatusForHousehold(EligibilityResponse eligibilityResponse) {
         boolean eligibleClaimExistsForHousehold = claimantRepository.eligibleClaimExistsForHousehold(
                 Optional.ofNullable(eligibilityResponse.getDwpHouseholdIdentifier()),
                 Optional.ofNullable(eligibilityResponse.getHmrcHouseholdIdentifier()));
