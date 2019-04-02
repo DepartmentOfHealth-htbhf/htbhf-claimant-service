@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -12,12 +13,14 @@ import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
 
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.NOMATCH;
+
 /**
  * Client for calling the Eligibility Service using the RestTemplate defined in
  * {@link uk.gov.dhsc.htbhf.requestcontext.RequestContextConfiguration}.
  */
 @Component
-<span class="fc" id="L20">@Slf4j</span>
+<span class="fc" id="L23">@Slf4j</span>
 public class EligibilityClient {
 
     public static final String ELIGIBILITY_ENDPOINT = &quot;/v1/eligibility&quot;;
@@ -27,28 +30,34 @@ public class EligibilityClient {
 
     public EligibilityClient(@Value(&quot;${eligibility.base-uri}&quot;) String baseUri,
                              RestTemplate restTemplateWithIdHeaders,
-<span class="fc" id="L30">                             ClaimantToPersonDTOConverter claimantToPersonDTOConverter) {</span>
-<span class="fc" id="L31">        this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;</span>
-<span class="fc" id="L32">        this.restTemplateWithIdHeaders = restTemplateWithIdHeaders;</span>
-<span class="fc" id="L33">        this.claimantToPersonDTOConverter = claimantToPersonDTOConverter;</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L33">                             ClaimantToPersonDTOConverter claimantToPersonDTOConverter) {</span>
+<span class="fc" id="L34">        this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;</span>
+<span class="fc" id="L35">        this.restTemplateWithIdHeaders = restTemplateWithIdHeaders;</span>
+<span class="fc" id="L36">        this.claimantToPersonDTOConverter = claimantToPersonDTOConverter;</span>
+<span class="fc" id="L37">    }</span>
 
     public EligibilityResponse checkEligibility(Claimant claimant) {
-<span class="fc" id="L37">        PersonDTO person = claimantToPersonDTOConverter.convert(claimant);</span>
+<span class="fc" id="L40">        PersonDTO person = claimantToPersonDTOConverter.convert(claimant);</span>
         try {
-<span class="fc" id="L39">            ResponseEntity&lt;EligibilityResponse&gt; response = restTemplateWithIdHeaders.postForEntity(</span>
+<span class="fc" id="L42">            ResponseEntity&lt;EligibilityResponse&gt; response = restTemplateWithIdHeaders.postForEntity(</span>
                     eligibilityUri,
                     person,
                     EligibilityResponse.class
             );
 
-<span class="fc bfc" id="L45" title="All 2 branches covered.">            if (HttpStatus.OK != response.getStatusCode()) {</span>
-<span class="fc" id="L46">                throw new EligibilityClientException(response.getStatusCode());</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            if (HttpStatus.OK != response.getStatusCode()) {</span>
+<span class="fc" id="L49">                throw new EligibilityClientException(response.getStatusCode());</span>
             }
-<span class="fc" id="L48">            return response.getBody();</span>
-<span class="fc" id="L49">        } catch (RestClientException e) {</span>
-<span class="fc" id="L50">            log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
-<span class="fc" id="L51">            throw new EligibilityClientException(e, eligibilityUri);</span>
+<span class="fc" id="L51">            return response.getBody();</span>
+<span class="fc" id="L52">        } catch (HttpClientErrorException e) {</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">            if (HttpStatus.NOT_FOUND != e.getStatusCode()) {</span>
+<span class="nc" id="L54">                log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
+<span class="nc" id="L55">                throw new EligibilityClientException(e.getStatusCode(), e);</span>
+            }
+<span class="fc" id="L57">            return EligibilityResponse.builder().eligibilityStatus(NOMATCH).build();</span>
+<span class="fc" id="L58">        } catch (RestClientException e) {</span>
+<span class="fc" id="L59">            log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
+<span class="fc" id="L60">            throw new EligibilityClientException(e, eligibilityUri);</span>
         }
     }
 }
