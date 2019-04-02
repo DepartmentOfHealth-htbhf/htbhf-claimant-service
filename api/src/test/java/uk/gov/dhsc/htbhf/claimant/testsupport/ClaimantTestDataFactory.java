@@ -15,7 +15,8 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_NINO = "EB123456C";
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
-    private static final String HOUSEHOLD_IDENTIFIER = "household1";
+    private static final String DWP_HOUSEHOLD_IDENTIFIER = "dwpHousehold1";
+    private static final String HMRC_HOUSEHOLD_IDENTIFIER = "hmrcHousehold1";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
@@ -68,6 +69,7 @@ public final class ClaimantTestDataFactory {
                 .dateOfBirth(VALID_DOB)
                 .cardDeliveryAddress(VALID_ADDRESS)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .householdIdentifier(HOUSEHOLD_IDENTIFIER);
+                .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
+                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 }

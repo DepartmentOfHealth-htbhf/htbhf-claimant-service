@@ -29,7 +29,8 @@ public class ClaimService {
             } else {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
                 eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-                claimant.setHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
+                claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
+                claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
             }
 
             saveClaimant(claimant, eligibilityStatus);

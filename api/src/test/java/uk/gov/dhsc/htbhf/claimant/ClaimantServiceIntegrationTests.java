@@ -97,7 +97,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "dwpHousehold1");
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -110,7 +110,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertInternalServerErrorResponse(response);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR, null);
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR, null, null);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -232,13 +232,17 @@ public class ClaimantServiceIntegrationTests {
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
-    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO, EligibilityStatus eligibilityStatus, String householdIdentifier) {
+    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO,
+                                                     EligibilityStatus eligibilityStatus,
+                                                     String dwpHouseholdIdentifier,
+                                                     String hmrcHouseholdIdentifier) {
         Iterable<Claimant> claims = claimantRepository.findAll();
         assertThat(claims).hasSize(1);
         Claimant persistedClaim = claims.iterator().next();
         assertClaimantMatchesClaimantDTO(claimantDTO, persistedClaim);
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        assertThat(persistedClaim.getHouseholdIdentifier()).isEqualTo(householdIdentifier);
+        assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(dwpHouseholdIdentifier);
+        assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException, JSONException {
