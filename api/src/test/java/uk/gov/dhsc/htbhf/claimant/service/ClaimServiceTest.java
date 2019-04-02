@@ -19,6 +19,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
@@ -48,7 +49,7 @@ public class ClaimServiceTest {
         //then
         Claimant expectedClaimant = claimant
                 .toBuilder()
-                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .eligibilityStatus(ELIGIBLE)
                 .dwpHouseholdIdentifier("dwpHousehold1")
                 .hmrcHouseholdIdentifier("hmrcHousehold1")
                 .build();

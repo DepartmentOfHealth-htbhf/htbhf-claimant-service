@@ -14,6 +14,10 @@ public class EligibilityClientException extends RuntimeException {
         super("Response code from Eligibility service was not OK, received: " + httpStatus.value());
     }
 
+    public EligibilityClientException(HttpStatus httpStatus, Exception exception) {
+        super("Response code from Eligibility service was not OK, received: " + httpStatus.value(), exception);
+    }
+
     public EligibilityClientException(RestClientException restClientException, String endpointUrl) {
         super("Exception caught trying to call eligibility service at: " + endpointUrl, restClientException);
     }
