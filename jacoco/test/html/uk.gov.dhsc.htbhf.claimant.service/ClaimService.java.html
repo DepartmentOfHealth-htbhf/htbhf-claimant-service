@@ -24,13 +24,13 @@ public class ClaimService {
         try {
             EligibilityStatus eligibilityStatus;
 
-<span class="fc bfc" id="L27" title="All 2 branches covered.">            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">            if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {</span>
 <span class="fc" id="L28">                eligibilityStatus = EligibilityStatus.DUPLICATE;</span>
             } else {
 <span class="fc" id="L30">                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
-<span class="fc" id="L31">                eligibilityStatus = eligibilityResponse.getEligibilityStatus();</span>
-<span class="fc" id="L32">                claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
-<span class="fc" id="L33">                claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
+<span class="fc" id="L31">                claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L32">                claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
+<span class="fc" id="L33">                eligibilityStatus = determineEligibilityStatusForHousehold(eligibilityResponse);</span>
             }
 
 <span class="fc" id="L36">            saveClaimant(claimant, eligibilityStatus);</span>
@@ -41,10 +41,26 @@ public class ClaimService {
         }
     }
 
+    private EligibilityStatus determineEligibilityStatusForHousehold(EligibilityResponse eligibilityResponse) {
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        return eligibleClaimExistsForHousehold(eligibilityResponse)</span>
+<span class="fc" id="L46">                ? EligibilityStatus.DUPLICATE</span>
+<span class="fc" id="L47">                : eligibilityResponse.getEligibilityStatus();</span>
+    }
+
+    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+<span class="fc" id="L51">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
+<span class="fc bfc" id="L52" title="All 4 branches covered.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+
+<span class="fc" id="L54">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
+<span class="fc bfc" id="L55" title="All 4 branches covered.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
+
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
+    }
+
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L45">        claimant.setEligibilityStatus(eligibilityStatus);</span>
-<span class="fc" id="L46">        claimantRepository.save(claimant);</span>
-<span class="fc" id="L47">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L61">        claimant.setEligibilityStatus(eligibilityStatus);</span>
+<span class="fc" id="L62">        claimantRepository.save(claimant);</span>
+<span class="fc" id="L63">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -12,11 +12,34 @@ import java.util.UUID;
  */
 public interface ClaimantRepository extends CrudRepository&lt;Claimant, UUID&gt; {
 
-    @Query(&quot;SELECT COUNT(claimant) FROM Claimant claimant WHERE claimant.nino = :nino AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
-    Long getNumberOfMatchingEligibleClaimants(@Param(&quot;nino&quot;) String nino);
+    @Query(&quot;SELECT COUNT(claimant) &quot;
+            + &quot;FROM Claimant claimant &quot;
+            + &quot;WHERE claimant.nino = :nino &quot;
+            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
+    Long countEligibleClaimantsWithNino(@Param(&quot;nino&quot;) String nino);
 
-    default Boolean eligibleClaimExists(String nino) {
-<span class="fc bfc" id="L19" title="All 2 branches covered.">        return getNumberOfMatchingEligibleClaimants(nino) != 0;</span>
+    @Query(&quot;SELECT COUNT(claimant) &quot;
+            + &quot;FROM Claimant claimant &quot;
+            + &quot;WHERE claimant.dwpHouseholdIdentifier = :dwpHouseholdIdentifier &quot;
+            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
+    Long countEligibleClaimantsWithDwpHouseholdIdentifier(@Param(&quot;dwpHouseholdIdentifier&quot;) String dwpHouseholdIdentifier);
+
+    @Query(&quot;SELECT COUNT(claimant) &quot;
+            + &quot;FROM Claimant claimant &quot;
+            + &quot;WHERE claimant.hmrcHouseholdIdentifier = :hmrcHouseholdIdentifier &quot;
+            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
+    Long countEligibleClaimantsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
+
+    default boolean eligibleClaimExistsForNino(String nino) {
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        return countEligibleClaimantsWithNino(nino) != 0;</span>
+    }
+
+    default boolean eligibleClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        return countEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+    }
+
+    default boolean eligibleClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        return countEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
