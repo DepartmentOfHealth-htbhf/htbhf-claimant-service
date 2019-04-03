@@ -24,13 +24,13 @@ public class ClaimService {
         try {
             EligibilityStatus eligibilityStatus;
 
-            if (claimantRepository.eligibleClaimExists(claimant.getNino())) {
+            if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {
                 eligibilityStatus = EligibilityStatus.DUPLICATE;
             } else {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-                eligibilityStatus = eligibilityResponse.getEligibilityStatus();
                 claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
                 claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
+                eligibilityStatus = determineEligibilityStatusForHousehold(eligibilityResponse);
             }
 
             saveClaimant(claimant, eligibilityStatus);
@@ -39,6 +39,22 @@ public class ClaimService {
             saveClaimant(claimant, EligibilityStatus.ERROR);
             throw e;
         }
+    }
+
+    private EligibilityStatus determineEligibilityStatusForHousehold(EligibilityResponse eligibilityResponse) {
+        return eligibleClaimExistsForHousehold(eligibilityResponse)
+                ? EligibilityStatus.DUPLICATE
+                : eligibilityResponse.getEligibilityStatus();
+    }
+
+    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
+        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
+
+        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
+        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
+
+        return dwpClaimExists || hmrcClaimExists;
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {

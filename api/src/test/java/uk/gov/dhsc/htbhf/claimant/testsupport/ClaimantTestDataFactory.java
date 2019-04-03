@@ -72,4 +72,12 @@ public final class ClaimantTestDataFactory {
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
     }
+
+    public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {
+        return aValidClaimantBuilder()
+                .firstName("Jane")
+                .lastName("Smith")
+                .nino("BE654321B")
+                .dateOfBirth(LocalDate.parse("1990-11-20"));
+    }
 }

@@ -75,7 +75,7 @@ class ClaimantRepositoryTest {
         Claimant claimant = aValidClaimantBuilder().build();
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isFalse();
@@ -88,7 +88,7 @@ class ClaimantRepositoryTest {
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isFalse();
@@ -101,7 +101,83 @@ class ClaimantRepositoryTest {
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExists(claimant.getNino());
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
+
+        //Then
+        assertThat(claimantExists).isTrue();
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenDwpHouseholdIdentifierDoesNotExist() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().build();
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenDwpHouseholdIdentifierExistsAndStatusIsNotEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantExistsWhenDwpHouseholdIdentifierExistsAndStatusIsEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+
+        //Then
+        assertThat(claimantExists).isTrue();
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenHmrcHouseholdIdentifierDoesNotExist() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().build();
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantDoesNotExistWhenHmrcHouseholdIdentifierExistsAndStatusIsNotEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
+    @Test
+    void shouldReturnClaimantExistsWhenHmrcHouseholdIdentifierExistsAndStatusIsEligible() {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isTrue();
