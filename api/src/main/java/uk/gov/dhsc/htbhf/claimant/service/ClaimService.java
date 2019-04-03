@@ -49,18 +49,12 @@ public class ClaimService {
 
     private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
         String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
-
-        if (dwpHouseholdIdentifier != null) {
-            return claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
-        }
+        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
 
         String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
+        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
 
-        if (hmrcHouseholdIdentifier != null) {
-            return claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
-        }
-
-        return false;
+        return dwpClaimExists || hmrcClaimExists;
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
