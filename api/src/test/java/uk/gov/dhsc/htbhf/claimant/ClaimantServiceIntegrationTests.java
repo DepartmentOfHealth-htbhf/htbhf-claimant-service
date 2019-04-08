@@ -23,8 +23,8 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.nio.CharBuffer;
@@ -47,8 +47,6 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertReque
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.DUPLICATE;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
@@ -57,6 +55,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 public class ClaimantServiceIntegrationTests {
@@ -113,7 +114,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertInternalServerErrorResponse(response);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), EligibilityStatus.ERROR, null, null);
+        assertClaimantPersistedSuccessfully(claim.getClaimant(), ERROR, null, null);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 

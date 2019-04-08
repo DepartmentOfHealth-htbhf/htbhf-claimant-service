@@ -14,8 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.util.Map;
 
@@ -44,7 +44,7 @@ class ClaimControllerTest {
             "ELIGIBLE, CREATED",
             "INELIGIBLE, OK",
             "PENDING, OK",
-            "NOMATCH, NOT_FOUND",
+            "NO_MATCH, NOT_FOUND",
             "DUPLICATE, OK",
             "ERROR, INTERNAL_SERVER_ERROR"
     })

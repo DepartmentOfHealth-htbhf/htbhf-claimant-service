@@ -24,12 +24,12 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.ELIGIBLE;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.NOMATCH;
 import static uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.ELIGIBILITY_ENDPOINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithoutEligibilityStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.NO_MATCH;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -74,7 +74,7 @@ class EligibilityClientTest {
         EligibilityResponse actualResponse = client.checkEligibility(claimant);
 
         assertThat(actualResponse).isNotNull();
-        assertThat(actualResponse.getEligibilityStatus()).isEqualTo(NOMATCH);
+        assertThat(actualResponse.getEligibilityStatus()).isEqualTo(NO_MATCH);
         verify(claimantToPersonDTOConverter).convert(claimant);
         verify(restTemplateWithIdHeaders).postForEntity(baseUri + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
     }
