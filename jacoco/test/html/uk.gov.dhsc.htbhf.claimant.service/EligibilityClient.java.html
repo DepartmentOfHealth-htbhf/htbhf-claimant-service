@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
 
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus.NOMATCH;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.NO_MATCH;
 
 /**
  * Client for calling the Eligibility Service using the RestTemplate defined in
@@ -54,7 +54,7 @@ public class EligibilityClient {
 <span class="nc" id="L54">                log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
 <span class="nc" id="L55">                throw new EligibilityClientException(e.getStatusCode(), e);</span>
             }
-<span class="fc" id="L57">            return EligibilityResponse.builder().eligibilityStatus(NOMATCH).build();</span>
+<span class="fc" id="L57">            return EligibilityResponse.builder().eligibilityStatus(NO_MATCH).build();</span>
 <span class="fc" id="L58">        } catch (RestClientException e) {</span>
 <span class="fc" id="L59">            log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
 <span class="fc" id="L60">            throw new EligibilityClientException(e, eligibilityUri);</span>
