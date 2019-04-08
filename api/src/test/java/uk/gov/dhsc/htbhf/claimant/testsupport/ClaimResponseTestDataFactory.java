@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 public class ClaimResponseTestDataFactory {
 

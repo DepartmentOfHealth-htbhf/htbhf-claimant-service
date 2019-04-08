@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.UUID;

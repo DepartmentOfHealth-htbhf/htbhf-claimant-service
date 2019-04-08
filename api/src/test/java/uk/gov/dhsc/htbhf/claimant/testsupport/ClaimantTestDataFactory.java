@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
