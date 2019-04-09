@@ -52,13 +52,22 @@ public class EntitlementCalculator {
             throw new IllegalArgumentException("Number of children under four must not be less than number of children under one");
         }
 
+        return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+    }
+
+    private VoucherEntitlement createVoucherEntitlement(Claimant claimant, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
         int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;
 
-        return createVoucherEntitlement(
-                calculateVouchersForPregnancy(claimant),
-                calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne),
-                calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour)
-        );
+        int vouchersForPregnancy = calculateVouchersForPregnancy(claimant);
+        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);
+        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);
+
+        return VoucherEntitlement.builder()
+                .vouchersForPregnancy(vouchersForPregnancy)
+                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
+                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
+                .voucherValue(voucherValue)
+                .build();
     }
 
     private int calculateVouchersForPregnancy(Claimant claimant) {
@@ -76,17 +85,5 @@ public class EntitlementCalculator {
 
     private int zeroIfNull(Integer count) {
         return count == null ? 0 : count;
-    }
-
-    private VoucherEntitlement createVoucherEntitlement(int vouchersForPregnancy,
-                                                        int vouchersForChildrenUnderOne,
-                                                        int vouchersForChildrenBetweenOneAndFour) {
-
-        return VoucherEntitlement.builder()
-                .vouchersForPregnancy(vouchersForPregnancy)
-                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
-                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
-                .voucherValue(voucherValue)
-                .build();
     }
 }
