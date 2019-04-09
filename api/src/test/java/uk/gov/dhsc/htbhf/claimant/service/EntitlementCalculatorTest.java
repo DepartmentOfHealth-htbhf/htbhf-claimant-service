@@ -1,10 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -21,11 +21,25 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 @ExtendWith(MockitoExtension.class)
 class EntitlementCalculatorTest {
 
+    private static final int VOUCHERS_FOR_CHILDREN_UNDER_ONE = 2;
+    private static final int VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR = 1;
+    private static final int VOUCHERS_FOR_PREGNANCY = 1;
+
     @Mock
     PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
 
-    @InjectMocks
     EntitlementCalculator entitlementCalculator;
+
+
+    @BeforeEach
+    void setup() {
+        entitlementCalculator = new EntitlementCalculator(
+                pregnancyEntitlementCalculator,
+                VOUCHERS_FOR_CHILDREN_UNDER_ONE,
+                VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR,
+                VOUCHERS_FOR_PREGNANCY
+        );
+    }
 
     @ParameterizedTest(name = "Should return {3} vouchers for pregnant: {0}, number of children under one: {1}, number of children under four: {2}")
     @CsvSource({

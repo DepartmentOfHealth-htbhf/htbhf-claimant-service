@@ -1,20 +1,31 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
 @Component
-@AllArgsConstructor
 @Slf4j
 public class EntitlementCalculator {
 
-    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
-    private static final int vouchersForChildrenUnderOne = 2;
-    private static final int vouchersForChildrenBetweenOneAndFour = 1;
-    private static final int vouchersForPregnancy = 1;
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+    private final int vouchersForChildrenUnderOne;
+    private final int vouchersForChildrenBetweenOneAndFour;
+    private final int vouchersForPregnancy;
+
+    public EntitlementCalculator(
+            PregnancyEntitlementCalculator pregnancyEntitlementCalculator,
+            @Value("${entitlement.vouchers-for-children-under-one}") int vouchersForChildrenUnderOne,
+            @Value("${entitlement.vouchers-for-children-between-one-and-four}") int vouchersForChildrenBetweenOneAndFour,
+            @Value("${entitlement.vouchers-for-pregnancy}") int vouchersForPregnancy) {
+
+        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
+        this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;
+        this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;
+        this.vouchersForPregnancy = vouchersForPregnancy;
+    }
 
     public int calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
 
@@ -22,7 +33,8 @@ public class EntitlementCalculator {
         int numberOfChildrenUnderOne = eligibilityResponse.getNumberOfChildrenUnderOne() == null ? 0 : eligibilityResponse.getNumberOfChildrenUnderOne();
 
         if (numberOfChildrenUnderFour < numberOfChildrenUnderOne) {
-            log.error("Number of children under four ({}) must not be less than number of children under one ({})", numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+            log.error("Number of children under four ({}) must not be less than number of children under one ({})",
+                    numberOfChildrenUnderFour, numberOfChildrenUnderOne);
             throw new IllegalArgumentException("Number of children under four must not be less than number of children under one");
         }
 
