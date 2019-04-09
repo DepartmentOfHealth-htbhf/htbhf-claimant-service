@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -11,13 +10,7 @@ class PregnancyEntitlementCalculatorTest {
 
     private static final int PREGNANCY_GRACE_PERIOD_IN_DAYS = 14;
 
-    PregnancyEntitlementCalculator calculator;
-
-
-    @BeforeEach
-    void setup() {
-        calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_DAYS);
-    }
+    PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_DAYS);
 
     @Test
     void shouldReturnTrueForDueDateInFuture() {

@@ -5,6 +5,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+/**
+ * Responsible for deciding whether a claimant is entitled to a voucher for pregnancy,
+ * by comparing the due date to today's date.
+ * There is a grace period after the due date before the claimant stops being eligible for a voucher.
+ */
 @Component
 public class PregnancyEntitlementCalculator {
 

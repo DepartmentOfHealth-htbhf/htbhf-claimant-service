@@ -41,6 +41,7 @@ class EntitlementCalculatorTest {
         );
     }
 
+    // the inputs include the total number of children under four, NOT the number of children between one and four
     @ParameterizedTest(name = "Should return {3} vouchers for pregnant: {0}, number of children under one: {1}, number of children under four: {2}")
     @CsvSource({
             "false, 2, 3, 5",
