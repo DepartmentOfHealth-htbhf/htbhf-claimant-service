@@ -13,7 +13,9 @@ import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
 
@@ -63,13 +65,14 @@ class EntitlementCalculatorTest {
                 .numberOfChildrenUnderOne(numberOfChildrenUnderOne)
                 .numberOfChildrenUnderFour(numberOfChildrenUnderFour)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate)).willReturn(isPregnant);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(isPregnant);
 
         // When
         VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
 
         // Then
         assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate);
     }
 
     @Test
@@ -96,7 +99,7 @@ class EntitlementCalculatorTest {
                 .numberOfChildrenUnderOne(null)
                 .numberOfChildrenUnderFour(null)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(null)).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValue(VOUCHER_VALUE)
                 .totalVoucherValue(new BigDecimal("0.00"))
@@ -107,6 +110,7 @@ class EntitlementCalculatorTest {
 
         // Then
         assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
     }
 
     @Test
@@ -125,13 +129,14 @@ class EntitlementCalculatorTest {
                 .voucherValue(VOUCHER_VALUE)
                 .totalVoucherValue(new BigDecimal("18.60")) // voucher value is 3.10, multiplied by 6 vouchers
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(null)).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
 
         // When
         VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
 
         // Then
         assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
     }
 
 }
