@@ -19,4 +19,10 @@ public class EligibilityResponse {
 
     @JsonProperty("hmrcHouseholdIdentifier")
     private String hmrcHouseholdIdentifier;
+
+    @JsonProperty("numberOfChildrenUnderOne")
+    private final Integer numberOfChildrenUnderOne;
+
+    @JsonProperty("numberOfChildrenUnderFour")
+    private final Integer numberOfChildrenUnderFour;
 }
