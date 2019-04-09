@@ -81,16 +81,12 @@ public class EntitlementCalculator {
     private VoucherEntitlement createVoucherEntitlement(int vouchersForPregnancy,
                                                         int vouchersForChildrenUnderOne,
                                                         int vouchersForChildrenBetweenOneAndFour) {
-        int totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;
-        BigDecimal totalVoucherValue = new BigDecimal(totalVoucherEntitlement).multiply(voucherValue);
 
         return VoucherEntitlement.builder()
                 .vouchersForPregnancy(vouchersForPregnancy)
                 .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
                 .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
-                .totalVoucherEntitlement(totalVoucherEntitlement)
                 .voucherValue(voucherValue)
-                .totalVoucherValue(totalVoucherValue)
                 .build();
     }
 }

@@ -55,9 +55,7 @@ class EntitlementCalculatorTest {
                 .vouchersForPregnancy(2)
                 .vouchersForChildrenUnderOne(4)
                 .vouchersForChildrenBetweenOneAndFour(3)
-                .totalVoucherEntitlement(9)
                 .voucherValue(VOUCHER_VALUE)
-                .totalVoucherValue(new BigDecimal("27.90")) // voucher value is 3.10, multiplied by 9 vouchers
                 .build();
         LocalDate dueDate = LocalDate.now();
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(dueDate).build();
@@ -102,7 +100,6 @@ class EntitlementCalculatorTest {
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValue(VOUCHER_VALUE)
-                .totalVoucherValue(new BigDecimal("0.00"))
                 .build();
 
         // When
@@ -125,9 +122,7 @@ class EntitlementCalculatorTest {
                 .vouchersForPregnancy(0)
                 .vouchersForChildrenUnderOne(0)
                 .vouchersForChildrenBetweenOneAndFour(6) // 3 vouchers per child aged 1-4
-                .totalVoucherEntitlement(6)
                 .voucherValue(VOUCHER_VALUE)
-                .totalVoucherValue(new BigDecimal("18.60")) // voucher value is 3.10, multiplied by 6 vouchers
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
 
