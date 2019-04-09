@@ -16,6 +16,7 @@ public class ClaimService {
 
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
+    private final EligibilityStatusCalculator eligibilityStatusCalculator;
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public Claimant createClaim(Claim claim) {
@@ -30,7 +31,7 @@ public class ClaimService {
                 EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
                 claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
                 claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
-                eligibilityStatus = determineEligibilityStatusForHousehold(eligibilityResponse);
+                eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
             }
 
             saveClaimant(claimant, eligibilityStatus);
@@ -39,22 +40,6 @@ public class ClaimService {
             saveClaimant(claimant, EligibilityStatus.ERROR);
             throw e;
         }
-    }
-
-    private EligibilityStatus determineEligibilityStatusForHousehold(EligibilityResponse eligibilityResponse) {
-        return eligibleClaimExistsForHousehold(eligibilityResponse)
-                ? EligibilityStatus.DUPLICATE
-                : eligibilityResponse.getEligibilityStatus();
-    }
-
-    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
-        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
-        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
-
-        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
-        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
-
-        return dwpClaimExists || hmrcClaimExists;
     }
 
     private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
