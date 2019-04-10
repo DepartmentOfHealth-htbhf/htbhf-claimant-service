@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
@@ -31,7 +29,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ClaimController {
 
     private final ClaimService claimService;
-    private final ClaimDTOToClaimConverter converter;
     private final Map<EligibilityStatus, HttpStatus> statusMap = Map.of(
             EligibilityStatus.ELIGIBLE, HttpStatus.CREATED,
             EligibilityStatus.INELIGIBLE, HttpStatus.OK,
@@ -46,8 +43,7 @@ public class ClaimController {
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResponse> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
-        Claim claim = converter.convert(claimDTO);
-        Claimant claimant = claimService.createClaim(claim);
+        Claimant claimant = claimService.createClaim(claimDTO);
 
         return createResponseFromClaimant(claimant);
     }

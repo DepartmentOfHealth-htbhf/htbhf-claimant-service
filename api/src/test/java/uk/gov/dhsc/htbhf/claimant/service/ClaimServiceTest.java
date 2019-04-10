@@ -5,8 +5,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -17,6 +19,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -25,27 +28,33 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 public class ClaimServiceTest {
 
     @InjectMocks
-    private ClaimService claimService;
+    ClaimService claimService;
 
     @Mock
-    private ClaimantRepository claimantRepository;
+    ClaimantRepository claimantRepository;
 
     @Mock
-    private EligibilityClient client;
+    EligibilityClient client;
 
     @Mock
-    private EligibilityStatusCalculator eligibilityStatusCalculator;
+    ClaimDTOToClaimConverter converter;
+
+    @Mock
+    EligibilityStatusCalculator eligibilityStatusCalculator;
 
     @Test
-    public void shouldSaveNewClaimant() {
+    void shouldSaveNewClaimant() {
         //given
+        ClaimDTO claimDTO = aValidClaimDTO();
+        Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = buildClaim(claimant);
+        given(converter.convert(claimDTO)).willReturn(claim);
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
-        Claimant claimant = aValidClaimantBuilder().build();
 
         //when
-        claimService.createClaim(buildClaim(claimant));
+        claimService.createClaim(claimDTO);
 
         //then
         Claimant expectedClaimant = buildExpectedClaimant(claimant, ELIGIBLE);
@@ -57,11 +66,14 @@ public class ClaimServiceTest {
     }
 
     @Test
-    public void shouldSaveDuplicateClaimantForMatchingNino() {
+    void shouldSaveDuplicateClaimantForMatchingNino() {
+        ClaimDTO claimDTO = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = buildClaim(claimant);
+        given(converter.convert(claimDTO)).willReturn(claim);
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(true);
 
-        claimService.createClaim(buildClaim(claimant));
+        claimService.createClaim(claimDTO);
 
         Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
@@ -76,14 +88,17 @@ public class ClaimServiceTest {
      */
     @Test
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void shouldSaveClaimantWhenEligibilityThrowsException() {
+    void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
+        ClaimDTO claimDTO = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = buildClaim(claimant);
+        given(converter.convert(claimDTO)).willReturn(claim);
         RuntimeException testException = new RuntimeException("Test exception");
         given(client.checkEligibility(any())).willThrow(testException);
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(buildClaim(claimant)), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(claimDTO), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);
