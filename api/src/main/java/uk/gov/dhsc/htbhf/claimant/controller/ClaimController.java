@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
@@ -43,9 +44,9 @@ public class ClaimController {
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResponse> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
-        Claimant claimant = claimService.createClaim(claimDTO);
+        Claim claim = claimService.createClaim(claimDTO);
 
-        return createResponseFromClaimant(claimant);
+        return createResponseFromClaimant(claim.getClaimant());
     }
 
     private ResponseEntity<ClaimResponse> createResponseFromClaimant(Claimant claimant) {

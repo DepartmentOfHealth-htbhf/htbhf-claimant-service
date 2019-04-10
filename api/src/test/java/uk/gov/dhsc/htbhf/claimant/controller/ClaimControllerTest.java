@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
@@ -47,7 +48,7 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceWithConvertedClaim(EligibilityStatus eligibilityStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
-        given(claimService.createClaim(any())).willReturn(aValidClaimantWithStatus(eligibilityStatus));
+        given(claimService.createClaim(any())).willReturn(Claim.builder().claimant(aValidClaimantWithStatus(eligibilityStatus)).build());
 
         // When
         ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
@@ -63,7 +64,7 @@ class ClaimControllerTest {
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
-        given(claimService.createClaim(any())).willReturn(aValidClaimantWithStatus(EligibilityStatus.ELIGIBLE));
+        given(claimService.createClaim(any())).willReturn(Claim.builder().claimant(aValidClaimantWithStatus(EligibilityStatus.ELIGIBLE)).build());
         Map mockStatusMap = mock(Map.class);
         ReflectionTestUtils.setField(controller, "statusMap", mockStatusMap);
         given(mockStatusMap.get(EligibilityStatus.ELIGIBLE)).willReturn(null);

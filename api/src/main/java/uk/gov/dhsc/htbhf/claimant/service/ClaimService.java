@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
+import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
@@ -23,6 +25,7 @@ public class ClaimService {
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
     private final ClaimDTOToClaimConverter converter;
+    private final EntitlementCalculator entitlementCalculator;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -34,31 +37,44 @@ public class ClaimService {
     );
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    public Claimant createClaim(ClaimDTO claimDTO) {
+    public Claim createClaim(ClaimDTO claimDTO) {
         Claim claim = converter.convert(claimDTO);
-
         Claimant claimant = claim.getClaimant();
 
         try {
-            EligibilityStatus eligibilityStatus = determineEligibilityStatus(claimant);
+            EligibilityResponse eligibilityResponse = determineEligibilityStatus(claimant);
+            EligibilityStatus eligibilityStatus = eligibilityResponse.getEligibilityStatus();
             ClaimStatus claimStatus = STATUS_MAP.get(eligibilityStatus);
+            updateClaimFromEligibilityResponse(claim, eligibilityResponse);
             saveClaimant(claimant, claimStatus, eligibilityStatus);
-            return claimant;
+            return claim;
         } catch (RuntimeException e) {
             saveClaimant(claimant, ClaimStatus.ERROR, EligibilityStatus.ERROR);
             throw e;
         }
     }
 
-    private EligibilityStatus determineEligibilityStatus(Claimant claimant) {
+    private EligibilityResponse determineEligibilityStatus(Claimant claimant) {
         if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {
-            return EligibilityStatus.DUPLICATE;
+            return EligibilityResponse.builder()
+                    .eligibilityStatus(EligibilityStatus.DUPLICATE)
+                    .build();
         } else {
             EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-            claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
-            claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
-            return eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
+            EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
+            return eligibilityResponse.toBuilder()
+                    .eligibilityStatus(eligibilityStatus)
+                    .build();
         }
+    }
+
+    private void updateClaimFromEligibilityResponse(Claim claim, EligibilityResponse eligibilityResponse) {
+        Claimant claimant = claim.getClaimant();
+        claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());
+        claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());
+
+        VoucherEntitlement entitlement = entitlementCalculator.calculateVoucherEntitlement(claimant, eligibilityResponse);
+        claim.setVoucherEntitlement(entitlement);
     }
 
     private void saveClaimant(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {

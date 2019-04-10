@@ -10,10 +10,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
+import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -27,6 +30,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 public class ClaimServiceTest {
@@ -46,6 +51,9 @@ public class ClaimServiceTest {
     @Mock
     EligibilityStatusCalculator eligibilityStatusCalculator;
 
+    @Mock
+    EntitlementCalculator entitlementCalculator;
+
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @ParameterizedTest(name = "Should save claimant with claim status set to {1} when eligibility status is {0}")
     @CsvSource({
@@ -55,7 +63,7 @@ public class ClaimServiceTest {
             "ERROR, ERROR",
             "INELIGIBLE, REJECTED"
     })
-    public void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
+    void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = buildClaim(claimant);
@@ -66,9 +74,10 @@ public class ClaimServiceTest {
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
 
         //when
-        claimService.createClaim(claimDTO);
+        Claim result = claimService.createClaim(claimDTO);
 
         //then
+        assertThat(result).isEqualTo(claim);
         Claimant expectedClaimant = buildExpectedClaimant(claimant, claimStatus, eligibilityStatus);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(eligibilityStatusCalculator).determineEligibilityStatus(anEligibilityResponse());
@@ -76,6 +85,37 @@ public class ClaimServiceTest {
         verifyNoMoreInteractions(claimantRepository);
         verify(client).checkEligibility(claimant);
         verify(converter).convert(claimDTO);
+    }
+
+    @Test
+    void shouldAddVoucherEntitlementToClaim() {
+        //given
+        Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = buildClaim(claimant);
+        ClaimDTO claimDTO = aValidClaimDTO();
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        given(converter.convert(any())).willReturn(claim);
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        EligibilityResponse eligibilityResponse = anEligibilityResponse();
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+
+        //when
+        Claim result = claimService.createClaim(claimDTO);
+
+        //then
+        assertThat(result).isEqualTo(claim);
+        assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.NEW, ELIGIBLE);
+        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
+        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, eligibilityResponse);
+        verify(claimantRepository).save(expectedClaimant);
+        verifyNoMoreInteractions(claimantRepository);
+        verify(client).checkEligibility(claimant);
+        verify(converter).convert(claimDTO);
+
     }
 
     /**

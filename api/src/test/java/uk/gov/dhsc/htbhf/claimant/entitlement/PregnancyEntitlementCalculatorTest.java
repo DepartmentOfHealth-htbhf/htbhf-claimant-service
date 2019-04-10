@@ -37,6 +37,12 @@ class PregnancyEntitlementCalculatorTest {
     }
 
     @Test
+    void shouldReturnFalseForNullDueDate() {
+        boolean result = calculator.isEntitledToVoucher(null);
+        assertThat(result).isFalse();
+    }
+
+    @Test
     void shouldReturnFalseForDueDateMoreThanGracePeriodDaysAgo() {
         boolean result = calculator.isEntitledToVoucher(LocalDate.now().minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS + 1));
         assertThat(result).isFalse();

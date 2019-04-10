@@ -3,16 +3,13 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 @Data
 @Builder
 @AllArgsConstructor
 public class Claim {
 
-    @NotNull
-    @Valid
     private Claimant claimant;
+    private VoucherEntitlement voucherEntitlement;
 }
