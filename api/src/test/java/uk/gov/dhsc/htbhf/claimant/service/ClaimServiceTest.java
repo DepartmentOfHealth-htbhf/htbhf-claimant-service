@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -63,6 +65,29 @@ public class ClaimServiceTest {
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verify(client).checkEligibility(claimant);
+    }
+
+    /**
+     * Asserts that all eligibility statuses are mapped to a non null claim status.
+     * @param eligibilityStatus the eligibility status to test with
+     */
+    @ParameterizedTest(name = "Should save claimant with non null claim status for all eligibility statuses")
+    @EnumSource(EligibilityStatus.class)
+    public void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
+        //given
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
+        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
+        Claimant claimant = aValidClaimantBuilder().build();
+
+        //when
+        claimService.createClaim(buildClaim(claimant));
+
+        //then
+        ArgumentCaptor<Claimant> argumentCaptor = ArgumentCaptor.forClass(Claimant.class);
+        verify(claimantRepository).save(argumentCaptor.capture());
+        Claimant savedClaimant = argumentCaptor.getValue();
+        assertThat(savedClaimant.getClaimStatus()).isNotNull();
     }
 
     @Test
