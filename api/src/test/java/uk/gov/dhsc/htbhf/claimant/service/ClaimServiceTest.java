@@ -12,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -82,6 +82,7 @@ public class ClaimServiceTest {
      * Asserts that all eligibility statuses are mapped to a non null claim status.
      * @param eligibilityStatus the eligibility status to test with
      */
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @ParameterizedTest(name = "Should save claimant with non null claim status for all eligibility statuses")
     @EnumSource(EligibilityStatus.class)
     public void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
