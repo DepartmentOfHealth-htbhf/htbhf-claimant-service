@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.nio.CharBuffer;
@@ -69,6 +70,7 @@ public final class ClaimantTestDataFactory {
                 .dateOfBirth(VALID_DOB)
                 .cardDeliveryAddress(VALID_ADDRESS)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .claimStatus(ClaimStatus.ACTIVE)
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
     }

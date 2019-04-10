@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -69,7 +70,12 @@ public class Claimant {
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
-    
+
+    @NotNull
+    @Column(name = "claim_status")
+    @Enumerated(EnumType.STRING)
+    private ClaimStatus claimStatus;
+
     @Column(name = "dwp_household_identifier")
     private String dwpHouseholdIdentifier;
 

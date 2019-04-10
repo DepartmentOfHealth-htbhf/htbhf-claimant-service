@@ -2,6 +2,10 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -9,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -22,7 +27,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 public class ClaimServiceTest {
@@ -42,9 +46,16 @@ public class ClaimServiceTest {
     @Mock
     EligibilityStatusCalculator eligibilityStatusCalculator;
 
-    @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    void shouldSaveNewClaimant() {
+    @ParameterizedTest(name = "Should save claimant with claim status set to {1} when eligibility status is {0}")
+    @CsvSource({
+            "ELIGIBLE, NEW",
+            "PENDING, PENDING",
+            "NO_MATCH, REJECTED",
+            "ERROR, ERROR",
+            "INELIGIBLE, REJECTED"
+    })
+    public void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = buildClaim(claimant);
@@ -52,19 +63,46 @@ public class ClaimServiceTest {
         given(converter.convert(any())).willReturn(claim);
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
-        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
+        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
 
         //when
         claimService.createClaim(claimDTO);
 
         //then
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, ELIGIBLE);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, claimStatus, eligibilityStatus);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(eligibilityStatusCalculator).determineEligibilityStatus(anEligibilityResponse());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verify(client).checkEligibility(claimant);
         verify(converter).convert(claimDTO);
+    }
+
+    /**
+     * Asserts that all eligibility statuses are mapped to a non null claim status.
+     * @param eligibilityStatus the eligibility status to test with
+     */
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    @ParameterizedTest(name = "Should save claimant with non null claim status for all eligibility statuses")
+    @EnumSource(EligibilityStatus.class)
+    public void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
+        //given
+        Claimant claimant = aValidClaimantBuilder().build();
+        Claim claim = buildClaim(claimant);
+        ClaimDTO claimDTO = aValidClaimDTO();
+        given(converter.convert(any())).willReturn(claim);
+        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
+        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
+
+        //when
+        claimService.createClaim(claimDTO);
+
+        //then
+        ArgumentCaptor<Claimant> argumentCaptor = ArgumentCaptor.forClass(Claimant.class);
+        verify(claimantRepository).save(argumentCaptor.capture());
+        Claimant savedClaimant = argumentCaptor.getValue();
+        assertThat(savedClaimant.getClaimStatus()).isNotNull();
     }
 
     @Test
@@ -80,7 +118,7 @@ public class ClaimServiceTest {
         claimService.createClaim(claimDTO);
 
         //then
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.REJECTED, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
@@ -108,7 +146,7 @@ public class ClaimServiceTest {
 
         //then
         assertThat(thrown).isEqualTo(testException);
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.ERROR);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.ERROR, EligibilityStatus.ERROR);
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
@@ -120,7 +158,9 @@ public class ClaimServiceTest {
         return Claim.builder().claimant(claimant).build();
     }
 
-    private Claimant buildExpectedClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
-        return claimant.toBuilder().eligibilityStatus(eligibilityStatus).build();
+    private Claimant buildExpectedClaimant(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
+        return claimant.toBuilder()
+                .claimStatus(claimStatus)
+                .eligibilityStatus(eligibilityStatus).build();
     }
 }
