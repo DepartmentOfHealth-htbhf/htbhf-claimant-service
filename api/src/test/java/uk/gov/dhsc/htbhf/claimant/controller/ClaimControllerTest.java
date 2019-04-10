@@ -12,8 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.util.Map;
 
@@ -23,8 +23,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithEligibilityStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithClaimStatus;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimControllerTest {
@@ -37,23 +37,24 @@ class ClaimControllerTest {
 
     @ParameterizedTest
     @CsvSource({
-            "ELIGIBLE, CREATED",
-            "INELIGIBLE, OK",
+            "REJECTED, OK",
+            "NEW, CREATED",
             "PENDING, OK",
-            "NO_MATCH, NOT_FOUND",
-            "DUPLICATE, OK",
+            "ACTIVE, OK",
+            "PENDING_EXPIRY, OK",
+            "EXPIRED, OK",
             "ERROR, INTERNAL_SERVER_ERROR"
     })
-    void shouldInvokeClaimServiceWithConvertedClaim(EligibilityStatus eligibilityStatus, HttpStatus httpStatus) {
+    void shouldInvokeClaimServiceWithConvertedClaim(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
-        given(claimService.createClaim(any())).willReturn(aValidClaimantWithStatus(eligibilityStatus));
+        given(claimService.createClaim(any())).willReturn(aValidClaimantWithClaimStatus(claimStatus));
 
         // When
         ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithEligibilityStatus(eligibilityStatus);
+        ClaimResponse claimResponse = aClaimResponseWithClaimStatus(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(claimResponse);
@@ -63,21 +64,21 @@ class ClaimControllerTest {
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
-        given(claimService.createClaim(any())).willReturn(aValidClaimantWithStatus(EligibilityStatus.ELIGIBLE));
+        given(claimService.createClaim(any())).willReturn(aValidClaimantWithClaimStatus(ClaimStatus.NEW));
         Map mockStatusMap = mock(Map.class);
         ReflectionTestUtils.setField(controller, "statusMap", mockStatusMap);
-        given(mockStatusMap.get(EligibilityStatus.ELIGIBLE)).willReturn(null);
+        given(mockStatusMap.get(ClaimStatus.NEW)).willReturn(null);
         ClaimDTO dto = aValidClaimDTO();
 
         // When
         ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithEligibilityStatus(EligibilityStatus.ELIGIBLE);
+        ClaimResponse claimResponse = aClaimResponseWithClaimStatus(ClaimStatus.NEW);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(claimResponse);
         verify(claimService).createClaim(dto);
-        verify(mockStatusMap).get(EligibilityStatus.ELIGIBLE);
+        verify(mockStatusMap).get(ClaimStatus.NEW);
     }
 }
