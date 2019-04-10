@@ -43,7 +43,8 @@ public class ClaimServiceTest {
             "ELIGIBLE, NEW",
             "PENDING, PENDING",
             "NO_MATCH, REJECTED",
-            "ERROR, ERROR"
+            "ERROR, ERROR",
+            "INELIGIBLE, REJECTED"
     })
     public void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
