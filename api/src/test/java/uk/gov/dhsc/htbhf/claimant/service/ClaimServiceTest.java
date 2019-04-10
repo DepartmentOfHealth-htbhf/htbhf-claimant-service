@@ -2,11 +2,14 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -19,7 +22,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 public class ClaimServiceTest {
@@ -36,19 +38,25 @@ public class ClaimServiceTest {
     @Mock
     private EligibilityStatusCalculator eligibilityStatusCalculator;
 
-    @Test
-    public void shouldSaveNewClaimant() {
+    @ParameterizedTest(name = "Should save claimant with claim status set to {1} when eligibility status is {0}")
+    @CsvSource({
+            "ELIGIBLE, NEW",
+            "PENDING, PENDING",
+            "NO_MATCH, REJECTED",
+            "ERROR, ERROR"
+    })
+    public void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
-        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
+        given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
         Claimant claimant = aValidClaimantBuilder().build();
 
         //when
         claimService.createClaim(buildClaim(claimant));
 
         //then
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, ELIGIBLE);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, claimStatus, eligibilityStatus);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(eligibilityStatusCalculator).determineEligibilityStatus(anEligibilityResponse());
         verify(claimantRepository).save(expectedClaimant);
@@ -63,7 +71,7 @@ public class ClaimServiceTest {
 
         claimService.createClaim(buildClaim(claimant));
 
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.REJECTED, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
@@ -87,7 +95,7 @@ public class ClaimServiceTest {
 
         //then
         assertThat(thrown).isEqualTo(testException);
-        Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.ERROR);
+        Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.ERROR, EligibilityStatus.ERROR);
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
@@ -98,7 +106,9 @@ public class ClaimServiceTest {
         return Claim.builder().claimant(claimant).build();
     }
 
-    private Claimant buildExpectedClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
-        return claimant.toBuilder().eligibilityStatus(eligibilityStatus).build();
+    private Claimant buildExpectedClaimant(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
+        return claimant.toBuilder()
+                .claimStatus(claimStatus)
+                .eligibilityStatus(eligibilityStatus).build();
     }
 }
