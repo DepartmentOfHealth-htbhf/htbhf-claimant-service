@@ -93,6 +93,16 @@ definitions:
   ClaimResponse:
     type: "object"
     properties:
+      claimStatus:
+        type: "string"
+        enum:
+        - "REJECTED"
+        - "NEW"
+        - "PENDING"
+        - "ACTIVE"
+        - "PENDING_EXPIRY"
+        - "EXPIRED"
+        - "ERROR"
       eligibilityStatus:
         type: "string"
         enum:

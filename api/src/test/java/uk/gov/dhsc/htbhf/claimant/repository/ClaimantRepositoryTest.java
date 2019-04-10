@@ -13,8 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithEligibilityStatus;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -32,7 +32,7 @@ class ClaimantRepositoryTest {
     @Test
     void saveAndRetrieveClaimant() {
         //Given
-        Claimant claimant = aValidClaimantWithEligibilityStatus();
+        Claimant claimant = aValidClaimant();
 
         //When
         Claimant savedClaimant = claimantRepository.save(claimant);
@@ -47,9 +47,7 @@ class ClaimantRepositoryTest {
         //Given
         Claimant invalidClaimant = aClaimantWithTooLongFirstName();
         //When
-        Throwable thrown = catchThrowable(() -> {
-            claimantRepository.save(invalidClaimant);
-        });
+        Throwable thrown = catchThrowable(() -> claimantRepository.save(invalidClaimant));
         //Then
         assertThat(thrown).hasRootCauseInstanceOf(ConstraintViolationException.class);
     }

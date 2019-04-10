@@ -22,16 +22,16 @@ public final class ClaimantTestDataFactory {
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
 
+    public static Claimant aValidClaimant() {
+        return aValidClaimantBuilder().build();
+    }
+
     public static Claimant aClaimantWithoutEligibilityStatus() {
         return aValidClaimantBuilder().eligibilityStatus(null).build();
     }
 
-    public static Claimant aValidClaimantWithEligibilityStatus() {
-        return aValidClaimantBuilder().build();
-    }
-
-    public static Claimant aValidClaimantWithStatus(EligibilityStatus eligibilityStatus) {
-        return aValidClaimantBuilder().eligibilityStatus(eligibilityStatus).build();
+    public static Claimant aValidClaimantWithClaimStatus(ClaimStatus claimStatus) {
+        return aValidClaimantBuilder().claimStatus(claimStatus).build();
     }
 
     public static Claimant aClaimantWithLastName(String lastName) {
