@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">3</div>
+<div class="counter">13</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.133s</div>
+<div class="counter">0.174s</div>
 <p>duration</p>
 </div>
 </td>
@@ -73,23 +73,87 @@
 <thead>
 <tr>
 <th>Test</th>
+<th>Method name</th>
 <th>Duration</th>
 <th>Result</th>
 </tr>
 </thead>
 <tr>
 <td class="success">shouldSaveClaimantWhenEligibilityThrowsException()</td>
-<td class="success">0.117s</td>
+<td class="success">shouldSaveClaimantWhenEligibilityThrowsException()</td>
+<td class="success">0.014s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[1]</td>
+<td class="success">0.093s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[2]</td>
+<td class="success">0.007s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[3]</td>
+<td class="success">0.004s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[4]</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[5]</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with non null claim status for all eligibility statuses</td>
+<td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[6]</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldSaveDuplicateClaimantForMatchingNino()</td>
 <td class="success">shouldSaveDuplicateClaimantForMatchingNino()</td>
 <td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldSaveNewClaimant()</td>
-<td class="success">0.009s</td>
+<td class="success">Should save claimant with claim status set to NEW when eligibility status is ELIGIBLE</td>
+<td class="success">shouldSaveNonExistingClaimant(EligibilityStatus, ClaimStatus)[1]</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with claim status set to PENDING when eligibility status is PENDING</td>
+<td class="success">shouldSaveNonExistingClaimant(EligibilityStatus, ClaimStatus)[2]</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with claim status set to REJECTED when eligibility status is NO_MATCH</td>
+<td class="success">shouldSaveNonExistingClaimant(EligibilityStatus, ClaimStatus)[3]</td>
+<td class="success">0.004s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with claim status set to ERROR when eligibility status is ERROR</td>
+<td class="success">shouldSaveNonExistingClaimant(EligibilityStatus, ClaimStatus)[4]</td>
+<td class="success">0.004s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Should save claimant with claim status set to REJECTED when eligibility status is INELIGIBLE</td>
+<td class="success">shouldSaveNonExistingClaimant(EligibilityStatus, ClaimStatus)[5]</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -97,9 +161,19 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2019-04-10 10:37:26.121  INFO 5252 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 09bef255-caf1-4117-b0d8-be0b26b59896 with status ERROR
-2019-04-10 10:37:26.131  INFO 5252 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 2b653bbe-b6df-432e-a155-4bc01ca11742 with status DUPLICATE
-2019-04-10 10:37:26.143  INFO 5252 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 13689bae-d8ec-464c-a62c-4c6b514e0185 with status ELIGIBLE
+<pre>2019-04-10 14:17:22.798  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: e5a9efe3-ad7e-411e-87f6-9f89d7606429 with status ELIGIBLE
+2019-04-10 14:17:22.812  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 5272b487-8aeb-4e9e-8b31-895130a4e183 with status INELIGIBLE
+2019-04-10 14:17:22.817  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 3d50a781-0664-4146-847a-859a4b07a104 with status PENDING
+2019-04-10 14:17:22.824  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: b929f7a9-79fa-4546-9cf7-bb989450429f with status NO_MATCH
+2019-04-10 14:17:22.833  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 1bdb9ce7-93f4-431a-add4-2af0af536b67 with status ERROR
+2019-04-10 14:17:22.844  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: f0824a5b-1e4f-4573-aaeb-b7066524a7bc with status DUPLICATE
+2019-04-10 14:17:22.853  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: d8b09dc6-c45d-4a53-990d-238577c31d85 with status ERROR
+2019-04-10 14:17:22.868  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 5f67f81d-de00-49a4-be79-6739d25fa934 with status DUPLICATE
+2019-04-10 14:17:22.880  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 9c26886a-5a97-439c-a0c4-ee83c1e70a4a with status ELIGIBLE
+2019-04-10 14:17:22.891  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 8e59ec59-bebb-446b-996d-bfbaec58986c with status PENDING
+2019-04-10 14:17:22.898  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 41c5a443-b455-4b58-8c78-568b78aa32e7 with status NO_MATCH
+2019-04-10 14:17:22.903  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 5a04e07b-8a82-46c6-888d-586eec2a7763 with status ERROR
+2019-04-10 14:17:22.911  INFO 5257 --- [    Test worker] u.g.d.h.claimant.service.ClaimService    : Saved new claimant: 69b98994-3dac-4ef1-af03-b2e6ad1bcd3f with status INELIGIBLE
 </pre>
 </span>
 </div>
@@ -111,7 +185,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at Apr 10, 2019, 10:37:43 AM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at Apr 10, 2019, 2:17:39 PM</p>
 </div>
 </div>
 </body>

@@ -7,12 +7,15 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.util.Map;
+
 @Service
-<span class="fc" id="L15">@Slf4j</span>
+<span class="fc" id="L18">@Slf4j</span>
 @RequiredArgsConstructor
 public class ClaimService {
 
@@ -21,36 +24,48 @@ public class ClaimService {
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
     private final ClaimDTOToClaimConverter converter;
 
+<span class="fc" id="L27">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
+            EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
+            EligibilityStatus.PENDING, ClaimStatus.PENDING,
+            EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
+            EligibilityStatus.ERROR, ClaimStatus.ERROR,
+            EligibilityStatus.DUPLICATE, ClaimStatus.REJECTED,
+            EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
+    );
+
     @SuppressWarnings(&quot;PMD.AvoidCatchingGenericException&quot;)
     public Claimant createClaim(ClaimDTO claimDTO) {
-<span class="fc" id="L26">        Claim claim = converter.convert(claimDTO);</span>
+<span class="fc" id="L38">        Claim claim = converter.convert(claimDTO);</span>
 
-<span class="fc" id="L28">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L40">        Claimant claimant = claim.getClaimant();</span>
 
         try {
-            EligibilityStatus eligibilityStatus;
-
-<span class="fc bfc" id="L33" title="All 2 branches covered.">            if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {</span>
-<span class="fc" id="L34">                eligibilityStatus = EligibilityStatus.DUPLICATE;</span>
-            } else {
-<span class="fc" id="L36">                EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
-<span class="fc" id="L37">                claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
-<span class="fc" id="L38">                claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
-<span class="fc" id="L39">                eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);</span>
-            }
-
-<span class="fc" id="L42">            saveClaimant(claimant, eligibilityStatus);</span>
-<span class="fc" id="L43">            return claimant;</span>
-<span class="fc" id="L44">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L45">            saveClaimant(claimant, EligibilityStatus.ERROR);</span>
-<span class="fc" id="L46">            throw e;</span>
+<span class="fc" id="L43">            EligibilityStatus eligibilityStatus = determineEligibilityStatus(claimant);</span>
+<span class="fc" id="L44">            ClaimStatus claimStatus = STATUS_MAP.get(eligibilityStatus);</span>
+<span class="fc" id="L45">            saveClaimant(claimant, claimStatus, eligibilityStatus);</span>
+<span class="fc" id="L46">            return claimant;</span>
+<span class="fc" id="L47">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L48">            saveClaimant(claimant, ClaimStatus.ERROR, EligibilityStatus.ERROR);</span>
+<span class="fc" id="L49">            throw e;</span>
         }
     }
 
-    private void saveClaimant(Claimant claimant, EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L51">        claimant.setEligibilityStatus(eligibilityStatus);</span>
-<span class="fc" id="L52">        claimantRepository.save(claimant);</span>
-<span class="fc" id="L53">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
-<span class="fc" id="L54">    }</span>
+    private EligibilityStatus determineEligibilityStatus(Claimant claimant) {
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {</span>
+<span class="fc" id="L55">            return EligibilityStatus.DUPLICATE;</span>
+        } else {
+<span class="fc" id="L57">            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L58">            claimant.setDwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L59">            claimant.setHmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
+<span class="fc" id="L60">            return eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);</span>
+        }
+    }
+
+    private void saveClaimant(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
+<span class="fc" id="L65">        claimant.setClaimStatus(claimStatus);</span>
+<span class="fc" id="L66">        claimant.setEligibilityStatus(eligibilityStatus);</span>
+<span class="fc" id="L67">        claimantRepository.save(claimant);</span>
+<span class="fc" id="L68">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claimant.getId(), claimant.getEligibilityStatus());</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

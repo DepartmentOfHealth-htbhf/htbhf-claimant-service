@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -69,7 +70,12 @@ public class Claimant {
     @Column(name = &quot;eligibility_status&quot;)
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
-    
+
+    @NotNull
+    @Column(name = &quot;claim_status&quot;)
+    @Enumerated(EnumType.STRING)
+    private ClaimStatus claimStatus;
+
     @Column(name = &quot;dwp_household_identifier&quot;)
     private String dwpHouseholdIdentifier;
 
@@ -83,10 +89,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L87">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L93">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L89">        return this.id;</span>
+<span class="fc" id="L95">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
