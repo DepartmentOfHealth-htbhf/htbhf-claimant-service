@@ -1,11 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
@@ -21,22 +22,26 @@ public class ClaimService {
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
+    private final ClaimDTOToClaimConverter converter;
 
-    private final Map<EligibilityStatus, ClaimStatus> eligibilityStatusMapper = ImmutableMap.of(
+    private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
             EligibilityStatus.PENDING, ClaimStatus.PENDING,
             EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
             EligibilityStatus.ERROR, ClaimStatus.ERROR,
-            EligibilityStatus.DUPLICATE, ClaimStatus.REJECTED
+            EligibilityStatus.DUPLICATE, ClaimStatus.REJECTED,
+            EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    public Claimant createClaim(Claim claim) {
+    public Claimant createClaim(ClaimDTO claimDTO) {
+        Claim claim = converter.convert(claimDTO);
+
         Claimant claimant = claim.getClaimant();
 
         try {
             EligibilityStatus eligibilityStatus = determineEligibilityStatus(claimant);
-            ClaimStatus claimStatus = eligibilityStatusMapper.get(eligibilityStatus);
+            ClaimStatus claimStatus = STATUS_MAP.get(eligibilityStatus);
             saveClaimant(claimant, claimStatus, eligibilityStatus);
             return claimant;
         } catch (RuntimeException e) {
