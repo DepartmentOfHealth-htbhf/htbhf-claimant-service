@@ -61,7 +61,7 @@ public class ClaimServiceTest {
         Claim claim = buildClaim(claimant);
         ClaimDTO claimDTO = aValidClaimDTO();
         given(converter.convert(any())).willReturn(claim);
-        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(claimantRepository.liveClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
 
@@ -70,7 +70,7 @@ public class ClaimServiceTest {
 
         //then
         Claimant expectedClaimant = buildExpectedClaimant(claimant, claimStatus, eligibilityStatus);
-        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(claimantRepository).liveClaimExistsForNino(claimant.getNino());
         verify(eligibilityStatusCalculator).determineEligibilityStatus(anEligibilityResponse());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
@@ -91,7 +91,7 @@ public class ClaimServiceTest {
         Claim claim = buildClaim(claimant);
         ClaimDTO claimDTO = aValidClaimDTO();
         given(converter.convert(any())).willReturn(claim);
-        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
+        given(claimantRepository.liveClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
 
@@ -112,14 +112,14 @@ public class ClaimServiceTest {
         Claim claim = buildClaim(claimant);
         ClaimDTO claimDTO = aValidClaimDTO();
         given(converter.convert(any())).willReturn(claim);
-        given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(true);
+        given(claimantRepository.liveClaimExistsForNino(any())).willReturn(true);
 
         //when
         claimService.createClaim(claimDTO);
 
         //then
         Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.REJECTED, EligibilityStatus.DUPLICATE);
-        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(claimantRepository).liveClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verifyZeroInteractions(client);
@@ -149,7 +149,7 @@ public class ClaimServiceTest {
         Claimant expectedClaimant = buildExpectedClaimant(claimant, ClaimStatus.ERROR, EligibilityStatus.ERROR);
         verify(claimantRepository).save(expectedClaimant);
         verify(client).checkEligibility(claimant);
-        verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
+        verify(claimantRepository).liveClaimExistsForNino(claimant.getNino());
         verifyNoMoreInteractions(claimantRepository);
         verify(converter).convert(claimDTO);
     }

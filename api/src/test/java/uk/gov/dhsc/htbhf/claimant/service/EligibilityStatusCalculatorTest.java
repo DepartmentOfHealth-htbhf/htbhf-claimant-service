@@ -34,26 +34,26 @@ class EligibilityStatusCalculatorTest {
             "false, true"
     })
     void shouldReturnDuplicateStatusForMatchingHouseholds(boolean matchingDwpHouseholdIdentifier, boolean matchingHmrcHouseholdIdentifier) {
-        given(claimantRepository.eligibleClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
-        given(claimantRepository.eligibleClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
+        given(claimantRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
+        given(claimantRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
 
         EligibilityStatus status = eligibilityStatusCalculator.determineEligibilityStatus(anEligibilityResponseWithStatus(null));
 
         assertThat(status).isEqualTo(EligibilityStatus.DUPLICATE);
-        verify(claimantRepository).eligibleClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
-        verify(claimantRepository).eligibleClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
+        verify(claimantRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verify(claimantRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
     @Test
     void shouldReturnStatusFromEligibilityServiceWhenNoMatchingHousehold() {
         EligibilityStatus status = EligibilityStatus.PENDING;
-        given(claimantRepository.eligibleClaimExistsForDwpHousehold(anyString())).willReturn(false);
-        given(claimantRepository.eligibleClaimExistsForHmrcHousehold(anyString())).willReturn(false);
+        given(claimantRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
+        given(claimantRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
 
         EligibilityStatus result = eligibilityStatusCalculator.determineEligibilityStatus(anEligibilityResponseWithStatus(status));
 
         assertThat(result).isEqualTo(status);
-        verify(claimantRepository).eligibleClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
-        verify(claimantRepository).eligibleClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
+        verify(claimantRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verify(claimantRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 }
