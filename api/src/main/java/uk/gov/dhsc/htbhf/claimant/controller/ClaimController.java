@@ -39,7 +39,8 @@ public class ClaimController {
             ClaimStatus.ACTIVE, HttpStatus.OK,
             ClaimStatus.PENDING_EXPIRY, HttpStatus.OK,
             ClaimStatus.EXPIRED, HttpStatus.OK,
-            ClaimStatus.REJECTED, HttpStatus.OK
+            ClaimStatus.REJECTED, HttpStatus.OK,
+            ClaimStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
 
     @PostMapping
