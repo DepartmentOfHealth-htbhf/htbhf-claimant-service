@@ -43,12 +43,13 @@ public class ClaimServiceTest {
     EligibilityStatusCalculator eligibilityStatusCalculator;
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     void shouldSaveNewClaimant() {
         //given
-        ClaimDTO claimDTO = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = buildClaim(claimant);
-        given(converter.convert(claimDTO)).willReturn(claim);
+        ClaimDTO claimDTO = aValidClaimDTO();
+        given(converter.convert(any())).willReturn(claim);
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(anEligibilityResponse());
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
@@ -63,23 +64,28 @@ public class ClaimServiceTest {
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verify(client).checkEligibility(claimant);
+        verify(converter).convert(claimDTO);
     }
 
     @Test
     void shouldSaveDuplicateClaimantForMatchingNino() {
-        ClaimDTO claimDTO = aValidClaimDTO();
+        //given
         Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = buildClaim(claimant);
-        given(converter.convert(claimDTO)).willReturn(claim);
+        ClaimDTO claimDTO = aValidClaimDTO();
+        given(converter.convert(any())).willReturn(claim);
         given(claimantRepository.eligibleClaimExistsForNino(any())).willReturn(true);
 
+        //when
         claimService.createClaim(claimDTO);
 
+        //then
         Claimant expectedClaimant = buildExpectedClaimant(claimant, EligibilityStatus.DUPLICATE);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verify(claimantRepository).save(expectedClaimant);
         verifyNoMoreInteractions(claimantRepository);
         verifyZeroInteractions(client);
+        verify(converter).convert(claimDTO);
     }
 
     /**
@@ -90,10 +96,10 @@ public class ClaimServiceTest {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        ClaimDTO claimDTO = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder().build();
         Claim claim = buildClaim(claimant);
-        given(converter.convert(claimDTO)).willReturn(claim);
+        ClaimDTO claimDTO = aValidClaimDTO();
+        given(converter.convert(any())).willReturn(claim);
         RuntimeException testException = new RuntimeException("Test exception");
         given(client.checkEligibility(any())).willThrow(testException);
 
@@ -107,6 +113,7 @@ public class ClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(claimantRepository).eligibleClaimExistsForNino(claimant.getNino());
         verifyNoMoreInteractions(claimantRepository);
+        verify(converter).convert(claimDTO);
     }
 
     private Claim buildClaim(Claimant claimant) {
