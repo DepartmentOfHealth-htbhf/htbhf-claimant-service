@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityStatusCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service</a> &gt; <span class="el_source">EligibilityStatusCalculator.java</span></div><h1>EligibilityStatusCalculator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service;
+
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+
+@Service
+@AllArgsConstructor
+public class EligibilityStatusCalculator {
+
+    private final ClaimantRepository claimantRepository;
+
+    /**
+     * Determines the eligibility status for a given {@link EligibilityResponse}.
+     * The status is DUPLICATE if an eligible claim exists for the given dwp or hmrc household identifier,
+     * otherwise returns the eligibility status from the given eligibility response.
+     * @param eligibilityResponse Eligibility response containing household identifiers.
+     * @return the eligibility status
+     */
+    public EligibilityStatus determineEligibilityStatus(EligibilityResponse eligibilityResponse) {
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        return eligibleClaimExistsForHousehold(eligibilityResponse)</span>
+<span class="fc" id="L24">                ? EligibilityStatus.DUPLICATE</span>
+<span class="fc" id="L25">                : eligibilityResponse.getEligibilityStatus();</span>
+    }
+
+    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+<span class="fc" id="L29">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
+<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+
+<span class="fc" id="L32">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
+
+<span class="fc bfc" id="L35" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
