@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.controller</a> &gt; <span class="el_source">ClaimController.java</span></div><h1>ClaimController.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.controller;
 
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.util.Map;
@@ -24,44 +28,48 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController()
 @RequestMapping(value = &quot;/v1/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-<span class="fc" id="L27">@Slf4j</span>
+<span class="fc" id="L31">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimController {
 
     private final ClaimService claimService;
-    private final Map&lt;EligibilityStatus, HttpStatus&gt; statusMap = Map.of(
-            EligibilityStatus.ELIGIBLE, HttpStatus.CREATED,
-            EligibilityStatus.INELIGIBLE, HttpStatus.OK,
-            EligibilityStatus.PENDING, HttpStatus.OK,
-            EligibilityStatus.NO_MATCH, HttpStatus.NOT_FOUND,
-            EligibilityStatus.DUPLICATE, HttpStatus.OK,
-            EligibilityStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
+    private final Map&lt;ClaimStatus, HttpStatus&gt; statusMap = Map.of(
+            ClaimStatus.NEW, HttpStatus.CREATED,
+            ClaimStatus.PENDING, HttpStatus.OK,
+            ClaimStatus.ACTIVE, HttpStatus.OK,
+            ClaimStatus.PENDING_EXPIRY, HttpStatus.OK,
+            ClaimStatus.EXPIRED, HttpStatus.OK,
+            ClaimStatus.REJECTED, HttpStatus.OK,
+            ClaimStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
 
     @PostMapping
     @ApiOperation(&quot;Persist a new claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;ClaimResponse&gt; newClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L45">        log.debug(&quot;Received claim&quot;);</span>
-<span class="fc" id="L46">        Claimant claimant = claimService.createClaim(claimDTO);</span>
+<span class="fc" id="L50">        log.debug(&quot;Received claim&quot;);</span>
+<span class="fc" id="L51">        Claimant claimant = claimService.createClaim(claimDTO);</span>
 
-<span class="fc" id="L48">        return createResponseFromClaimant(claimant);</span>
+<span class="fc" id="L53">        return createResponseFromClaimant(claimant);</span>
     }
 
     private ResponseEntity&lt;ClaimResponse&gt; createResponseFromClaimant(Claimant claimant) {
-<span class="fc" id="L52">        EligibilityStatus eligibilityStatus = claimant.getEligibilityStatus();</span>
-<span class="fc" id="L53">        HttpStatus statusCode = getHttpStatus(eligibilityStatus);</span>
-<span class="fc" id="L54">        ClaimResponse body = ClaimResponse.builder().eligibilityStatus(eligibilityStatus).build();</span>
-<span class="fc" id="L55">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L57">        ClaimStatus claimStatus = claimant.getClaimStatus();</span>
+<span class="fc" id="L58">        HttpStatus statusCode = getHttpStatus(claimStatus);</span>
+<span class="fc" id="L59">        ClaimResponse body = ClaimResponse.builder()</span>
+<span class="fc" id="L60">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L61">                .eligibilityStatus(claimant.getEligibilityStatus())</span>
+<span class="fc" id="L62">                .build();</span>
+<span class="fc" id="L63">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
-    private HttpStatus getHttpStatus(EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L59">        HttpStatus statusCode = statusMap.get(eligibilityStatus);</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (statusCode == null) {</span>
-<span class="fc" id="L61">            log.warn(&quot;eligibility status without HttpStatus: {}&quot;, eligibilityStatus);</span>
-<span class="fc" id="L62">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+    private HttpStatus getHttpStatus(ClaimStatus claimStatus) {
+<span class="fc" id="L67">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (statusCode == null) {</span>
+<span class="fc" id="L69">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="fc" id="L70">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L64">        return statusCode;</span>
+<span class="fc" id="L72">        return statusCode;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
