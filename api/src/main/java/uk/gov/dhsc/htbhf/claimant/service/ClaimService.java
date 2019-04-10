@@ -3,9 +3,11 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimDTOToClaimConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -20,6 +22,7 @@ public class ClaimService {
     private final ClaimantRepository claimantRepository;
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
+    private final ClaimDTOToClaimConverter converter;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -31,7 +34,9 @@ public class ClaimService {
     );
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    public Claimant createClaim(Claim claim) {
+    public Claimant createClaim(ClaimDTO claimDTO) {
+        Claim claim = converter.convert(claimDTO);
+
         Claimant claimant = claim.getClaimant();
 
         try {
