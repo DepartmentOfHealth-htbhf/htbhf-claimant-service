@@ -14,10 +14,10 @@ public class EligibilityStatusCalculator {
 
     /**
      * Determines the eligibility status for a given {@link EligibilityResponse}.
-     *
-     * @param eligibilityResponse Eligibility response containing household identifiers.
-     * @return DUPLICATE ff an eligible claim exists for the given dwp or hmrc household identifier,
+     * The status is DUPLICATE if an eligible claim exists for the given dwp or hmrc household identifier,
      * otherwise returns the eligibility status from the given eligibility response.
+     * @param eligibilityResponse Eligibility response containing household identifiers.
+     * @return the eligibility status
      */
     public EligibilityStatus determineEligibilityStatus(EligibilityResponse eligibilityResponse) {
         return eligibleClaimExistsForHousehold(eligibilityResponse)

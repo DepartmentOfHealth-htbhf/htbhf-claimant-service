@@ -1,10 +1,12 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+
+import java.math.BigDecimal;
 
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
@@ -22,20 +24,24 @@ public class EntitlementCalculator {
     private final int vouchersPerChildUnderOne;
     private final int vouchersPerChildBetweenOneAndFour;
     private final int vouchersPerPregnancy;
+    private final BigDecimal voucherValue;
 
     public EntitlementCalculator(
             PregnancyEntitlementCalculator pregnancyEntitlementCalculator,
             @Value("${entitlement.number-of-vouchers-per-child-under-one}") int vouchersPerChildUnderOne,
             @Value("${entitlement.number-of-vouchers-per-child-between-one-and-four}") int vouchersPerChildBetweenOneAndFour,
-            @Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy) {
+            @Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy,
+            @Value("${entitlement.voucher-value}") BigDecimal voucherValue
+    ) {
 
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
         this.vouchersPerChildUnderOne = vouchersPerChildUnderOne;
         this.vouchersPerChildBetweenOneAndFour = vouchersPerChildBetweenOneAndFour;
         this.vouchersPerPregnancy = vouchersPerPregnancy;
+        this.voucherValue = voucherValue;
     }
 
-    public int calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
+    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
 
         int numberOfChildrenUnderFour = zeroIfNull(eligibilityResponse.getNumberOfChildrenUnderFour());
         int numberOfChildrenUnderOne = zeroIfNull(eligibilityResponse.getNumberOfChildrenUnderOne());
@@ -46,11 +52,22 @@ public class EntitlementCalculator {
             throw new IllegalArgumentException("Number of children under four must not be less than number of children under one");
         }
 
+        return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+    }
+
+    private VoucherEntitlement createVoucherEntitlement(Claimant claimant, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
         int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;
 
-        return calculateVouchersForPregnancy(claimant)
-                + calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne)
-                + calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);
+        int vouchersForPregnancy = calculateVouchersForPregnancy(claimant);
+        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);
+        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);
+
+        return VoucherEntitlement.builder()
+                .vouchersForPregnancy(vouchersForPregnancy)
+                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
+                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
+                .voucherValue(voucherValue)
+                .build();
     }
 
     private int calculateVouchersForPregnancy(Claimant claimant) {

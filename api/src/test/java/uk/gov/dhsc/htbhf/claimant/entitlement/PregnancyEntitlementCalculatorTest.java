@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
 
