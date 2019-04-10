@@ -15,6 +15,12 @@ public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
 
     @Query("SELECT COUNT(claimant) "
             + "FROM Claimant claimant "
+            + "WHERE claimant.nino = :nino "
+            + "AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')")
+    Long countLiveClaimantsWithNino(@Param("nino") String nino);
+
+    @Query("SELECT COUNT(claimant) "
+            + "FROM Claimant claimant "
             + "WHERE claimant.dwpHouseholdIdentifier = :dwpHouseholdIdentifier "
             + "AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')")
     Long countLiveClaimantsWithDwpHouseholdIdentifier(@Param("dwpHouseholdIdentifier") String dwpHouseholdIdentifier);
@@ -24,12 +30,6 @@ public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
             + "WHERE claimant.hmrcHouseholdIdentifier = :hmrcHouseholdIdentifier "
             + "AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')")
     Long countLiveClaimantsWithHmrcHouseholdIdentifier(@Param("hmrcHouseholdIdentifier") String hmrcHouseholdIdentifier);
-
-    @Query("SELECT COUNT(claimant) "
-            + "FROM Claimant claimant "
-            + "WHERE claimant.nino = :nino "
-            + "AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')")
-    Long countLiveClaimantsWithNino(@Param("nino") String nino);
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
         return countLiveClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;

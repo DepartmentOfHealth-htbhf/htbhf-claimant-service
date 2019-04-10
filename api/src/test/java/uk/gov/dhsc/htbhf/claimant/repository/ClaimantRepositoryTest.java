@@ -80,7 +80,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isFalse();
     }
 
-    @ParameterizedTest(name = "Should return that live claim does exist when claimant exists and claim status is {0}")
+    @ParameterizedTest(name = "Should return that a live claim does exist when claimant exists and claim status is {0}")
     @ValueSource(strings = {
             "NEW",
             "ACTIVE",
@@ -99,7 +99,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isTrue();
     }
 
-    @ParameterizedTest(name = "Should return that live claim does not exist when claimant exists and claim status is {0}")
+    @ParameterizedTest(name = "Should return that a live claim does not exist when claimant exists and claim status is {0}")
     @ValueSource(strings = {
             "REJECTED",
             "ERROR",
@@ -129,7 +129,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isFalse();
     }
 
-    @ParameterizedTest(name = "Should return live claim does not exists when dwp household exists and the claim status is {0}")
+    @ParameterizedTest(name = "Should return a live claim does not exists when dwp household exists and the claim status is {0}")
     @ValueSource(strings = {
             "ERROR",
             "REJECTED",
@@ -147,7 +147,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isFalse();
     }
 
-    @ParameterizedTest(name = "Should return live claim does exists when dwp household exists and the claim status is {0}")
+    @ParameterizedTest(name = "Should return a live claim does exists when dwp household exists and the claim status is {0}")
     @ValueSource(strings = {
             "NEW",
             "PENDING",
@@ -178,7 +178,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isFalse();
     }
 
-    @ParameterizedTest(name = "Should return live claim does not exists when hmrc household exists and the claim status is {0}")
+    @ParameterizedTest(name = "Should return a live claim does not exists when hmrc household exists and the claim status is {0}")
     @ValueSource(strings = {
             "ERROR",
             "REJECTED",
@@ -196,7 +196,7 @@ class ClaimantRepositoryTest {
         assertThat(claimantExists).isFalse();
     }
 
-    @ParameterizedTest(name = "Should return live claim does exists when hmrc household exists and the claim status is {0}")
+    @ParameterizedTest(name = "Should return a live claim does exists when hmrc household exists and the claim status is {0}")
     @ValueSource(strings = {
             "NEW",
             "PENDING",
