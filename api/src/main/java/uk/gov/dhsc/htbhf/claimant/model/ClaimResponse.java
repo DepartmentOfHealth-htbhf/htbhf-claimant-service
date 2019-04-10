@@ -14,4 +14,7 @@ public class ClaimResponse {
 
     @JsonProperty("eligibilityStatus")
     private EligibilityStatus eligibilityStatus;
+
+    @JsonProperty("claimStatus")
+    private ClaimStatus claimStatus;
 }
