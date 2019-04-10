@@ -1,29 +1,31 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class EntitlementCalculatorTest {
 
-    private static final int VOUCHERS_FOR_CHILDREN_UNDER_ONE = 2;
-    private static final int VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR = 1;
-    private static final int VOUCHERS_FOR_PREGNANCY = 1;
+    private static final int VOUCHERS_FOR_CHILDREN_UNDER_ONE = 4;
+    private static final int VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR = 3;
+    private static final int VOUCHERS_FOR_PREGNANCY = 2;
+    private static final BigDecimal VOUCHER_VALUE = new BigDecimal("3.10");
 
     @Mock
     PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
@@ -37,34 +39,38 @@ class EntitlementCalculatorTest {
                 pregnancyEntitlementCalculator,
                 VOUCHERS_FOR_CHILDREN_UNDER_ONE,
                 VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR,
-                VOUCHERS_FOR_PREGNANCY
+                VOUCHERS_FOR_PREGNANCY,
+                VOUCHER_VALUE
         );
     }
 
-    // the inputs include the total number of children under four, NOT the number of children between one and four
-    @ParameterizedTest(name = "Should return {3} vouchers for pregnant: {0}, number of children under one: {1}, number of children under four: {2}")
-    @CsvSource({
-            "false, 2, 3, 5",
-            "true, 2, 3, 6",
-            "true, 0, 0, 1",
-            "false, 0, 1, 1",
-            "false, 1, 1, 2"
-    })
-    void shouldReturnCorrectNumberOfVouchers(Boolean isPregnant, Integer numberOfChildrenUnderOne, Integer numberOfChildrenUnderFour, Integer voucherCount) {
+    @Test
+    void shouldReturnCorrectEntitlement() {
         // Given
+        Boolean isPregnant = true; // 2 vouchers
+        Integer numberOfChildrenUnderOne = 1; // 4 vouchers
+        // the inputs include the total number of children under four, NOT the number of children between one and four
+        Integer numberOfChildrenUnderFour = 2; // one child aged 1-4 => 3 vouchers
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .vouchersForPregnancy(2)
+                .vouchersForChildrenUnderOne(4)
+                .vouchersForChildrenBetweenOneAndFour(3)
+                .voucherValue(VOUCHER_VALUE)
+                .build();
         LocalDate dueDate = LocalDate.now();
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(dueDate).build();
         EligibilityResponse response = aValidEligibilityResponseBuilder()
                 .numberOfChildrenUnderOne(numberOfChildrenUnderOne)
                 .numberOfChildrenUnderFour(numberOfChildrenUnderFour)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate)).willReturn(isPregnant);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(isPregnant);
 
         // When
-        Integer result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
 
         // Then
-        assertThat(result).isEqualTo(voucherCount);
+        assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate);
     }
 
     @Test
@@ -86,35 +92,46 @@ class EntitlementCalculatorTest {
     @Test
     void shouldReturnZeroVouchersWhenNumberOfChildrenIsNull() {
         // Given
-        Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build();
+        Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
         EligibilityResponse response = aValidEligibilityResponseBuilder()
                 .numberOfChildrenUnderOne(null)
                 .numberOfChildrenUnderFour(null)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(null)).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .voucherValue(VOUCHER_VALUE)
+                .build();
 
         // When
-        Integer result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
 
         // Then
-        assertThat(result).isEqualTo(0);
+        assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
     }
 
     @Test
     void shouldReturnCorrectVouchersWhenNumberOfChildrenUnderOneIsNull() {
         // Given
-        Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build();
+        Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
         EligibilityResponse response = aValidEligibilityResponseBuilder()
                 .numberOfChildrenUnderOne(null)
                 .numberOfChildrenUnderFour(2)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(null)).willReturn(false);
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .vouchersForPregnancy(0)
+                .vouchersForChildrenUnderOne(0)
+                .vouchersForChildrenBetweenOneAndFour(6) // 3 vouchers per child aged 1-4
+                .voucherValue(VOUCHER_VALUE)
+                .build();
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
 
         // When
-        Integer result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
 
         // Then
-        assertThat(result).isEqualTo(2);
+        assertThat(result).isEqualTo(expected);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
     }
 
 }
