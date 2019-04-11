@@ -33,6 +33,10 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
+    public static Claim.ClaimBuilder aValidClaimBuilder() {
+        return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE);
+    }
+
     private static Claim.ClaimBuilder aValidClaimBuilderWithStatus(ClaimStatus claimStatus) {
         return Claim.builder()
                 .claimant(aValidClaimantBuilder().build())

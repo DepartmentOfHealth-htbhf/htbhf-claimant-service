@@ -22,7 +22,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -30,7 +29,6 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -51,6 +49,7 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
@@ -62,7 +61,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-public class ClaimantServiceIntegrationTests {
+class ClaimantServiceIntegrationTests {
 
     // Create a string 501 characters long
     private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
@@ -133,15 +132,9 @@ public class ClaimantServiceIntegrationTests {
         //Given
         ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder()
-                .nino(dto.getClaimant().getNino()).build();
-        // TODO: MGS move to factory, and below
-        Claim claim = Claim.builder()
-                .claimant(claimant)
-                .claimStatus(ClaimStatus.ACTIVE)
-                .claimStatusTimestamp(LocalDateTime.now())
-                .eligibilityStatus(ELIGIBLE)
-                .eligibilityStatusTimestamp(LocalDateTime.now())
+                .nino(dto.getClaimant().getNino())
                 .build();
+        Claim claim = aValidClaimBuilder().claimant(claimant).build();
         claimRepository.save(claim);
 
         //When
@@ -157,15 +150,10 @@ public class ClaimantServiceIntegrationTests {
         //Given
         String householdIdentifier = "dwpHousehold1";
         ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimantInSameHouseholdBuilder()
-                .build();
-        Claim claim = Claim.builder()
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
+        Claim claim = aValidClaimBuilder()
                 .dwpHouseholdIdentifier(householdIdentifier)
                 .claimant(claimant)
-                .claimStatus(ClaimStatus.ACTIVE)
-                .claimStatusTimestamp(LocalDateTime.now())
-                .eligibilityStatus(ELIGIBLE)
-                .eligibilityStatusTimestamp(LocalDateTime.now())
                 .build();
         claimRepository.save(claim);
 
@@ -187,15 +175,10 @@ public class ClaimantServiceIntegrationTests {
         //Given
         String householdIdentifier = "hmrcHousehold1";
         ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimantInSameHouseholdBuilder()
-                .build();
-        Claim claim = Claim.builder()
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
+        Claim claim = aValidClaimBuilder()
                 .hmrcHouseholdIdentifier(householdIdentifier)
                 .claimant(claimant)
-                .claimStatus(ClaimStatus.ACTIVE)
-                .claimStatusTimestamp(LocalDateTime.now())
-                .eligibilityStatus(ELIGIBLE)
-                .eligibilityStatusTimestamp(LocalDateTime.now())
                 .build();
         claimRepository.save(claim);
 
