@@ -1,10 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,11 +9,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
+import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.util.Map;
@@ -32,7 +28,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Api(description = "Endpoints for dealing with claims, e.g. persisting a claim.")
 public class ClaimController {
 
-    private final ClaimService claimService;
+    private final NewClaimService newClaimService;
     private final Map<ClaimStatus, HttpStatus> statusMap = Map.of(
             ClaimStatus.NEW, HttpStatus.CREATED,
             ClaimStatus.PENDING, HttpStatus.OK,
@@ -48,17 +44,17 @@ public class ClaimController {
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResponse> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
-        Claimant claimant = claimService.createClaim(claimDTO);
+        ClaimResult result = newClaimService.createClaim(claimDTO.getClaimant());
 
-        return createResponseFromClaimant(claimant);
+        return createResponseFromClaimant(result);
     }
 
-    private ResponseEntity<ClaimResponse> createResponseFromClaimant(Claimant claimant) {
-        ClaimStatus claimStatus = claimant.getClaimStatus();
+    private ResponseEntity<ClaimResponse> createResponseFromClaimant(ClaimResult result) {
+        ClaimStatus claimStatus = result.getClaim().getClaimStatus();
         HttpStatus statusCode = getHttpStatus(claimStatus);
         ClaimResponse body = ClaimResponse.builder()
                 .claimStatus(claimStatus)
-                .eligibilityStatus(claimant.getEligibilityStatus())
+                .eligibilityStatus(result.getClaim().getEligibilityStatus())
                 .build();
         return new ResponseEntity<>(body, statusCode);
     }

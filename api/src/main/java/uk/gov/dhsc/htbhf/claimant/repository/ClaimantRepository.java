@@ -11,6 +11,7 @@ import java.util.UUID;
  * JPA repository for the Claimant table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  */
+// TODO: MGS delete this
 public interface ClaimantRepository extends CrudRepository<Claimant, UUID> {
 
     @Query("SELECT COUNT(claimant) "

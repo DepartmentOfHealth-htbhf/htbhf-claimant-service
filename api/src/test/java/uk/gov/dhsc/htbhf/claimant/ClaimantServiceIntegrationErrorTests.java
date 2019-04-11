@@ -7,7 +7,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,17 +30,17 @@ public class ClaimantServiceIntegrationErrorTests {
     TestRestTemplate restTemplate;
 
     @MockBean
-    ClaimService claimService;
+    NewClaimService newClaimService;
 
     @Test
     void shouldReturnInternalServiceError() {
         ClaimDTO claim = aValidClaimDTO();
 
-        doThrow(new RuntimeException()).when(claimService).createClaim(any(ClaimDTO.class));
+        doThrow(new RuntimeException()).when(newClaimService).createClaim(any(ClaimantDTO.class));
         ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI, claim, ErrorResponse.class);
 
         assertInternalServerErrorResponse(response);
-        verify(claimService).createClaim(claim);
+        verify(newClaimService).createClaim(claim.getClaimant());
     }
 
 }

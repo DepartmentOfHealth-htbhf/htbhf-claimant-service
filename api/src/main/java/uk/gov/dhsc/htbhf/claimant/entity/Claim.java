@@ -9,10 +9,14 @@ import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+@Entity
+@Table(name = "claim")
 @Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
 public class Claim extends BaseEntity {
 
     @NotNull

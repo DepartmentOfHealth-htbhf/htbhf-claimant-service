@@ -3,14 +3,14 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
 public class EligibilityStatusCalculator {
 
-    private final ClaimantRepository claimantRepository;
+    private final ClaimRepository claimRepository;
 
     /**
      * Determines the eligibility status for a given {@link EligibilityResponse}.
@@ -27,10 +27,10 @@ public class EligibilityStatusCalculator {
 
     private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
         String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
-        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
+        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
 
         String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
-        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
+        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
 
         return dwpClaimExists || hmrcClaimExists;
     }

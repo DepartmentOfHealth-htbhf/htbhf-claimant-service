@@ -7,7 +7,7 @@ import lombok.Data;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 public class EligibilityResponse {
 
