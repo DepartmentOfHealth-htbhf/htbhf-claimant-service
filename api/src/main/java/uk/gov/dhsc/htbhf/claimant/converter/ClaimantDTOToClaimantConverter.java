@@ -2,31 +2,23 @@ package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 /**
- * Converts a {@link ClaimDTO} into a {@link Claim}.
+ * Converts a {@link ClaimantDTO} into a {@link Claimant}.
  */
 @Component
-public class ClaimDTOToClaimConverter {
+public class ClaimantDTOToClaimantConverter {
 
     private final AddressDTOToAddressConverter addressConverter;
 
-    public ClaimDTOToClaimConverter(AddressDTOToAddressConverter addressConverter) {
+    public ClaimantDTOToClaimantConverter(AddressDTOToAddressConverter addressConverter) {
         this.addressConverter = addressConverter;
     }
 
-    public Claim convert(ClaimDTO source) {
-        Assert.notNull(source, "source ClaimDTO must not be null");
-        return Claim.builder()
-                .claimant(buildClaimant(source.getClaimant()))
-                .build();
-    }
-
-    private Claimant buildClaimant(ClaimantDTO claimant) {
+    public Claimant convert(ClaimantDTO claimant) {
+        Assert.notNull(claimant, "source ClaimantDTO must not be null");
         return Claimant.builder()
                 .firstName(claimant.getFirstName())
                 .lastName(claimant.getLastName())

@@ -27,15 +27,18 @@ public final class ClaimDTOTestDataFactory {
 
     public static ClaimDTO aValidClaimDTOWithNoNullFields() {
         return ClaimDTO.builder()
-                .claimant(aValidClaimantBuilder()
-                        .expectedDeliveryDate(now().plusMonths(4))
-                        .build())
+                .claimant(aValidClaimantDTOWithNoNullFields())
                 .build();
     }
 
-    public static ClaimDTO aClaimDTOWithDateOfBirth(LocalDate dateOfBirth) {
-        return ClaimDTO.builder()
-                .claimant(aValidClaimantBuilder().dateOfBirth(dateOfBirth).build())
+    public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
+        return aValidClaimantBuilder()
+                .expectedDeliveryDate(now().plusMonths(4))
+                .build();
+    }
+
+    public static ClaimantDTO aValidClaimantDTO() {
+        return aValidClaimantBuilder()
                 .build();
     }
 

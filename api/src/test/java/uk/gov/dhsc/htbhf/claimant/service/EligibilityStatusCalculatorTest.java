@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +25,7 @@ class EligibilityStatusCalculatorTest {
     private EligibilityStatusCalculator eligibilityStatusCalculator;
 
     @Mock
-    private ClaimantRepository claimantRepository;
+    private ClaimRepository claimRepository;
 
     @ParameterizedTest(name = "Should return duplicate status for matching household identifiers: DWP [{0}] HMRC [{1}]")
     @CsvSource({
@@ -34,26 +34,26 @@ class EligibilityStatusCalculatorTest {
             "false, true"
     })
     void shouldReturnDuplicateStatusForMatchingHouseholds(boolean matchingDwpHouseholdIdentifier, boolean matchingHmrcHouseholdIdentifier) {
-        given(claimantRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
-        given(claimantRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
+        given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
+        given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
 
         EligibilityStatus status = eligibilityStatusCalculator.determineEligibilityStatus(anEligibilityResponseWithStatus(null));
 
         assertThat(status).isEqualTo(EligibilityStatus.DUPLICATE);
-        verify(claimantRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
-        verify(claimantRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
+        verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verify(claimRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
     @Test
     void shouldReturnStatusFromEligibilityServiceWhenNoMatchingHousehold() {
         EligibilityStatus status = EligibilityStatus.PENDING;
-        given(claimantRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
-        given(claimantRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
+        given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
+        given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
 
         EligibilityStatus result = eligibilityStatusCalculator.determineEligibilityStatus(anEligibilityResponseWithStatus(status));
 
         assertThat(result).isEqualTo(status);
-        verify(claimantRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
-        verify(claimantRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
+        verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verify(claimRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 }

@@ -22,6 +22,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 @SpringBootTest
 class ClaimantRepositoryTest {
 
+    // TODO: MGS replace this with ClaimRepositoryTest
+
     @Autowired
     private ClaimantRepository claimantRepository;
 

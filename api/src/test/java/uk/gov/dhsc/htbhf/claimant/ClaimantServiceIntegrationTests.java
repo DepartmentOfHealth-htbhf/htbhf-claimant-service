@@ -18,17 +18,19 @@ import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -73,14 +75,14 @@ public class ClaimantServiceIntegrationTests {
     ObjectMapper objectMapper;
 
     @Autowired
-    ClaimantRepository claimantRepository;
+    ClaimRepository claimRepository;
 
     @MockBean
     RestTemplate restTemplateWithIdHeaders;
 
     @AfterEach
-    void deleteAllClaimants() {
-        claimantRepository.deleteAll();
+    void deleteAllClaims() {
+        claimRepository.deleteAll();
     }
 
     @Test
@@ -101,7 +103,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
+        assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -114,7 +116,7 @@ public class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertInternalServerErrorResponse(response);
-        assertClaimantPersistedSuccessfully(claim.getClaimant(), ERROR, null, null);
+        assertClaimPersistedSuccessfully(claim, ERROR, null, null);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -129,14 +131,21 @@ public class ClaimantServiceIntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForNino() {
         //Given
-        ClaimDTO claim = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder()
-                .nino(claim.getClaimant().getNino())
-                .eligibilityStatus(ELIGIBLE).build();
-        claimantRepository.save(claimant);
+                .nino(dto.getClaimant().getNino()).build();
+        // TODO: MGS move to factory, and below
+        Claim claim = Claim.builder()
+                .claimant(claimant)
+                .claimStatus(ClaimStatus.ACTIVE)
+                .claimStatusTimestamp(LocalDateTime.now())
+                .eligibilityStatus(ELIGIBLE)
+                .eligibilityStatusTimestamp(LocalDateTime.now())
+                .build();
+        claimRepository.save(claim);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
 
         //Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -147,18 +156,25 @@ public class ClaimantServiceIntegrationTests {
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
         //Given
         String householdIdentifier = "dwpHousehold1";
-        ClaimDTO claim = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder()
-                .dwpHouseholdIdentifier(householdIdentifier)
                 .build();
-        claimantRepository.save(claimant);
+        Claim claim = Claim.builder()
+                .dwpHouseholdIdentifier(householdIdentifier)
+                .claimant(claimant)
+                .claimStatus(ClaimStatus.ACTIVE)
+                .claimStatusTimestamp(LocalDateTime.now())
+                .eligibilityStatus(ELIGIBLE)
+                .eligibilityStatusTimestamp(LocalDateTime.now())
+                .build();
+        claimRepository.save(claim);
 
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithDwpHouseholdIdentifier(householdIdentifier);
         ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
 
         //Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -170,18 +186,25 @@ public class ClaimantServiceIntegrationTests {
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() {
         //Given
         String householdIdentifier = "hmrcHousehold1";
-        ClaimDTO claim = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder()
-                .hmrcHouseholdIdentifier(householdIdentifier)
                 .build();
-        claimantRepository.save(claimant);
+        Claim claim = Claim.builder()
+                .hmrcHouseholdIdentifier(householdIdentifier)
+                .claimant(claimant)
+                .claimStatus(ClaimStatus.ACTIVE)
+                .claimStatusTimestamp(LocalDateTime.now())
+                .eligibilityStatus(ELIGIBLE)
+                .eligibilityStatusTimestamp(LocalDateTime.now())
+                .build();
+        claimRepository.save(claim);
 
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithHmrcHouseholdIdentifier(householdIdentifier);
         ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
 
         //Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -282,14 +305,14 @@ public class ClaimantServiceIntegrationTests {
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
-    private void assertClaimantPersistedSuccessfully(ClaimantDTO claimantDTO,
-                                                     EligibilityStatus eligibilityStatus,
-                                                     String dwpHouseholdIdentifier,
-                                                     String hmrcHouseholdIdentifier) {
-        Iterable<Claimant> claims = claimantRepository.findAll();
+    private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
+                                                  EligibilityStatus eligibilityStatus,
+                                                  String dwpHouseholdIdentifier,
+                                                  String hmrcHouseholdIdentifier) {
+        Iterable<Claim> claims = claimRepository.findAll();
         assertThat(claims).hasSize(1);
-        Claimant persistedClaim = claims.iterator().next();
-        assertClaimantMatchesClaimantDTO(claimantDTO, persistedClaim);
+        Claim persistedClaim = claims.iterator().next();
+        assertClaimantMatchesClaimantDTO(claimDTO.getClaimant(), persistedClaim.getClaimant());
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(dwpHouseholdIdentifier);
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);

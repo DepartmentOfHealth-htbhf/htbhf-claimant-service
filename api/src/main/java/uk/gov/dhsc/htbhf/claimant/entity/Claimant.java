@@ -11,14 +11,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
@@ -37,6 +30,7 @@ public class Claimant {
 
     @Id
     @Getter(AccessLevel.NONE)
+    @Access(AccessType.PROPERTY)
     private UUID id;
 
     @Size(max = 500)
@@ -66,12 +60,11 @@ public class Claimant {
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
-    @NotNull
+    // TODO: MGS remove statuses
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
 
-    @NotNull
     @Column(name = "claim_status")
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
