@@ -11,6 +11,7 @@ import java.util.UUID;
  * JPA repository for the Claimant table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  */
+// TODO: MGS delete this
 public interface ClaimantRepository extends CrudRepository&lt;Claimant, UUID&gt; {
 
     @Query(&quot;SELECT COUNT(claimant) &quot;
@@ -32,15 +33,15 @@ public interface ClaimantRepository extends CrudRepository&lt;Claimant, UUID&gt;
     Long countLiveClaimantsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L35" title="All 2 branches covered.">        return countLiveClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        return countLiveClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        return countLiveClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForNino(String nino) {
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimantsWithNino(nino) != 0;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        return countLiveClaimantsWithNino(nino) != 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.repository</a> &gt; <span class="el_source">ClaimRepository.java</span></div><h1>ClaimRepository.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.repository;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+
+import java.util.UUID;
+
+/**
+ * JPA repository for the Claim table.
+ * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
+ */
+public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt; {
+
+    @Query(&quot;SELECT COUNT(claim) &quot;
+            + &quot;FROM Claim claim &quot;
+            + &quot;WHERE claim.claimant.nino = :nino &quot;
+            + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimsWithNino(@Param(&quot;nino&quot;) String nino);
+
+    @Query(&quot;SELECT COUNT(claim) &quot;
+            + &quot;FROM Claim claim &quot;
+            + &quot;WHERE claim.dwpHouseholdIdentifier = :dwpHouseholdIdentifier &quot;
+            + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimsWithDwpHouseholdIdentifier(@Param(&quot;dwpHouseholdIdentifier&quot;) String dwpHouseholdIdentifier);
+
+    @Query(&quot;SELECT COUNT(claim) &quot;
+            + &quot;FROM Claim claim &quot;
+            + &quot;WHERE claim.hmrcHouseholdIdentifier = :hmrcHouseholdIdentifier &quot;
+            + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
+
+    default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+    }
+
+    default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+    }
+
+    default boolean liveClaimExistsForNino(String nino) {
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimsWithNino(nino) != 0;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

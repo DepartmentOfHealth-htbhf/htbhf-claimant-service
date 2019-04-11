@@ -11,14 +11,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
@@ -37,6 +30,7 @@ public class Claimant {
 
     @Id
     @Getter(AccessLevel.NONE)
+    @Access(AccessType.PROPERTY)
     private UUID id;
 
     @Size(max = 500)
@@ -66,12 +60,11 @@ public class Claimant {
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
 
-    @NotNull
+    // TODO: MGS remove statuses
     @Column(name = &quot;eligibility_status&quot;)
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
 
-    @NotNull
     @Column(name = &quot;claim_status&quot;)
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
@@ -89,10 +82,10 @@ public class Claimant {
      * @return The id for the Claimant.
      */
     public UUID getId() {
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L93">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L86">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L95">        return this.id;</span>
+<span class="fc" id="L88">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -3,14 +3,14 @@
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.ClaimantRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
 public class EligibilityStatusCalculator {
 
-    private final ClaimantRepository claimantRepository;
+    private final ClaimRepository claimRepository;
 
     /**
      * Determines the eligibility status for a given {@link EligibilityResponse}.
@@ -27,10 +27,10 @@ public class EligibilityStatusCalculator {
 
     private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
 <span class="fc" id="L29">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
-<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimantRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
 
 <span class="fc" id="L32">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
-<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimantRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
 
 <span class="fc bfc" id="L35" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
     }
