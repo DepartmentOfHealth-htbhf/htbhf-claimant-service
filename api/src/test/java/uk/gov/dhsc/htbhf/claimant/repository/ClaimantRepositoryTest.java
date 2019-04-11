@@ -2,9 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.repository;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import javax.validation.ConstraintViolationException;
 
@@ -15,8 +18,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithTooLongFirstName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @SpringBootTest
 class ClaimantRepositoryTest {
@@ -68,76 +69,98 @@ class ClaimantRepositoryTest {
     }
 
     @Test
-    void shouldReturnClaimantDoesNotExistWhenNinoDoesNotExist() {
+    void shouldReturnLiveClaimDoesNotExistWhenNinoDoesNotExist() {
         //Given
         Claimant claimant = aValidClaimantBuilder().build();
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForNino(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isFalse();
     }
 
-    @Test
-    void shouldReturnClaimantDoesNotExistWhenNinoExistsAndStatusIsNotEligible() {
+    @ParameterizedTest(name = "Should return that a live claim does exist when claimant exists and claim status is {0}")
+    @ValueSource(strings = {
+            "NEW",
+            "ACTIVE",
+            "PENDING",
+            "PENDING_EXPIRY"
+    })
+    void shouldReturnLiveClaimDoesExistWhenNinoExists(ClaimStatus claimStatus) {
         //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
-
-        //Then
-        assertThat(claimantExists).isFalse();
-    }
-
-    @Test
-    void shouldReturnClaimantExistsWhenNinoExistsAndStatusIsEligible() {
-        //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
-        claimantRepository.save(claimant);
-
-        //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForNino(claimant.getNino());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForNino(claimant.getNino());
 
         //Then
         assertThat(claimantExists).isTrue();
     }
 
+    @ParameterizedTest(name = "Should return that a live claim does not exist when claimant exists and claim status is {0}")
+    @ValueSource(strings = {
+            "REJECTED",
+            "ERROR",
+            "EXPIRED"
+    })
+    void shouldReturnLiveClaimDoesNotExistWhenNinoExists(ClaimStatus claimStatus) {
+        //Given
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
+        claimantRepository.save(claimant);
+
+        //When
+        Boolean claimantExists = claimantRepository.liveClaimExistsForNino(claimant.getNino());
+
+        //Then
+        assertThat(claimantExists).isFalse();
+    }
+
     @Test
-    void shouldReturnClaimantDoesNotExistWhenDwpHouseholdIdentifierDoesNotExist() {
+    void shouldReturnLiveClaimDoesNotExistWhenDwpHouseholdIdentifierDoesNotExist() {
         //Given
         Claimant claimant = aValidClaimantBuilder().build();
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isFalse();
     }
 
-    @Test
-    void shouldReturnClaimantDoesNotExistWhenDwpHouseholdIdentifierExistsAndStatusIsNotEligible() {
+    @ParameterizedTest(name = "Should return that a live claim does not exist when dwp household exists and the claim status is {0}")
+    @ValueSource(strings = {
+            "ERROR",
+            "REJECTED",
+            "EXPIRED"
+    })
+    void shouldReturnLiveClaimDoesNotExistWhenDwpHouseholdIdentifierExists(ClaimStatus claimStatus) {
         //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isFalse();
     }
 
-    @Test
-    void shouldReturnClaimantExistsWhenDwpHouseholdIdentifierExistsAndStatusIsEligible() {
+    @ParameterizedTest(name = "Should return that a live claim does exist when dwp household exists and the claim status is {0}")
+    @ValueSource(strings = {
+            "NEW",
+            "PENDING",
+            "ACTIVE",
+            "PENDING_EXPIRY"
+    })
+    void shouldReturnLiveClaimDoesExistWhenDwpHouseholdIdentifierExists(ClaimStatus claimStatus) {
         //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForDwpHousehold(claimant.getDwpHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isTrue();
@@ -149,33 +172,44 @@ class ClaimantRepositoryTest {
         Claimant claimant = aValidClaimantBuilder().build();
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isFalse();
     }
 
-    @Test
-    void shouldReturnClaimantDoesNotExistWhenHmrcHouseholdIdentifierExistsAndStatusIsNotEligible() {
+    @ParameterizedTest(name = "Should return that a live claim does not exist when hmrc household exists and the claim status is {0}")
+    @ValueSource(strings = {
+            "ERROR",
+            "REJECTED",
+            "EXPIRED"
+    })
+    void shouldReturnLiveClaimDoesNotExistWhenHmrcHouseholdIdentifierExists(ClaimStatus claimStatus) {
         //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(INELIGIBLE).build();
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isFalse();
     }
 
-    @Test
-    void shouldReturnClaimantExistsWhenHmrcHouseholdIdentifierExistsAndStatusIsEligible() {
+    @ParameterizedTest(name = "Should return that a live claim does exist when hmrc household exists and the claim status is {0}")
+    @ValueSource(strings = {
+            "NEW",
+            "PENDING",
+            "ACTIVE",
+            "PENDING_EXPIRY"
+    })
+    void shouldReturnLiveClaimDoesExistWhenHmrcHouseholdIdentifierExists(ClaimStatus claimStatus) {
         //Given
-        Claimant claimant = aValidClaimantBuilder().eligibilityStatus(ELIGIBLE).build();
+        Claimant claimant = aValidClaimantBuilder().claimStatus(claimStatus).build();
         claimantRepository.save(claimant);
 
         //When
-        Boolean claimantExists = claimantRepository.eligibleClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
+        Boolean claimantExists = claimantRepository.liveClaimExistsForHmrcHousehold(claimant.getHmrcHouseholdIdentifier());
 
         //Then
         assertThat(claimantExists).isTrue();

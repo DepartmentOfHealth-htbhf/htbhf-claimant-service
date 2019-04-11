@@ -14,7 +14,7 @@ public class EligibilityStatusCalculator {
 
     /**
      * Determines the eligibility status for a given {@link EligibilityResponse}.
-     * The status is DUPLICATE if an eligible claim exists for the given dwp or hmrc household identifier,
+     * The status is DUPLICATE if a live claim exists for the given dwp or hmrc household identifier,
      * otherwise returns the eligibility status from the given eligibility response.
      * @param eligibilityResponse Eligibility response containing household identifiers.
      * @return the eligibility status
@@ -27,10 +27,10 @@ public class EligibilityStatusCalculator {
 
     private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
         String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
-        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
+        boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimantRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
 
         String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();
-        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
+        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null && claimantRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);
 
         return dwpClaimExists || hmrcClaimExists;
     }

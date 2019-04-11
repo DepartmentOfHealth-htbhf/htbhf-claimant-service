@@ -51,7 +51,7 @@ public class ClaimService {
     }
 
     private EligibilityStatus determineEligibilityStatus(Claimant claimant) {
-        if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {
+        if (claimantRepository.liveClaimExistsForNino(claimant.getNino())) {
             return EligibilityStatus.DUPLICATE;
         } else {
             EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
