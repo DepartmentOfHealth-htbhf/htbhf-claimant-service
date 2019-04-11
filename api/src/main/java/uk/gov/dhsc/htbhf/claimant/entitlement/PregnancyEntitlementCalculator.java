@@ -20,6 +20,9 @@ public class PregnancyEntitlementCalculator {
     }
 
     public boolean isEntitledToVoucher(LocalDate dueDate) {
+        if (dueDate == null) {
+            return false;
+        }
         LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);
         return !endOfGracePeriod.isBefore(LocalDate.now());
     }
