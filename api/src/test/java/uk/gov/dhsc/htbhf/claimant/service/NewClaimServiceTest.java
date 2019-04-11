@@ -32,7 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
-public class NewClaimServiceTest {
+class NewClaimServiceTest {
 
     @InjectMocks
     NewClaimService newClaimService;
@@ -61,7 +61,7 @@ public class NewClaimServiceTest {
             "ERROR, ERROR",
             "INELIGIBLE, REJECTED"
     })
-    public void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
+    void shouldSaveNonExistingClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
         ClaimantDTO claimantDTO = aValidClaimantDTO();
@@ -121,7 +121,7 @@ public class NewClaimServiceTest {
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @ParameterizedTest(name = "Should save claimant with non null claim status for all eligibility statuses")
     @EnumSource(EligibilityStatus.class)
-    public void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
+    void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
         ClaimantDTO claimantDTO = aValidClaimantDTO();
@@ -185,19 +185,5 @@ public class NewClaimServiceTest {
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
         verifyNoMoreInteractions(claimRepository);
         verify(converter).convert(claimantDTO);
-    }
-
-    private Claim buildExpectedClaim(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
-        return Claim.builder()
-                .claimant(claimant)
-                .claimStatus(claimStatus)
-                .eligibilityStatus(eligibilityStatus)
-                .build();
-    }
-
-    private Claimant buildExpectedClaimant(Claimant claimant, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
-        return claimant.toBuilder()
-                .claimStatus(claimStatus)
-                .eligibilityStatus(eligibilityStatus).build();
     }
 }
