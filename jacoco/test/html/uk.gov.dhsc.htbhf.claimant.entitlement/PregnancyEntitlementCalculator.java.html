@@ -20,8 +20,11 @@ public class PregnancyEntitlementCalculator {
 <span class="fc" id="L20">    }</span>
 
     public boolean isEntitledToVoucher(LocalDate dueDate) {
-<span class="fc" id="L23">        LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);</span>
-<span class="fc bfc" id="L24" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(LocalDate.now());</span>
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (dueDate == null) {</span>
+<span class="fc" id="L24">            return false;</span>
+        }
+<span class="fc" id="L26">        LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(LocalDate.now());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
