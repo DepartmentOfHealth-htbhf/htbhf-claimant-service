@@ -14,7 +14,7 @@ public class EligibilityStatusCalculator {
 
     /**
      * Determines the eligibility status for a given {@link EligibilityResponse}.
-     * The status is DUPLICATE if an eligible claim exists for the given dwp or hmrc household identifier,
+     * The status is DUPLICATE if a live claim exists for the given dwp or hmrc household identifier,
      * otherwise returns the eligibility status from the given eligibility response.
      * @param eligibilityResponse Eligibility response containing household identifiers.
      * @return the eligibility status
@@ -27,10 +27,10 @@ public class EligibilityStatusCalculator {
 
     private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
 <span class="fc" id="L29">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
-<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimantRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
 
 <span class="fc" id="L32">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
-<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimantRepository.eligibleClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimantRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
 
 <span class="fc bfc" id="L35" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
     }

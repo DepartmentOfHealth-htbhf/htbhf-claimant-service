@@ -9,37 +9,38 @@ import java.util.UUID;
 
 /**
  * JPA repository for the Claimant table.
+ * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  */
 public interface ClaimantRepository extends CrudRepository&lt;Claimant, UUID&gt; {
 
     @Query(&quot;SELECT COUNT(claimant) &quot;
             + &quot;FROM Claimant claimant &quot;
             + &quot;WHERE claimant.nino = :nino &quot;
-            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
-    Long countEligibleClaimantsWithNino(@Param(&quot;nino&quot;) String nino);
+            + &quot;AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimantsWithNino(@Param(&quot;nino&quot;) String nino);
 
     @Query(&quot;SELECT COUNT(claimant) &quot;
             + &quot;FROM Claimant claimant &quot;
             + &quot;WHERE claimant.dwpHouseholdIdentifier = :dwpHouseholdIdentifier &quot;
-            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
-    Long countEligibleClaimantsWithDwpHouseholdIdentifier(@Param(&quot;dwpHouseholdIdentifier&quot;) String dwpHouseholdIdentifier);
+            + &quot;AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimantsWithDwpHouseholdIdentifier(@Param(&quot;dwpHouseholdIdentifier&quot;) String dwpHouseholdIdentifier);
 
     @Query(&quot;SELECT COUNT(claimant) &quot;
             + &quot;FROM Claimant claimant &quot;
             + &quot;WHERE claimant.hmrcHouseholdIdentifier = :hmrcHouseholdIdentifier &quot;
-            + &quot;AND claimant.eligibilityStatus = 'ELIGIBLE'&quot;)
-    Long countEligibleClaimantsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
+            + &quot;AND claimant.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
+    Long countLiveClaimantsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
 
-    default boolean eligibleClaimExistsForNino(String nino) {
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        return countEligibleClaimantsWithNino(nino) != 0;</span>
+    default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        return countLiveClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
-    default boolean eligibleClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        return countEligibleClaimantsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+    default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
-    default boolean eligibleClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L42" title="All 2 branches covered.">        return countEligibleClaimantsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+    default boolean liveClaimExistsForNino(String nino) {
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimantsWithNino(nino) != 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

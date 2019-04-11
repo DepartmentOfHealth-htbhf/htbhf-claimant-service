@@ -51,7 +51,7 @@ public class ClaimService {
     }
 
     private EligibilityStatus determineEligibilityStatus(Claimant claimant) {
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (claimantRepository.eligibleClaimExistsForNino(claimant.getNino())) {</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (claimantRepository.liveClaimExistsForNino(claimant.getNino())) {</span>
 <span class="fc" id="L55">            return EligibilityStatus.DUPLICATE;</span>
         } else {
 <span class="fc" id="L57">            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
