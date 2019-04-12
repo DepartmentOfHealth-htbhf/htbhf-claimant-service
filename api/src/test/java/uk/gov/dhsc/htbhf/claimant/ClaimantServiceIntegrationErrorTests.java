@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
@@ -36,11 +36,11 @@ public class ClaimantServiceIntegrationErrorTests {
     void shouldReturnInternalServiceError() {
         ClaimDTO claim = aValidClaimDTO();
 
-        doThrow(new RuntimeException()).when(newClaimService).createClaim(any(ClaimantDTO.class));
+        doThrow(new RuntimeException()).when(newClaimService).createClaim(any(Claimant.class));
         ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI, claim, ErrorResponse.class);
 
         assertInternalServerErrorResponse(response);
-        verify(newClaimService).createClaim(claim.getClaimant());
+        verify(newClaimService).createClaim(any(Claimant.class));
     }
 
 }

@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +36,10 @@ class ClaimControllerTest {
 
     @Mock
     NewClaimService newClaimService;
+
+    @Mock
+    ClaimantDTOToClaimantConverter converter;
+
 
     @InjectMocks
     ClaimController controller;
@@ -50,6 +57,8 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceWithConvertedClaim(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimantBuilder().build();
+        given(converter.convert(any())).willReturn(claimant);
         given(newClaimService.createClaim(any())).willReturn(aClaimResultWithClaimStatus(claimStatus));
 
         // When
@@ -60,13 +69,16 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(claimResponse);
-        verify(newClaimService).createClaim(dto.getClaimant());
+        verify(newClaimService).createClaim(claimant);
+        verify(converter).convert(dto.getClaimant());
     }
 
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
         given(newClaimService.createClaim(any())).willReturn(aClaimResultWithClaimStatus(ClaimStatus.NEW));
+        Claimant claimant = aValidClaimantBuilder().build();
+        given(converter.convert(any())).willReturn(claimant);
         Map mockStatusMap = mock(Map.class);
         ReflectionTestUtils.setField(controller, "statusMap", mockStatusMap);
         given(mockStatusMap.get(ClaimStatus.NEW)).willReturn(null);
@@ -80,8 +92,9 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(claimResponse);
-        verify(newClaimService).createClaim(dto.getClaimant());
+        verify(newClaimService).createClaim(claimant);
         verify(mockStatusMap).get(ClaimStatus.NEW);
+        verify(converter).convert(dto.getClaimant());
     }
 
     private ClaimResult aClaimResultWithClaimStatus(ClaimStatus claimStatus) {

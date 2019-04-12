@@ -3,13 +3,11 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -25,7 +23,6 @@ public class NewClaimService {
     private final ClaimRepository claimRepository;
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
-    private final ClaimantDTOToClaimantConverter converter;
     private final EntitlementCalculator entitlementCalculator;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
@@ -38,10 +35,7 @@ public class NewClaimService {
     );
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    public ClaimResult createClaim(ClaimantDTO claimantDTO) {
-        // TODO: MGS move converter to controller
-        Claimant claimant = converter.convert(claimantDTO);
-
+    public ClaimResult createClaim(Claimant claimant) {
         try {
             EligibilityResponse eligibilityResponse = determineEligibility(claimant);
             Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
