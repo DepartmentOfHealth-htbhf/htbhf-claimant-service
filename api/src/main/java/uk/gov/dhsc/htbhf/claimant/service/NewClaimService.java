@@ -89,13 +89,13 @@ public class NewClaimService {
     }
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
-        VoucherEntitlement entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
-                ? entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse)
-                : null;
+        Optional<VoucherEntitlement> entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
+                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse))
+                : Optional.empty();
 
         return ClaimResult.builder()
                 .claim(claim)
-                .voucherEntitlement(Optional.ofNullable(entitlement))
+                .voucherEntitlement(entitlement)
                 .build();
     }
 }
