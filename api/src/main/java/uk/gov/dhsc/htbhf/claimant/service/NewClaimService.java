@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class NewClaimService {
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
     private final EntitlementCalculator entitlementCalculator;
+    private final ClaimAuditor claimAuditor;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -49,13 +51,12 @@ public class NewClaimService {
     private EligibilityResponse determineEligibility(Claimant claimant) {
         if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
             return eligibilityResponseWithStatus(EligibilityStatus.DUPLICATE);
-        } else {
-            EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-            EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
-            return eligibilityResponse.toBuilder()
-                    .eligibilityStatus(eligibilityStatus)
-                    .build();
         }
+        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+        EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
+        return eligibilityResponse.toBuilder()
+                .eligibilityStatus(eligibilityStatus)
+                .build();
     }
 
     private EligibilityResponse eligibilityResponseWithStatus(EligibilityStatus status) {
@@ -79,6 +80,7 @@ public class NewClaimService {
 
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
+        claimAuditor.auditNewClaim(claim);
         return claim;
     }
 

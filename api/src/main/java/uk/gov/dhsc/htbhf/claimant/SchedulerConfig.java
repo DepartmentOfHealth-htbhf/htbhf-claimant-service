@@ -16,9 +16,17 @@ import uk.gov.dhsc.htbhf.claimant.scheduler.CreateCardJob;
 
 import javax.sql.DataSource;
 
+/**
+ * Configuration for scheduling the creation of new cards.
+ */
 @Configuration
 public class SchedulerConfig {
 
+    /**
+     * Create a job factory that is spring context aware.
+     * @param applicationContext spring application context.
+     * @return spring aware job factory
+     */
     @Bean
     public JobFactory jobFactory(ApplicationContext applicationContext) {
         AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
@@ -26,14 +34,22 @@ public class SchedulerConfig {
         return jobFactory;
     }
 
+    /**
+     * Creates a job detail instance containing the job to create new cards.
+     * @return job detail
+     */
     @Bean
     public JobDetail createCardJobDetail() {
         return JobBuilder.newJob(CreateCardJob.class)
-                .withIdentity("Create card")
+                .withIdentity("Create new cards")
                 .storeDurably()
                 .build();
     }
 
+    /**
+     * Trigger the job every hour and run indefinitely.
+     * @return the job trigger
+     */
     @Bean
     public Trigger createCardTrigger() {
         SimpleScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
@@ -44,6 +60,12 @@ public class SchedulerConfig {
                 .build();
     }
 
+    /**
+     * Create a scheduler that uses use a database to retrieve and manage job details.
+     * @param dataSource default spring datasource used to connect to the database
+     * @param jobFactory spring aware job factory
+     * @return scheduler
+     */
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory) {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();

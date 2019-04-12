@@ -233,7 +233,6 @@ class ClaimRepositoryTest {
 
         //Then
         List<Claim> newClaims = result.collect(Collectors.toList());
-        assertThat(newClaims.size()).isEqualTo(1);
         assertThat(newClaims).containsOnly(newClaim);
     }
 }
