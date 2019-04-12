@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.dhsc.htbhf.CommonRestConfiguration;
+import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 
 /**
  * The starting point for spring boot, this class enables SpringFox for documenting the api using swagger
@@ -13,7 +14,7 @@ import uk.gov.dhsc.htbhf.CommonRestConfiguration;
  */
 @SpringBootApplication
 @EnableSwagger2
-@Import(CommonRestConfiguration.class)
+@Import({CommonRestConfiguration.class, LoggingConfiguration.class})
 @SuppressWarnings("PMD.UseUtilityClass")
 public class ClaimantServiceApplication {
 
