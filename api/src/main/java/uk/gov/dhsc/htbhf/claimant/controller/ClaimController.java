@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
@@ -31,7 +33,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ClaimController {
 
     private final NewClaimService newClaimService;
-    private final ClaimantDTOToClaimantConverter converter;
+    private final ClaimantDTOToClaimantConverter claimantConverter;
+    private final VoucherEntitlementToDTOConverter voucherConverter;
+
     private final Map<ClaimStatus, HttpStatus> statusMap = Map.of(
             ClaimStatus.NEW, HttpStatus.CREATED,
             ClaimStatus.PENDING, HttpStatus.OK,
@@ -47,20 +51,26 @@ public class ClaimController {
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResponse> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
-        Claimant claimant = converter.convert(claimDTO.getClaimant());
+        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
         ClaimResult result = newClaimService.createClaim(claimant);
 
-        return createResponseFromClaimant(result);
+        return createResponse(result);
     }
 
-    private ResponseEntity<ClaimResponse> createResponseFromClaimant(ClaimResult result) {
+    private ResponseEntity<ClaimResponse> createResponse(ClaimResult result) {
         ClaimStatus claimStatus = result.getClaim().getClaimStatus();
         HttpStatus statusCode = getHttpStatus(claimStatus);
+        VoucherEntitlementDTO entitlement = getEntitlement(result);
         ClaimResponse body = ClaimResponse.builder()
                 .claimStatus(claimStatus)
                 .eligibilityStatus(result.getClaim().getEligibilityStatus())
+                .voucherEntitlement(entitlement)
                 .build();
         return new ResponseEntity<>(body, statusCode);
+    }
+
+    private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
+        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);
     }
 
     private HttpStatus getHttpStatus(ClaimStatus claimStatus) {

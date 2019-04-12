@@ -17,4 +17,7 @@ public class ClaimResponse {
 
     @JsonProperty("claimStatus")
     private ClaimStatus claimStatus;
+
+    @JsonProperty("voucherEntitlement")
+    private VoucherEntitlementDTO voucherEntitlement;
 }

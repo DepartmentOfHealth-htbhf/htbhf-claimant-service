@@ -112,6 +112,8 @@ definitions:
         - "NO_MATCH"
         - "ERROR"
         - "DUPLICATE"
+      voucherEntitlement:
+        $ref: "#/definitions/VoucherEntitlementDTO"
     title: "ClaimResponse"
   ClaimantDTO:
     type: "object"
@@ -176,3 +178,23 @@ definitions:
       message:
         type: "string"
     title: "FieldError"
+  VoucherEntitlementDTO:
+    type: "object"
+    properties:
+      totalVoucherEntitlement:
+        type: "integer"
+        format: "int32"
+      totalVoucherValue:
+        type: "number"
+      voucherValue:
+        type: "number"
+      vouchersForChildrenBetweenOneAndFour:
+        type: "integer"
+        format: "int32"
+      vouchersForChildrenUnderOne:
+        type: "integer"
+        format: "int32"
+      vouchersForPregnancy:
+        type: "integer"
+        format: "int32"
+    title: "VoucherEntitlementDTO"

@@ -15,6 +15,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -85,10 +86,13 @@ public class NewClaimService {
     }
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
-        VoucherEntitlement entitlement = entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse);
+        VoucherEntitlement entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
+                ? entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse)
+                : null;
+
         return ClaimResult.builder()
                 .claim(claim)
-                .voucherEntitlement(entitlement)
+                .voucherEntitlement(Optional.ofNullable(entitlement))
                 .build();
     }
 }
