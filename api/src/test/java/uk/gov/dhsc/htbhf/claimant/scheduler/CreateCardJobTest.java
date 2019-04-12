@@ -1,29 +1,28 @@
 package uk.gov.dhsc.htbhf.claimant.scheduler;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class CreateCardJobTest {
 
-    @MockBean
+    @Mock
     private NewCardScheduleService newCardScheduleService;
 
-    @Autowired
+    @InjectMocks
     private CreateCardJob createCardJob;
 
     @Test
     void shouldCallService() {
         createCardJob.executeInternal(mock(JobExecutionContext.class));
 
-        // should be called when the spring context starts, and in the method call above.
-        verify(newCardScheduleService, times(2)).createNewCards();
+        verify(newCardScheduleService).createNewCards();
     }
 }
