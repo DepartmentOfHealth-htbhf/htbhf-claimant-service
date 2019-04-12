@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
 import java.util.stream.Stream;
@@ -17,14 +16,13 @@ public class NewCardScheduleService {
 
     private ClaimRepository claimRepository;
 
+    /**
+     * Print out first 10 new claims (testing purposes only).
+     */
     @Transactional
     public void createNewCards() {
         Stream<Claim> newClaims = claimRepository.getNewClaims();
-        newClaims.forEach(this::updateClaimStatusToActive);
-    }
-
-    private void updateClaimStatusToActive(Claim claim) {
-        claim.setClaimStatus(ClaimStatus.ACTIVE);
-        claimRepository.save(claim);
+        newClaims.limit(10).forEach(claim ->
+                log.trace(claim.getClaimant().toString()));
     }
 }
