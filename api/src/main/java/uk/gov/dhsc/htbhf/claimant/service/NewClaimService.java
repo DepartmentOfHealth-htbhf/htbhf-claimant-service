@@ -67,22 +67,25 @@ public class NewClaimService {
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-        ClaimStatus claimStatus = STATUS_MAP.get(eligibilityStatus);
-        Claim claim = Claim.builder()
-                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
-                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
-                .eligibilityStatus(eligibilityStatus)
-                .eligibilityStatusTimestamp(LocalDateTime.now())
-                .claimStatus(claimStatus)
-                .claimStatusTimestamp(LocalDateTime.now())
-                .claimant(claimant)
-                .build();
-
+        Claim claim = buildClaim(claimant, eligibilityResponse);
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         claimAuditor.auditNewClaim(claim);
         return claim;
+    }
+
+    private Claim buildClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
+        ClaimStatus claimStatus = STATUS_MAP.get(eligibilityResponse.getEligibilityStatus());
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        return Claim.builder()
+                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
+                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
+                .eligibilityStatus(eligibilityResponse.getEligibilityStatus())
+                .eligibilityStatusTimestamp(currentDateTime)
+                .claimStatus(claimStatus)
+                .claimStatusTimestamp(currentDateTime)
+                .claimant(claimant)
+                .build();
     }
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {

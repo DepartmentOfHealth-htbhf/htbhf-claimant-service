@@ -15,7 +15,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
@@ -31,8 +31,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithClaimStatusAndNoVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
@@ -71,13 +71,13 @@ class ClaimControllerTest {
         given(newClaimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithClaimStatus(claimStatus);
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatus(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
-        assertThat(response.getBody()).isEqualTo(claimResponse);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
         verify(newClaimService).createClaim(claimant);
         verify(claimantConverter).convert(dto.getClaimant());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
@@ -98,13 +98,13 @@ class ClaimControllerTest {
         given(newClaimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithClaimStatusAndNoVoucherEntitlement(claimStatus);
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
-        assertThat(response.getBody()).isEqualTo(claimResponse);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
         verify(newClaimService).createClaim(claimant);
         verify(claimantConverter).convert(dto.getClaimant());
         verifyZeroInteractions(entitlementConverter);
@@ -122,13 +122,13 @@ class ClaimControllerTest {
         ClaimDTO dto = aValidClaimDTO();
 
         // When
-        ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.NEW);
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.NEW);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isEqualTo(claimResponse);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
         verify(newClaimService).createClaim(claimant);
         verify(mockStatusMap).get(ClaimStatus.NEW);
         verify(claimantConverter).convert(dto.getClaimant());

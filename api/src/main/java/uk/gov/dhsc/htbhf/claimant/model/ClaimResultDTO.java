@@ -10,7 +10,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 @Data
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
-public class ClaimResponse {
+public class ClaimResultDTO {
 
     @JsonProperty("eligibilityStatus")
     private EligibilityStatus eligibilityStatus;

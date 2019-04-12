@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -101,7 +101,7 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse);
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
@@ -143,7 +143,7 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -166,7 +166,7 @@ class ClaimantServiceIntegrationTests {
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -190,7 +190,7 @@ class ClaimantServiceIntegrationTests {
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -303,7 +303,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);
     }
 
-    private void assertDuplicateResponse(ResponseEntity<ClaimResponse> response) {
+    private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);

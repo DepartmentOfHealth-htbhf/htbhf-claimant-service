@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
@@ -49,7 +49,7 @@ public class ClaimController {
     @PostMapping
     @ApiOperation("Persist a new claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResponse> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
+    public ResponseEntity<ClaimResultDTO> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -57,11 +57,11 @@ public class ClaimController {
         return createResponse(result);
     }
 
-    private ResponseEntity<ClaimResponse> createResponse(ClaimResult result) {
+    private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {
         ClaimStatus claimStatus = result.getClaim().getClaimStatus();
         HttpStatus statusCode = getHttpStatus(claimStatus);
         VoucherEntitlementDTO entitlement = getEntitlement(result);
-        ClaimResponse body = ClaimResponse.builder()
+        ClaimResultDTO body = ClaimResultDTO.builder()
                 .claimStatus(claimStatus)
                 .eligibilityStatus(result.getClaim().getEligibilityStatus())
                 .voucherEntitlement(entitlement)
