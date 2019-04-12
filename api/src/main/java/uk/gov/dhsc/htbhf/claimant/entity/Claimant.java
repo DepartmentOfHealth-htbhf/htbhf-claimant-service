@@ -1,13 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -59,21 +52,6 @@ public class Claimant {
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address cardDeliveryAddress;
-
-    // TODO: MGS remove statuses
-    @Column(name = "eligibility_status")
-    @Enumerated(EnumType.STRING)
-    private EligibilityStatus eligibilityStatus;
-
-    @Column(name = "claim_status")
-    @Enumerated(EnumType.STRING)
-    private ClaimStatus claimStatus;
-
-    @Column(name = "dwp_household_identifier")
-    private String dwpHouseholdIdentifier;
-
-    @Column(name = "hmrc_household_identifier")
-    private String hmrcHouseholdIdentifier;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial

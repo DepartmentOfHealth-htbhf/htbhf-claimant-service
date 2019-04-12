@@ -2,8 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
@@ -16,22 +14,12 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_NINO = "EB123456C";
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
-    private static final String DWP_HOUSEHOLD_IDENTIFIER = "dwpHousehold1";
-    private static final String HMRC_HOUSEHOLD_IDENTIFIER = "hmrcHousehold1";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
     private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
 
 
     public static Claimant aValidClaimant() {
         return aValidClaimantBuilder().build();
-    }
-
-    public static Claimant aClaimantWithoutEligibilityStatus() {
-        return aValidClaimantBuilder().eligibilityStatus(null).build();
-    }
-
-    public static Claimant aValidClaimantWithClaimStatus(ClaimStatus claimStatus) {
-        return aValidClaimantBuilder().claimStatus(claimStatus).build();
     }
 
     public static Claimant aClaimantWithLastName(String lastName) {
@@ -68,11 +56,7 @@ public final class ClaimantTestDataFactory {
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
-                .cardDeliveryAddress(VALID_ADDRESS)
-                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .claimStatus(ClaimStatus.ACTIVE)
-                .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
-                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
+                .cardDeliveryAddress(VALID_ADDRESS);
     }
 
     public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {
