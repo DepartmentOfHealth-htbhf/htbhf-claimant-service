@@ -14,7 +14,7 @@ import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
  */
 @SpringBootApplication
 @EnableSwagger2
-@Import({CommonRestConfiguration.class, LoggingConfiguration.class})
+@Import({ CommonRestConfiguration.class, SchedulerConfig.class, LoggingConfiguration.class })
 @SuppressWarnings("PMD.UseUtilityClass")
 public class ClaimantServiceApplication {
 
