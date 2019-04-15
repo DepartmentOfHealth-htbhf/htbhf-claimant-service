@@ -5,6 +5,8 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NUMBER_OF_CHILDREN_UNDER_FOUR;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NUMBER_OF_CHILDREN_UNDER_ONE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 public class EligibilityResponseTestDataFactory {
@@ -14,11 +16,7 @@ public class EligibilityResponseTestDataFactory {
     }
 
     public static EligibilityResponse anEligibilityResponseWithStatus(EligibilityStatus eligibilityStatus) {
-        return EligibilityResponse.builder()
-                .eligibilityStatus(eligibilityStatus)
-                .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
-                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
-                .build();
+        return aValidEligibilityResponseBuilder().eligibilityStatus(eligibilityStatus).build();
     }
 
     public static EligibilityResponse anEligibilityResponseWithStatusOnly(EligibilityStatus eligibilityStatus) {
@@ -39,7 +37,9 @@ public class EligibilityResponseTestDataFactory {
         return EligibilityResponse.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
-                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
+                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
+                .numberOfChildrenUnderOne(NUMBER_OF_CHILDREN_UNDER_ONE)
+                .numberOfChildrenUnderFour(NUMBER_OF_CHILDREN_UNDER_FOUR);
     }
 
 }

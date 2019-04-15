@@ -11,24 +11,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResponseTestDataFactory.aClaimResponseWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,69 +45,99 @@ class ClaimControllerTest {
     NewClaimService newClaimService;
 
     @Mock
-    ClaimantDTOToClaimantConverter converter;
+    ClaimantDTOToClaimantConverter claimantConverter;
 
+    @Mock
+    VoucherEntitlementToDTOConverter entitlementConverter;
 
     @InjectMocks
     ClaimController controller;
 
     @ParameterizedTest
     @CsvSource({
-            "REJECTED, OK",
             "NEW, CREATED",
             "PENDING, OK",
             "ACTIVE, OK",
-            "PENDING_EXPIRY, OK",
-            "EXPIRED, OK",
-            "ERROR, INTERNAL_SERVER_ERROR"
+            "PENDING_EXPIRY, OK"
     })
-    void shouldInvokeClaimServiceWithConvertedClaim(ClaimStatus claimStatus, HttpStatus httpStatus) {
+    void shouldInvokeClaimServiceWithConvertedClaimWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantBuilder().build();
-        given(converter.convert(any())).willReturn(claimant);
-        given(newClaimService.createClaim(any())).willReturn(aClaimResultWithClaimStatus(claimStatus));
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
+        VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
+        given(newClaimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithClaimStatus(claimStatus);
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatus(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
-        assertThat(response.getBody()).isEqualTo(claimResponse);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
         verify(newClaimService).createClaim(claimant);
-        verify(converter).convert(dto.getClaimant());
+        verify(claimantConverter).convert(dto.getClaimant());
+        verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "REJECTED, OK",
+            "EXPIRED, OK",
+            "ERROR, INTERNAL_SERVER_ERROR"
+    })
+    void shouldInvokeClaimServiceWithConvertedClaimWithoutVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
+        // Given
+        ClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimantBuilder().build();
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(newClaimService.createClaim(any())).willReturn(claimResult);
+
+        // When
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
+
+        // Then
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
+        verify(newClaimService).createClaim(claimant);
+        verify(claimantConverter).convert(dto.getClaimant());
+        verifyZeroInteractions(entitlementConverter);
     }
 
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
-        given(newClaimService.createClaim(any())).willReturn(aClaimResultWithClaimStatus(ClaimStatus.NEW));
+        given(newClaimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.NEW, Optional.empty()));
         Claimant claimant = aValidClaimantBuilder().build();
-        given(converter.convert(any())).willReturn(claimant);
+        given(claimantConverter.convert(any())).willReturn(claimant);
         Map mockStatusMap = mock(Map.class);
         ReflectionTestUtils.setField(controller, "statusMap", mockStatusMap);
         given(mockStatusMap.get(ClaimStatus.NEW)).willReturn(null);
         ClaimDTO dto = aValidClaimDTO();
 
         // When
-        ResponseEntity<ClaimResponse> response = controller.newClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
 
         // Then
-        ClaimResponse claimResponse = aClaimResponseWithClaimStatus(ClaimStatus.NEW);
+        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.NEW);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isEqualTo(claimResponse);
+        assertThat(response.getBody()).isEqualTo(claimResultDTO);
         verify(newClaimService).createClaim(claimant);
         verify(mockStatusMap).get(ClaimStatus.NEW);
-        verify(converter).convert(dto.getClaimant());
+        verify(claimantConverter).convert(dto.getClaimant());
     }
 
-    private ClaimResult aClaimResultWithClaimStatus(ClaimStatus claimStatus) {
+    private ClaimResult aClaimResult(ClaimStatus claimStatus, Optional<VoucherEntitlement> voucherEntitlement) {
         return ClaimResult.builder()
                 .claim(aClaimWithClaimStatus(claimStatus))
-                .voucherEntitlement(aValidVoucherEntitlement())
+                .voucherEntitlement(voucherEntitlement)
                 .build();
     }
 }
