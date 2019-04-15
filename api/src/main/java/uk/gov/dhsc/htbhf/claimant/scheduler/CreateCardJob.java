@@ -7,6 +7,11 @@ import org.quartz.JobExecutionContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
 
+/**
+ * Job that calls the {@link NewCardScheduleService} to create new cards on a scheduled basis.
+ * Concurrent execution is disabled so only one instance of this job will run at any time. This is needed
+ * to prevent multiple jobs trying to update the same data and potentially create more than one card per claim.
+ */
 @Slf4j
 @Component
 @AllArgsConstructor

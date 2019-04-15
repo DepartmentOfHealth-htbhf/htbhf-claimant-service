@@ -23,6 +23,6 @@ public class NewCardScheduleService {
     public void createNewCards() {
         Stream<Claim> newClaims = claimRepository.getNewClaims();
         newClaims.limit(10).forEach(claim ->
-                log.trace(claim.getClaimant().toString()));
+                log.trace(claim.getClaimant().getId().toString()));
     }
 }
