@@ -6,9 +6,15 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+
+import java.util.stream.Stream;
 
 /**
- * Job that calls the {@link NewCardScheduleService} to create new cards on a scheduled basis.
+ * Job that calls the {@link NewCardService} to create new cards on a scheduled basis.
  * Concurrent execution is disabled so only one instance of this job will run at any time. This is needed
  * to prevent multiple jobs trying to update the same data and potentially create more than one card per claim.
  */
@@ -18,12 +24,15 @@ import org.springframework.stereotype.Component;
 @DisallowConcurrentExecution
 public class CreateCardJob extends QuartzJobBean {
 
-    private NewCardScheduleService newCardScheduleService;
+    private NewCardService newCardService;
+    private ClaimRepository claimRepository;
 
     @Override
+    @Transactional
     protected void executeInternal(JobExecutionContext context) {
         log.info("Starting create card job with id {}", context.getFireInstanceId());
 
-        newCardScheduleService.createNewCards();
+        Stream<Claim> newClaims = claimRepository.getNewClaims();
+        newClaims.forEach(claim -> newCardService.createNewCard(claim));
     }
 }
