@@ -12,8 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.UUID;
 import javax.validation.ConstraintViolationException;
 
 import static com.google.common.collect.Iterables.size;
@@ -222,17 +221,16 @@ class ClaimRepositoryTest {
 
     @Test
     @Transactional
-    void shouldReturnNewClaims() {
+    void shouldReturnNewClaimsIds() {
         //Given
         Claim newClaim = aClaimWithClaimStatus(ClaimStatus.NEW);
         Claim pendingClaim = aClaimWithClaimStatus(ClaimStatus.PENDING);
         claimRepository.saveAll(Arrays.asList(newClaim, pendingClaim));
 
         //When
-        Stream<Claim> result = claimRepository.getNewClaims();
+        List<UUID> result = claimRepository.getNewClaimIds();
 
         //Then
-        List<Claim> newClaims = result.collect(Collectors.toList());
-        assertThat(newClaims).containsOnly(newClaim);
+        assertThat(result).containsOnly(newClaim.getId());
     }
 }

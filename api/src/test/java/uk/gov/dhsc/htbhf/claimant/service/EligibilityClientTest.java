@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,6 +37,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.NO_MATCH;
 class EligibilityClientTest {
 
     @MockBean
+    @Qualifier("restTemplateWithIdHeaders")
     private RestTemplate restTemplateWithIdHeaders;
     @MockBean
     private ClaimantToPersonDTOConverter claimantToPersonDTOConverter;

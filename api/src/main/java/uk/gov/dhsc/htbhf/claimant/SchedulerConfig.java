@@ -12,8 +12,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.scheduler.AutowiringSpringBeanJobFactory;
 import uk.gov.dhsc.htbhf.claimant.scheduler.CreateCardJob;
+import uk.gov.dhsc.htbhf.claimant.scheduler.SchedulerHeaderInterceptor;
 
 import javax.sql.DataSource;
 
@@ -78,4 +80,17 @@ public class SchedulerConfig {
         factory.setConfigLocation(new ClassPathResource("quartz.properties"));
         return factory;
     }
+
+    /**
+     * Creates a rest template which is outside the scope of web requests. Required as
+     * quartz jobs are not web request scoped.
+     * @return the rest template
+     */
+    @Bean(name = "schedulerRestTemplate")
+    public RestTemplate schedulerRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getInterceptors().add(new SchedulerHeaderInterceptor());
+        return restTemplate;
+    }
+
 }
