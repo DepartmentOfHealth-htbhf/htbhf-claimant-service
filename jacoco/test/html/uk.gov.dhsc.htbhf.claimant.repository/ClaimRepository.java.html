@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * JPA repository for the Claim table.
@@ -31,16 +32,19 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt; {
             + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
     Long countLiveClaimsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
 
+    @Query(&quot;SELECT claim FROM Claim claim where claim.claimStatus = 'NEW'&quot;)
+    Stream&lt;Claim&gt; getNewClaims();
+
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L35" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForNino(String nino) {
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimsWithNino(nino) != 0;</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        return countLiveClaimsWithNino(nino) != 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

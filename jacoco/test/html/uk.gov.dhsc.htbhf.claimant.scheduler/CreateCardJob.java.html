@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreateCardJob.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.scheduler</a> &gt; <span class="el_source">CreateCardJob.java</span></div><h1>CreateCardJob.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.scheduler;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.JobExecutionContext;
+import org.springframework.scheduling.quartz.QuartzJobBean;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+
+/**
+ * Job that calls the {@link NewCardService} to create new cards on a scheduled basis.
+ * Concurrent execution is disabled so only one instance of this job will run at any time. This is needed
+ * to prevent multiple jobs trying to update the same data and potentially create more than one card per claim.
+ */
+<span class="fc" id="L16">@Slf4j</span>
+@Component
+@AllArgsConstructor
+@DisallowConcurrentExecution
+public class CreateCardJob extends QuartzJobBean {
+
+    private NewCardService newCardService;
+
+    @Override
+    protected void executeInternal(JobExecutionContext context) {
+<span class="fc" id="L26">        log.info(&quot;Starting create card job with id {}&quot;, context.getFireInstanceId());</span>
+
+<span class="fc" id="L28">        newCardService.createNewCards();</span>
+<span class="fc" id="L29">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
