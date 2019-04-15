@@ -6,6 +6,7 @@ import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.spi.JobFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,13 +48,14 @@ public class SchedulerConfig {
     }
 
     /**
-     * Trigger the job every hour and run indefinitely (first run is one hour after start up).
+     * Trigger the job every number of hours (value in configuration) and run indefinitely (first run is number of hours after start up).
+     * @param interviewInHours Number of hours to wait between every trigger. First run will be this many hours after startup.
      * @return the job trigger
      */
     @Bean
-    public Trigger createCardTrigger() {
+    public Trigger createCardTrigger(@Value("${card.new-card-interval-in-hours}") Integer interviewInHours) {
         SimpleScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
-                .withIntervalInSeconds(10).repeatForever();
+                .withIntervalInHours(interviewInHours).repeatForever();
 
         return TriggerBuilder.newTrigger().forJob(createCardJobDetail())
                 .withSchedule(scheduleBuilder)
@@ -67,10 +69,10 @@ public class SchedulerConfig {
      * @return scheduler
      */
     @Bean
-    public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory) {
+    public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory, Trigger trigger) {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
         factory.setJobDetails(createCardJobDetail());
-        factory.setTriggers(createCardTrigger());
+        factory.setTriggers(trigger);
         factory.setDataSource(dataSource);
         factory.setJobFactory(jobFactory);
         factory.setConfigLocation(new ClassPathResource("quartz.properties"));
