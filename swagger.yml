@@ -37,7 +37,7 @@ paths:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/ClaimResponse"
+            $ref: "#/definitions/ClaimResultDTO"
         201:
           description: "Created"
         400:
@@ -90,7 +90,7 @@ definitions:
     title: "ClaimDTO"
     description: "A claim (application) for help to buy healthy foods. Contains all\
       \ details that need to be persisted as part of the application."
-  ClaimResponse:
+  ClaimResultDTO:
     type: "object"
     properties:
       claimStatus:
@@ -112,7 +112,9 @@ definitions:
         - "NO_MATCH"
         - "ERROR"
         - "DUPLICATE"
-    title: "ClaimResponse"
+      voucherEntitlement:
+        $ref: "#/definitions/VoucherEntitlementDTO"
+    title: "ClaimResultDTO"
   ClaimantDTO:
     type: "object"
     properties:
@@ -176,3 +178,23 @@ definitions:
       message:
         type: "string"
     title: "FieldError"
+  VoucherEntitlementDTO:
+    type: "object"
+    properties:
+      totalVoucherEntitlement:
+        type: "integer"
+        format: "int32"
+      totalVoucherValue:
+        type: "number"
+      voucherValue:
+        type: "number"
+      vouchersForChildrenBetweenOneAndFour:
+        type: "integer"
+        format: "int32"
+      vouchersForChildrenUnderOne:
+        type: "integer"
+        format: "int32"
+      vouchersForPregnancy:
+        type: "integer"
+        format: "int32"
+    title: "VoucherEntitlementDTO"

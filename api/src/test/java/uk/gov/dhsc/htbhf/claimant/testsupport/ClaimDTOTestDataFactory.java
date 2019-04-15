@@ -48,7 +48,8 @@ public final class ClaimDTOTestDataFactory {
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
-                .cardDeliveryAddress(aValidAddressBuilder().build());
+                .cardDeliveryAddress(aValidAddressBuilder().build())
+                .expectedDeliveryDate(now().plusMonths(1));
     }
 
     private static AddressDTO.AddressDTOBuilder aValidAddressBuilder() {

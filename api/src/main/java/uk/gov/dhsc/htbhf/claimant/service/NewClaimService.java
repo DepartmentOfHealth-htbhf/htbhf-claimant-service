@@ -15,6 +15,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -66,26 +67,32 @@ public class NewClaimService {
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-        ClaimStatus claimStatus = STATUS_MAP.get(eligibilityStatus);
-        Claim claim = Claim.builder()
-                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
-                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
-                .eligibilityStatus(eligibilityStatus)
-                .eligibilityStatusTimestamp(LocalDateTime.now())
-                .claimStatus(claimStatus)
-                .claimStatusTimestamp(LocalDateTime.now())
-                .claimant(claimant)
-                .build();
-
+        Claim claim = buildClaim(claimant, eligibilityResponse);
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         claimAuditor.auditNewClaim(claim);
         return claim;
     }
 
+    private Claim buildClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
+        ClaimStatus claimStatus = STATUS_MAP.get(eligibilityResponse.getEligibilityStatus());
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        return Claim.builder()
+                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
+                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
+                .eligibilityStatus(eligibilityResponse.getEligibilityStatus())
+                .eligibilityStatusTimestamp(currentDateTime)
+                .claimStatus(claimStatus)
+                .claimStatusTimestamp(currentDateTime)
+                .claimant(claimant)
+                .build();
+    }
+
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
-        VoucherEntitlement entitlement = entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse);
+        Optional<VoucherEntitlement> entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
+                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse))
+                : Optional.empty();
+
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(entitlement)

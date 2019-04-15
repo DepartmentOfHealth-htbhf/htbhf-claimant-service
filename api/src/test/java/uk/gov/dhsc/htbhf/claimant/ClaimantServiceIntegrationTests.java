@@ -21,7 +21,8 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponse;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -56,6 +57,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
@@ -99,9 +101,12 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse);
         //When
-        ResponseEntity<Void> response = restTemplate.exchange(buildRequestEntity(claim), Void.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
+        assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
         assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
@@ -138,11 +143,10 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        assertDuplicateResponse(response);
     }
 
     @Test
@@ -162,11 +166,10 @@ class ClaimantServiceIntegrationTests {
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        assertDuplicateResponse(response);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -187,11 +190,10 @@ class ClaimantServiceIntegrationTests {
         given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
 
         //When
-        ResponseEntity<ClaimResponse> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResponse.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        assertDuplicateResponse(response);
         verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
@@ -299,6 +301,13 @@ class ClaimantServiceIntegrationTests {
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(dwpHouseholdIdentifier);
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);
+    }
+
+    private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
+        assertThat(response.getBody().getVoucherEntitlement()).isNull();
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException, JSONException {
