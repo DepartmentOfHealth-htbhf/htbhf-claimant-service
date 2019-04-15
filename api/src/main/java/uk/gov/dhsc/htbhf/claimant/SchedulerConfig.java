@@ -47,13 +47,13 @@ public class SchedulerConfig {
     }
 
     /**
-     * Trigger the job every hour and run indefinitely.
+     * Trigger the job every hour and run indefinitely (first run is one hour after start up).
      * @return the job trigger
      */
     @Bean
     public Trigger createCardTrigger() {
         SimpleScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
-                .withIntervalInHours(1).repeatForever();
+                .withIntervalInSeconds(10).repeatForever();
 
         return TriggerBuilder.newTrigger().forJob(createCardJobDetail())
                 .withSchedule(scheduleBuilder)
