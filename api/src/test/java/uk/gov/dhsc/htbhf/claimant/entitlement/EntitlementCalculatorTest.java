@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +17,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 @ExtendWith(MockitoExtension.class)
 class EntitlementCalculatorTest {
@@ -25,12 +25,11 @@ class EntitlementCalculatorTest {
     private static final int VOUCHERS_FOR_CHILDREN_UNDER_ONE = 4;
     private static final int VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR = 3;
     private static final int VOUCHERS_FOR_PREGNANCY = 2;
-    private static final BigDecimal VOUCHER_VALUE = new BigDecimal("3.10");
 
     @Mock
     PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
 
-    EntitlementCalculator entitlementCalculator;
+    private EntitlementCalculator entitlementCalculator;
 
 
     @BeforeEach
@@ -40,7 +39,7 @@ class EntitlementCalculatorTest {
                 VOUCHERS_FOR_CHILDREN_UNDER_ONE,
                 VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR,
                 VOUCHERS_FOR_PREGNANCY,
-                VOUCHER_VALUE
+                VOUCHER_VALUE_IN_PENCE
         );
     }
 
@@ -55,7 +54,7 @@ class EntitlementCalculatorTest {
                 .vouchersForPregnancy(2)
                 .vouchersForChildrenUnderOne(4)
                 .vouchersForChildrenBetweenOneAndFour(3)
-                .voucherValue(VOUCHER_VALUE)
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
         LocalDate dueDate = LocalDate.now();
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(dueDate).build();
@@ -99,7 +98,7 @@ class EntitlementCalculatorTest {
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
-                .voucherValue(VOUCHER_VALUE)
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
 
         // When
@@ -122,7 +121,7 @@ class EntitlementCalculatorTest {
                 .vouchersForPregnancy(0)
                 .vouchersForChildrenUnderOne(0)
                 .vouchersForChildrenBetweenOneAndFour(6) // 3 vouchers per child aged 1-4
-                .voucherValue(VOUCHER_VALUE)
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
 

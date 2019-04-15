@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
-import java.math.BigDecimal;
-
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
  * The number of vouchers is based on:
@@ -24,21 +22,21 @@ public class EntitlementCalculator {
     private final int vouchersPerChildUnderOne;
     private final int vouchersPerChildBetweenOneAndFour;
     private final int vouchersPerPregnancy;
-    private final BigDecimal voucherValue;
+    private final int voucherValueInPence;
 
     public EntitlementCalculator(
             PregnancyEntitlementCalculator pregnancyEntitlementCalculator,
             @Value("${entitlement.number-of-vouchers-per-child-under-one}") int vouchersPerChildUnderOne,
             @Value("${entitlement.number-of-vouchers-per-child-between-one-and-four}") int vouchersPerChildBetweenOneAndFour,
             @Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy,
-            @Value("${entitlement.voucher-value}") BigDecimal voucherValue
+            @Value("${entitlement.voucher-value-in-pence}") int voucherValueInPence
     ) {
 
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
         this.vouchersPerChildUnderOne = vouchersPerChildUnderOne;
         this.vouchersPerChildBetweenOneAndFour = vouchersPerChildBetweenOneAndFour;
         this.vouchersPerPregnancy = vouchersPerPregnancy;
-        this.voucherValue = voucherValue;
+        this.voucherValueInPence = voucherValueInPence;
     }
 
     public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
@@ -66,7 +64,7 @@ public class EntitlementCalculator {
                 .vouchersForPregnancy(vouchersForPregnancy)
                 .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
                 .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
-                .voucherValue(voucherValue)
+                .voucherValueInPence(voucherValueInPence)
                 .build();
     }
 
