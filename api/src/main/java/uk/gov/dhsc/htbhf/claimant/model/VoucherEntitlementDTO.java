@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 /**
  * Represents the number (and value) of vouchers a claimant is entitled to.
  */
@@ -25,10 +23,10 @@ public class VoucherEntitlementDTO {
     @JsonProperty("totalVoucherEntitlement")
     private int totalVoucherEntitlement;
 
-    @JsonProperty("voucherValue")
-    private BigDecimal voucherValue;
+    @JsonProperty("voucherValueInPence")
+    private int voucherValueInPence;
 
-    @JsonProperty("totalVoucherValue")
-    private BigDecimal totalVoucherValue;
+    @JsonProperty("totalVoucherValueInPence")
+    private int totalVoucherValueInPence;
 
 }

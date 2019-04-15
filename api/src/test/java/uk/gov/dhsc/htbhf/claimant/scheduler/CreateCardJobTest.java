@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionContext;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 
@@ -29,10 +30,11 @@ class CreateCardJobTest {
 
     @Test
     void shouldCallService() {
-        given(claimRepository.getNewClaims()).willReturn(Stream.of(aValidClaim()));
+        Claim claim = aValidClaim();
+        given(claimRepository.getNewClaims()).willReturn(Stream.of(claim));
 
         createCardJob.executeInternal(mock(JobExecutionContext.class));
 
-        verify(newCardService).createNewCard(aValidClaim());
+        verify(newCardService).createNewCard(claim);
     }
 }
