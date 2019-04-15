@@ -6,12 +6,7 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
-
-import java.util.stream.Stream;
 
 /**
  * Job that calls the {@link NewCardService} to create new cards on a scheduled basis.
@@ -25,14 +20,11 @@ import java.util.stream.Stream;
 public class CreateCardJob extends QuartzJobBean {
 
     private NewCardService newCardService;
-    private ClaimRepository claimRepository;
 
     @Override
-    @Transactional
     protected void executeInternal(JobExecutionContext context) {
         log.info("Starting create card job with id {}", context.getFireInstanceId());
 
-        Stream<Claim> newClaims = claimRepository.getNewClaims();
-        newClaims.forEach(claim -> newCardService.createNewCard(claim));
+        newCardService.createNewCards();
     }
 }

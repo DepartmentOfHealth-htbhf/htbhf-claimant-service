@@ -48,14 +48,14 @@ public class SchedulerConfig {
     }
 
     /**
-     * Trigger the job every number of hours (value in configuration) and run indefinitely (first run is number of hours after start up).
-     * @param interviewInHours Number of hours to wait between every trigger. First run will be this many hours after startup.
+     * Trigger the job every number of minutes (value in configuration) and run indefinitely (first run is number of minutes after start up).
+     * @param intervalInMinutes Number of minutes to wait between every trigger. First run will be this many minutes after startup.
      * @return the job trigger
      */
     @Bean
-    public Trigger createCardTrigger(@Value("${card.new-card-interval-in-hours}") Integer interviewInHours) {
+    public Trigger createCardTrigger(@Value("${card.new-card-interval-in-minutes}") Integer intervalInMinutes) {
         SimpleScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
-                .withIntervalInHours(interviewInHours).repeatForever();
+                .withIntervalInMinutes(intervalInMinutes).repeatForever();
 
         return TriggerBuilder.newTrigger().forJob(createCardJobDetail())
                 .withSchedule(scheduleBuilder)
