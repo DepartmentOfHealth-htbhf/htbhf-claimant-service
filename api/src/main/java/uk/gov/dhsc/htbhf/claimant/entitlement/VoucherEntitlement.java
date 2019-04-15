@@ -3,8 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 /**
  * Represents the number (and value) of vouchers a claimant is entitled to.
  */
@@ -14,22 +12,22 @@ public class VoucherEntitlement {
     private final int vouchersForChildrenBetweenOneAndFour;
     private final int vouchersForPregnancy;
     private final int totalVoucherEntitlement;
-    private final BigDecimal voucherValue;
-    private final BigDecimal totalVoucherValue;
+    private final int voucherValueInPence;
+    private final int totalVoucherValueInPence;
 
     @Builder
     public VoucherEntitlement(
             int vouchersForChildrenUnderOne,
             int vouchersForChildrenBetweenOneAndFour,
             int vouchersForPregnancy,
-            BigDecimal voucherValue
+            int voucherValueInPence
     ) {
         this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;
         this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;
         this.vouchersForPregnancy = vouchersForPregnancy;
-        this.voucherValue = voucherValue;
+        this.voucherValueInPence = voucherValueInPence;
 
         this.totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;
-        this.totalVoucherValue = new BigDecimal(totalVoucherEntitlement).multiply(voucherValue);
+        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;
     }
 }

@@ -15,8 +15,8 @@ public class VoucherEntitlementToDTOConverter {
                 .vouchersForChildrenBetweenOneAndFour(from.getVouchersForChildrenBetweenOneAndFour())
                 .vouchersForPregnancy(from.getVouchersForPregnancy())
                 .totalVoucherEntitlement(from.getTotalVoucherEntitlement())
-                .voucherValue(from.getVoucherValue())
-                .totalVoucherValue(from.getTotalVoucherValue())
+                .voucherValueInPence(from.getVoucherValueInPence())
+                .totalVoucherValueInPence(from.getTotalVoucherValueInPence())
                 .build();
     }
 }
