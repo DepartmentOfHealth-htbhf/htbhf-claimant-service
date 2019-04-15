@@ -3,8 +3,6 @@
 import lombok.Builder;
 import lombok.Data;
 
-import java.math.BigDecimal;
-
 /**
  * Represents the number (and value) of vouchers a claimant is entitled to.
  */
@@ -14,23 +12,23 @@ public class VoucherEntitlement {
     private final int vouchersForChildrenBetweenOneAndFour;
     private final int vouchersForPregnancy;
     private final int totalVoucherEntitlement;
-    private final BigDecimal voucherValue;
-    private final BigDecimal totalVoucherValue;
+    private final int voucherValueInPence;
+    private final int totalVoucherValueInPence;
 
     @Builder
     public VoucherEntitlement(
             int vouchersForChildrenUnderOne,
             int vouchersForChildrenBetweenOneAndFour,
             int vouchersForPregnancy,
-            BigDecimal voucherValue
-<span class="fc" id="L26">    ) {</span>
-<span class="fc" id="L27">        this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;</span>
-<span class="fc" id="L28">        this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;</span>
-<span class="fc" id="L29">        this.vouchersForPregnancy = vouchersForPregnancy;</span>
-<span class="fc" id="L30">        this.voucherValue = voucherValue;</span>
+            int voucherValueInPence
+<span class="fc" id="L24">    ) {</span>
+<span class="fc" id="L25">        this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;</span>
+<span class="fc" id="L26">        this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;</span>
+<span class="fc" id="L27">        this.vouchersForPregnancy = vouchersForPregnancy;</span>
+<span class="fc" id="L28">        this.voucherValueInPence = voucherValueInPence;</span>
 
-<span class="fc" id="L32">        this.totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;</span>
-<span class="fc" id="L33">        this.totalVoucherValue = new BigDecimal(totalVoucherEntitlement).multiply(voucherValue);</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L30">        this.totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;</span>
+<span class="fc" id="L31">        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;</span>
+<span class="fc" id="L32">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
