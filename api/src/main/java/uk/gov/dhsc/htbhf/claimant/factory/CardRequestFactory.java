@@ -7,6 +7,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 
+/**
+ * Creates a {@link CardRequest} instance from a given {@link Claim}.
+ */
 @Service
 @AllArgsConstructor
 public class CardRequestFactory {

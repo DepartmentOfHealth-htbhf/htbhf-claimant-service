@@ -170,11 +170,11 @@
 
 #### 0.0.30
  - 2019-01-31 - [4 commits](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/compare/v0.0.29...v0.0.30) by [David Wybourn](https://github.com/dwybourn) - published to [![Bintray](https://img.shields.io/badge/Bintray-0.0.30-green.svg)](https://bintray.com/departmentofhealth-htbhf/maven/htbhf-claimant-service/0.0.30)
- - Feature/make cardRequest address mandatory [(#52)](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/pull/52)
+ - Feature/make card address mandatory [(#52)](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/pull/52)
 
 #### 0.0.29
  - 2019-01-30 - [3 commits](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/compare/v0.0.28...v0.0.29) by [David Wybourn](https://github.com/dwybourn) - published to [![Bintray](https://img.shields.io/badge/Bintray-0.0.29-green.svg)](https://bintray.com/departmentofhealth-htbhf/maven/htbhf-claimant-service/0.0.29)
- - Feature/cardRequest delivery address [(#51)](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/pull/51)
+ - Feature/card delivery address [(#51)](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/pull/51)
 
 #### 0.0.28
  - 2019-01-30 - [5 commits](https://github.com/DepartmentOfHealth-htbhf/htbhf-claimant-service/compare/v0.0.27...v0.0.28) by [Matthew Smith](https://github.com/YetAnotherMatt) - published to [![Bintray](https://img.shields.io/badge/Bintray-0.0.28-green.svg)](https://bintray.com/departmentofhealth-htbhf/maven/htbhf-claimant-service/0.0.28)

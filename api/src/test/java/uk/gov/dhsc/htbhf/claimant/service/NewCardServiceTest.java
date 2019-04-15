@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
 import java.util.List;
@@ -39,12 +40,13 @@ class NewCardServiceTest {
     void shouldCallCardClientForEachNewClaim() {
         List<UUID> claimIds = List.of(UUID.randomUUID(), UUID.randomUUID());
         Claim claim = aValidClaim();
-        given(cardRequestFactory.createCardRequest(any())).willReturn(aValidCardRequest());
+        CardRequest cardRequest = aValidCardRequest();
+        given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
 
         newCardService.createNewCards(claimIds);
 
         verify(cardRequestFactory, times(2)).createCardRequest(claim);
-        verify(cardClient, times(2)).createNewCardRequest(any());
+        verify(cardClient, times(2)).createNewCardRequest(cardRequest);
     }
 }

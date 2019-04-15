@@ -13,7 +13,7 @@ import static uk.gov.dhsc.htbhf.requestcontext.RequestIdFilter.SESSION_ID_HEADER
 
 /**
  * Creates an http interceptor used to be used by the scheduler. The interceptor
- * creates random request and session ids and appends them to the incoming request headers.
+ * generates a request and session id and appends them to the incoming request headers.
  * This is required as {@link uk.gov.dhsc.htbhf.requestcontext.HeaderInterceptor} only works in
  * the scope of a web request.
  */
