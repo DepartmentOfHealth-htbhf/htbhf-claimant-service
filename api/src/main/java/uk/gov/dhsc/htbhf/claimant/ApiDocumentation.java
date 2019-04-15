@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,8 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import uk.gov.dhsc.htbhf.logging.EventLogger;
+import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
 
 import static java.util.Collections.emptyList;
 
@@ -34,6 +37,9 @@ public class ApiDocumentation {
 
     @Value("${vcap.application.application_id:}") // the id of the application as provided by cf
     private String applicationId;
+
+    @Autowired
+    private EventLogger eventLogger;
 
     @Bean
     public Docket apiDocket() {
@@ -62,6 +68,11 @@ public class ApiDocumentation {
 
     @EventListener(ApplicationReadyEvent.class)
     public void logAfterStartup() {
-        log.info("Application started. App version={}, app id={}, instance index={}", appVersion, applicationId, instanceIndex);
+        eventLogger.logEvent(ApplicationStartedEvent.builder()
+                .applicationId(applicationId)
+                .applicationVersion(appVersion)
+                .instanceIndex(instanceIndex)
+                .build()
+        );
     }
 }
