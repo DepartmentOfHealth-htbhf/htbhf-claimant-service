@@ -50,7 +50,6 @@ public class SchedulerConfig {
     public JobDetail createCardJobDetail() {
         return JobBuilder.newJob(CreateCardJob.class)
                 .withIdentity("Create new cards")
-                .storeDurably()
                 .build();
     }
 
