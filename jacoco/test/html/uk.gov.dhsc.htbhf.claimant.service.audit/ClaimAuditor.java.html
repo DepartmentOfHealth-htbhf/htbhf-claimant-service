@@ -4,22 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.logging.Event;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIMANT_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_STATUS;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ELIGIBILITY_STATUS;
 
 /**
  * Component responsible for auditing events around a Claim.
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L14">@Slf4j</span>
 public class ClaimAuditor {
 
     private final EventLogger eventLogger;
@@ -30,20 +22,16 @@ public class ClaimAuditor {
      * @param claim The claim to audit
      */
     public void auditNewClaim(Claim claim) {
-<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (claim == null) {</span>
-<span class="fc" id="L34">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
-<span class="fc" id="L35">            return;</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (claim == null) {</span>
+<span class="fc" id="L26">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
+<span class="fc" id="L27">            return;</span>
         }
-<span class="fc" id="L37">        Map&lt;String, Object&gt; newClaimMetadata = Map.of(</span>
-<span class="fc" id="L38">                CLAIMANT_ID.getKey(), claim.getId(),</span>
-<span class="fc" id="L39">                CLAIM_STATUS.getKey(), claim.getClaimStatus(),</span>
-<span class="fc" id="L40">                ELIGIBILITY_STATUS.getKey(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L41">        Event newClaimEvent = Event.builder()</span>
-<span class="fc" id="L42">                .eventType(ClaimEventType.NEW_CLAIM)</span>
-<span class="fc" id="L43">                .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L44">                .eventMetadata(newClaimMetadata)</span>
-<span class="fc" id="L45">                .build();</span>
-<span class="fc" id="L46">        eventLogger.logEvent(newClaimEvent);</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L29">        NewClaimEvent newClaimEvent = NewClaimEvent.builder()</span>
+<span class="fc" id="L30">                .claimantId(claim.getId())</span>
+<span class="fc" id="L31">                .claimStatus(claim.getClaimStatus())</span>
+<span class="fc" id="L32">                .eligibilityStatus(claim.getEligibilityStatus())</span>
+<span class="fc" id="L33">                .build();</span>
+<span class="fc" id="L34">        eventLogger.logEvent(newClaimEvent);</span>
+<span class="fc" id="L35">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

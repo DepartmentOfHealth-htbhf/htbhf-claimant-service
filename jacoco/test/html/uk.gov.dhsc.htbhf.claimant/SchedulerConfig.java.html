@@ -66,17 +66,18 @@ import javax.sql.DataSource;
      * Create a scheduler that uses use a database to retrieve and manage job details.
      * @param dataSource default spring datasource used to connect to the database
      * @param jobFactory spring aware job factory
+     * @param trigger the trigger to use
      * @return scheduler
      */
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, JobFactory jobFactory, Trigger trigger) {
-<span class="fc" id="L73">        SchedulerFactoryBean factory = new SchedulerFactoryBean();</span>
-<span class="fc" id="L74">        factory.setJobDetails(createCardJobDetail());</span>
-<span class="fc" id="L75">        factory.setTriggers(trigger);</span>
-<span class="fc" id="L76">        factory.setDataSource(dataSource);</span>
-<span class="fc" id="L77">        factory.setJobFactory(jobFactory);</span>
-<span class="fc" id="L78">        factory.setConfigLocation(new ClassPathResource(&quot;quartz.properties&quot;));</span>
-<span class="fc" id="L79">        return factory;</span>
+<span class="fc" id="L74">        SchedulerFactoryBean factory = new SchedulerFactoryBean();</span>
+<span class="fc" id="L75">        factory.setJobDetails(createCardJobDetail());</span>
+<span class="fc" id="L76">        factory.setTriggers(trigger);</span>
+<span class="fc" id="L77">        factory.setDataSource(dataSource);</span>
+<span class="fc" id="L78">        factory.setJobFactory(jobFactory);</span>
+<span class="fc" id="L79">        factory.setConfigLocation(new ClassPathResource(&quot;quartz.properties&quot;));</span>
+<span class="fc" id="L80">        return factory;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
