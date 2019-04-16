@@ -17,7 +17,6 @@ import static java.util.Collections.emptyList;
 
 /**
  * Definitions of SpringFox beans to generate Swagger documentation.
- * Also logs application info at startup.
  */
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class) // enable documentation of JSR-305 constraints
