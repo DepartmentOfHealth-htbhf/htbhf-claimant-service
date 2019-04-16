@@ -6,9 +6,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.validation.ConstraintViolationException;
 
 import static com.google.common.collect.Iterables.size;
@@ -213,5 +218,21 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(claimExists).isTrue();
+    }
+
+    @Test
+    @Transactional
+    void shouldReturnNewClaims() {
+        //Given
+        Claim newClaim = aClaimWithClaimStatus(ClaimStatus.NEW);
+        Claim pendingClaim = aClaimWithClaimStatus(ClaimStatus.PENDING);
+        claimRepository.saveAll(Arrays.asList(newClaim, pendingClaim));
+
+        //When
+        Stream<Claim> result = claimRepository.getNewClaims();
+
+        //Then
+        List<Claim> newClaims = result.collect(Collectors.toList());
+        assertThat(newClaims).containsOnly(newClaim);
     }
 }

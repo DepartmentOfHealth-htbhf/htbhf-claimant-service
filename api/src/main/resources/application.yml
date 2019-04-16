@@ -25,6 +25,11 @@ spring:
       default-property-inclusion: NON_NULL
     flyway:
         baseline-on-migrate: true
+    quartz:
+        job-store-type: jdbc
+        jdbc:
+            initialize-schema: never
+
 logging:
     pattern:
         console: "%d{HH:mm:ss.SSS} [%thread] [%X{session.id}][%X{request.id}] %-5level %logger{36} - %msg%n%rEx{full, org.springframework.web, org.springframework.boot, org.apache.catalina, org.apache.coyote, org.apache.tomcat, java.base}"
@@ -42,6 +47,9 @@ entitlement:
     number-of-vouchers-per-pregnancy: 1
     pregnancy-grace-period-in-days: 42
     voucher-value-in-pence: 310
+
+card:
+    new-card-interval-in-minutes: 60
 
 server:
     port: 8090
