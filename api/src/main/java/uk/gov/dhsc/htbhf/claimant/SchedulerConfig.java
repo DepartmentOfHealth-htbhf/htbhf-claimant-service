@@ -6,6 +6,7 @@ import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.spi.JobFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,8 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.scheduler.AutowiringSpringBeanJobFactory;
 import uk.gov.dhsc.htbhf.claimant.scheduler.CreateCardJob;
-import uk.gov.dhsc.htbhf.claimant.scheduler.SchedulerHeaderInterceptor;
+import uk.gov.dhsc.htbhf.requestcontext.HeaderInterceptor;
+import uk.gov.dhsc.htbhf.requestcontext.RequestContext;
 
 import javax.sql.DataSource;
 
@@ -26,6 +28,7 @@ import javax.sql.DataSource;
 public class SchedulerConfig {
 
     public static final String SCHEDULER_REST_TEMPLATE_QUALIFIER = "schedulerRestTemplate";
+    public static final String SCHEDULER_REQUEST_CONTEXT = "schedulerRequestContext";
 
     /**
      * Create a job factory that is spring context aware.
@@ -83,15 +86,20 @@ public class SchedulerConfig {
         return factory;
     }
 
+    @Bean(name = SCHEDULER_REQUEST_CONTEXT)
+    public RequestContext schedulerRequestContext() {
+        return new RequestContext();
+    }
+
     /**
      * Creates a rest template which is outside the scope of web requests. Required as
      * quartz jobs are not web request scoped.
      * @return the rest template
      */
     @Bean(name = SCHEDULER_REST_TEMPLATE_QUALIFIER)
-    public RestTemplate schedulerRestTemplate() {
+    public RestTemplate schedulerRestTemplate(@Qualifier(SCHEDULER_REQUEST_CONTEXT) RequestContext requestContext) {
         RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add(new SchedulerHeaderInterceptor());
+        restTemplate.getInterceptors().add(new HeaderInterceptor(requestContext));
         return restTemplate;
     }
 

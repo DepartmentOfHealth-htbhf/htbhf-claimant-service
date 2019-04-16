@@ -17,7 +17,6 @@ import static uk.gov.dhsc.htbhf.claimant.SchedulerConfig.SCHEDULER_REST_TEMPLATE
 /**
  * Service for interacting with the card services api.
  */
-// TODO update to mention use of job session id.
 @Service
 @Slf4j
 public class CardClient {
@@ -27,10 +26,10 @@ public class CardClient {
     private final RestTemplate restTemplate;
 
     /**
-     * Uses a non request scope rest template due to being outside the context of a request.
+     * Uses a rest template which sets the session id to the current job id.
      *
      * @param baseUri      base url of the card services api.
-     * @param restTemplate non request scope rest template
+     * @param restTemplate rest template which sets the session id to the current job id.
      */
     public CardClient(@Value("${card.base-uri}") String baseUri,
                       @Qualifier(SCHEDULER_REST_TEMPLATE_QUALIFIER) RestTemplate restTemplate) {
