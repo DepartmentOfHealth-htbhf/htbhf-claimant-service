@@ -220,6 +220,15 @@ class ClaimRepositoryTest {
     }
 
     @Test
+    void shouldReturnNoNewClaimIds() {
+        //When
+        List<UUID> result = claimRepository.getNewClaimIds();
+
+        //Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     @Transactional
     void shouldReturnNewClaimIds() {
         //Given

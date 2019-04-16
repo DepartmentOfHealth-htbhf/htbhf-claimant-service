@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -27,10 +26,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory
 class CardClientTest {
 
     @MockBean
-    @Qualifier("schedulerRestTemplate")
     private RestTemplate restTemplate;
 
-    @Value("${card.base-uri}")
+    @Value("${card.services-base-uri}")
     private String baseUri;
 
     @Autowired
@@ -43,7 +41,7 @@ class CardClientTest {
                 .willReturn(new ResponseEntity<>(cardResponse, HttpStatus.CREATED));
         CardRequest cardRequest = aValidCardRequest();
 
-        CardResponse response = cardClient.createNewCardRequest(cardRequest);
+        CardResponse response = cardClient.requestNewCard(cardRequest);
 
         verify(restTemplate).postForEntity(baseUri + "/v1/cards", cardRequest, CardResponse.class);
         assertThat(response.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
@@ -55,7 +53,7 @@ class CardClientTest {
         given(restTemplate.postForEntity(anyString(), any(), any()))
                 .willReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        CardClientException exception = catchThrowableOfType(() -> cardClient.createNewCardRequest(cardRequest), CardClientException.class);
+        CardClientException exception = catchThrowableOfType(() -> cardClient.requestNewCard(cardRequest), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when response status is not CREATED").isNotNull();
         assertThat(exception.getMessage()).isEqualTo("Response code from card service was not CREATED, received: INTERNAL_SERVER_ERROR");
@@ -68,7 +66,7 @@ class CardClientTest {
         given(restTemplate.postForEntity(anyString(), any(), any()))
                 .willThrow(new RestClientException("Test exception"));
 
-        CardClientException exception = catchThrowableOfType(() -> cardClient.createNewCardRequest(cardRequest), CardClientException.class);
+        CardClientException exception = catchThrowableOfType(() -> cardClient.requestNewCard(cardRequest), CardClientException.class);
 
         assertThat(exception).as("Should throw an Exception when post call returns error").isNotNull();
         assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards");

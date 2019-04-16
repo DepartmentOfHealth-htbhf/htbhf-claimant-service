@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +29,7 @@ public class EligibilityClient {
     private final String eligibilityUri;
 
     public EligibilityClient(@Value("${eligibility.base-uri}") String baseUri,
-                             @Qualifier("restTemplateWithIdHeaders") RestTemplate restTemplateWithIdHeaders,
+                             RestTemplate restTemplateWithIdHeaders,
                              ClaimantToPersonDTOConverter claimantToPersonDTOConverter) {
         this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;
         this.restTemplateWithIdHeaders = restTemplateWithIdHeaders;

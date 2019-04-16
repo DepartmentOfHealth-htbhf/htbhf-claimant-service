@@ -18,7 +18,7 @@ public class CardRequestFactory {
     private AddressToAddressDTOConverter addressConverter;
 
     public CardRequest createCardRequest(Claim claim) {
-        Assert.notNull(claim, "claim Claim must not be null");
+        Assert.notNull(claim, "Claim must not be null");
         AddressDTO address = addressConverter.convert(claim.getClaimant().getCardDeliveryAddress());
         return CardRequest.builder()
                 .address(address)

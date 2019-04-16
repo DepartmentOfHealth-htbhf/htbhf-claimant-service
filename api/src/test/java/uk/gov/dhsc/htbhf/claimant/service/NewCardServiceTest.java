@@ -48,7 +48,7 @@ class NewCardServiceTest {
         newCardService.createNewCards(claimId);
 
         verify(cardRequestFactory).createCardRequest(claim);
-        verify(cardClient).createNewCardRequest(cardRequest);
+        verify(cardClient).requestNewCard(cardRequest);
     }
 
     @Test
@@ -60,5 +60,6 @@ class NewCardServiceTest {
                 EntityNotFoundException.class);
 
         assertThat(exception.getMessage()).isEqualTo("Unable to find claim with id " + claimId);
+        verify(claimRepository).findById(claimId);
     }
 }

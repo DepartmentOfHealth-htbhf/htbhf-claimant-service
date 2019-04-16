@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
@@ -36,6 +37,7 @@ class CardRequestFactoryTest {
         assertThat(cardRequest.getClaimId()).isEqualTo(claim.getId().toString());
         assertThat(cardRequest.getDateOfBirth()).isEqualTo(claim.getClaimant().getDateOfBirth());
         assertThat(cardRequest.getAddress()).isEqualTo(aValidAddressDTO());
+        verify(addressConverter).convert(claim.getClaimant().getCardDeliveryAddress());
     }
 
     @Test

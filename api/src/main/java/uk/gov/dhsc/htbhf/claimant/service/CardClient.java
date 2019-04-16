@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
-
-import static uk.gov.dhsc.htbhf.claimant.SchedulerConfig.SCHEDULER_REST_TEMPLATE_QUALIFIER;
 
 /**
  * Service for interacting with the card services api.
@@ -31,13 +28,13 @@ public class CardClient {
      * @param baseUri      base url of the card services api.
      * @param restTemplate rest template which sets the session id to the current job id.
      */
-    public CardClient(@Value("${card.base-uri}") String baseUri,
-                      @Qualifier(SCHEDULER_REST_TEMPLATE_QUALIFIER) RestTemplate restTemplate) {
+    public CardClient(@Value("${card.services-base-uri}") String baseUri,
+                      RestTemplate restTemplate) {
         this.cardsUri = baseUri + CARDS_ENDPOINT;
         this.restTemplate = restTemplate;
     }
 
-    public CardResponse createNewCardRequest(CardRequest cardRequest) {
+    public CardResponse requestNewCard(CardRequest cardRequest) {
         try {
             ResponseEntity<CardResponse> response = restTemplate.postForEntity(cardsUri, cardRequest, CardResponse.class);
             if (response.getStatusCode() != HttpStatus.CREATED) {

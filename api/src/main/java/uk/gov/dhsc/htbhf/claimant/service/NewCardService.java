@@ -22,10 +22,11 @@ public class NewCardService {
     private ClaimRepository claimRepository;
 
     @Transactional
+    //TODO DJW 2019-04-16
     public void createNewCards(UUID claimId) {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
         CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
-        cardClient.createNewCardRequest(cardRequest);
+        cardClient.requestNewCard(cardRequest);
     }
 }
