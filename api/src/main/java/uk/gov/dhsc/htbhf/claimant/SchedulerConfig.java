@@ -66,6 +66,7 @@ public class SchedulerConfig {
      * Create a scheduler that uses use a database to retrieve and manage job details.
      * @param dataSource default spring datasource used to connect to the database
      * @param jobFactory spring aware job factory
+     * @param trigger the trigger to use
      * @return scheduler
      */
     @Bean
