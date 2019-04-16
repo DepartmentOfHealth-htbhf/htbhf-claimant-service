@@ -2,11 +2,9 @@ package uk.gov.dhsc.htbhf.claimant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.event.EventListener;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -19,7 +17,6 @@ import static java.util.Collections.emptyList;
 
 /**
  * Definitions of SpringFox beans to generate Swagger documentation.
- * Also logs application info at startup.
  */
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class) // enable documentation of JSR-305 constraints
@@ -28,12 +25,6 @@ public class ApiDocumentation {
 
     @Value("${app.version:}") // use APP_VERSION env variable if available, otherwise give no version info
     private String appVersion;
-
-    @Value("${instance.index:}") // use INSTANCE_INDEX env variable if available, otherwise give no index info
-    private String instanceIndex;
-
-    @Value("${vcap.application.application_id:}") // the id of the application as provided by cf
-    private String applicationId;
 
     @Bean
     public Docket apiDocket() {
@@ -58,10 +49,5 @@ public class ApiDocumentation {
                 emptyList()
         );
 
-    }
-
-    @EventListener(ApplicationReadyEvent.class)
-    public void logAfterStartup() {
-        log.info("Application started. App version={}, app id={}, instance index={}", appVersion, applicationId, instanceIndex);
     }
 }

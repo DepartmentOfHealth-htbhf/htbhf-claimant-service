@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.logging.Event;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
+import uk.gov.dhsc.htbhf.logging.event.Event;
 
 import java.util.UUID;
 
