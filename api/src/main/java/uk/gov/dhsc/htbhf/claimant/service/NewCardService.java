@@ -22,7 +22,7 @@ public class NewCardService {
     private ClaimRepository claimRepository;
 
     @Transactional
-    //TODO DJW 2019-04-16
+    //TODO DJW 2019-04-16 add event logging.
     public void createNewCards(UUID claimId) {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
