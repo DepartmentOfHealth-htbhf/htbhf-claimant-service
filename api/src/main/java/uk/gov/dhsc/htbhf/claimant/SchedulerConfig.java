@@ -25,6 +25,8 @@ import javax.sql.DataSource;
 @Configuration
 public class SchedulerConfig {
 
+    public static final String SCHEDULER_REST_TEMPLATE_QUALIFIER = "schedulerRestTemplate";
+
     /**
      * Create a job factory that is spring context aware.
      * @param applicationContext spring application context.
@@ -86,7 +88,7 @@ public class SchedulerConfig {
      * quartz jobs are not web request scoped.
      * @return the rest template
      */
-    @Bean(name = "schedulerRestTemplate")
+    @Bean(name = SCHEDULER_REST_TEMPLATE_QUALIFIER)
     public RestTemplate schedulerRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getInterceptors().add(new SchedulerHeaderInterceptor());

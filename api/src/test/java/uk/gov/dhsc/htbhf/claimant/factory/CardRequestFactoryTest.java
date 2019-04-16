@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
@@ -35,5 +36,10 @@ class CardRequestFactoryTest {
         assertThat(cardRequest.getClaimId()).isEqualTo(claim.getId().toString());
         assertThat(cardRequest.getDateOfBirth()).isEqualTo(claim.getClaimant().getDateOfBirth());
         assertThat(cardRequest.getAddress()).isEqualTo(aValidAddressDTO());
+    }
+
+    @Test
+    void shouldCreateCardRequestWhenGivenNullClaim() {
+        assertThatIllegalArgumentException().isThrownBy(() -> cardRequestFactory.createCardRequest(null));
     }
 }

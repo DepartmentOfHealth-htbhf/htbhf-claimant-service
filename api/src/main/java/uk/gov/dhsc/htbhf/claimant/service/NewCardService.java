@@ -3,11 +3,14 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
-import java.util.List;
 import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 @AllArgsConstructor
@@ -18,12 +21,11 @@ public class NewCardService {
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
 
-    public void createNewCards(List<UUID> claimIds) {
-        // TODO handle claims not found better
-        claimIds.stream()
-                .map(claimId -> claimRepository.findById(claimId).orElseThrow(RuntimeException::new))
-                .map(claim -> cardRequestFactory.createCardRequest(claim))
-                .forEach(cardRequest -> cardClient.createNewCardRequest(cardRequest));
-
+    @Transactional
+    public void createNewCards(UUID claimId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
+        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
+        cardClient.createNewCardRequest(cardRequest);
     }
 }

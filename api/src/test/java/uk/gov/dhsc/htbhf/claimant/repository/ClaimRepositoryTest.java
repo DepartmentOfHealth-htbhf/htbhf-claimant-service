@@ -221,7 +221,7 @@ class ClaimRepositoryTest {
 
     @Test
     @Transactional
-    void shouldReturnNewClaimsIds() {
+    void shouldReturnNewClaimIds() {
         //Given
         Claim newClaim = aClaimWithClaimStatus(ClaimStatus.NEW);
         Claim pendingClaim = aClaimWithClaimStatus(ClaimStatus.PENDING);

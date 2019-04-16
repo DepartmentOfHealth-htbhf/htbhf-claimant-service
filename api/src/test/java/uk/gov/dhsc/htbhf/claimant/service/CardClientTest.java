@@ -58,7 +58,7 @@ class CardClientTest {
         CardClientException exception = catchThrowableOfType(() -> cardClient.createNewCardRequest(cardRequest), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when response status is not CREATED").isNotNull();
-        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not CREATED, received: 500");
+        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not CREATED, received: INTERNAL_SERVER_ERROR");
         verify(restTemplate).postForEntity(baseUri + "/v1/cards", cardRequest, CardResponse.class);
     }
 

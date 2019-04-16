@@ -10,13 +10,14 @@ import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -37,16 +38,27 @@ class NewCardServiceTest {
     private NewCardService newCardService;
 
     @Test
-    void shouldCallCardClientForEachNewClaim() {
-        List<UUID> claimIds = List.of(UUID.randomUUID(), UUID.randomUUID());
+    void shouldCallCardClientForNewClaim() {
+        UUID claimId = UUID.randomUUID();
         Claim claim = aValidClaim();
         CardRequest cardRequest = aValidCardRequest();
-        given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
 
-        newCardService.createNewCards(claimIds);
+        newCardService.createNewCards(claimId);
 
-        verify(cardRequestFactory, times(2)).createCardRequest(claim);
-        verify(cardClient, times(2)).createNewCardRequest(cardRequest);
+        verify(cardRequestFactory).createCardRequest(claim);
+        verify(cardClient).createNewCardRequest(cardRequest);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenClaimIsNotFound() {
+        UUID claimId = UUID.randomUUID();
+        given(claimRepository.findById(any())).willReturn(Optional.empty());
+
+        EntityNotFoundException exception = catchThrowableOfType(() -> newCardService.createNewCards(claimId),
+                EntityNotFoundException.class);
+
+        assertThat(exception.getMessage()).isEqualTo("Unable to find claim with id " + claimId);
     }
 }

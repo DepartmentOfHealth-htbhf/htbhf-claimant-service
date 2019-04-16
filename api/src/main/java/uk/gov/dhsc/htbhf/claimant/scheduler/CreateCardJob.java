@@ -31,6 +31,6 @@ public class CreateCardJob extends QuartzJobBean {
         log.info("Starting create card job with id {}", context.getFireInstanceId());
 
         List<UUID> newClaimIds = claimRepository.getNewClaimIds();
-        newCardService.createNewCards(newClaimIds);
+        newClaimIds.forEach(claimId -> newCardService.createNewCards(claimId));
     }
 }

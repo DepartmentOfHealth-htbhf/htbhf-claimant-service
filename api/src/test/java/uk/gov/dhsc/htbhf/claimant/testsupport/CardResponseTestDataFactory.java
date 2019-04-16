@@ -8,7 +8,7 @@ public class CardResponseTestDataFactory {
 
     public static CardResponse aCardResponse() {
         return CardResponse.builder()
-                .cardAccountId(UUID.randomUUID().toString())
+                .cardAccountId(UUID.fromString("bc78da28-4918-45fd-95ca-8bd82979c584").toString())
                 .build();
     }
 }

@@ -12,9 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 
+import static uk.gov.dhsc.htbhf.claimant.SchedulerConfig.SCHEDULER_REST_TEMPLATE_QUALIFIER;
+
 /**
- * Service for interacting with the card services api..
+ * Service for interacting with the card services api.
  */
+// TODO update to mention use of job session id.
 @Service
 @Slf4j
 public class CardClient {
@@ -30,7 +33,7 @@ public class CardClient {
      * @param restTemplate non request scope rest template
      */
     public CardClient(@Value("${card.base-uri}") String baseUri,
-                      @Qualifier("schedulerRestTemplate") RestTemplate restTemplate) {
+                      @Qualifier(SCHEDULER_REST_TEMPLATE_QUALIFIER) RestTemplate restTemplate) {
         this.cardsUri = baseUri + CARDS_ENDPOINT;
         this.restTemplate = restTemplate;
     }
@@ -39,6 +42,8 @@ public class CardClient {
         try {
             ResponseEntity<CardResponse> response = restTemplate.postForEntity(cardsUri, cardRequest, CardResponse.class);
             if (response.getStatusCode() != HttpStatus.CREATED) {
+                log.error("Expecting a CREATED response from the card service api, instead received {} with response body {}",
+                        response.getStatusCode().name(), response.getBody());
                 throw new CardClientException(response.getStatusCode());
             }
 
