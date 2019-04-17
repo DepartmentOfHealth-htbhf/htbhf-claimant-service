@@ -22,7 +22,7 @@ import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
 @SpringBootApplication
 @EnableSwagger2
 @Configuration
-@Import({ CommonRestConfiguration.class, SchedulerConfig.class, LoggingConfiguration.class })
+@Import({ CommonRestConfiguration.class, LoggingConfiguration.class })
 public class ClaimantServiceApplication {
 
     @Value("${app.version:}") // use APP_VERSION env variable if available, otherwise give no version info
