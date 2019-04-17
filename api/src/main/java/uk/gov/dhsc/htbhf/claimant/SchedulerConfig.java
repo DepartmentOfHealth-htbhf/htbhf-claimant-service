@@ -9,9 +9,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.sql.DataSource;
 
+/**
+ * Configuration for scheduling tasks. Sets the default maximum lock time to 60 minutes.
+ * See https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm
+ * for an explanation of the ISO-8601 duration format
+ */
 @Configuration
 @EnableScheduling
-// default max lock time is required and non configurable
 @EnableSchedulerLock(defaultLockAtMostFor = "PT60M")
 public class SchedulerConfig {
 
