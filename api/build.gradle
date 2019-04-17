@@ -51,7 +51,6 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-quartz'
     implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
     implementation "org.postgresql:postgresql:${postgresJdbcVersion}"
     implementation "org.flywaydb:flyway-core:${flywayVersion}"
@@ -64,6 +63,8 @@ dependencies {
     implementation "com.google.code.findbugs:annotations:3.0.1"
     implementation "uk.gov.dhsc.htbhf:htbhf-common-rest:latest.release"
     implementation "uk.gov.dhsc.htbhf:htbhf-common-logging:latest.release"
+    implementation "net.javacrumbs.shedlock:shedlock-spring:2.4.0"
+    implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:2.4.0"
     implementation project(':htbhf-claimant-service-db')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
