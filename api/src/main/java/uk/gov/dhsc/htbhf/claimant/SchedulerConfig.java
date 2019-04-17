@@ -21,6 +21,6 @@ public class SchedulerConfig {
 
     @Bean
     public LockProvider lockProvider(DataSource dataSource) {
-        return new JdbcTemplateLockProvider(dataSource);
+        return new JdbcTemplateLockProvider(dataSource, "schedule_tasks_locks");
     }
 }
