@@ -45,8 +45,14 @@ entitlement:
     voucher-value-in-pence: 310
 
 card:
-    new-card-interval-in-minutes: 60
     services-base-uri: ${CARD_SERVICES_URI:http://localhost:8140}
+    schedule:
+        # run every 30 minutes
+        new-card-interval-cron: "* */30 * * * *"
+        # lock for a minimum of 10 minutes, maximum of 60 minutes. See https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm
+        # for an explanation of the ISO-8601 duration format
+        minimum-lock-time: "PT10M"
+        maximum-lock-time: "PT60M"
 
 server:
     port: 8090
