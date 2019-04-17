@@ -5,8 +5,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
  * JPA repository for the Claim table.
@@ -32,8 +32,8 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt; {
             + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
     Long countLiveClaimsWithHmrcHouseholdIdentifier(@Param(&quot;hmrcHouseholdIdentifier&quot;) String hmrcHouseholdIdentifier);
 
-    @Query(&quot;SELECT claim FROM Claim claim where claim.claimStatus = 'NEW'&quot;)
-    Stream&lt;Claim&gt; getNewClaims();
+    @Query(&quot;SELECT claim.id FROM Claim claim where claim.claimStatus = 'NEW'&quot;)
+    List&lt;UUID&gt; getNewClaimIds();
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
 <span class="fc bfc" id="L39" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>

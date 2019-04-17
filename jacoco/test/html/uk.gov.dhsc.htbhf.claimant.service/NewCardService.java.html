@@ -4,23 +4,30 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+
+import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L11">@Slf4j</span>
+<span class="fc" id="L17">@Slf4j</span>
 public class NewCardService {
 
+    private CardClient cardClient;
+    private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
 
-    /**
-     * Print out first 10 new claims (testing purposes only).
-     */
     @Transactional
-    public void createNewCards() {
-<span class="fc" id="L21">        claimRepository.getNewClaims().limit(10).forEach(</span>
-<span class="nc" id="L22">                claim -&gt; log.info(&quot;Creating card for new claim {}&quot;, claim.getId())</span>
-        );
-<span class="fc" id="L24">    }</span>
+    //TODO DJW 2019-04-16 add event logging.
+    public void createNewCards(UUID claimId) {
+<span class="fc" id="L27">        Claim claim = claimRepository.findById(claimId)</span>
+<span class="fc" id="L28">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+<span class="fc" id="L29">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L30">        cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L31">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
