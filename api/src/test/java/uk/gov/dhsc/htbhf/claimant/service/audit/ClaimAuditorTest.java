@@ -88,4 +88,22 @@ class ClaimAuditorTest {
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId));
 
     }
+
+    @Test
+    void shouldNotLogEventForNullClaimId() {
+        //When
+        claimAuditor.auditNewCard(null, aCardResponse());
+
+        //Then
+        verifyZeroInteractions(eventLogger);
+    }
+
+    @Test
+    void shouldNotLogEventForNullCardResponse() {
+        //When
+        claimAuditor.auditNewCard(UUID.randomUUID(), null);
+
+        //Then
+        verifyZeroInteractions(eventLogger);
+    }
 }

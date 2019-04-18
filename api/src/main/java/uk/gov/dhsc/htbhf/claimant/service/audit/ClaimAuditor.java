@@ -38,6 +38,10 @@ public class ClaimAuditor {
     }
 
     public void auditNewCard(UUID claimId, CardResponse cardResponse) {
+        if (claimId == null || cardResponse == null) {
+            log.warn("Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null", claimId, cardResponse);
+            return;
+        }
         NewCardEvent newCardEvent = NewCardEvent.builder()
                 .claimId(claimId)
                 .cardAccountId(cardResponse.getCardAccountId())
