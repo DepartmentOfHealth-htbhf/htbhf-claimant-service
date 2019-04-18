@@ -5,9 +5,10 @@ package uk.gov.dhsc.htbhf.claimant.service.audit;
  * consistency in metadata keys between different events.
  */
 public enum ClaimEventMetadataKey {
-    CLAIMANT_ID("claimantId"),
+    CLAIM_ID("claimId"),
     CLAIM_STATUS("claimStatus"),
-    ELIGIBILITY_STATUS("eligibilityStatus");
+    ELIGIBILITY_STATUS("eligibilityStatus"),
+    CARD_ACCOUNT_ID("cardAccountId");
 
     private String key;
 
