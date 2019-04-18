@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
+
+import java.util.UUID;
 
 /**
  * Component responsible for auditing events around a Claim.
@@ -27,10 +30,22 @@ public class ClaimAuditor {
             return;
         }
         NewClaimEvent newClaimEvent = NewClaimEvent.builder()
-                .claimantId(claim.getId())
+                .claimId(claim.getId())
                 .claimStatus(claim.getClaimStatus())
                 .eligibilityStatus(claim.getEligibilityStatus())
                 .build();
         eventLogger.logEvent(newClaimEvent);
+    }
+
+    public void auditNewCard(UUID claimId, CardResponse cardResponse) {
+        if (claimId == null || cardResponse == null) {
+            log.warn("Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null", claimId, cardResponse);
+            return;
+        }
+        NewCardEvent newCardEvent = NewCardEvent.builder()
+                .claimId(claimId)
+                .cardAccountId(cardResponse.getCardAccountId())
+                .build();
+        eventLogger.logEvent(newCardEvent);
     }
 }

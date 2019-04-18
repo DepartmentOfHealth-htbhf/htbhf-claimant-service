@@ -31,10 +31,7 @@ class MessageRepositoryTest {
         Iterable<Message> allMessages = messageRepository.findAll();
         //Then
         Iterator<Message> messageIterator = allMessages.iterator();
-        assertThat(messageIterator.hasNext()).isTrue();
-        Message foundMessage = messageIterator.next();
-        assertThat(foundMessage).isEqualTo(message);
-        assertThat(messageIterator.hasNext()).isFalse();
+        assertThat(messageIterator).containsOnly(message);
     }
 
     @Test
