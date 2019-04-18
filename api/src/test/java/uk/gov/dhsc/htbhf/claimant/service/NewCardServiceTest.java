@@ -45,7 +45,6 @@ class NewCardServiceTest {
 
     @Test
     void shouldCallCardClientForNewClaim() {
-        UUID claimId = UUID.randomUUID();
         Claim claim = aValidClaim();
         CardRequest cardRequest = aValidCardRequest();
         CardResponse cardResponse = aCardResponse();
@@ -53,11 +52,11 @@ class NewCardServiceTest {
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
 
-        newCardService.createNewCards(claimId);
+        newCardService.createNewCards(claim.getId());
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
-        verify(claimAuditor).auditNewCard(claimId, cardResponse);
+        verify(claimAuditor).auditNewCard(claim.getId(), cardResponse);
     }
 
     @Test
