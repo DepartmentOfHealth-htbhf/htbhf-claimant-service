@@ -4,14 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
+
+import java.util.UUID;
 
 /**
  * Component responsible for auditing events around a Claim.
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L14">@Slf4j</span>
+<span class="fc" id="L17">@Slf4j</span>
 public class ClaimAuditor {
 
     private final EventLogger eventLogger;
@@ -22,16 +25,28 @@ public class ClaimAuditor {
      * @param claim The claim to audit
      */
     public void auditNewClaim(Claim claim) {
-<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (claim == null) {</span>
-<span class="fc" id="L26">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
-<span class="fc" id="L27">            return;</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (claim == null) {</span>
+<span class="fc" id="L29">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
+<span class="fc" id="L30">            return;</span>
         }
-<span class="fc" id="L29">        NewClaimEvent newClaimEvent = NewClaimEvent.builder()</span>
-<span class="fc" id="L30">                .claimantId(claim.getId())</span>
-<span class="fc" id="L31">                .claimStatus(claim.getClaimStatus())</span>
-<span class="fc" id="L32">                .eligibilityStatus(claim.getEligibilityStatus())</span>
-<span class="fc" id="L33">                .build();</span>
-<span class="fc" id="L34">        eventLogger.logEvent(newClaimEvent);</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L32">        NewClaimEvent newClaimEvent = NewClaimEvent.builder()</span>
+<span class="fc" id="L33">                .claimId(claim.getId())</span>
+<span class="fc" id="L34">                .claimStatus(claim.getClaimStatus())</span>
+<span class="fc" id="L35">                .eligibilityStatus(claim.getEligibilityStatus())</span>
+<span class="fc" id="L36">                .build();</span>
+<span class="fc" id="L37">        eventLogger.logEvent(newClaimEvent);</span>
+<span class="fc" id="L38">    }</span>
+
+    public void auditNewCard(UUID claimId, CardResponse cardResponse) {
+<span class="fc bfc" id="L41" title="All 4 branches covered.">        if (claimId == null || cardResponse == null) {</span>
+<span class="fc" id="L42">            log.warn(&quot;Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null&quot;, claimId, cardResponse);</span>
+<span class="fc" id="L43">            return;</span>
+        }
+<span class="fc" id="L45">        NewCardEvent newCardEvent = NewCardEvent.builder()</span>
+<span class="fc" id="L46">                .claimId(claimId)</span>
+<span class="fc" id="L47">                .cardAccountId(cardResponse.getCardAccountId())</span>
+<span class="fc" id="L48">                .build();</span>
+<span class="fc" id="L49">        eventLogger.logEvent(newCardEvent);</span>
+<span class="fc" id="L50">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

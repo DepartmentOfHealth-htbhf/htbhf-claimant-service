@@ -7,27 +7,30 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L17">@Slf4j</span>
+<span class="fc" id="L19">@Slf4j</span>
 public class NewCardService {
 
     private CardClient cardClient;
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
+    private ClaimAuditor claimAuditor;
 
     @Transactional
-    //TODO DJW 2019-04-16 add event logging.
     public void createNewCards(UUID claimId) {
-<span class="fc" id="L27">        Claim claim = claimRepository.findById(claimId)</span>
-<span class="fc" id="L28">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
-<span class="fc" id="L29">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
-<span class="fc" id="L30">        cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L31">    }</span>
+<span class="fc" id="L29">        Claim claim = claimRepository.findById(claimId)</span>
+<span class="fc" id="L30">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+<span class="fc" id="L31">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L32">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L33">        claimAuditor.auditNewCard(claimId, cardResponse);</span>
+<span class="fc" id="L34">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

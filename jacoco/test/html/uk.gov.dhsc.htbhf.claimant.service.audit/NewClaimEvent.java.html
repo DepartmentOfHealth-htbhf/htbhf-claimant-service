@@ -9,24 +9,24 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIMANT_ID;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_STATUS;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ELIGIBILITY_STATUS;
 
 public class NewClaimEvent extends Event {
 
     @Builder
-    public NewClaimEvent(UUID claimantId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
+    public NewClaimEvent(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
 <span class="fc" id="L20">        super(</span>
                 ClaimEventType.NEW_CLAIM,
 <span class="fc" id="L22">                LocalDateTime.now(),</span>
-<span class="fc" id="L23">                constructMetadata(claimantId, claimStatus, eligibilityStatus)</span>
+<span class="fc" id="L23">                constructMetadata(claimId, claimStatus, eligibilityStatus)</span>
         );
 <span class="fc" id="L25">    }</span>
 
-    private static Map&lt;String, Object&gt; constructMetadata(UUID claimantId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
+    private static Map&lt;String, Object&gt; constructMetadata(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
 <span class="fc" id="L28">        return Map.of(</span>
-<span class="fc" id="L29">                CLAIMANT_ID.getKey(), claimantId,</span>
+<span class="fc" id="L29">                CLAIM_ID.getKey(), claimId,</span>
 <span class="fc" id="L30">                CLAIM_STATUS.getKey(), claimStatus,</span>
 <span class="fc" id="L31">                ELIGIBILITY_STATUS.getKey(), eligibilityStatus</span>
         );
