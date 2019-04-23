@@ -25,7 +25,7 @@ public class NewCardService {
     private ClaimAuditor claimAuditor;
 
     @Transactional
-    public void createNewCards(UUID claimId) {
+    public void createNewCard(UUID claimId) {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
         CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
