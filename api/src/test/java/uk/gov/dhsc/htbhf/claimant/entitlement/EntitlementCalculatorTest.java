@@ -6,17 +6,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.aValidEligibilityResponseBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.createChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,9 +61,9 @@ class EntitlementCalculatorTest {
                 .build();
         LocalDate dueDate = LocalDate.now();
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(dueDate).build();
+        List<ChildDTO> children = createChildren(numberOfChildrenUnderOne, numberOfChildrenUnderFour);
         EligibilityResponse response = aValidEligibilityResponseBuilder()
-                .numberOfChildrenUnderOne(numberOfChildrenUnderOne)
-                .numberOfChildrenUnderFour(numberOfChildrenUnderFour)
+                .children(children)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(isPregnant);
 
@@ -73,28 +76,11 @@ class EntitlementCalculatorTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenNumberOfChildrenUnderOneIsGreaterThanNumberOfChildrenUnderFour() {
-        // Given
-        Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build();
-        EligibilityResponse response = aValidEligibilityResponseBuilder()
-                .numberOfChildrenUnderOne(6)
-                .numberOfChildrenUnderFour(2)
-                .build();
-
-        // When
-        RuntimeException thrown = catchThrowableOfType(() -> entitlementCalculator.calculateVoucherEntitlement(claimant, response), RuntimeException.class);
-
-        // Then
-        assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void shouldReturnZeroVouchersWhenNumberOfChildrenIsNull() {
+    void shouldReturnZeroVouchersWhenThereAreNoChildren() {
         // Given
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
         EligibilityResponse response = aValidEligibilityResponseBuilder()
-                .numberOfChildrenUnderOne(null)
-                .numberOfChildrenUnderFour(null)
+                .children(emptyList())
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
@@ -110,20 +96,16 @@ class EntitlementCalculatorTest {
     }
 
     @Test
-    void shouldReturnCorrectVouchersWhenNumberOfChildrenUnderOneIsNull() {
+    void shouldReturnZeroVouchersWhenChildrenAreNull() {
         // Given
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
         EligibilityResponse response = aValidEligibilityResponseBuilder()
-                .numberOfChildrenUnderOne(null)
-                .numberOfChildrenUnderFour(2)
-                .build();
-        VoucherEntitlement expected = VoucherEntitlement.builder()
-                .vouchersForPregnancy(0)
-                .vouchersForChildrenUnderOne(0)
-                .vouchersForChildrenBetweenOneAndFour(6) // 3 vouchers per child aged 1-4
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .children(null)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .build();
 
         // When
         VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, response);
@@ -132,5 +114,4 @@ class EntitlementCalculatorTest {
         assertThat(result).isEqualTo(expected);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
     }
-
 }
