@@ -28,6 +28,6 @@ public class CreateCardJob {
         log.info("Starting scheduled job to create new cards");
 
         List<UUID> claimIds = claimRepository.getNewClaimIds();
-        claimIds.forEach(newCardService::createNewCards);
+        claimIds.forEach(newCardService::createNewCard);
     }
 }
