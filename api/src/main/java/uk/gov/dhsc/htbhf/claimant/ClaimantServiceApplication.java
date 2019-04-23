@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.dhsc.htbhf.CommonRestConfiguration;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessorConfiguration;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
@@ -22,7 +23,7 @@ import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
 @SpringBootApplication
 @EnableSwagger2
 @Configuration
-@Import({ CommonRestConfiguration.class, LoggingConfiguration.class })
+@Import({CommonRestConfiguration.class, LoggingConfiguration.class, MessageProcessorConfiguration.class})
 public class ClaimantServiceApplication {
 
     @Value("${app.version:}") // use APP_VERSION env variable if available, otherwise give no version info
