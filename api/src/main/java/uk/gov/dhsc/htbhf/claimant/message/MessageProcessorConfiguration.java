@@ -18,17 +18,17 @@ import static java.util.Collections.emptyMap;
 public class MessageProcessorConfiguration {
 
     @Bean
-    public MessageProcessor messageProcessor(List<MessageTypeProcessor> allMessageProcessors, MessageRepository messageRepository) {
-        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(allMessageProcessors));
+    public MessageProcessor messageProcessor(List<MessageTypeProcessor> messageProcessors, MessageRepository messageRepository) {
+        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors));
     }
 
-    private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> allMessageProcessors) {
-        if (CollectionUtils.isEmpty(allMessageProcessors)) {
+    private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> messageProcessors) {
+        if (CollectionUtils.isEmpty(messageProcessors)) {
             //TODO MRS 2019-04-23: When we have the first MessageTypeProcessor, change this check to throw an Exception, application should fail to startup
             log.warn("No MessageTypeProcessors found in application context, we currently have no support for any types of messages");
             return emptyMap();
         }
-        Map<MessageType, MessageTypeProcessor> messageProcessorsByType = allMessageProcessors
+        Map<MessageType, MessageTypeProcessor> messageProcessorsByType = messageProcessors
                 .stream()
                 .collect(Collectors.toMap(MessageTypeProcessor::supportsMessageType, messageTypeProcessor -> messageTypeProcessor));
         warnForMissingProcessorType(messageProcessorsByType);
