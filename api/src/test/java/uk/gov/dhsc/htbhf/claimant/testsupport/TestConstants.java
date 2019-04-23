@@ -20,4 +20,7 @@ public class TestConstants {
     public static final LocalDate JAMES_DATE_OF_BIRTH = LocalDate.parse("1985-12-31");
     public static final String JAMES_FIRST_NAME = "James";
     public static final String JAMES_LAST_NAME = "Smith";
+
+    public static final LocalDate MAGGIE_DOB = LocalDate.now().minusMonths(6);
+    public static final LocalDate LISA_DOB = LocalDate.now().minusMonths(24);
 }
