@@ -18,6 +18,7 @@ import javax.annotation.PostConstruct;
  * processed and passing them off to the {@link MessageTypeProcessor} matching the {@link MessageType} of
  * the message stored in the database.
  */
+//TODO MRS 2019-04-23: Make this be constructed in a Configuration class, so construction of Map is in there, not here.
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -29,7 +30,7 @@ public class MessageProcessor {
     private Map<MessageType, MessageTypeProcessor> allMessageProcessorsByType;
 
     @PostConstruct
-    private void buildMessageTypeProcessorMap() {
+    public void buildMessageTypeProcessorMap() {
         if (CollectionUtils.isEmpty(allMessageProcessors)) {
             //TODO MRS 2019-04-23: When we have the first MessageTypeProcessor, change this check to throw an Exception, application should fail to startup
             log.warn("No MessageTypeProcessors found in application context, we currently have no support for any types of messages");
@@ -41,7 +42,10 @@ public class MessageProcessor {
         warnForMissingProcessorType();
     }
 
+
     //Add a useful message to the logs detailing which messages currently do not have a processor configured in the application context.
+    //Have added the PMD suppression because it can't see the guard outside of the Stream.
+    @SuppressWarnings("PMD.GuardLogStatement")
     private void warnForMissingProcessorType() {
         if (log.isWarnEnabled()) {
             Stream.of(MessageType.values()).forEach(messageType -> {
