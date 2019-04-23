@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.message;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -57,7 +59,11 @@ public class MessageProcessor {
         }
     }
 
-    //TODO MRS 2019-04-18: This will be triggered on a schedule, we might want to break this down so we can define a schedule per message type
+    @Scheduled(cron = "${message-processor.cron-schedule}")
+    @SchedulerLock(
+            name = "Process all messages",
+            lockAtLeastForString = "${message-processor.minimum-lock-time}",
+            lockAtMostForString = "${message-processor.maximum-lock-time}")
     public void processAllMessages() {
         Stream.of(MessageType.values()).forEach(this::processMessagesOfType);
     }
