@@ -10,7 +10,12 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
@@ -41,9 +46,25 @@ public class MessageProcessor {
                 throw new IllegalArgumentException("No message type processor found in application context for message type: "
                         + messageType + ", there are " + allMessagesOfType.size() + " message(s) in the queue");
             }
-            allMessagesOfType.forEach(messageTypeProcessor::processMessage);
+
+            processMessages(messageTypeProcessor, allMessagesOfType);
         }
-        //TODO MRS 2019-04-18: Do a simple logging of total number of messages run and their status.
+    }
+
+    private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> allMessagesOfType) {
+        Map<MessageStatus, Long> statuses = allMessagesOfType.stream()
+                .map(messageTypeProcessor::processMessage)
+                .peek(messageStatus -> checkForNullMessageStatus(messageTypeProcessor, messageStatus))
+                .filter(Objects::nonNull)
+                .collect(groupingBy(identity(), counting()));
+
+        statuses.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}", count, count == 1 ? "message" : "messages", messageStatus.name()));
+    }
+
+    private void checkForNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
+        if (messageStatus == null) {
+            log.error("Received null message status from message processor supporting type: {}", messageTypeProcessor.supportsMessageType());
+        }
     }
 
 }

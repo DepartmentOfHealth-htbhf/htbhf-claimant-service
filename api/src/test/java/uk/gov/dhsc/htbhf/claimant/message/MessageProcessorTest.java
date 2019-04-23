@@ -83,6 +83,4 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT);
         verifyNoMoreInteractions(messageRepository);
     }
-
-
 }
