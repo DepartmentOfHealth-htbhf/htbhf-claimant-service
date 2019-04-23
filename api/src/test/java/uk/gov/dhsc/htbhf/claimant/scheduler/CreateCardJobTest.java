@@ -39,7 +39,7 @@ class CreateCardJobTest {
 
         verify(claimRepository).getNewClaimIds();
         ArgumentCaptor<UUID> argumentCaptor = ArgumentCaptor.forClass(UUID.class);
-        verify(newCardService, times(2)).createNewCards(argumentCaptor.capture());
+        verify(newCardService, times(2)).createNewCard(argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues()).containsOnly(uuid1, uuid2);
     }
 }

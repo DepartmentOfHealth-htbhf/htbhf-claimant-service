@@ -52,7 +52,7 @@ class NewCardServiceTest {
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
 
-        newCardService.createNewCards(claim.getId());
+        newCardService.createNewCard(claim.getId());
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
@@ -64,7 +64,7 @@ class NewCardServiceTest {
         UUID claimId = UUID.randomUUID();
         given(claimRepository.findById(any())).willReturn(Optional.empty());
 
-        EntityNotFoundException exception = catchThrowableOfType(() -> newCardService.createNewCards(claimId),
+        EntityNotFoundException exception = catchThrowableOfType(() -> newCardService.createNewCard(claimId),
                 EntityNotFoundException.class);
 
         assertThat(exception.getMessage()).isEqualTo("Unable to find claim with id " + claimId);
