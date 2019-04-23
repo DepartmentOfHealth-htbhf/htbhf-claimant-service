@@ -4,60 +4,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
  * processed and passing them off to the {@link MessageTypeProcessor} matching the {@link MessageType} of
  * the message stored in the database.
  */
-//TODO MRS 2019-04-23: Make this be constructed in a Configuration class, so construction of Map is in there, not here.
-@Component
 @RequiredArgsConstructor
-<span class="fc" id="L26">@Slf4j</span>
+<span class="fc" id="L21">@Slf4j</span>
 public class MessageProcessor {
 
-    private final List&lt;MessageTypeProcessor&gt; allMessageProcessors;
     private final MessageRepository messageRepository;
-
-    private Map&lt;MessageType, MessageTypeProcessor&gt; allMessageProcessorsByType;
-
-    @PostConstruct
-    public void buildMessageTypeProcessorMap() {
-<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(allMessageProcessors)) {</span>
-            //TODO MRS 2019-04-23: When we have the first MessageTypeProcessor, change this check to throw an Exception, application should fail to startup
-<span class="fc" id="L38">            log.warn(&quot;No MessageTypeProcessors found in application context, we currently have no support for any types of messages&quot;);</span>
-<span class="fc" id="L39">            return;</span>
-        }
-<span class="fc" id="L41">        allMessageProcessorsByType = allMessageProcessors</span>
-<span class="fc" id="L42">                .stream()</span>
-<span class="fc" id="L43">                .collect(Collectors.toMap(MessageTypeProcessor::supportsMessageType, messageTypeProcessor -&gt; messageTypeProcessor));</span>
-<span class="fc" id="L44">        warnForMissingProcessorType();</span>
-<span class="fc" id="L45">    }</span>
-
-
-    //Add a useful message to the logs detailing which messages currently do not have a processor configured in the application context.
-    //Have added the PMD suppression because it can't see the guard outside of the Stream.
-    @SuppressWarnings(&quot;PMD.GuardLogStatement&quot;)
-    private void warnForMissingProcessorType() {
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (log.isWarnEnabled()) {</span>
-<span class="fc" id="L53">            Stream.of(MessageType.values()).forEach(messageType -&gt; {</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">                if (!allMessageProcessorsByType.containsKey(messageType)) {</span>
-<span class="fc" id="L55">                    log.warn(&quot;We currently have no support for messages of type [{}], &quot;</span>
-                            + &quot;no MessageTypeProcessor implementation found in application context on startup&quot;, messageType);
-                }
-<span class="fc" id="L58">            });</span>
-        }
-<span class="fc" id="L60">    }</span>
+    private final Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType;
 
     @Scheduled(cron = &quot;${message-processor.cron-schedule}&quot;)
     @SchedulerLock(
@@ -65,21 +30,21 @@ public class MessageProcessor {
             lockAtLeastForString = &quot;${message-processor.minimum-lock-time}&quot;,
             lockAtMostForString = &quot;${message-processor.maximum-lock-time}&quot;)
     public void processAllMessages() {
-<span class="fc" id="L68">        Stream.of(MessageType.values()).forEach(this::processMessagesOfType);</span>
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L33">        Stream.of(MessageType.values()).forEach(this::processMessagesOfType);</span>
+<span class="fc" id="L34">    }</span>
 
     private void processMessagesOfType(MessageType messageType) {
-<span class="fc" id="L72">        List&lt;Message&gt; allMessagesOfType = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (!CollectionUtils.isEmpty(allMessagesOfType)) {</span>
-<span class="fc" id="L74">            MessageTypeProcessor messageTypeProcessor = allMessageProcessorsByType.get(messageType);</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">            if (messageTypeProcessor == null) {</span>
-<span class="fc" id="L76">                throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
-<span class="fc" id="L77">                        + messageType + &quot;, there are &quot; + allMessagesOfType.size() + &quot; message(s) in the queue&quot;);</span>
+<span class="fc" id="L37">        List&lt;Message&gt; allMessagesOfType = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (!CollectionUtils.isEmpty(allMessagesOfType)) {</span>
+<span class="fc" id="L39">            MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (messageTypeProcessor == null) {</span>
+<span class="fc" id="L41">                throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
+<span class="fc" id="L42">                        + messageType + &quot;, there are &quot; + allMessagesOfType.size() + &quot; message(s) in the queue&quot;);</span>
             }
-<span class="fc" id="L79">            allMessagesOfType.forEach(messageTypeProcessor::processMessage);</span>
+<span class="fc" id="L44">            allMessagesOfType.forEach(messageTypeProcessor::processMessage);</span>
         }
         //TODO MRS 2019-04-18: Do a simple logging of total number of messages run and their status.
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L47">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
