@@ -4,7 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
@@ -40,9 +44,8 @@ public class EntitlementCalculator {
     }
 
     public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
-
-        int numberOfChildrenUnderFour = zeroIfNull(eligibilityResponse.getNumberOfChildrenUnderFour());
-        int numberOfChildrenUnderOne = zeroIfNull(eligibilityResponse.getNumberOfChildrenUnderOne());
+        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(eligibilityResponse.getChildren());
+        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(eligibilityResponse.getChildren());
 
         if (numberOfChildrenUnderFour < numberOfChildrenUnderOne) {
             log.error("Number of children under four ({}) must not be less than number of children under one ({})",
@@ -51,6 +54,24 @@ public class EntitlementCalculator {
         }
 
         return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+    }
+
+    private Integer getNumberOfChildrenUnderOne(List<ChildDTO> children) {
+        return getNumberOfChildrenUnderAgeInYears(children, 1);
+    }
+
+    private Integer getNumberOfChildrenUnderFour(List<ChildDTO> children) {
+        return getNumberOfChildrenUnderAgeInYears(children, 4);
+    }
+
+    private Integer getNumberOfChildrenUnderAgeInYears(List<ChildDTO> children, Integer ageInYears) {
+        if (children == null) {
+            return 0;
+        }
+        LocalDate pastDate = LocalDate.now().minusYears(ageInYears);
+        return Math.toIntExact(children.stream()
+                .filter(child -> child.getDateOfBirth().isAfter(pastDate))
+                .count());
     }
 
     private VoucherEntitlement createVoucherEntitlement(Claimant claimant, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
@@ -81,7 +102,4 @@ public class EntitlementCalculator {
         return numberOfChildrenBetweenOneAndFour * vouchersPerChildBetweenOneAndFour;
     }
 
-    private int zeroIfNull(Integer count) {
-        return count == null ? 0 : count;
-    }
 }
