@@ -2,8 +2,6 @@
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.core.SchedulerLock;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
@@ -13,22 +11,17 @@ import java.util.UUID;
 
 @Component
 @AllArgsConstructor
-<span class="fc" id="L16">@Slf4j</span>
+<span class="fc" id="L14">@Slf4j</span>
 public class CreateCardJob {
 
     private ClaimRepository claimRepository;
     private NewCardService newCardService;
 
-    @Scheduled(cron = &quot;${card.schedule.new-card-interval-cron}&quot;)
-    @SchedulerLock(
-            name = &quot;CreateNewCardsJob&quot;,
-            lockAtLeastForString = &quot;${card.schedule.minimum-lock-time}&quot;,
-            lockAtMostForString = &quot;${card.schedule.maximum-lock-time}&quot;)
     public void createNewCards() {
-<span class="fc" id="L28">        log.info(&quot;Starting scheduled job to create new cards&quot;);</span>
+<span class="fc" id="L21">        log.info(&quot;Starting scheduled job to create new cards&quot;);</span>
 
-<span class="fc" id="L30">        List&lt;UUID&gt; claimIds = claimRepository.getNewClaimIds();</span>
-<span class="fc" id="L31">        claimIds.forEach(newCardService::createNewCard);</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L23">        List&lt;UUID&gt; claimIds = claimRepository.getNewClaimIds();</span>
+<span class="fc" id="L24">        claimIds.forEach(newCardService::createNewCard);</span>
+<span class="fc" id="L25">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
