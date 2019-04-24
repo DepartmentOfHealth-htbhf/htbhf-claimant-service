@@ -58,12 +58,13 @@ public class MessageProcessor {
                 .filter(Objects::nonNull)
                 .collect(groupingBy(identity(), counting()));
 
-        statuses.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}", count, count == 1 ? "message" : "messages", messageStatus.name()));
+        statuses.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}",
+                count, count == 1 ? "message" : "messages", messageStatus.name()));
     }
 
     private void checkForNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
         if (messageStatus == null) {
-            log.error("Received null message status from message processor supporting type: {}", messageTypeProcessor.supportsMessageType());
+            log.error("Received null message status from MessageTypeProcessor: {}", messageTypeProcessor.getClass().getCanonicalName());
         }
     }
 
