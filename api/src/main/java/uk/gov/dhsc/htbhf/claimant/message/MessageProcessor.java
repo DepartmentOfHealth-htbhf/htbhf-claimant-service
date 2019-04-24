@@ -10,7 +10,13 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
@@ -34,16 +40,40 @@ public class MessageProcessor {
     }
 
     private void processMessagesOfType(MessageType messageType) {
-        List<Message> allMessagesOfType = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
-        if (!CollectionUtils.isEmpty(allMessagesOfType)) {
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
+        if (!CollectionUtils.isEmpty(messages)) {
             MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);
             if (messageTypeProcessor == null) {
                 throw new IllegalArgumentException("No message type processor found in application context for message type: "
-                        + messageType + ", there are " + allMessagesOfType.size() + " message(s) in the queue");
+                        + messageType + ", there are " + messages.size() + " message(s) in the queue");
             }
-            allMessagesOfType.forEach(messageTypeProcessor::processMessage);
+
+            processMessages(messageTypeProcessor, messages);
         }
-        //TODO MRS 2019-04-18: Do a simple logging of total number of messages run and their status.
+    }
+
+    private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> messages) {
+        log.info("Processing {} message(s) of type {}", messages.size(), messageTypeProcessor.supportsMessageType());
+        List<MessageStatus> statuses = messages.stream()
+                .map(messageTypeProcessor::processMessage)
+                .collect(Collectors.toList());
+
+        logResults(statuses, messageTypeProcessor);
+    }
+
+    private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
+        Map<MessageStatus, Long> statusesCountMap = statuses.stream()
+                .peek(messageStatus -> logNullMessageStatus(messageTypeProcessor, messageStatus))
+                .filter(Objects::nonNull)
+                .collect(groupingBy(identity(), counting()));
+
+        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} message(s) with status {}", count, messageStatus.name()));
+    }
+
+    private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
+        if (messageStatus == null) {
+            log.error("Received null message status from MessageTypeProcessor: {}", messageTypeProcessor.getClass().getCanonicalName());
+        }
     }
 
 }

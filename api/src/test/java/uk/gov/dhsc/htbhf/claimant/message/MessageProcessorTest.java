@@ -1,5 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,9 +12,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory;
+import uk.gov.dhsc.htbhf.logging.TestAppender;
 
+import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,6 +51,11 @@ class MessageProcessorTest {
                 CREATE_NEW_CARD, createNewCardDummyMessageTypeProcessor,
                 SEND_FIRST_EMAIL, sendFirstEmailDummyMessageTypeProcessor);
         messageProcessor = new MessageProcessor(messageRepository, messageTypeProcessorMap);
+    }
+
+    @AfterEach
+    void tearDown() {
+        TestAppender.clearAllEvents();
     }
 
     //These calls need to be lenient as Mockito sees mocking the same method call multiple times as a sign of an error
@@ -84,5 +95,39 @@ class MessageProcessorTest {
         verifyNoMoreInteractions(messageRepository);
     }
 
+    @Test
+    void shouldLogMessageProcessResults() {
+        Message cardMessage = MessageTestDataFactory.aValidMessageWithType(CREATE_NEW_CARD);
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(asList(cardMessage, cardMessage));
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(emptyList());
+        //When
+        messageProcessor.processAllMessages();
+        //Then
+        List<ILoggingEvent> events = TestAppender.getEvents();
+        assertThat(events).hasSize(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 message(s) of type CREATE_NEW_CARD");
+        assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
+        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 message(s) with status COMPLETED");
+        assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
+    }
 
+    @Test
+    void shouldLogNullMessageProcessResult() {
+        Message emailMessage = MessageTestDataFactory.aValidMessageWithType(SEND_FIRST_EMAIL);
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(singletonList(emailMessage));
+        //When
+        messageProcessor.processAllMessages();
+        //Then
+        List<ILoggingEvent> events = TestAppender.getEvents();
+        assertThat(events).hasSize(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message(s) of type SEND_FIRST_EMAIL");
+        assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
+        // use startsWith instead of isEqualTo because the full class name contains mockito text.
+        assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"
+                + " uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor");
+        assertThat(events.get(1).getLevel()).isEqualTo(Level.ERROR);
+    }
 }

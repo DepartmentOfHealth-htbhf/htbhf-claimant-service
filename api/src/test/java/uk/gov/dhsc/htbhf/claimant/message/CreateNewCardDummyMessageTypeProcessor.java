@@ -8,7 +8,7 @@ public class CreateNewCardDummyMessageTypeProcessor implements MessageTypeProces
 
     @Override
     public MessageStatus processMessage(Message message) {
-        return null;
+        return MessageStatus.COMPLETED;
     }
 
     @Override
