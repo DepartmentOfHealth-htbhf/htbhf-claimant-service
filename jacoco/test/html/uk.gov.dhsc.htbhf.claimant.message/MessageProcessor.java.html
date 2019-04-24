@@ -10,7 +10,13 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
@@ -18,7 +24,7 @@ import java.util.stream.Stream;
  * the message stored in the database.
  */
 @RequiredArgsConstructor
-<span class="fc" id="L21">@Slf4j</span>
+<span class="fc" id="L27">@Slf4j</span>
 public class MessageProcessor {
 
     private final MessageRepository messageRepository;
@@ -30,21 +36,45 @@ public class MessageProcessor {
             lockAtLeastForString = &quot;${message-processor.minimum-lock-time}&quot;,
             lockAtMostForString = &quot;${message-processor.maximum-lock-time}&quot;)
     public void processAllMessages() {
-<span class="fc" id="L33">        Stream.of(MessageType.values()).forEach(this::processMessagesOfType);</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L39">        Stream.of(MessageType.values()).forEach(this::processMessagesOfType);</span>
+<span class="fc" id="L40">    }</span>
 
     private void processMessagesOfType(MessageType messageType) {
-<span class="fc" id="L37">        List&lt;Message&gt; allMessagesOfType = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (!CollectionUtils.isEmpty(allMessagesOfType)) {</span>
-<span class="fc" id="L39">            MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);</span>
-<span class="fc bfc" id="L40" title="All 2 branches covered.">            if (messageTypeProcessor == null) {</span>
-<span class="fc" id="L41">                throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
-<span class="fc" id="L42">                        + messageType + &quot;, there are &quot; + allMessagesOfType.size() + &quot; message(s) in the queue&quot;);</span>
+<span class="fc" id="L43">        List&lt;Message&gt; messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (!CollectionUtils.isEmpty(messages)) {</span>
+<span class="fc" id="L45">            MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">            if (messageTypeProcessor == null) {</span>
+<span class="fc" id="L47">                throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
+<span class="fc" id="L48">                        + messageType + &quot;, there are &quot; + messages.size() + &quot; message(s) in the queue&quot;);</span>
             }
-<span class="fc" id="L44">            allMessagesOfType.forEach(messageTypeProcessor::processMessage);</span>
+
+<span class="fc" id="L51">            processMessages(messageTypeProcessor, messages);</span>
         }
-        //TODO MRS 2019-04-18: Do a simple logging of total number of messages run and their status.
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L53">    }</span>
+
+    private void processMessages(MessageTypeProcessor messageTypeProcessor, List&lt;Message&gt; messages) {
+<span class="fc" id="L56">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageTypeProcessor.supportsMessageType());</span>
+<span class="fc" id="L57">        List&lt;MessageStatus&gt; statuses = messages.stream()</span>
+<span class="fc" id="L58">                .map(messageTypeProcessor::processMessage)</span>
+<span class="fc" id="L59">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L61">        logResults(statuses, messageTypeProcessor);</span>
+<span class="fc" id="L62">    }</span>
+
+    private void logResults(List&lt;MessageStatus&gt; statuses, MessageTypeProcessor messageTypeProcessor) {
+<span class="fc" id="L65">        Map&lt;MessageStatus, Long&gt; statusesCountMap = statuses.stream()</span>
+<span class="fc" id="L66">                .peek(messageStatus -&gt; logNullMessageStatus(messageTypeProcessor, messageStatus))</span>
+<span class="fc" id="L67">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L68">                .collect(groupingBy(identity(), counting()));</span>
+
+<span class="fc" id="L70">        statusesCountMap.forEach((messageStatus, count) -&gt; log.info(&quot;Processed {} message(s) with status {}&quot;, count, messageStatus.name()));</span>
+<span class="fc" id="L71">    }</span>
+
+    private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (messageStatus == null) {</span>
+<span class="fc" id="L75">            log.error(&quot;Received null message status from MessageTypeProcessor: {}&quot;, messageTypeProcessor.getClass().getCanonicalName());</span>
+        }
+<span class="fc" id="L77">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

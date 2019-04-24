@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.032s</div>
+<div class="counter">0.066s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">shouldCheckEligibilitySuccessfully()</td>
-<td class="success">0.005s</td>
+<td class="success">0.013s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldCheckEligibilitySuccessfullyWhenNoMatchReturned()</td>
-<td class="success">0.012s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldThrowAnExceptionWhenPostCallNotOkOrNotFound()</td>
-<td class="success">0.006s</td>
+<td class="success">0.013s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldThrowAnExceptionWhenPostCallReturnsError()</td>
-<td class="success">0.009s</td>
+<td class="success">0.017s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -102,13 +102,7 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2019-04-23 15:32:48.914  INFO 5255 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Neither @ContextConfiguration nor @ContextHierarchy found for test class [uk.gov.dhsc.htbhf.claimant.service.EligibilityClientTest], using SpringBootContextLoader
-2019-04-23 15:32:48.915  INFO 5255 --- [    Test worker] o.s.t.c.support.AbstractContextLoader    : Could not detect default resource locations for test class [uk.gov.dhsc.htbhf.claimant.service.EligibilityClientTest]: no resource found for suffixes {-context.xml, Context.groovy}.
-2019-04-23 15:32:48.915  INFO 5255 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [uk.gov.dhsc.htbhf.claimant.service.EligibilityClientTest]: EligibilityClientTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2019-04-23 15:32:48.917  INFO 5255 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration uk.gov.dhsc.htbhf.claimant.ClaimantServiceApplication for test class uk.gov.dhsc.htbhf.claimant.service.EligibilityClientTest
-2019-04-23 15:32:48.919  INFO 5255 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Loaded default TestExecutionListener class names from location [META-INF/spring.factories]: [org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener, org.springframework.test.context.web.ServletTestExecutionListener, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener, org.springframework.test.context.support.DependencyInjectionTestExecutionListener, org.springframework.test.context.support.DirtiesContextTestExecutionListener, org.springframework.test.context.transaction.TransactionalTestExecutionListener, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener]
-2019-04-23 15:32:48.920  INFO 5255 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Using TestExecutionListeners: [org.springframework.test.context.web.ServletTestExecutionListener@7ca0233a, org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener@53bf6c0b, org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener@2d03045d, org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@2ba33151, org.springframework.test.context.support.DirtiesContextTestExecutionListener@56677eec, org.springframework.test.context.transaction.TransactionalTestExecutionListener@7e109f1f, org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener@4b044d6c, org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener@791fc4e4, org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener@14e25535, org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener@6e70c8d1, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener@7f6975e, org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener@c94ba0]
-
+<pre>
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
@@ -117,35 +111,7 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.3.RELEASE)
 
-2019-04-23 15:32:48.959  INFO 5255 --- [    Test worker] u.g.d.h.c.service.EligibilityClientTest  : Starting EligibilityClientTest on travis-job-d255eb21-c297-4705-9029-78e3835f1a6d with PID 5255 (started by travis in /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api)
-2019-04-23 15:32:48.960  INFO 5255 --- [    Test worker] u.g.d.h.c.service.EligibilityClientTest  : No active profile set, falling back to default profiles: default
-2019-04-23 15:32:49.571  INFO 5255 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data repositories in DEFAULT mode.
-2019-04-23 15:32:49.592  INFO 5255 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 19ms. Found 2 repository interfaces.
-2019-04-23 15:32:49.711  INFO 5255 --- [    Test worker] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration' of type [org.springframework.transaction.annotation.ProxyTransactionManagementConfiguration$$EnhancerBySpringCGLIB$$40e9a3f7] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
-2019-04-23 15:32:49.812  INFO 5255 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Starting...
-2019-04-23 15:32:49.814  INFO 5255 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Start completed.
-2019-04-23 15:32:49.814  INFO 5255 --- [    Test worker] o.f.c.internal.database.DatabaseFactory  : Database: jdbc:h2:mem:test (H2 1.4)
-2019-04-23 15:32:49.843  INFO 5255 --- [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 13 migrations (execution time 00:00.019s)
-2019-04-23 15:32:49.859  INFO 5255 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema &quot;PUBLIC&quot;: 1.013
-2019-04-23 15:32:49.860  INFO 5255 --- [    Test worker] o.f.core.internal.command.DbMigrate      : Schema &quot;PUBLIC&quot; is up to date. No migration necessary.
-2019-04-23 15:32:49.969  INFO 5255 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [
-	name: default
-	...]
-2019-04-23 15:32:49.996  INFO 5255 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
-2019-04-23 15:32:50.068  INFO 5255 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2019-04-23 15:32:50.122  INFO 5255 --- [    Test worker] o.h.h.i.QueryTranslatorFactoryInitiator  : HHH000397: Using ASTQueryTranslatorFactory
-2019-04-23 15:32:50.424  WARN 5255 --- [    Test worker] aWebConfiguration$JpaWebMvcConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2019-04-23 15:32:50.666  INFO 5255 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoint(s) beneath base path '/actuator'
-2019-04-23 15:32:50.755  WARN 5255 --- [    Test worker] .g.d.h.c.m.MessageProcessorConfiguration : No MessageTypeProcessors found in application context, we currently have no support for any types of messages
-2019-04-23 15:32:50.775  INFO 5255 --- [    Test worker] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [public org.springframework.http.ResponseEntity&lt;springfox.documentation.spring.web.json.Json&gt; springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
-2019-04-23 15:32:50.971  INFO 5255 --- [    Test worker] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
-2019-04-23 15:32:51.161  INFO 5255 --- [    Test worker] o.s.s.c.ThreadPoolTaskScheduler          : Initializing ExecutorService 'taskScheduler'
-2019-04-23 15:32:51.198  INFO 5255 --- [    Test worker] d.s.w.p.DocumentationPluginsBootstrapper : Context refreshed
-2019-04-23 15:32:51.201  INFO 5255 --- [    Test worker] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-2019-04-23 15:32:51.209  INFO 5255 --- [    Test worker] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-2019-04-23 15:32:51.274  INFO 5255 --- [    Test worker] u.g.d.h.c.service.EligibilityClientTest  : Started EligibilityClientTest in 2.352 seconds (JVM running for 35.729)
-2019-04-23 15:32:51.285  INFO 5255 --- [    Test worker] uk.gov.dhsc.htbhf.logging.EventLogger    : {&quot;eventType&quot;:&quot;APPLICATION_STARTED&quot;,&quot;timestamp&quot;:&quot;2019-04-23T15:32:51.283809&quot;,&quot;applicationId&quot;:&quot;&quot;,&quot;applicationVersion&quot;:&quot;&quot;,&quot;instanceIndex&quot;:&quot;&quot;}
-2019-04-23 15:32:51.308 ERROR 5255 --- [    Test worker] u.g.d.h.c.service.EligibilityClient      : Exception caught trying to post to http://localhost:8100/v1/eligibility
+13:49:08.491 [Test worker] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
 </pre>
 </span>
 </div>
@@ -157,7 +123,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at Apr 23, 2019, 3:38:42 PM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at Apr 24, 2019, 1:54:57 PM</p>
 </div>
 </div>
 </body>

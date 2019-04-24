@@ -40,12 +40,12 @@ import static java.util.Collections.emptyMap;
     @SuppressWarnings(&quot;PMD.GuardLogStatement&quot;)
     private void warnForMissingProcessorType(Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType) {
 <span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (log.isWarnEnabled()) {</span>
-<span class="fc" id="L43">            Stream.of(MessageType.values()).forEach(messageType -&gt; {</span>
-<span class="fc bfc" id="L44" title="All 2 branches covered.">                if (!messageProcessorsByType.containsKey(messageType)) {</span>
-<span class="fc" id="L45">                    log.warn(&quot;We currently have no support for messages of type [{}], &quot;</span>
+<span class="nc" id="L43">            Stream.of(MessageType.values()).forEach(messageType -&gt; {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                if (!messageProcessorsByType.containsKey(messageType)) {</span>
+<span class="nc" id="L45">                    log.warn(&quot;We currently have no support for messages of type [{}], &quot;</span>
                             + &quot;no MessageTypeProcessor implementation found in application context on startup&quot;, messageType);
                 }
-<span class="fc" id="L48">            });</span>
+<span class="nc" id="L48">            });</span>
         }
 <span class="fc" id="L50">    }</span>
 
