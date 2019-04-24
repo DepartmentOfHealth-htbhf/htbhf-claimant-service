@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory;
-import uk.gov.dhsc.htbhf.claimant.testsupport.TestAppender;
+import uk.gov.dhsc.htbhf.logging.TestAppender;
 
 import java.util.List;
 import java.util.Map;
@@ -105,10 +105,10 @@ class MessageProcessorTest {
         messageProcessor.processAllMessages();
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
-        assertThat(events.size()).isEqualTo(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 messages of type CREATE_NEW_CARD");
+        assertThat(events).hasSize(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 message(s) of type CREATE_NEW_CARD");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
-        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 messages with status COMPLETED");
+        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 message(s) with status COMPLETED");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
     }
 
@@ -122,8 +122,8 @@ class MessageProcessorTest {
         messageProcessor.processAllMessages();
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
-        assertThat(events.size()).isEqualTo(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message of type SEND_FIRST_EMAIL");
+        assertThat(events).hasSize(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message(s) of type SEND_FIRST_EMAIL");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
         // use startsWith instead of isEqualTo because the full class name contains mockito text.
         assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"

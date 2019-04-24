@@ -53,7 +53,7 @@ public class MessageProcessor {
     }
 
     private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> messages) {
-        log.info("Processing {} {} of type {}", messages.size(), messages.size() == 1 ? "message" : "messages", messageTypeProcessor.supportsMessageType());
+        log.info("Processing {} message(s) of type {}", messages.size(), messageTypeProcessor.supportsMessageType());
         List<MessageStatus> statuses = messages.stream()
                 .map(messageTypeProcessor::processMessage)
                 .collect(Collectors.toList());
@@ -63,15 +63,14 @@ public class MessageProcessor {
 
     private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
         Map<MessageStatus, Long> statusesCountMap = statuses.stream()
-                .peek(messageStatus -> checkForNullMessageStatus(messageTypeProcessor, messageStatus))
+                .peek(messageStatus -> logNullMessageStatus(messageTypeProcessor, messageStatus))
                 .filter(Objects::nonNull)
                 .collect(groupingBy(identity(), counting()));
 
-        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}",
-                count, count == 1 ? "message" : "messages", messageStatus.name()));
+        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} message(s) with status {}", count, messageStatus.name()));
     }
 
-    private void checkForNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
+    private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
         if (messageStatus == null) {
             log.error("Received null message status from MessageTypeProcessor: {}", messageTypeProcessor.getClass().getCanonicalName());
         }
