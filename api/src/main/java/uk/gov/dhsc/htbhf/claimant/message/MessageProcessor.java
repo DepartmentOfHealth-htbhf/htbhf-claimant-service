@@ -40,20 +40,21 @@ public class MessageProcessor {
     }
 
     private void processMessagesOfType(MessageType messageType) {
-        List<Message> allMessagesOfType = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
-        if (!CollectionUtils.isEmpty(allMessagesOfType)) {
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
+        if (!CollectionUtils.isEmpty(messages)) {
             MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);
             if (messageTypeProcessor == null) {
                 throw new IllegalArgumentException("No message type processor found in application context for message type: "
-                        + messageType + ", there are " + allMessagesOfType.size() + " message(s) in the queue");
+                        + messageType + ", there are " + messages.size() + " message(s) in the queue");
             }
 
-            processMessages(messageTypeProcessor, allMessagesOfType);
+            processMessages(messageTypeProcessor, messages);
         }
     }
 
-    private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> allMessagesOfType) {
-        List<MessageStatus> statuses = allMessagesOfType.stream()
+    private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> messages) {
+        log.info("Processing {} {} of type {}", messages.size(), messages.size() == 1 ? "message" : "messages", messageTypeProcessor.supportsMessageType());
+        List<MessageStatus> statuses = messages.stream()
                 .map(messageTypeProcessor::processMessage)
                 .collect(Collectors.toList());
 

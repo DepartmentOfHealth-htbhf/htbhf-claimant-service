@@ -105,9 +105,11 @@ class MessageProcessorTest {
         messageProcessor.processAllMessages();
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
-        assertThat(events.size()).isEqualTo(1);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processed 2 messages with status COMPLETED");
+        assertThat(events.size()).isEqualTo(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 messages of type CREATE_NEW_CARD");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
+        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 messages with status COMPLETED");
+        assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
     }
 
     @Test
@@ -120,10 +122,12 @@ class MessageProcessorTest {
         messageProcessor.processAllMessages();
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
-        assertThat(events.size()).isEqualTo(1);
+        assertThat(events.size()).isEqualTo(2);
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message of type SEND_FIRST_EMAIL");
+        assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
         // use startsWith instead of isEqualTo because the full class name contains mockito text.
-        assertThat(events.get(0).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"
+        assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"
                 + " uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor");
-        assertThat(events.get(0).getLevel()).isEqualTo(Level.ERROR);
+        assertThat(events.get(1).getLevel()).isEqualTo(Level.ERROR);
     }
 }
