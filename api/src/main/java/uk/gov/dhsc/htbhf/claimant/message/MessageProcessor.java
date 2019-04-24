@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
@@ -52,13 +53,20 @@ public class MessageProcessor {
     }
 
     private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> allMessagesOfType) {
-        Map<MessageStatus, Long> statuses = allMessagesOfType.stream()
+        List<MessageStatus> statuses = allMessagesOfType.stream()
                 .map(messageTypeProcessor::processMessage)
+                .collect(Collectors.toList());
+
+        logResults(statuses, messageTypeProcessor);
+    }
+
+    private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
+        Map<MessageStatus, Long> statusesCountMap = statuses.stream()
                 .peek(messageStatus -> checkForNullMessageStatus(messageTypeProcessor, messageStatus))
                 .filter(Objects::nonNull)
                 .collect(groupingBy(identity(), counting()));
 
-        statuses.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}",
+        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} {} with status {}",
                 count, count == 1 ? "message" : "messages", messageStatus.name()));
     }
 
