@@ -4,14 +4,16 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.transaction.TestTransaction;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+
+import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -23,16 +25,17 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.PAYLOAD_JSON;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@Transactional
 class MessageQueueDAOTest {
 
-    @Mock
+    @MockBean
     private MessageRepository messageRepository;
 
-    @Mock
+    @MockBean
     private ObjectMapper objectMapper;
 
-    @InjectMocks
+    @Autowired
     private MessageQueueDAO messageQueueDAO;
 
     @Test
@@ -52,6 +55,7 @@ class MessageQueueDAOTest {
         assertThat(actualMessage.getMessagePayload()).isEqualTo(PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
         assertThat(actualMessage.getMessageTimestamp()).isNotNull();
+        assertThat(TestTransaction.isActive()).isTrue();
     }
 
     @Test
@@ -69,5 +73,6 @@ class MessageQueueDAOTest {
                 .hasCause(testException);
         verifyZeroInteractions(messageRepository);
         verify(objectMapper).writeValueAsString(payload);
+        assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
     }
 }
