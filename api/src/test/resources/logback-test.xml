@@ -1,0 +1,16 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="TESTING" class="uk.gov.dhsc.htbhf.claimant.testsupport.TestAppender"/>
+
+    <logger name="uk.gov.dhsc.htbhf.claimant.message.MessageProcessor" level="info"/>
+
+    <root level="error">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="TESTING" />
+    </root>
+</configuration>
