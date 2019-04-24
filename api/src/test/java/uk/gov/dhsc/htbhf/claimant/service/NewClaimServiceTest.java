@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -28,10 +29,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayloadWithClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,8 +58,11 @@ class NewClaimServiceTest {
     @Mock
     ClaimAuditor claimAuditor;
 
+    @Mock
+    MessageQueueDAO messageQueueDAO;
+
     @Test
-    void shouldSaveNonExistingEligibleClaimant() {
+    void shouldSaveNonExistingEligibleClaimantAndSendNewCardMessage() {
         //given
         Claimant claimant = aValidClaimantBuilder().build();
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
@@ -81,6 +87,8 @@ class NewClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verifyNoMoreInteractions(claimRepository);
         verify(client).checkEligibility(claimant);
+        verify(claimAuditor).auditNewClaim(result.getClaim());
+        verify(messageQueueDAO).sendMessage(aValidNewCardRequestMessagePayloadWithClaimId(result.getClaim().getId()), CREATE_NEW_CARD);
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -118,6 +126,7 @@ class NewClaimServiceTest {
         verifyNoMoreInteractions(claimRepository);
         verify(client).checkEligibility(claimant);
         verify(claimAuditor).auditNewClaim(actualClaim);
+        verifyZeroInteractions(messageQueueDAO);
     }
 
     @Test
@@ -193,6 +202,7 @@ class NewClaimServiceTest {
         verifyNoMoreInteractions(claimRepository);
         verifyZeroInteractions(client, entitlementCalculator);
         verify(claimAuditor).auditNewClaim(result.getClaim());
+        verifyZeroInteractions(messageQueueDAO);
     }
 
     /**
@@ -220,6 +230,7 @@ class NewClaimServiceTest {
         verify(claimAuditor).auditNewClaim(claimArgumentCaptor.capture());
         assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
         assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
+        verifyZeroInteractions(messageQueueDAO);
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {

@@ -11,8 +11,12 @@ public class MessagePayloadTestDataFactory {
     public static final String PAYLOAD_JSON = "{ \"claimId\":\"" + CLAIM_ID.toString() + "\"}";
 
     public static NewCardRequestMessagePayload aValidNewCardRequestMessagePayload() {
+        return aValidNewCardRequestMessagePayloadWithClaimId(CLAIM_ID);
+    }
+
+    public static NewCardRequestMessagePayload aValidNewCardRequestMessagePayloadWithClaimId(UUID claimId) {
         return NewCardRequestMessagePayload.builder()
-                .claimId(CLAIM_ID)
+                .claimId(claimId)
                 .build();
     }
 }

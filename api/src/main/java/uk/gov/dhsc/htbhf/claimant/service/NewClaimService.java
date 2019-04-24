@@ -7,6 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -16,6 +18,9 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 
 @Service
 @Slf4j
@@ -27,6 +32,7 @@ public class NewClaimService {
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
     private final EntitlementCalculator entitlementCalculator;
     private final ClaimAuditor claimAuditor;
+    private final MessageQueueDAO messageQueueDAO;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -42,6 +48,9 @@ public class NewClaimService {
         try {
             EligibilityResponse eligibilityResponse = determineEligibility(claimant);
             Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
+            if (claim.getClaimStatus() == ClaimStatus.NEW) {
+                sendNewCardMessage(claim);
+            }
             return createResult(claim, eligibilityResponse);
         } catch (RuntimeException e) {
             createAndSaveClaim(claimant, eligibilityResponseWithStatus(EligibilityStatus.ERROR));
@@ -72,6 +81,11 @@ public class NewClaimService {
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         claimAuditor.auditNewClaim(claim);
         return claim;
+    }
+
+    private void sendNewCardMessage(Claim claim) {
+        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim);
+        messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
     private Claim buildClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {

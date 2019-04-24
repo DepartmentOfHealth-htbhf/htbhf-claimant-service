@@ -25,7 +25,6 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
 
     private MessageRepository messageRepository;
 
-    //TODO MRS 2019-04-24: Unit test
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {

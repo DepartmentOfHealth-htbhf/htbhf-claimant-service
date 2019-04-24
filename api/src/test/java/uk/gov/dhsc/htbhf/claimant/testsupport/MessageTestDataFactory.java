@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class MessageTestDataFactory {
 
-    private static final String SOME_JSON = "{\"field1\":\"field1Value\"}";
+    public static final String MESSAGE_PAYLOAD = "{\"field1\":\"field1Value\"}";
 
     public static Message aValidMessage() {
         return buildValidMessageBuilder()
@@ -30,6 +30,6 @@ public class MessageTestDataFactory {
         return Message.builder()
                 .messageType(MessageType.CREATE_NEW_CARD)
                 .messageTimestamp(LocalDateTime.now())
-                .messagePayload(SOME_JSON);
+                .messagePayload(MESSAGE_PAYLOAD);
     }
 }
