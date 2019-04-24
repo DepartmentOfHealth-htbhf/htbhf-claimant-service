@@ -30,6 +30,12 @@ public class NewCardService {
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
         CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
+        saveCardAccountId(claim, cardResponse);
         claimAuditor.auditNewCard(claimId, cardResponse);
+    }
+
+    private void saveCardAccountId(Claim claim, CardResponse cardResponse) {
+        claim.setCardAccountId(cardResponse.getCardAccountId());
+        claimRepository.save(claim);
     }
 }
