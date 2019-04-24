@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
@@ -10,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Collections.emptyMap;
 
 @Configuration
 @Slf4j
@@ -24,9 +23,8 @@ public class MessageProcessorConfiguration {
 
     private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> messageProcessors) {
         if (CollectionUtils.isEmpty(messageProcessors)) {
-            //TODO MRS 2019-04-23: When we have the first MessageTypeProcessor, change this check to throw an Exception, application should fail to startup
-            log.warn("No MessageTypeProcessors found in application context, we currently have no support for any types of messages");
-            return emptyMap();
+            log.error("No MessageTypeProcessors found in application context, we currently have no support for any types of messages");
+            throw new BeanCreationException("Unable to create MessageProcessor, no MessageTypeProcessor instances found");
         }
         Map<MessageType, MessageTypeProcessor> messageProcessorsByType = messageProcessors
                 .stream()

@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 public interface MessageQueueClient {
 
     /**
-     * Send a message with the given payload of the given type
+     * Send a message with the given payload of the given type.
      *
      * @param messagePayload The payload
      * @param messageType    The type of message

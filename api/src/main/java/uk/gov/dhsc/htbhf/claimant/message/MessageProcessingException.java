@@ -5,6 +5,8 @@ package uk.gov.dhsc.htbhf.claimant.message;
  */
 public class MessageProcessingException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public MessageProcessingException(String message) {
         super(message);
     }
