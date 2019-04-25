@@ -10,7 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.time.LocalDateTime;
-import javax.transaction.Transactional;
 
 /**
  * Responsible for building and storing the complete {@link Message} entities, which involves building the JSON String
@@ -26,7 +25,6 @@ public class MessageQueueDAO implements MessageQueueClient {
 
     private final ObjectMapper objectMapper;
 
-    @Transactional
     @Override
     public void sendMessage(MessagePayload messagePayload, MessageType messageType) {
         try {
