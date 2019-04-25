@@ -19,8 +19,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
@@ -43,27 +44,29 @@ class NewCardMessageProcessorTest {
     private NewCardMessageProcessor newCardMessageProcessor;
 
     @Test
-    void shouldRollBackTransactionAndReturnFailedWhenExceptionIsThrown() throws IOException {
+    void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() throws IOException {
         given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willThrow(new IOException("Error reading value"));
 
         MessageStatus status = newCardMessageProcessor.processMessage(aValidMessageWithPayload(MESSAGE_PAYLOAD));
 
-        assertThat(status).isEqualTo(FAILED);
+        assertThat(status).isEqualTo(ERROR);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
         verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
+        verifyZeroInteractions(newCardService, messageRepository);
     }
 
     @Test
     void shouldCreateNewCardAndDeleteMessage() throws IOException {
         NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
         given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
-        Message entity = aValidMessage();
+        Message message = aValidMessage();
 
-        MessageStatus status = newCardMessageProcessor.processMessage(entity);
+        MessageStatus status = newCardMessageProcessor.processMessage(message);
 
         assertThat(status).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
+        verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
         verify(newCardService).createNewCard(payload.getClaimId());
-        verify(messageRepository).delete(entity);
+        verify(messageRepository).delete(message);
     }
 }

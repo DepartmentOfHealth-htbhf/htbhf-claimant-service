@@ -88,7 +88,7 @@ class NewClaimServiceTest {
         verifyNoMoreInteractions(claimRepository);
         verify(client).checkEligibility(claimant);
         verify(claimAuditor).auditNewClaim(result.getClaim());
-        verify(messageQueueDAO).sendMessage(aValidNewCardRequestMessagePayloadWithClaimId(result.getClaim().getId()), CREATE_NEW_CARD);
+        verifyCreateNewCardMessageSent(result);
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -151,6 +151,7 @@ class NewClaimServiceTest {
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
+        verifyCreateNewCardMessageSent(result);
     }
 
     /**
@@ -184,6 +185,7 @@ class NewClaimServiceTest {
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
             verify(entitlementCalculator).calculateVoucherEntitlement(claimant, eligibilityResponse);
+            verifyCreateNewCardMessageSent(result);
         }
     }
 
@@ -242,5 +244,9 @@ class NewClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ERROR);
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getClaimant()).isEqualTo(claimant);
+    }
+
+    private void verifyCreateNewCardMessageSent(ClaimResult result) {
+        verify(messageQueueDAO).sendMessage(aValidNewCardRequestMessagePayloadWithClaimId(result.getClaim().getId()), CREATE_NEW_CARD);
     }
 }

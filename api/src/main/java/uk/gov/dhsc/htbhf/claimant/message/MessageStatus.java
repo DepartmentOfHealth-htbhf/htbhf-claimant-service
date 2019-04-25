@@ -5,5 +5,6 @@ package uk.gov.dhsc.htbhf.claimant.message;
  */
 public enum MessageStatus {
     COMPLETED,
+    ERROR,
     FAILED
 }

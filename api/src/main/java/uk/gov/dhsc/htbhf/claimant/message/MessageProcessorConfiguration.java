@@ -34,17 +34,13 @@ public class MessageProcessorConfiguration {
     }
 
     //Add a useful message to the logs detailing which messages currently do not have a processor configured in the application context.
-    //Have added the PMD suppression because it can't see the guard outside of the Stream.
-    @SuppressWarnings("PMD.GuardLogStatement")
     private void warnForMissingProcessorType(Map<MessageType, MessageTypeProcessor> messageProcessorsByType) {
-        if (log.isWarnEnabled()) {
-            Stream.of(MessageType.values()).forEach(messageType -> {
-                if (!messageProcessorsByType.containsKey(messageType)) {
-                    log.warn("We currently have no support for messages of type [{}], "
-                            + "no MessageTypeProcessor implementation found in application context on startup", messageType);
-                }
-            });
-        }
+        Stream.of(MessageType.values()).forEach(messageType -> {
+            if (!messageProcessorsByType.containsKey(messageType)) {
+                log.warn("We currently have no support for messages of type [{}], no MessageTypeProcessor implementation found in context on startup",
+                        messageType);
+            }
+        });
     }
 
 }

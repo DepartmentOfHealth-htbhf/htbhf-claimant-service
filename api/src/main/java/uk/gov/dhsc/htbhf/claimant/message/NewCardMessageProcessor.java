@@ -12,6 +12,8 @@ import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 import java.io.IOException;
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 
 @Component
@@ -32,12 +34,10 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
             NewCardRequestMessagePayload payload = objectMapper.readValue(message.getMessagePayload(), NewCardRequestMessagePayload.class);
             newCardService.createNewCard(payload.getClaimId());
             messageRepository.delete(message);
-            return MessageStatus.COMPLETED;
+            return COMPLETED;
         } catch (IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Unable to create message payload for message with id: {}, payload is: {}", message.getId(), message.getMessagePayload(), e);
-            }
-            return MessageStatus.FAILED;
+            log.error("Unable to create message payload for message with id: {}, payload is: {}", message.getId(), message.getMessagePayload(), e);
+            return ERROR;
         }
     }
 
