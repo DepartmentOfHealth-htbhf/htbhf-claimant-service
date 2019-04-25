@@ -41,6 +41,9 @@ public class Claim extends BaseEntity {
     @Column(name = "hmrc_household_identifier")
     private String hmrcHouseholdIdentifier;
 
+    @Column(name = "card_account_id")
+    private String cardAccountId;
+
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @ToString.Exclude

@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,9 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -45,6 +48,20 @@ class MessageProcessorConfigurationTest {
         assertThat(allMessageProcessorsByType.get(SEND_FIRST_EMAIL)).isInstanceOf(SendFirstEmailDummyMessageTypeProcessor.class);
         assertThat(allMessageProcessorsByType.get(MAKE_FIRST_PAYMENT)).isNull();
         verifyZeroInteractions(messageRepository);
+    }
+
+    //This test specifically doesn't use the Configuration in the context as we cannot trap the Exception being caught
+    //if there are no MessageTypeProcessors available in the context, so call the method directly with a new MessageProcessorConfiguration
+    @Test
+    void shouldThrownBeanCreationExceptionIfNoMessageTypeProcessorsProvided() {
+        //Given
+        MessageProcessorConfiguration configuration = new MessageProcessorConfiguration();
+        //When
+        BeanCreationException thrown = catchThrowableOfType(
+                () -> configuration.messageProcessor(emptyList(), messageRepository),
+                BeanCreationException.class);
+        //Then
+        assertThat(thrown).hasMessage("Unable to create MessageProcessor, no MessageTypeProcessor instances found");
     }
 
     @Configuration

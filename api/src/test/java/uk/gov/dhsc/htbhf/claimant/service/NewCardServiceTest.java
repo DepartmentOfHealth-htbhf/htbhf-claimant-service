@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -57,6 +59,9 @@ class NewCardServiceTest {
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
         verify(claimAuditor).auditNewCard(claim.getId(), cardResponse);
+        ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(argumentCaptor.capture());
+        assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
     }
 
     @Test
@@ -69,5 +74,6 @@ class NewCardServiceTest {
 
         assertThat(exception.getMessage()).isEqualTo("Unable to find claim with id " + claimId);
         verify(claimRepository).findById(claimId);
+        verifyNoMoreInteractions(claimRepository);
     }
 }

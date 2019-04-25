@@ -41,24 +41,31 @@ public class MessageProcessor {
 
     private void processMessagesOfType(MessageType messageType) {
         List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
-        if (!CollectionUtils.isEmpty(messages)) {
-            MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);
-            if (messageTypeProcessor == null) {
-                throw new IllegalArgumentException("No message type processor found in application context for message type: "
-                        + messageType + ", there are " + messages.size() + " message(s) in the queue");
-            }
-
-            processMessages(messageTypeProcessor, messages);
+        if (CollectionUtils.isEmpty(messages)) {
+            log.debug("No messages found to process for type: [{}]", messageType);
+            return;
         }
+
+        processMessages(messages, messageType);
     }
 
-    private void processMessages(MessageTypeProcessor messageTypeProcessor, List<Message> messages) {
-        log.info("Processing {} message(s) of type {}", messages.size(), messageTypeProcessor.supportsMessageType());
+    private void processMessages(List<Message> messages, MessageType messageType) {
+        log.info("Processing {} message(s) of type {}", messages.size(), messageType);
+        MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);
         List<MessageStatus> statuses = messages.stream()
                 .map(messageTypeProcessor::processMessage)
                 .collect(Collectors.toList());
 
         logResults(statuses, messageTypeProcessor);
+    }
+
+    private MessageTypeProcessor getMessageTypeProcessor(MessageType messageType, List<Message> messages) {
+        MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);
+        if (messageTypeProcessor == null) {
+            throw new IllegalArgumentException("No message type processor found in application context for message type: "
+                    + messageType + ", there are " + messages.size() + " message(s) in the queue");
+        }
+        return messageTypeProcessor;
     }
 
     private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
