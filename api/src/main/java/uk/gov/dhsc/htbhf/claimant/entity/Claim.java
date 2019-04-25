@@ -4,6 +4,7 @@ import lombok.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -43,6 +44,9 @@ public class Claim extends BaseEntity {
 
     @Column(name = "card_account_id")
     private String cardAccountId;
+
+    @Column(name = "next_payment_date")
+    private LocalDate nextPaymentDate;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
