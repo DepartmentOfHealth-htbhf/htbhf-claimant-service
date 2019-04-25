@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,7 +19,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 
 @SpringBootTest
-@Slf4j
 class MessageRepositoryTest {
 
     @Autowired
@@ -84,7 +82,6 @@ class MessageRepositoryTest {
 
         // When
         List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD);
-        log.info("messages: {}", messages);
 
         // Then
         assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo, newCardMessage);

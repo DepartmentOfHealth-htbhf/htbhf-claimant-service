@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -31,6 +30,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
@@ -84,21 +84,23 @@ class ClaimantServiceIntegrationTests {
     @Autowired
     ClaimRepository claimRepository;
 
+    @Autowired
+    MessageRepository messageRepository;
+
     @MockBean
     RestTemplate restTemplateWithIdHeaders;
 
     @AfterEach
-    void deleteAllClaims() {
+    void deleteAllClaimsAndMessages() {
         claimRepository.deleteAll();
+        messageRepository.deleteAll();
     }
 
-    @Disabled
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() {
         shouldAcceptAndCreateValidClaim(aValidClaimDTOWithNoNullFields());
     }
 
-    @Disabled
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNullFields() {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());
