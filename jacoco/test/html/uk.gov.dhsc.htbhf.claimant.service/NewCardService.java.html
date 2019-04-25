@@ -30,7 +30,13 @@ public class NewCardService {
 <span class="fc" id="L30">                .orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
 <span class="fc" id="L31">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
 <span class="fc" id="L32">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L33">        claimAuditor.auditNewCard(claimId, cardResponse);</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L33">        saveClaimWithCardAccountId(claim, cardResponse);</span>
+<span class="fc" id="L34">        claimAuditor.auditNewCard(claimId, cardResponse);</span>
+<span class="fc" id="L35">    }</span>
+
+    private void saveClaimWithCardAccountId(Claim claim, CardResponse cardResponse) {
+<span class="fc" id="L38">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
+<span class="fc" id="L39">        claimRepository.save(claim);</span>
+<span class="fc" id="L40">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

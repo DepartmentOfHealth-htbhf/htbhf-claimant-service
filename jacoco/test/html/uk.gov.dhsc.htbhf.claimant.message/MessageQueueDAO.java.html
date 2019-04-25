@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageQueueDAO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message</a> &gt; <span class="el_source">MessageQueueDAO.java</span></div><h1>MessageQueueDAO.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+
+import java.time.LocalDateTime;
+
+/**
+ * Responsible for building and storing the complete {@link Message} entities, which involves building the JSON String
+ * from the provided object. The objects representing the payload all implement the
+ * {@link uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload} marker interface.
+ */
+@Component
+@RequiredArgsConstructor
+<span class="fc" id="L21">@Slf4j</span>
+public class MessageQueueDAO implements MessageQueueClient {
+
+    private final MessageRepository messageRepository;
+
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public void sendMessage(MessagePayload messagePayload, MessageType messageType) {
+        try {
+<span class="fc" id="L31">            messageRepository.save(buildMessage(messagePayload, messageType));</span>
+<span class="fc" id="L32">        } catch (JsonProcessingException e) {</span>
+<span class="fc" id="L33">            throw new MessageProcessingException(&quot;Unable to create JSON payload from object&quot;, e);</span>
+<span class="fc" id="L34">        }</span>
+<span class="fc" id="L35">    }</span>
+
+    private Message buildMessage(MessagePayload messagePayload, MessageType messageType) throws JsonProcessingException {
+<span class="fc" id="L38">        String json = objectMapper.writeValueAsString(messagePayload);</span>
+<span class="fc" id="L39">        return Message.builder()</span>
+<span class="fc" id="L40">                .messagePayload(json)</span>
+<span class="fc" id="L41">                .messageType(messageType)</span>
+<span class="fc" id="L42">                .messageTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L43">                .build();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
