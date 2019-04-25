@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -91,11 +92,13 @@ class ClaimantServiceIntegrationTests {
         claimRepository.deleteAll();
     }
 
+    @Disabled
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() {
         shouldAcceptAndCreateValidClaim(aValidClaimDTOWithNoNullFields());
     }
 
+    @Disabled
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNullFields() {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());

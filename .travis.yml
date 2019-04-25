@@ -23,6 +23,10 @@ deploy:
   on:
     branch: master
 
+after_failure:
+  - cat /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api/build/reports/tests/test/index.html
+  - cat /home/travis/build/DepartmentOfHealth-htbhf/htbhf-claimant-service/api/build/reports/tests/test/classes/uk.gov.dhsc.htbhf.claimant.repository.MessageRepositoryTest.html
+
 after_success:
 - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./gradlew jacocoTestReport testReport copyReports && bash <(curl -s https://codecov.io/bash)
 - test $TRAVIS_BRANCH = "master" && test $TRAVIS_PULL_REQUEST = "false" && ./${BIN_DIR}/deployment-scripts/trigger_java_cd_build.sh
