@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class PregnancyEntitlementCalculatorTest {
 
@@ -14,37 +15,63 @@ class PregnancyEntitlementCalculatorTest {
 
     @Test
     void shouldReturnTrueForDueDateInFuture() {
-        boolean result = calculator.isEntitledToVoucher(LocalDate.now().plusDays(1));
+        LocalDate entitlementDate = LocalDate.now();
+        LocalDate dueDate = entitlementDate.plusDays(1);
+
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+
         assertThat(result).isTrue();
     }
 
     @Test
-    void shouldReturnTrueForDueDateToday() {
-        boolean result = calculator.isEntitledToVoucher(LocalDate.now());
+    void shouldReturnTrueForDueDateSameAsEntitlementDate() {
+        LocalDate date = LocalDate.now();
+
+        boolean result = calculator.isEntitledToVoucher(date, date);
+
         assertThat(result).isTrue();
     }
 
     @Test
     void shouldReturnTrueForDueDateLessThanGracePeriodDaysAgo() {
-        boolean result = calculator.isEntitledToVoucher(LocalDate.now().minusDays(1));
+        LocalDate entitlementDate = LocalDate.now();
+        LocalDate dueDate = entitlementDate.minusDays(1);
+
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+
         assertThat(result).isTrue();
     }
 
     @Test
     void shouldReturnTrueForDueDateGracePeriodDaysAgo() {
-        boolean result = calculator.isEntitledToVoucher(LocalDate.now().minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS));
+        LocalDate entitlementDate = LocalDate.now();
+        LocalDate dueDate = entitlementDate.minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS);
+
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+
         assertThat(result).isTrue();
     }
 
     @Test
     void shouldReturnFalseForDueDateMoreThanGracePeriodDaysAgo() {
-        boolean result = calculator.isEntitledToVoucher(LocalDate.now().minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS + 1));
+        LocalDate entitlementDate = LocalDate.now();
+        LocalDate dueDate = entitlementDate.minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS + 1);
+
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+
         assertThat(result).isFalse();
     }
 
     @Test
     void shouldReturnFalseForNullDueDate() {
-        boolean result = calculator.isEntitledToVoucher(null);
+        boolean result = calculator.isEntitledToVoucher(null, LocalDate.now());
         assertThat(result).isFalse();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenEntitlementDateIsNull() {
+        IllegalArgumentException thrown = catchThrowableOfType(() -> calculator.isEntitledToVoucher(LocalDate.now(), null), IllegalArgumentException.class);
+
+        assertThat(thrown.getMessage()).isEqualTo("entitlementDate must not be null");
     }
 }

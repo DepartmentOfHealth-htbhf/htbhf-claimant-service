@@ -9,9 +9,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -46,58 +48,67 @@ class EntitlementCalculatorTest {
     @Test
     void shouldReturnCorrectEntitlement() {
         // Given
+        LocalDate entitlementDate = LocalDate.now();
         Boolean isPregnant = true; // 2 vouchers
-        // one child under one, one between one and four.
-        List<LocalDate> childrenDateOfBirths = asList(LocalDate.now().minusMonths(6), LocalDate.now().minusYears(3));
+        // three children under one, two between one and four.
+        List<LocalDate> childrenDateOfBirths = createChildrenDateOfBirths(3, 2, entitlementDate);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .vouchersForPregnancy(2)
-                .vouchersForChildrenUnderOne(4)
-                .vouchersForChildrenBetweenOneAndFour(3)
+                .vouchersForChildrenUnderOne(12)
+                .vouchersForChildrenBetweenOneAndFour(6)
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
         LocalDate dueDate = LocalDate.now();
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(dueDate).build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(isPregnant);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(isPregnant);
 
         // When
-        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, childrenDateOfBirths);
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, childrenDateOfBirths, entitlementDate);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate, LocalDate.now());
     }
 
     @Test
     void shouldReturnZeroVouchersWhenThereAreNoChildren() {
         // Given
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
 
         // When
-        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, emptyList());
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, emptyList(), LocalDate.now());
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null, LocalDate.now());
     }
 
     @Test
     void shouldReturnZeroVouchersWhenChildrenAreNull() {
         // Given
         Claimant claimant = aValidClaimantBuilder().expectedDeliveryDate(null).build(); // null due date
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .build();
 
         // When
-        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, null);
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(claimant, null, LocalDate.now());
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(null, LocalDate.now());
+    }
+
+    // TODO better name
+    private List<LocalDate> createChildrenDateOfBirths(int numberOfChildrenUnderOne, int numberOfChildrenBetweenOneAndFour, LocalDate entitlementDate) {
+        List<LocalDate> childrenUnderOne = nCopies(numberOfChildrenUnderOne, entitlementDate.minusMonths(6));
+        List<LocalDate> childrenBetweenOneAndFour = nCopies(numberOfChildrenBetweenOneAndFour, entitlementDate.minusYears(3));
+
+        return Stream.concat(childrenUnderOne.stream(), childrenBetweenOneAndFour.stream()).collect(Collectors.toList());
     }
 }

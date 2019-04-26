@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 /**
  * Responsible for deciding whether a claimant is entitled to a voucher for pregnancy,
- * by comparing the due date to today's date.
+ * by comparing the due date to a given entitlement date.
  * There is a grace period after the due date before the claimant stops being eligible for a voucher.
  */
 @Component
@@ -19,11 +19,14 @@ public class PregnancyEntitlementCalculator {
         this.pregnancyGracePeriodInDays = pregnancyGracePeriodInDays;
     }
 
-    public boolean isEntitledToVoucher(LocalDate dueDate) {
+    public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate) {
+        if (entitlementDate == null) {
+            throw new IllegalArgumentException("entitlementDate must not be null");
+        }
         if (dueDate == null) {
             return false;
         }
         LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);
-        return !endOfGracePeriod.isBefore(LocalDate.now());
+        return !endOfGracePeriod.isBefore(entitlementDate);
     }
 }

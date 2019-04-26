@@ -108,13 +108,20 @@ public class NewClaimService {
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
         Optional<VoucherEntitlement> entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
-                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), getChildrenDateOfBirths(eligibilityResponse)))
+                ? Optional.of(getEntitlement(claim, eligibilityResponse))
                 : Optional.empty();
 
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(entitlement)
                 .build();
+    }
+
+    private VoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
+        return entitlementCalculator.calculateVoucherEntitlement(
+                claim.getClaimant(),
+                getChildrenDateOfBirths(eligibilityResponse),
+                LocalDate.now());
     }
 
     private List<LocalDate> getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {

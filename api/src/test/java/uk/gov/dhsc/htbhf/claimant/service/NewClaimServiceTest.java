@@ -74,7 +74,7 @@ class NewClaimServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -142,7 +142,7 @@ class NewClaimServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -151,7 +151,7 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
 
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
+        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
@@ -175,7 +175,7 @@ class NewClaimServiceTest {
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+            given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         }
 
         //when
@@ -188,7 +188,7 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
+            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse), LocalDate.now());
             verifyCreateNewCardMessageSent(result);
         }
     }
