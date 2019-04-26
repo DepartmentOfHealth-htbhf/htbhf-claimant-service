@@ -15,12 +15,16 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -147,7 +151,7 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
 
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, eligibilityResponse);
+        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
@@ -184,7 +188,7 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, eligibilityResponse);
+            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
             verifyCreateNewCardMessageSent(result);
         }
     }
@@ -233,6 +237,13 @@ class NewClaimServiceTest {
         assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
         assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
         verifyZeroInteractions(messageQueueDAO);
+    }
+
+    private List<LocalDate> getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {
+        return eligibilityResponse.getChildren()
+                .stream()
+                .map(ChildDTO::getDateOfBirth)
+                .collect(Collectors.toList());
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
