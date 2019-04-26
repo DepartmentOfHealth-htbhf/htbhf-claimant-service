@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,9 +41,9 @@ public class EntitlementCalculator {
         this.voucherValueInPence = voucherValueInPence;
     }
 
-    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, EligibilityResponse eligibilityResponse) {
-        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(eligibilityResponse.getChildren());
-        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(eligibilityResponse.getChildren());
+    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List<LocalDate> childrenDatesOfBirth) {
+        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(childrenDatesOfBirth);
+        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(childrenDatesOfBirth);
 
         if (numberOfChildrenUnderFour < numberOfChildrenUnderOne) {
             log.error("Number of children under four ({}) must not be less than number of children under one ({})",
@@ -56,21 +54,21 @@ public class EntitlementCalculator {
         return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
     }
 
-    private Integer getNumberOfChildrenUnderOne(List<ChildDTO> children) {
-        return getNumberOfChildrenUnderAgeInYears(children, 1);
+    private Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirths) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 1);
     }
 
-    private Integer getNumberOfChildrenUnderFour(List<ChildDTO> children) {
-        return getNumberOfChildrenUnderAgeInYears(children, 4);
+    private Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirths) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 4);
     }
 
-    private Integer getNumberOfChildrenUnderAgeInYears(List<ChildDTO> children, Integer ageInYears) {
-        if (children == null) {
+    private Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirths, Integer ageInYears) {
+        if (dateOfBirths == null) {
             return 0;
         }
         LocalDate pastDate = LocalDate.now().minusYears(ageInYears);
-        return Math.toIntExact(children.stream()
-                .filter(child -> child.getDateOfBirth().isAfter(pastDate))
+        return Math.toIntExact(dateOfBirths.stream()
+                .filter(date -> date.isAfter(pastDate))
                 .count());
     }
 

@@ -10,14 +10,18 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -104,12 +108,18 @@ public class NewClaimService {
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
         Optional<VoucherEntitlement> entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
-                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), eligibilityResponse))
+                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), getChildrenDateOfBirths(eligibilityResponse)))
                 : Optional.empty();
 
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(entitlement)
                 .build();
+    }
+
+    private List<LocalDate> getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {
+        return eligibilityResponse.getChildren().stream()
+                .map(ChildDTO::getDateOfBirth)
+                .collect(Collectors.toList());
     }
 }
