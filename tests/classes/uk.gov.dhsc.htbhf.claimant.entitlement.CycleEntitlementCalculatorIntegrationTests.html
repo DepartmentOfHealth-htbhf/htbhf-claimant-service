@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=edge"/>
-<title>Test results - Class uk.gov.dhsc.htbhf.claimant.service.CardClientTest</title>
+<title>Test results - Class uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculatorIntegrationTests</title>
 <link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="../css/style.css" rel="stylesheet" type="text/css"/>
 <script src="../js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">
-<h1>Class uk.gov.dhsc.htbhf.claimant.service.CardClientTest</h1>
+<h1>Class uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculatorIntegrationTests</h1>
 <div class="breadcrumbs">
 <a href="../index.html">all</a> &gt; 
-<a href="../packages/uk.gov.dhsc.htbhf.claimant.service.html">uk.gov.dhsc.htbhf.claimant.service</a> &gt; CardClientTest</div>
+<a href="../packages/uk.gov.dhsc.htbhf.claimant.entitlement.html">uk.gov.dhsc.htbhf.claimant.entitlement</a> &gt; CycleEntitlementCalculatorIntegrationTests</div>
 <div id="summary">
 <table>
 <tr>
@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">3</div>
+<div class="counter">5</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.025s</div>
+<div class="counter">0.039s</div>
 <p>duration</p>
 </div>
 </td>
@@ -73,22 +73,38 @@
 <thead>
 <tr>
 <th>Test</th>
+<th>Method name</th>
 <th>Duration</th>
 <th>Result</th>
 </tr>
 </thead>
 <tr>
-<td class="success">shouldCallCardServiceForNewCard()</td>
-<td class="success">0.006s</td>
+<td class="success">Calculates the correct entitlement for a cycle when there is a child under one, whose first birthday is on day two of week one of the payment cycle.</td>
+<td class="success">shouldCalculateCorrectEntitlementForEntitlementChanges1()</td>
+<td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldThrowAnExceptionWhenPostCallReturnsError()</td>
-<td class="success">0.011s</td>
+<td class="success">Calculates the correct entitlement for a cycle when the claimant is pregnant and there is a child between one and four whose fourth birthday is on day two of week two of the payment cycle.</td>
+<td class="success">shouldCalculateCorrectEntitlementForEntitlementChanges2()</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldThrowExceptionWhenCardServiceReturnsUnexpectedStatusCodeForNewCard()</td>
+<td class="success">Calculates the correct entitlement for a cycle when there is one child under one whose first birthday is on day two of week three, and one child between one and four whose fourth birthday is on day one of week four of the payment cycle.</td>
+<td class="success">shouldCalculateCorrectEntitlementForEntitlementChanges3()</td>
+<td class="success">0.004s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Calculates the correct entitlement for a cycle when there is one child under one whose first birthday is on day two of week three, and one child between one and four whose fourth birthday is on day two of week four of the payment cycle.</td>
+<td class="success">shouldCalculateCorrectEntitlementForEntitlementChangesOne4()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Calculates the correct entitlement when there is a child under one, a child under four and neither child changes age during the payment cycle.</td>
+<td class="success">shouldCalculateCorrectEntitlementForNoChanges()</td>
 <td class="success">0.008s</td>
 <td class="success">passed</td>
 </tr>
@@ -106,8 +122,6 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.3.RELEASE)
 
-15:07:09.494 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards
-15:07:09.505 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Expecting a CREATED response from the card service api, instead received INTERNAL_SERVER_ERROR with response body null
 </pre>
 </span>
 </div>
