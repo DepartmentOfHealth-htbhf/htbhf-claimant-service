@@ -8,6 +8,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Calculates the entitlement for a claimant over a given payment cycle. Entitlement is calculated for a number of
+ * calculation periods and the sum of those entitlements is returned. E.g. a cycle period of 28 days with 4 calculation
+ * periods would result in entitlement being calculated four times, each one week apart.
+ */
 @Component
 public class CycleEntitlementCalculator {
 
@@ -37,17 +42,17 @@ public class CycleEntitlementCalculator {
         }
     }
 
-    public int calculateEntitlementInPence(Claimant claimant, List<LocalDate> childrenDatesOfBirth) {
-        LocalDate today = LocalDate.now();
-        List<LocalDate> entitlementDates = getEntitlementDates(today);
+    public int calculateEntitlementInPence(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
+        List<LocalDate> entitlementDates = getEntitlementDates();
 
         return entitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(claimant, childrenDatesOfBirth, date))
+                .map(date -> entitlementCalculator.calculateVoucherEntitlement(claimant, dateOfBirthOfChildren, date))
                 .mapToInt(VoucherEntitlement::getTotalVoucherValueInPence)
                 .sum();
     }
 
-    private List<LocalDate> getEntitlementDates(LocalDate today) {
+    private List<LocalDate> getEntitlementDates() {
+        LocalDate today = LocalDate.now();
         List<LocalDate> entitlementDates = new ArrayList<>(numberOfCalculationPeriods);
         for (int i = 0; i < numberOfCalculationPeriods; i++) {
             entitlementDates.add(today.plusDays(i * entitlementCalculationDuration));

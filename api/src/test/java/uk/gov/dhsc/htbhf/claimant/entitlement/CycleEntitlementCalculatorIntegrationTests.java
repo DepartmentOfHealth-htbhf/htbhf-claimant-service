@@ -12,7 +12,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
 @SpringBootTest
 class CycleEntitlementCalculatorIntegrationTests {
@@ -24,8 +25,10 @@ class CycleEntitlementCalculatorIntegrationTests {
              + " a child under four and neither child changes age during the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForNoChanges() {
-        Claimant claimant = aValidClaimantBuilder().build();
-        List<LocalDate> childrenDatesOfBirth = asList(LocalDate.now().minusMonths(6), LocalDate.now().minusYears(3));
+        Claimant claimant = aValidClaimant();
+        LocalDate firstBirthdayInSixMonths = LocalDate.now().minusMonths(6);
+        LocalDate fourthBirthdayInOneYear = LocalDate.now().minusYears(3);
+        List<LocalDate> childrenDatesOfBirth = asList(firstBirthdayInSixMonths, fourthBirthdayInOneYear);
 
         int entitlementAmount = cycleEntitlementCalculator.calculateEntitlementInPence(claimant, childrenDatesOfBirth);
 
@@ -39,7 +42,7 @@ class CycleEntitlementCalculatorIntegrationTests {
              + " is on day two of week one of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges1() {
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         LocalDate firstBirthdayOnDayTwoOfWeekOne = LocalDate.now().minusYears(1).plusDays(1);
         List<LocalDate> childrenDatesOfBirth = singletonList(firstBirthdayOnDayTwoOfWeekOne);
 
@@ -56,7 +59,7 @@ class CycleEntitlementCalculatorIntegrationTests {
              + " one and four whose fourth birthday is on day two of week two of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges2() {
-        Claimant pregnantClaimant = aValidClaimantBuilder().expectedDeliveryDate(LocalDate.now().plusMonths(1)).build();
+        Claimant pregnantClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now().plusMonths(1));
         LocalDate fourthBirthdayOnDayTwoOfWeekTwo = LocalDate.now().minusYears(4).plusWeeks(1).plusDays(1);
         List<LocalDate> childrenDatesOfBirth = singletonList(fourthBirthdayOnDayTwoOfWeekTwo);
 
@@ -73,7 +76,7 @@ class CycleEntitlementCalculatorIntegrationTests {
              + " day two of week three, and one child between one and four whose fourth birthday is on day one of week four of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges3() {
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         LocalDate firstBirthdayOnDayTwoOfWeekThree = LocalDate.now().minusYears(1).plusWeeks(2).plusDays(1);
         LocalDate fourthBirthdayOnDayOneOfWeekFour = LocalDate.now().minusYears(4).plusWeeks(3);
         List<LocalDate> childrenDatesOfBirth = asList(firstBirthdayOnDayTwoOfWeekThree, fourthBirthdayOnDayOneOfWeekFour);
@@ -91,7 +94,7 @@ class CycleEntitlementCalculatorIntegrationTests {
              + " day two of week three, and one child between one and four whose fourth birthday is on day two of week four of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChangesOne4() {
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         LocalDate firstBirthdayOnDayTwoOfWeekThree = LocalDate.now().minusYears(1).plusWeeks(2).plusDays(1);
         LocalDate fourthBirthdayOnDayTwoOfWeekFour = LocalDate.now().minusYears(4).plusWeeks(3).plusDays(1);
         List<LocalDate> childrenDatesOfBirth = asList(firstBirthdayOnDayTwoOfWeekThree, fourthBirthdayOnDayTwoOfWeekFour);
