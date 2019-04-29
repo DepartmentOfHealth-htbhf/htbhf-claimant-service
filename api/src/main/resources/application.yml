@@ -1,61 +1,63 @@
 # see http://engineering.pivotal.io/post/spring-boot-injecting-credentials/
 # to understand how spring parses cloud foundry vcap services environment variables
 spring:
-    datasource:
-        url: ${vcap.services.htbhf-claimant-service-postgres.credentials.jdbcuri:jdbc:postgresql://localhost/claimant}
-        username: ${vcap.services.htbhf-claimant-service-postgres.credentials.username:claimant_admin}
-        password: ${vcap.services.htbhf-claimant-service-postgres.credentials.password:claimant_admin}
-        driver-class-name: org.postgresql.Driver
-        type: com.zaxxer.hikari.HikariDataSource
-        hikari:
-            connectionTimeout: 5000
-    jpa:
-        properties.hibernate.dialect: org.hibernate.dialect.PostgreSQL9Dialect
-        properties.hibernate.temp.use_jdbc_metadata_defaults: false
-        properties.hibernate.connection.CharSet: utf8
-        properties.hibernate.connection.characterEncoding: utf8
-        properties.hibernate.connection.useUnicode: true
-        properties.hibernate.connection.releaseMode: after_transaction
-    application:
-        name: claimant/api
-    boot:
-        admin:
-            url: http://localhost:8090
-    jackson:
-      default-property-inclusion: NON_NULL
-    flyway:
-        baseline-on-migrate: true
+  datasource:
+    url: ${vcap.services.htbhf-claimant-service-postgres.credentials.jdbcuri:jdbc:postgresql://localhost/claimant}
+    username: ${vcap.services.htbhf-claimant-service-postgres.credentials.username:claimant_admin}
+    password: ${vcap.services.htbhf-claimant-service-postgres.credentials.password:claimant_admin}
+    driver-class-name: org.postgresql.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connectionTimeout: 5000
+  jpa:
+    properties.hibernate.dialect: org.hibernate.dialect.PostgreSQL9Dialect
+    properties.hibernate.temp.use_jdbc_metadata_defaults: false
+    properties.hibernate.connection.CharSet: utf8
+    properties.hibernate.connection.characterEncoding: utf8
+    properties.hibernate.connection.useUnicode: true
+    properties.hibernate.connection.releaseMode: after_transaction
+  application:
+    name: claimant/api
+  boot:
+    admin:
+      url: http://localhost:8090
+  jackson:
+    default-property-inclusion: NON_NULL
+  flyway:
+    baseline-on-migrate: true
 
 logging:
-    pattern:
-        console: "%d{HH:mm:ss.SSS} [%thread] [%X{session.id}][%X{request.id}] %-5level %logger{36} - %msg%n%rEx{full, org.springframework.web, org.springframework.boot, org.apache.catalina, org.apache.coyote, org.apache.tomcat, java.base}"
-#        console: "%d{HH:mm:ss.SSS} [%thread] [%X{session.id}][%X{request.id}] %-5level %logger{36} - %msg%n"
-    level:
-        ROOT: ${vcap.services.variable-service.credentials.claimant-root-loglevel:info}
-        uk.gov.dhsc: ${vcap.services.variable-service.credentials.claimant-app-loglevel:debug}
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{session.id}][%X{request.id}] %-5level %logger{36} - %msg%n%rEx{full, org.springframework.web, org.springframework.boot, org.apache.catalina, org.apache.coyote, org.apache.tomcat, java.base}"
+  #        console: "%d{HH:mm:ss.SSS} [%thread] [%X{session.id}][%X{request.id}] %-5level %logger{36} - %msg%n"
+  level:
+    ROOT: ${vcap.services.variable-service.credentials.claimant-root-loglevel:info}
+    uk.gov.dhsc: ${vcap.services.variable-service.credentials.claimant-app-loglevel:debug}
 
 eligibility:
-    base-uri: ${ELIGIBILITY_URI:http://localhost:8100}
+  base-uri: ${ELIGIBILITY_URI:http://localhost:8100}
 
 entitlement:
-    number-of-vouchers-per-child-under-one: 2
-    number-of-vouchers-per-child-between-one-and-four: 1
-    number-of-vouchers-per-pregnancy: 1
-    pregnancy-grace-period-in-days: 42
-    voucher-value-in-pence: 310
+  number-of-vouchers-per-child-under-one: 2
+  number-of-vouchers-per-child-between-one-and-four: 1
+  number-of-vouchers-per-pregnancy: 1
+  pregnancy-grace-period-in-days: 42
+  voucher-value-in-pence: 310
 
 card:
-    services-base-uri: ${CARD_SERVICES_URI:http://localhost:8140}
+  services-base-uri: ${CARD_SERVICES_URI:http://localhost:8140}
 
 message-processor:
-    # run every 5 minutes
-    cron-schedule: "* */5 * * * *"
-    # lock for a minimum of 1 minute, maximum of 60 minutes. See https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm
-    # for an explanation of the ISO-8601 duration format
-    minimum-lock-time: "PT1M"
-    maximum-lock-time: "PT60M"
+  # run every 5 minutes
+  cron-schedule: "* */5 * * * *"
+  # lock for a minimum of 1 minute, maximum of 60 minutes. See https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm
+  # for an explanation of the ISO-8601 duration format
+  minimum-lock-time: "PT1M"
+  maximum-lock-time: "PT60M"
 
-
+payment-cycle:
+  cycle-duration-in-days: 28
+  number-of-calculation-periods: 4
 
 server:
-    port: 8090
+  port: 8090
