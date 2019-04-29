@@ -18,10 +18,23 @@ public class CycleEntitlementCalculator {
     public CycleEntitlementCalculator(@Value("${payment-cycle.cycle-duration-in-days}") Integer paymentCycleDurationInDays,
                                       @Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
                                       EntitlementCalculator entitlementCalculator) {
-        // TODO check numbers are divisible
+        validateArguments(paymentCycleDurationInDays, numberOfCalculationPeriods);
         this.entitlementCalculationDuration = paymentCycleDurationInDays / numberOfCalculationPeriods;
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
         this.entitlementCalculator = entitlementCalculator;
+    }
+
+    private void validateArguments(Integer paymentCycleDurationInDays, Integer numberOfCalculationPeriods) {
+        if (paymentCycleDurationInDays == 0) {
+            throw new IllegalArgumentException("Payment cycle duration can not be zero");
+        }
+        if (numberOfCalculationPeriods == 0) {
+            throw new IllegalArgumentException("Number of calculation periods can not be zero");
+        }
+        if (paymentCycleDurationInDays % numberOfCalculationPeriods != 0) {
+            throw new IllegalArgumentException("Payment cycle duration of " + paymentCycleDurationInDays
+                    + " days is not divisible by number of calculation periods " + numberOfCalculationPeriods);
+        }
     }
 
     public int calculateEntitlementInPence(Claimant claimant, List<LocalDate> childrenDatesOfBirth) {
