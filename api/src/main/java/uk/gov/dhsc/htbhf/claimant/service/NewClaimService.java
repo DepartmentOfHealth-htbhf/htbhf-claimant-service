@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 
@@ -120,13 +120,13 @@ public class NewClaimService {
     private VoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
         return entitlementCalculator.calculateVoucherEntitlement(
                 claim.getClaimant(),
-                getChildrenDateOfBirths(eligibilityResponse),
+                getDateOfBirthOfChildren(eligibilityResponse),
                 LocalDate.now());
     }
 
-    private List<LocalDate> getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {
+    private List<LocalDate> getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
         return eligibilityResponse.getChildren().stream()
                 .map(ChildDTO::getDateOfBirth)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 }

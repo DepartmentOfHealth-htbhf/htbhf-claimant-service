@@ -26,6 +26,14 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().lastName(lastName).build();
     }
 
+    public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+        return aValidClaimantBuilder().expectedDeliveryDate(expectedDeliveryDate).build();
+    }
+
+    public static Claimant aClaimantWithCardDeliveryAddress(Address address) {
+        return aValidClaimantBuilder().cardDeliveryAddress(address).build();
+    }
+
     public static Claimant aClaimantWithFirstName(String firstName) {
         return aValidClaimantBuilder().firstName(firstName).build();
     }
@@ -50,7 +58,7 @@ public final class ClaimantTestDataFactory {
         return aClaimantWithFirstName(LONG_NAME);
     }
 
-    public static Claimant.ClaimantBuilder aValidClaimantBuilder() {
+    private static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)

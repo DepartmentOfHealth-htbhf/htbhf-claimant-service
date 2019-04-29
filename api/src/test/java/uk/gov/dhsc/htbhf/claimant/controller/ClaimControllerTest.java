@@ -34,7 +34,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -63,7 +63,7 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceWithConvertedClaimWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         given(claimantConverter.convert(any())).willReturn(claimant);
@@ -92,7 +92,7 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceWithConvertedClaimWithoutVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
         given(claimantConverter.convert(any())).willReturn(claimant);
         given(newClaimService.createClaim(any())).willReturn(claimResult);
@@ -114,7 +114,7 @@ class ClaimControllerTest {
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
         given(newClaimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.NEW, Optional.empty()));
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         given(claimantConverter.convert(any())).willReturn(claimant);
         Map mockStatusMap = mock(Map.class);
         ReflectionTestUtils.setField(controller, "statusMap", mockStatusMap);
