@@ -27,12 +27,6 @@ public class EligibilityResponseTestDataFactory {
         return aValidEligibilityResponseBuilder().eligibilityStatus(eligibilityStatus).build();
     }
 
-    public static EligibilityResponse anEligibilityResponseWithStatusOnly(EligibilityStatus eligibilityStatus) {
-        return EligibilityResponse.builder()
-                .eligibilityStatus(eligibilityStatus)
-                .build();
-    }
-
     public static EligibilityResponse anEligibilityResponseWithDwpHouseholdIdentifier(String dwpHouseholdIdentifier) {
         return aValidEligibilityResponseBuilder().dwpHouseholdIdentifier(dwpHouseholdIdentifier).build();
     }

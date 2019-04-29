@@ -8,12 +8,14 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
  * The number of vouchers is based on:
- *  (2) vouchers per child under one, plus
- *  (1) voucher per child between one and four, plus
- *  (1) voucher per pregnancy
+ * (2) vouchers per child under one, plus
+ * (1) voucher per child between one and four, plus
+ * (1) voucher per pregnancy
  * (numbers in brackets are configurable).
  */
 @Component
@@ -41,9 +43,18 @@ public class EntitlementCalculator {
         this.voucherValueInPence = voucherValueInPence;
     }
 
-    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List<LocalDate> childrenDatesOfBirth) {
-        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(childrenDatesOfBirth);
-        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(childrenDatesOfBirth);
+    /**
+     * Calculates the {@link VoucherEntitlement} a claimant is entitled to for a given date. The number of children under one and
+     * the number between one and four is calculated for the given date.
+     *
+     * @param claimant              the claimant who will be receiving the vouchers
+     * @param dateOfBirthOfChildren the date of birth of the claimant's children
+     * @param entitlementDate       the date to check entitlement for
+     * @return the voucher entitlement calculated for the claimant
+     */
+    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(dateOfBirthOfChildren, entitlementDate);
+        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(dateOfBirthOfChildren, entitlementDate);
 
         if (numberOfChildrenUnderFour < numberOfChildrenUnderOne) {
             log.error("Number of children under four ({}) must not be less than number of children under one ({})",
@@ -51,31 +62,33 @@ public class EntitlementCalculator {
             throw new IllegalArgumentException("Number of children under four must not be less than number of children under one");
         }
 
-        return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+        boolean isEntitledToPregnancyVoucher = pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), entitlementDate);
+
+        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
     }
 
-    private Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirths) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 1);
+    private Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 1);
     }
 
-    private Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirths) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 4);
+    private Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 4);
     }
 
-    private Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirths, Integer ageInYears) {
-        if (dateOfBirths == null) {
+    private Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate, Integer ageInYears) {
+        if (isEmpty(dateOfBirthOfChildren)) {
             return 0;
         }
-        LocalDate pastDate = LocalDate.now().minusYears(ageInYears);
-        return Math.toIntExact(dateOfBirths.stream()
+        LocalDate pastDate = entitlementDate.minusYears(ageInYears);
+        return Math.toIntExact(dateOfBirthOfChildren.stream()
                 .filter(date -> date.isAfter(pastDate))
                 .count());
     }
 
-    private VoucherEntitlement createVoucherEntitlement(Claimant claimant, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
+    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
         int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;
 
-        int vouchersForPregnancy = calculateVouchersForPregnancy(claimant);
+        int vouchersForPregnancy = calculateVouchersForPregnancy(isEntitledToPregnancyVoucher);
         int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);
         int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);
 
@@ -87,9 +100,8 @@ public class EntitlementCalculator {
                 .build();
     }
 
-    private int calculateVouchersForPregnancy(Claimant claimant) {
-        boolean isPregnant = pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate());
-        return isPregnant ? vouchersPerPregnancy : 0;
+    private int calculateVouchersForPregnancy(boolean isEntitledToPregnancyVoucher) {
+        return isEntitledToPregnancyVoucher ? vouchersPerPregnancy : 0;
     }
 
     private int calculateVouchersForChildrenUnderOne(int numberOfChildrenUnderOne) {

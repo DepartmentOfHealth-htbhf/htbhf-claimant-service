@@ -24,8 +24,8 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +35,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayloadWithClaimId;
@@ -68,13 +67,13 @@ class NewClaimServiceTest {
     @Test
     void shouldSaveNonExistingEligibleClaimantAndSendNewCardMessage() {
         //given
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
         EligibilityResponse eligibilityResponse = anEligibilityResponse();
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -136,13 +135,13 @@ class NewClaimServiceTest {
     @Test
     void shouldCorrectlyCalculateVoucherEntitlement() {
         //given
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
         EligibilityResponse eligibilityResponse = anEligibilityResponse();
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -151,7 +150,7 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
 
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
+        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
@@ -168,14 +167,14 @@ class NewClaimServiceTest {
     @EnumSource(EligibilityStatus.class)
     void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
         //given
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(eligibilityStatus);
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            given(entitlementCalculator.calculateVoucherEntitlement(any(), any())).willReturn(voucherEntitlement);
+            given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         }
 
         //when
@@ -188,7 +187,7 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getChildrenDateOfBirths(eligibilityResponse));
+            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
             verifyCreateNewCardMessageSent(result);
         }
     }
@@ -196,7 +195,7 @@ class NewClaimServiceTest {
     @Test
     void shouldSaveDuplicateClaimantForMatchingNino() {
         //given
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(true);
 
         //when
@@ -219,7 +218,7 @@ class NewClaimServiceTest {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        Claimant claimant = aValidClaimantBuilder().build();
+        Claimant claimant = aValidClaimant();
         RuntimeException testException = new RuntimeException("Test exception");
         given(client.checkEligibility(any())).willThrow(testException);
 
@@ -239,11 +238,11 @@ class NewClaimServiceTest {
         verifyZeroInteractions(messageQueueDAO);
     }
 
-    private List<LocalDate> getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {
+    private List<LocalDate> getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
         return eligibilityResponse.getChildren()
                 .stream()
                 .map(ChildDTO::getDateOfBirth)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
