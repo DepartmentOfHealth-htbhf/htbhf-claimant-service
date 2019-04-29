@@ -8,16 +8,18 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
  * The number of vouchers is based on:
- *  (2) vouchers per child under one, plus
- *  (1) voucher per child between one and four, plus
- *  (1) voucher per pregnancy
+ * (2) vouchers per child under one, plus
+ * (1) voucher per child between one and four, plus
+ * (1) voucher per pregnancy
  * (numbers in brackets are configurable).
  */
 @Component
-<span class="fc" id="L20">@Slf4j</span>
+<span class="fc" id="L22">@Slf4j</span>
 public class EntitlementCalculator {
 
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
@@ -32,72 +34,82 @@ public class EntitlementCalculator {
             @Value(&quot;${entitlement.number-of-vouchers-per-child-between-one-and-four}&quot;) int vouchersPerChildBetweenOneAndFour,
             @Value(&quot;${entitlement.number-of-vouchers-per-pregnancy}&quot;) int vouchersPerPregnancy,
             @Value(&quot;${entitlement.voucher-value-in-pence}&quot;) int voucherValueInPence
-<span class="fc" id="L35">    ) {</span>
+<span class="fc" id="L37">    ) {</span>
 
-<span class="fc" id="L37">        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;</span>
-<span class="fc" id="L38">        this.vouchersPerChildUnderOne = vouchersPerChildUnderOne;</span>
-<span class="fc" id="L39">        this.vouchersPerChildBetweenOneAndFour = vouchersPerChildBetweenOneAndFour;</span>
-<span class="fc" id="L40">        this.vouchersPerPregnancy = vouchersPerPregnancy;</span>
-<span class="fc" id="L41">        this.voucherValueInPence = voucherValueInPence;</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L39">        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;</span>
+<span class="fc" id="L40">        this.vouchersPerChildUnderOne = vouchersPerChildUnderOne;</span>
+<span class="fc" id="L41">        this.vouchersPerChildBetweenOneAndFour = vouchersPerChildBetweenOneAndFour;</span>
+<span class="fc" id="L42">        this.vouchersPerPregnancy = vouchersPerPregnancy;</span>
+<span class="fc" id="L43">        this.voucherValueInPence = voucherValueInPence;</span>
+<span class="fc" id="L44">    }</span>
 
-    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List&lt;LocalDate&gt; childrenDatesOfBirth) {
-<span class="fc" id="L45">        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(childrenDatesOfBirth);</span>
-<span class="fc" id="L46">        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(childrenDatesOfBirth);</span>
+    /**
+     * Calculates the {@link VoucherEntitlement} a claimant is entitled to for a given date. The number of children under one and
+     * the number between one and four is calculated for the given date.
+     *
+     * @param claimant              the claimant who will be receiving the vouchers
+     * @param dateOfBirthOfChildren the date of birth of the claimant's children
+     * @param entitlementDate       the date to check entitlement for
+     * @return the voucher entitlement calculated for the claimant
+     */
+    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List&lt;LocalDate&gt; dateOfBirthOfChildren, LocalDate entitlementDate) {
+<span class="fc" id="L56">        int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(dateOfBirthOfChildren, entitlementDate);</span>
+<span class="fc" id="L57">        int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(dateOfBirthOfChildren, entitlementDate);</span>
 
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (numberOfChildrenUnderFour &lt; numberOfChildrenUnderOne) {</span>
-<span class="nc" id="L49">            log.error(&quot;Number of children under four ({}) must not be less than number of children under one ({})&quot;,</span>
-<span class="nc" id="L50">                    numberOfChildrenUnderFour, numberOfChildrenUnderOne);</span>
-<span class="nc" id="L51">            throw new IllegalArgumentException(&quot;Number of children under four must not be less than number of children under one&quot;);</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (numberOfChildrenUnderFour &lt; numberOfChildrenUnderOne) {</span>
+<span class="nc" id="L60">            log.error(&quot;Number of children under four ({}) must not be less than number of children under one ({})&quot;,</span>
+<span class="nc" id="L61">                    numberOfChildrenUnderFour, numberOfChildrenUnderOne);</span>
+<span class="nc" id="L62">            throw new IllegalArgumentException(&quot;Number of children under four must not be less than number of children under one&quot;);</span>
         }
 
-<span class="fc" id="L54">        return createVoucherEntitlement(claimant, numberOfChildrenUnderFour, numberOfChildrenUnderOne);</span>
+<span class="fc" id="L65">        boolean isEntitledToPregnancyVoucher = pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), entitlementDate);</span>
+
+<span class="fc" id="L67">        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne);</span>
     }
 
-    private Integer getNumberOfChildrenUnderOne(List&lt;LocalDate&gt; dateOfBirths) {
-<span class="fc" id="L58">        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 1);</span>
+    private Integer getNumberOfChildrenUnderOne(List&lt;LocalDate&gt; dateOfBirthOfChildren, LocalDate entitlementDate) {
+<span class="fc" id="L71">        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 1);</span>
     }
 
-    private Integer getNumberOfChildrenUnderFour(List&lt;LocalDate&gt; dateOfBirths) {
-<span class="fc" id="L62">        return getNumberOfChildrenUnderAgeInYears(dateOfBirths, 4);</span>
+    private Integer getNumberOfChildrenUnderFour(List&lt;LocalDate&gt; dateOfBirthOfChildren, LocalDate entitlementDate) {
+<span class="fc" id="L75">        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 4);</span>
     }
 
-    private Integer getNumberOfChildrenUnderAgeInYears(List&lt;LocalDate&gt; dateOfBirths, Integer ageInYears) {
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        if (dateOfBirths == null) {</span>
-<span class="fc" id="L67">            return 0;</span>
+    private Integer getNumberOfChildrenUnderAgeInYears(List&lt;LocalDate&gt; dateOfBirthOfChildren, LocalDate entitlementDate, Integer ageInYears) {
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (isEmpty(dateOfBirthOfChildren)) {</span>
+<span class="fc" id="L80">            return 0;</span>
         }
-<span class="fc" id="L69">        LocalDate pastDate = LocalDate.now().minusYears(ageInYears);</span>
-<span class="fc" id="L70">        return Math.toIntExact(dateOfBirths.stream()</span>
-<span class="fc" id="L71">                .filter(date -&gt; date.isAfter(pastDate))</span>
-<span class="fc" id="L72">                .count());</span>
+<span class="fc" id="L82">        LocalDate pastDate = entitlementDate.minusYears(ageInYears);</span>
+<span class="fc" id="L83">        return Math.toIntExact(dateOfBirthOfChildren.stream()</span>
+<span class="fc" id="L84">                .filter(date -&gt; date.isAfter(pastDate))</span>
+<span class="fc" id="L85">                .count());</span>
     }
 
-    private VoucherEntitlement createVoucherEntitlement(Claimant claimant, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
-<span class="fc" id="L76">        int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;</span>
+    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
+<span class="fc" id="L89">        int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;</span>
 
-<span class="fc" id="L78">        int vouchersForPregnancy = calculateVouchersForPregnancy(claimant);</span>
-<span class="fc" id="L79">        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);</span>
-<span class="fc" id="L80">        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);</span>
+<span class="fc" id="L91">        int vouchersForPregnancy = calculateVouchersForPregnancy(isEntitledToPregnancyVoucher);</span>
+<span class="fc" id="L92">        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);</span>
+<span class="fc" id="L93">        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);</span>
 
-<span class="fc" id="L82">        return VoucherEntitlement.builder()</span>
-<span class="fc" id="L83">                .vouchersForPregnancy(vouchersForPregnancy)</span>
-<span class="fc" id="L84">                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)</span>
-<span class="fc" id="L85">                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)</span>
-<span class="fc" id="L86">                .voucherValueInPence(voucherValueInPence)</span>
-<span class="fc" id="L87">                .build();</span>
+<span class="fc" id="L95">        return VoucherEntitlement.builder()</span>
+<span class="fc" id="L96">                .vouchersForPregnancy(vouchersForPregnancy)</span>
+<span class="fc" id="L97">                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)</span>
+<span class="fc" id="L98">                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)</span>
+<span class="fc" id="L99">                .voucherValueInPence(voucherValueInPence)</span>
+<span class="fc" id="L100">                .build();</span>
     }
 
-    private int calculateVouchersForPregnancy(Claimant claimant) {
-<span class="fc" id="L91">        boolean isPregnant = pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate());</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        return isPregnant ? vouchersPerPregnancy : 0;</span>
+    private int calculateVouchersForPregnancy(boolean isEntitledToPregnancyVoucher) {
+<span class="fc bfc" id="L104" title="All 2 branches covered.">        return isEntitledToPregnancyVoucher ? vouchersPerPregnancy : 0;</span>
     }
 
     private int calculateVouchersForChildrenUnderOne(int numberOfChildrenUnderOne) {
-<span class="fc" id="L96">        return numberOfChildrenUnderOne * vouchersPerChildUnderOne;</span>
+<span class="fc" id="L108">        return numberOfChildrenUnderOne * vouchersPerChildUnderOne;</span>
     }
 
     private int calculateVouchersForChildrenBetweenOneAndFour(int numberOfChildrenBetweenOneAndFour) {
-<span class="fc" id="L100">        return numberOfChildrenBetweenOneAndFour * vouchersPerChildBetweenOneAndFour;</span>
+<span class="fc" id="L112">        return numberOfChildrenBetweenOneAndFour * vouchersPerChildBetweenOneAndFour;</span>
     }
 
 }

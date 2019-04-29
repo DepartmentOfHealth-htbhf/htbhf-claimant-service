@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 /**
  * Responsible for deciding whether a claimant is entitled to a voucher for pregnancy,
- * by comparing the due date to today's date.
+ * by comparing the due date to a given entitlement date.
  * There is a grace period after the due date before the claimant stops being eligible for a voucher.
  */
 @Component
@@ -19,12 +19,15 @@ public class PregnancyEntitlementCalculator {
 <span class="fc" id="L19">        this.pregnancyGracePeriodInDays = pregnancyGracePeriodInDays;</span>
 <span class="fc" id="L20">    }</span>
 
-    public boolean isEntitledToVoucher(LocalDate dueDate) {
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (dueDate == null) {</span>
-<span class="fc" id="L24">            return false;</span>
+    public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate) {
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (entitlementDate == null) {</span>
+<span class="fc" id="L24">            throw new IllegalArgumentException(&quot;entitlementDate must not be null&quot;);</span>
         }
-<span class="fc" id="L26">        LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);</span>
-<span class="fc bfc" id="L27" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(LocalDate.now());</span>
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        if (dueDate == null) {</span>
+<span class="fc" id="L27">            return false;</span>
+        }
+<span class="fc" id="L29">        LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(entitlementDate);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

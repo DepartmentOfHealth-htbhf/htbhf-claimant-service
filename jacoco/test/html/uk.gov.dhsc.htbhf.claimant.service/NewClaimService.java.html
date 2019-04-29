@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 
@@ -108,7 +108,7 @@ public class NewClaimService {
 
     private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
 <span class="fc bfc" id="L110" title="All 2 branches covered.">        Optional&lt;VoucherEntitlement&gt; entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE</span>
-<span class="fc" id="L111">                ? Optional.of(entitlementCalculator.calculateVoucherEntitlement(claim.getClaimant(), getChildrenDateOfBirths(eligibilityResponse)))</span>
+<span class="fc" id="L111">                ? Optional.of(getEntitlement(claim, eligibilityResponse))</span>
 <span class="fc" id="L112">                : Optional.empty();</span>
 
 <span class="fc" id="L114">        return ClaimResult.builder()</span>
@@ -117,10 +117,17 @@ public class NewClaimService {
 <span class="fc" id="L117">                .build();</span>
     }
 
-    private List&lt;LocalDate&gt; getChildrenDateOfBirths(EligibilityResponse eligibilityResponse) {
-<span class="fc" id="L121">        return eligibilityResponse.getChildren().stream()</span>
-<span class="fc" id="L122">                .map(ChildDTO::getDateOfBirth)</span>
-<span class="fc" id="L123">                .collect(Collectors.toList());</span>
+    private VoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
+<span class="fc" id="L121">        return entitlementCalculator.calculateVoucherEntitlement(</span>
+<span class="fc" id="L122">                claim.getClaimant(),</span>
+<span class="fc" id="L123">                getDateOfBirthOfChildren(eligibilityResponse),</span>
+<span class="fc" id="L124">                LocalDate.now());</span>
+    }
+
+    private List&lt;LocalDate&gt; getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
+<span class="fc" id="L128">        return eligibilityResponse.getChildren().stream()</span>
+<span class="fc" id="L129">                .map(ChildDTO::getDateOfBirth)</span>
+<span class="fc" id="L130">                .collect(toList());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
