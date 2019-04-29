@@ -145,9 +145,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithoutExpectedDueDate() {
         //Given
-        Claimant claimant = aValidClaimantBuilder()
-                .expectedDeliveryDate(null)
-                .build();
+        Claimant claimant = aClaimantWithExpectedDeliveryDate(null);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -157,9 +155,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithExpectedDueDate() {
         //Given
-        Claimant claimant = aValidClaimantBuilder()
-                .expectedDeliveryDate(LocalDate.now())
-                .build();
+        Claimant claimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -169,9 +165,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithExpectedDueDateInThePast() {
         //Given
-        Claimant claimant = aValidClaimantBuilder()
-                .expectedDeliveryDate(LocalDate.now().minusYears(3))
-                .build();
+        Claimant claimant = aClaimantWithExpectedDeliveryDate(LocalDate.now().minusYears(3));
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
@@ -181,9 +175,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithoutCardDeliveryAddress() {
         //Given
-        Claimant claimant = aValidClaimantBuilder()
-                .cardDeliveryAddress(null)
-                .build();
+        Claimant claimant = aClaimantWithCardDeliveryAddress(null);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
