@@ -12,7 +12,7 @@ import java.util.List;
 public class CycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDuration;
-    private Integer numberOfCalculationPeriods;
+    private final Integer numberOfCalculationPeriods;
     private final EntitlementCalculator entitlementCalculator;
 
     public CycleEntitlementCalculator(@Value("${payment-cycle.cycle-duration-in-days}") Integer paymentCycleDurationInDays,
@@ -36,7 +36,7 @@ public class CycleEntitlementCalculator {
 
     private List<LocalDate> getEntitlementDates(LocalDate today) {
         List<LocalDate> entitlementDates = new ArrayList<>(numberOfCalculationPeriods);
-        for(int i = 0; i < numberOfCalculationPeriods; i++) {
+        for (int i = 0; i < numberOfCalculationPeriods; i++) {
             entitlementDates.add(today.plusDays(i * entitlementCalculationDuration));
         }
         return entitlementDates;
