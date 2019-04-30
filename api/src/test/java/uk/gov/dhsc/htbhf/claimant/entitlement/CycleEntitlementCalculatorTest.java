@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.time.LocalDate;
 import java.util.List;
 
+import static java.util.Collections.nCopies;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -62,10 +63,11 @@ class CycleEntitlementCalculatorTest {
         List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(6));
         Claimant claimant = aValidClaimant();
 
-        Integer totalEntitlement = cycleEntitlementCalculator.calculateEntitlementInPence(claimant, dateOfBirthsOfChildren);
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateCycleVoucherEntitlement(claimant, dateOfBirthsOfChildren);
 
         // each voucher entitlement is worth 100, the cycle should contain three vouchers. 3 * 100 = 300
-        assertThat(totalEntitlement).isEqualTo(300);
+        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
+        assertThat(result).isEqualTo(expected);
         verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now());
         verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now().plusDays(1));
         verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now().plusDays(2));
