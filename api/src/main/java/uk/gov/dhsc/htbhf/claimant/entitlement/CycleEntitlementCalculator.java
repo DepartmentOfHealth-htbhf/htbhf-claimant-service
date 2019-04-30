@@ -52,6 +52,26 @@ public class CycleEntitlementCalculator {
         return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
 
+    public PaymentCycleVoucherEntitlement calculateCycleVoucherEntitlement(Claimant claimant,
+                                                                           List<LocalDate> dateOfBirthOfChildren,
+                                                                           PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
+        if (previousVoucherEntitlement.getVouchersForPregnancy() == 0) {
+            return calculateCycleVoucherEntitlement(claimant, dateOfBirthOfChildren);
+        }
+
+        if (noNewChildrenFromPregnancyExist(claimant, dateOfBirthOfChildren)) {
+            return calculateCycleVoucherEntitlement(claimant, dateOfBirthOfChildren);
+        }
+    }
+
+    private boolean noNewChildrenFromPregnancyExist(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
+        // TODO: use config for date range and update variable names
+        LocalDate beginning = claimant.getExpectedDeliveryDate().minusWeeks(16);
+        LocalDate end = claimant.getExpectedDeliveryDate().plusWeeks(8);
+        return dateOfBirthOfChildren.stream()
+                .noneMatch(date -> date.isAfter(beginning) && date.isBefore(end));
+    }
+
     private List<LocalDate> getEntitlementDates() {
         LocalDate today = LocalDate.now();
         List<LocalDate> entitlementDates = new ArrayList<>(numberOfCalculationPeriods);

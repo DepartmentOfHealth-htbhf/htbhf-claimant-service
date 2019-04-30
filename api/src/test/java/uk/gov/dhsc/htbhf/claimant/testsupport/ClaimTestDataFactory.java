@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -30,6 +31,12 @@ public class ClaimTestDataFactory {
 
     public static Claim aClaimWithClaimStatus(ClaimStatus claimStatus) {
         return aValidClaimBuilderWithStatus(claimStatus)
+                .build();
+    }
+
+    public static Claim aClaimWithVoucherEntitlement(String voucherEntitlement) {
+        return aValidClaimBuilder()
+                .voucherEntitlement(voucherEntitlement)
                 .build();
     }
 
