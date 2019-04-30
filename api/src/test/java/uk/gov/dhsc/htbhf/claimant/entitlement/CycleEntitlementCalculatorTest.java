@@ -3,10 +3,10 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.nCopies;
 import static java.util.Collections.singletonList;
@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
 class CycleEntitlementCalculatorTest {
@@ -58,18 +58,72 @@ class CycleEntitlementCalculatorTest {
 
     @Test
     void shouldCallEntitlementCalculatorForEachEntitlementDate() {
-        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().voucherValueInPence(100).vouchersForChildrenUnderOne(1).build();
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(6));
-        Claimant claimant = aValidClaimant();
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(1));
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateCycleVoucherEntitlement(claimant, dateOfBirthsOfChildren);
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren);
 
-        // each voucher entitlement is worth 100, the cycle should contain three vouchers. 3 * 100 = 300
         PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
         assertThat(result).isEqualTo(expected);
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now());
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now().plusDays(1));
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, dateOfBirthsOfChildren, LocalDate.now().plusDays(2));
+        verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
+    }
+
+    @Test
+    void shouldCallEntitlementCalculatorWithEmptyDueDateWhenNewChildFromPregnancyExists() {
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
+        List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusWeeks(1));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(1));
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+
+        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
+        assertThat(result).isEqualTo(expected);
+        verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
+    }
+
+    @Test
+    void shouldCallEntitlementCalculatorWithExpectedDueDateWhenNoNewChildrenFromPregnancyExist() {
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
+        // child's dob falls outside the date range in which we consider a child to be a result of the current pregnancy
+        List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(8));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(1));
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+
+        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
+        assertThat(result).isEqualTo(expected);
+        verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
+    }
+
+    @Test
+    void shouldCallEntitlementCalculatorWithExpectedDueDateWhenNoPreviousPregnancyVouchers() {
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(0);
+        List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(8));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(8));
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+
+        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
+        assertThat(result).isEqualTo(expected);
+        verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
+    }
+
+    private PaymentCycleVoucherEntitlement createPaymentEntitlementWithPregnancyVouchers(Integer pregnancyVouchers) {
+        VoucherEntitlement previousVoucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(pregnancyVouchers).build();
+        return new PaymentCycleVoucherEntitlement(singletonList(previousVoucherEntitlement));
+    }
+
+    private void verifyEntitlementCalculatorCalled(Optional<LocalDate> expectedDueDate, List<LocalDate> dateOfBirthsOfChildren) {
+        verify(entitlementCalculator).calculateVoucherEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now());
+        verify(entitlementCalculator).calculateVoucherEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now().plusDays(1));
+        verify(entitlementCalculator).calculateVoucherEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now().plusDays(2));
     }
 }

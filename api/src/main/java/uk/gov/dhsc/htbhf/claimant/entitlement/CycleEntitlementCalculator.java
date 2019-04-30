@@ -2,11 +2,11 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -43,31 +43,34 @@ public class CycleEntitlementCalculator {
         }
     }
 
-    public PaymentCycleVoucherEntitlement calculateCycleVoucherEntitlement(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
+    public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
         List<LocalDate> entitlementDates = getEntitlementDates();
         List<VoucherEntitlement> voucherEntitlements = entitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(claimant, dateOfBirthOfChildren, date))
+                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))
                 .collect(Collectors.toList());
 
         return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
 
-    public PaymentCycleVoucherEntitlement calculateCycleVoucherEntitlement(Claimant claimant,
-                                                                           List<LocalDate> dateOfBirthOfChildren,
-                                                                           PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
-        if (previousVoucherEntitlement.getVouchersForPregnancy() == 0) {
-            return calculateCycleVoucherEntitlement(claimant, dateOfBirthOfChildren);
+    public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
+                                                               List<LocalDate> dateOfBirthOfChildren,
+                                                               PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
+        if (previousVoucherEntitlement.getVouchersForPregnancy() == 0 || expectedDueDate.isEmpty()) {
+            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);
         }
 
-        if (noNewChildrenFromPregnancyExist(claimant, dateOfBirthOfChildren)) {
-            return calculateCycleVoucherEntitlement(claimant, dateOfBirthOfChildren);
+        if (noNewChildrenFromPregnancyExist(expectedDueDate.get(), dateOfBirthOfChildren)) {
+            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);
         }
+
+        // ignore expected due date as we've determined that the pregnancy has happened
+        return calculateEntitlement(Optional.empty(), dateOfBirthOfChildren);
     }
 
-    private boolean noNewChildrenFromPregnancyExist(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
+    private boolean noNewChildrenFromPregnancyExist(LocalDate expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
         // TODO: use config for date range and update variable names
-        LocalDate beginning = claimant.getExpectedDeliveryDate().minusWeeks(16);
-        LocalDate end = claimant.getExpectedDeliveryDate().plusWeeks(8);
+        LocalDate beginning = expectedDueDate.minusWeeks(16);
+        LocalDate end = expectedDueDate.plusWeeks(8);
         return dateOfBirthOfChildren.stream()
                 .noneMatch(date -> date.isAfter(beginning) && date.isBefore(end));
     }
