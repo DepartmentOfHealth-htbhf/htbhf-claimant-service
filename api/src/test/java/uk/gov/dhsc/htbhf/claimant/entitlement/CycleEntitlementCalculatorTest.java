@@ -23,17 +23,26 @@ class CycleEntitlementCalculatorTest {
 
     private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 3;
     private static final int NUMBER_OF_CALCULATION_PERIODS = 3;
+    private static final int NUMBER_OF_WEEKS_BEFORE_PREGNANCY = 8;
+    private static final int NUMBER_OF_WEEKS_AFTER_PREGNANCY = 16;
 
     private EntitlementCalculator entitlementCalculator = mock(EntitlementCalculator.class);
 
-    private CycleEntitlementCalculator cycleEntitlementCalculator
-            = new CycleEntitlementCalculator(PAYMENT_CYCLE_DURATION_IN_DAYS, NUMBER_OF_CALCULATION_PERIODS, entitlementCalculator);
+    private CycleEntitlementCalculator cycleEntitlementCalculator = new CycleEntitlementCalculator(
+            PAYMENT_CYCLE_DURATION_IN_DAYS,
+            NUMBER_OF_CALCULATION_PERIODS,
+            NUMBER_OF_WEEKS_BEFORE_PREGNANCY,
+            NUMBER_OF_WEEKS_AFTER_PREGNANCY,
+            entitlementCalculator);
 
     @Test
     void shouldThrowExceptionWhenDurationIsNotDivisibleByNumberOfCalculationPeriods() {
         // 10 is not divisible by 3, so should throw an exception
+        int paymentCycleDurationInDays = 10;
+        int numberOfCalculationPeriods = 3;
         IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(10, 3, entitlementCalculator), IllegalArgumentException.class);
+                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
+                IllegalArgumentException.class);
 
         assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration of 10 days is not divisible by number of calculation periods 3");
     }
@@ -41,8 +50,11 @@ class CycleEntitlementCalculatorTest {
     @Test
     void shouldThrowExceptionWhenDurationIsZero() {
         // 10 is not divisible by 3, so should throw an exception
+        int paymentCycleDurationInDays = 0;
+        int numberOfCalculationPeriods = 1;
         IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(0, 1, entitlementCalculator), IllegalArgumentException.class);
+                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
+                IllegalArgumentException.class);
 
         assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration can not be zero");
     }
@@ -50,8 +62,11 @@ class CycleEntitlementCalculatorTest {
     @Test
     void shouldThrowExceptionWhenNumberOrCalculationPeriodsIsZero() {
         // 10 is not divisible by 3, so should throw an exception
+        int paymentCycleDurationInDays = 1;
+        int numberOfCalculationPeriods = 0;
         IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(1, 0, entitlementCalculator), IllegalArgumentException.class);
+                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
+                IllegalArgumentException.class);
 
         assertThat(thrown.getMessage()).isEqualTo("Number of calculation periods can not be zero");
     }

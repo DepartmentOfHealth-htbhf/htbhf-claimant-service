@@ -20,11 +20,17 @@ public class CycleEntitlementCalculator {
     private final Integer entitlementCalculationDuration;
     private final Integer numberOfCalculationPeriods;
     private final EntitlementCalculator entitlementCalculator;
+    private final Integer weeksBeforeDueDate;
+    private final Integer weeksAfterDueDate;
 
     public CycleEntitlementCalculator(@Value("${payment-cycle.cycle-duration-in-days}") Integer paymentCycleDurationInDays,
                                       @Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
+                                      @Value("${payment-cycle.child-from-pregnancy.weeks-before-due-date}") Integer weeksBeforeDueDate,
+                                      @Value("${payment-cycle.child-from-pregnancy.weeks-after-due-date}") Integer weeksAfterDueDate,
                                       EntitlementCalculator entitlementCalculator) {
         validateArguments(paymentCycleDurationInDays, numberOfCalculationPeriods);
+        this.weeksBeforeDueDate = weeksBeforeDueDate;
+        this.weeksAfterDueDate = weeksAfterDueDate;
         this.entitlementCalculationDuration = paymentCycleDurationInDays / numberOfCalculationPeriods;
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
         this.entitlementCalculator = entitlementCalculator;
@@ -59,20 +65,20 @@ public class CycleEntitlementCalculator {
             return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);
         }
 
-        if (noNewChildrenFromPregnancyExist(expectedDueDate.get(), dateOfBirthOfChildren)) {
-            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);
+        if (newChildrenFromPregnancyExist(expectedDueDate.get(), dateOfBirthOfChildren)) {
+            // ignore expected due date as we've determined that the pregnancy has happened
+            return calculateEntitlement(Optional.empty(), dateOfBirthOfChildren);
         }
 
-        // ignore expected due date as we've determined that the pregnancy has happened
-        return calculateEntitlement(Optional.empty(), dateOfBirthOfChildren);
+        return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);
     }
 
-    private boolean noNewChildrenFromPregnancyExist(LocalDate expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
-        // TODO: use config for date range and update variable names
-        LocalDate beginning = expectedDueDate.minusWeeks(16);
-        LocalDate end = expectedDueDate.plusWeeks(8);
+    // A child is considered a result of pregnancy if their date of birth falls within a date range relative to the expected due date
+    private boolean newChildrenFromPregnancyExist(LocalDate expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
+        LocalDate startDate = expectedDueDate.minusWeeks(weeksBeforeDueDate);
+        LocalDate endDate = expectedDueDate.plusWeeks(weeksAfterDueDate);
         return dateOfBirthOfChildren.stream()
-                .noneMatch(date -> date.isAfter(beginning) && date.isBefore(end));
+                .anyMatch(date -> date.isAfter(startDate) && date.isBefore(endDate));
     }
 
     private List<LocalDate> getEntitlementDates() {
