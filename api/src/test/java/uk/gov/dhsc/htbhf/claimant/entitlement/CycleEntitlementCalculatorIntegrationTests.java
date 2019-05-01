@@ -128,7 +128,7 @@ class CycleEntitlementCalculatorIntegrationTests {
     }
 
     @Test
-    void shouldRemoveVoucherForPregnancyWhenANewChildUnderOneExistsFromPregnancy() {
+    void shouldRemoveVoucherForPregnancyWhenANewChildUnderOneMatchedToPregnancy() {
         VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(1).build();
         PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(2));
@@ -146,7 +146,7 @@ class CycleEntitlementCalculatorIntegrationTests {
     }
 
     @Test
-    void shouldRemoveVoucherForPregnancyWhenTwoNewChildrenBornOneDayApartUnderOneExistsFromPregnancy() {
+    void shouldRemoveVoucherForPregnancyWhenTwoNewChildrenBornOneDayApartUnderOneMatchedToPregnancy() {
         VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(1).build();
         PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(2));
@@ -162,6 +162,43 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(16);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0); // we've determine that the children are from the pregnancy, so no longer pregnant
+        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+    }
+
+    @Test
+    void shouldCalculateNewEntitlementWhenGivenAPreviousEntitlement() {
+        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().build();
+        PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
+        Optional<LocalDate> expectedDueDate = Optional.empty();
+        LocalDate bornLastWeek = LocalDate.now().minusWeeks(1);
+        List<LocalDate> childrenDatesOfBirth = singletonList(bornLastWeek);
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2480);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(8);
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
+        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+    }
+
+    // Covers the case of an existing claimant becoming pregnant
+    @Test
+    void shouldCalculateEntitlementForPregnantClaimantWithNoPreviousPregnancyVouchers() {
+        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().build();
+        PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(8));
+        LocalDate threeYearsOld = LocalDate.now().minusYears(3);
+        List<LocalDate> childrenDatesOfBirth = singletonList(threeYearsOld);
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2480);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(8);
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(4);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(4);
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
     }
 }

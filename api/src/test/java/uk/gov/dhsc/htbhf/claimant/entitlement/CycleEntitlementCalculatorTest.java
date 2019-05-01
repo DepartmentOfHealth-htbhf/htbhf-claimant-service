@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -11,7 +13,6 @@ import java.util.Optional;
 import static java.util.Collections.nCopies;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -22,54 +23,18 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataF
 class CycleEntitlementCalculatorTest {
 
     private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 3;
+    private static final int NUMBER_OF_WEEKS_BEFORE_PREGNANCY = 16;
+    private static final int NUMBER_OF_WEEKS_AFTER_PREGNANCY = 8;
     private static final int NUMBER_OF_CALCULATION_PERIODS = 3;
-    private static final int NUMBER_OF_WEEKS_BEFORE_PREGNANCY = 8;
-    private static final int NUMBER_OF_WEEKS_AFTER_PREGNANCY = 16;
 
     private EntitlementCalculator entitlementCalculator = mock(EntitlementCalculator.class);
-
-    private CycleEntitlementCalculator cycleEntitlementCalculator = new CycleEntitlementCalculator(
+    private PaymentCycleConfig paymentCycleConfig = new PaymentCycleConfig(
             PAYMENT_CYCLE_DURATION_IN_DAYS,
             NUMBER_OF_CALCULATION_PERIODS,
             NUMBER_OF_WEEKS_BEFORE_PREGNANCY,
-            NUMBER_OF_WEEKS_AFTER_PREGNANCY,
-            entitlementCalculator);
+            NUMBER_OF_WEEKS_AFTER_PREGNANCY);
 
-    @Test
-    void shouldThrowExceptionWhenDurationIsNotDivisibleByNumberOfCalculationPeriods() {
-        // 10 is not divisible by 3, so should throw an exception
-        int paymentCycleDurationInDays = 10;
-        int numberOfCalculationPeriods = 3;
-        IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
-                IllegalArgumentException.class);
-
-        assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration of 10 days is not divisible by number of calculation periods 3");
-    }
-
-    @Test
-    void shouldThrowExceptionWhenDurationIsZero() {
-        // 10 is not divisible by 3, so should throw an exception
-        int paymentCycleDurationInDays = 0;
-        int numberOfCalculationPeriods = 1;
-        IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
-                IllegalArgumentException.class);
-
-        assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration can not be zero");
-    }
-
-    @Test
-    void shouldThrowExceptionWhenNumberOrCalculationPeriodsIsZero() {
-        // 10 is not divisible by 3, so should throw an exception
-        int paymentCycleDurationInDays = 1;
-        int numberOfCalculationPeriods = 0;
-        IllegalArgumentException thrown = catchThrowableOfType(
-                () -> new CycleEntitlementCalculator(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16, entitlementCalculator),
-                IllegalArgumentException.class);
-
-        assertThat(thrown.getMessage()).isEqualTo("Number of calculation periods can not be zero");
-    }
+    private CycleEntitlementCalculator cycleEntitlementCalculator = new CycleEntitlementCalculator(paymentCycleConfig, entitlementCalculator);
 
     @Test
     void shouldCallEntitlementCalculatorForEachEntitlementDate() {
@@ -80,28 +45,27 @@ class CycleEntitlementCalculatorTest {
 
         PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren);
 
-        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
-        assertThat(result).isEqualTo(expected);
+        assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
     }
 
-    @Test
-    void shouldCallEntitlementCalculatorWithEmptyDueDateWhenNewChildFromPregnancyExists() {
+    @ParameterizedTest
+    @ValueSource(ints = {-NUMBER_OF_WEEKS_BEFORE_PREGNANCY, 2, NUMBER_OF_WEEKS_AFTER_PREGNANCY})
+    void shouldCallEntitlementCalculatorWithEmptyDueDateWhenNewChildMatchedToPregnancy(Integer numberOfWeeksDobIsAfterDueDate) {
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
-        List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusWeeks(1));
-        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(1));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now());
+        List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusWeeks(numberOfWeeksDobIsAfterDueDate));
 
         PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
 
-        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
-        assertThat(result).isEqualTo(expected);
+        assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
     }
 
     @Test
-    void shouldCallEntitlementCalculatorWithExpectedDueDateWhenNoNewChildrenFromPregnancyExist() {
+    void shouldCallEntitlementCalculatorWithExpectedDueDateWhenNoNewChildrenMatchedToPregnancy() {
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
@@ -111,8 +75,7 @@ class CycleEntitlementCalculatorTest {
 
         PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
 
-        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
-        assertThat(result).isEqualTo(expected);
+        assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
     }
 
@@ -126,9 +89,13 @@ class CycleEntitlementCalculatorTest {
 
         PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
 
-        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(3, voucherEntitlement));
-        assertThat(result).isEqualTo(expected);
+        assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
+    }
+
+    private void assertEntitlement(VoucherEntitlement voucherEntitlement, PaymentCycleVoucherEntitlement result) {
+        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(NUMBER_OF_CALCULATION_PERIODS, voucherEntitlement));
+        assertThat(result).isEqualTo(expected);
     }
 
     private PaymentCycleVoucherEntitlement createPaymentEntitlementWithPregnancyVouchers(Integer pregnancyVouchers) {
