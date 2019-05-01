@@ -48,6 +48,9 @@ public class Claim extends BaseEntity {
     @Column(name = "next_payment_date")
     private LocalDate nextPaymentDate;
 
+    @Column(name = "voucher_entitlement")
+    private String voucherEntitlement;
+
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @ToString.Exclude

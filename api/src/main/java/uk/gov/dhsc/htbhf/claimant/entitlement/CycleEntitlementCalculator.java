@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Calculates the entitlement for a claimant over a given payment cycle. Entitlement is calculated for a number of
@@ -42,13 +43,13 @@ public class CycleEntitlementCalculator {
         }
     }
 
-    public int calculateEntitlementInPence(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
+    public PaymentCycleVoucherEntitlement calculateCycleVoucherEntitlement(Claimant claimant, List<LocalDate> dateOfBirthOfChildren) {
         List<LocalDate> entitlementDates = getEntitlementDates();
-
-        return entitlementDates.stream()
+        List<VoucherEntitlement> voucherEntitlements = entitlementDates.stream()
                 .map(date -> entitlementCalculator.calculateVoucherEntitlement(claimant, dateOfBirthOfChildren, date))
-                .mapToInt(VoucherEntitlement::getTotalVoucherValueInPence)
-                .sum();
+                .collect(Collectors.toList());
+
+        return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
 
     private List<LocalDate> getEntitlementDates() {
