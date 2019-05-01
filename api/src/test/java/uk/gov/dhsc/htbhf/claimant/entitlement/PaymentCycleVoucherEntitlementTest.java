@@ -44,10 +44,8 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(5);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(6);
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
-        assertThat(result.getTotalVoucherEntitlement())
-                .isEqualTo(voucherEntitlement1.getTotalVoucherEntitlement() + voucherEntitlement2.getTotalVoucherEntitlement());
-        assertThat(result.getTotalVoucherValueInPence())
-                .isEqualTo(voucherEntitlement1.getTotalVoucherValueInPence() + voucherEntitlement2.getTotalVoucherValueInPence());
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(14);
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(1400);
     }
 
     @Test
@@ -67,10 +65,8 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(1);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
-        assertThat(result.getTotalVoucherEntitlement())
-                .isEqualTo(voucherEntitlement1.getTotalVoucherEntitlement() + voucherEntitlement2.getTotalVoucherEntitlement());
-        assertThat(result.getTotalVoucherValueInPence())
-                .isEqualTo(voucherEntitlement1.getTotalVoucherValueInPence() + voucherEntitlement2.getTotalVoucherValueInPence());
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(200);
     }
 
 }
