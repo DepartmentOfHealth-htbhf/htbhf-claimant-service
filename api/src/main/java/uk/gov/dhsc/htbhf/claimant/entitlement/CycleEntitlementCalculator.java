@@ -73,7 +73,7 @@ public class CycleEntitlementCalculator {
     }
 
     /**
-     * Calculates the total voucher entitlement for a payment cycle.
+     * Calculates the total voucher entitlement for a payment cycle given the previous entitlement.
      * @param expectedDueDate expected due date
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param previousVoucherEntitlement voucher entitlement from last payment cycle
@@ -82,8 +82,9 @@ public class CycleEntitlementCalculator {
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
                                                                List<LocalDate> dateOfBirthOfChildren,
                                                                PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
-        if (newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement)) {
             // ignore expected due date as we've determined that the pregnancy has happened
+        if (newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement)) {
+            // ignore expected due date as we've determined that the pregnancy has finished
             return calculateEntitlement(Optional.empty(), dateOfBirthOfChildren);
         }
 
@@ -94,14 +95,26 @@ public class CycleEntitlementCalculator {
     private boolean newChildrenMatchedToExpectedDeliveryDate(Optional<LocalDate> expectedDueDate,
                                                              List<LocalDate> dateOfBirthOfChildren,
                                                              PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
-        if (previousVoucherEntitlement.getVouchersForPregnancy() == 0 || expectedDueDate.isEmpty()) {
+        if (noPregnancyVouchers(previousVoucherEntitlement) || notPregnant(expectedDueDate)) {
             return false;
         }
 
-        LocalDate startDate = expectedDueDate.get().minusWeeks(weeksBeforeDueDate);
-        LocalDate endDate = expectedDueDate.get().plusWeeks(weeksAfterDueDate);
         return dateOfBirthOfChildren.stream()
-                .anyMatch(date -> !date.isBefore(startDate) && !date.isAfter(endDate));
+                .anyMatch(date -> isWithPregnancyMatchPeriod(expectedDueDate.get(), date));
+    }
+
+    private boolean notPregnant(Optional<LocalDate> expectedDueDate) {
+        return expectedDueDate.isEmpty();
+    }
+
+    private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement vouchersForPregnancy) {
+        return vouchersForPregnancy.getVouchersForPregnancy() == 0;
+    }
+
+    private boolean isWithPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
+        LocalDate startDate = expectedDueDate.minusWeeks(weeksBeforeDueDate);
+        LocalDate endDate = expectedDueDate.plusWeeks(weeksAfterDueDate);
+        return !dateOfBirth.isBefore(startDate) && !dateOfBirth.isAfter(endDate);
     }
 
     private List<LocalDate> getEntitlementDates() {
