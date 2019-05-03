@@ -119,7 +119,7 @@ public class NewClaimService {
 
     private VoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
         return entitlementCalculator.calculateVoucherEntitlement(
-                claim.getClaimant(),
+                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 getDateOfBirthOfChildren(eligibilityResponse),
                 LocalDate.now());
     }

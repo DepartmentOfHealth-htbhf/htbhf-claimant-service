@@ -3,10 +3,10 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -33,9 +33,7 @@ public class EntitlementCalculator {
             @Value("${entitlement.number-of-vouchers-per-child-under-one}") int vouchersPerChildUnderOne,
             @Value("${entitlement.number-of-vouchers-per-child-between-one-and-four}") int vouchersPerChildBetweenOneAndFour,
             @Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy,
-            @Value("${entitlement.voucher-value-in-pence}") int voucherValueInPence
-    ) {
-
+            @Value("${entitlement.voucher-value-in-pence}") int voucherValueInPence) {
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
         this.vouchersPerChildUnderOne = vouchersPerChildUnderOne;
         this.vouchersPerChildBetweenOneAndFour = vouchersPerChildBetweenOneAndFour;
@@ -47,12 +45,14 @@ public class EntitlementCalculator {
      * Calculates the {@link VoucherEntitlement} a claimant is entitled to for a given date. The number of children under one and
      * the number between one and four is calculated for the given date.
      *
-     * @param claimant              the claimant who will be receiving the vouchers
+     * @param expectedDueDate       the expected due date of the claimant. Use Empty.optional() if the claimant is not pregnant
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param entitlementDate       the date to check entitlement for
      * @return the voucher entitlement calculated for the claimant
      */
-    public VoucherEntitlement calculateVoucherEntitlement(Claimant claimant, List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+    public VoucherEntitlement calculateVoucherEntitlement(Optional<LocalDate> expectedDueDate,
+                                                          List<LocalDate> dateOfBirthOfChildren,
+                                                          LocalDate entitlementDate) {
         int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(dateOfBirthOfChildren, entitlementDate);
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(dateOfBirthOfChildren, entitlementDate);
 
@@ -62,7 +62,9 @@ public class EntitlementCalculator {
             throw new IllegalArgumentException("Number of children under four must not be less than number of children under one");
         }
 
-        boolean isEntitledToPregnancyVoucher = pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), entitlementDate);
+        // call pregnancyEntitlementCalculator if the expectedDueDate exists
+        boolean isEntitledToPregnancyVoucher = expectedDueDate
+                .map(dueDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate)).orElse(false);
 
         return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
     }

@@ -150,7 +150,8 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
 
-        verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
+        verify(entitlementCalculator).calculateVoucherEntitlement(
+                Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
@@ -187,7 +188,8 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            verify(entitlementCalculator).calculateVoucherEntitlement(claimant, getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
+            verify(entitlementCalculator).calculateVoucherEntitlement(
+                    Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
             verifyCreateNewCardMessageSent(result);
         }
     }
