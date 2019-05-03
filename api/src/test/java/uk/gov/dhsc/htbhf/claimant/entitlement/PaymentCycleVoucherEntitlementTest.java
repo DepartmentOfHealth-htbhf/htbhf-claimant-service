@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,8 +39,9 @@ class PaymentCycleVoucherEntitlementTest {
                 .vouchersForPregnancy(3)
                 .voucherValueInPence(100)
                 .build();
+        List<VoucherEntitlement> voucherEntitlements = asList(voucherEntitlement1, voucherEntitlement2);
 
-        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(asList(voucherEntitlement1, voucherEntitlement2));
+        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(voucherEntitlements);
 
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(3);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(5);
@@ -46,6 +49,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(14);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(1400);
+        assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
     }
 
     @Test
@@ -58,8 +62,9 @@ class PaymentCycleVoucherEntitlementTest {
                 .vouchersForChildrenBetweenOneAndFour(1)
                 .voucherValueInPence(100)
                 .build();
+        List<VoucherEntitlement> voucherEntitlements = asList(voucherEntitlement1, voucherEntitlement2);
 
-        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(asList(voucherEntitlement1, voucherEntitlement2));
+        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(voucherEntitlements);
 
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(1);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(1);
@@ -67,6 +72,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(200);
+        assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
     }
 
 }
