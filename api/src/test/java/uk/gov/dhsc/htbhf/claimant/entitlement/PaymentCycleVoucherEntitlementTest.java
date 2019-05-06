@@ -46,6 +46,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(14);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(1400);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
 
     @Test
@@ -67,6 +68,33 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(200);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldCreateTotalValuesFromListOfVoucherEntitlementsAndNumberOfBackDatedVouchers() {
+        VoucherEntitlement voucherEntitlement1 = VoucherEntitlement.builder()
+                .vouchersForChildrenUnderOne(1)
+                .vouchersForChildrenBetweenOneAndFour(2)
+                .vouchersForPregnancy(3)
+                .voucherValueInPence(100)
+                .build();
+        VoucherEntitlement voucherEntitlement2 = VoucherEntitlement.builder()
+                .vouchersForChildrenUnderOne(2)
+                .vouchersForChildrenBetweenOneAndFour(3)
+                .vouchersForPregnancy(3)
+                .voucherValueInPence(100)
+                .build();
+
+        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(asList(voucherEntitlement1, voucherEntitlement2), 10);
+
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(3);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(5);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(6);
+        assertThat(result.getVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(24);
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2400);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(10);
     }
 
 }

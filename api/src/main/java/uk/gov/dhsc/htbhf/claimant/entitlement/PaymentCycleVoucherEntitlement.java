@@ -18,8 +18,13 @@ public class PaymentCycleVoucherEntitlement {
     private final int totalVoucherEntitlement;
     private final int voucherValueInPence;
     private final int totalVoucherValueInPence;
+    private final int backdatedVouchers;
 
     public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements) {
+        this(voucherEntitlements, 0);
+    }
+
+    public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements, Integer backdatedVouchers) {
         if (isEmpty(voucherEntitlements)) {
             throw new IllegalArgumentException("List of voucher entitlements must not be null or empty.");
         }
@@ -28,21 +33,20 @@ public class PaymentCycleVoucherEntitlement {
         int childrenBetweenOneAndFour = 0;
         int pregnancy = 0;
         int total = 0;
-        int totalValueInPence = 0;
 
         for (VoucherEntitlement voucherEntitlement : voucherEntitlements) {
             childrenUnderOne += voucherEntitlement.getVouchersForChildrenUnderOne();
             childrenBetweenOneAndFour += voucherEntitlement.getVouchersForChildrenBetweenOneAndFour();
             pregnancy += voucherEntitlement.getVouchersForPregnancy();
             total += voucherEntitlement.getTotalVoucherEntitlement();
-            totalValueInPence += voucherEntitlement.getTotalVoucherValueInPence();
         }
 
-        vouchersForChildrenUnderOne = childrenUnderOne;
-        vouchersForChildrenBetweenOneAndFour = childrenBetweenOneAndFour;
-        vouchersForPregnancy = pregnancy;
-        totalVoucherEntitlement = total;
-        totalVoucherValueInPence = totalValueInPence;
-        voucherValueInPence = voucherEntitlements.get(0).getVoucherValueInPence();
+        this.backdatedVouchers = backdatedVouchers;
+        this.vouchersForChildrenUnderOne = childrenUnderOne;
+        this.vouchersForChildrenBetweenOneAndFour = childrenBetweenOneAndFour;
+        this.vouchersForPregnancy = pregnancy;
+        this.totalVoucherEntitlement = total + backdatedVouchers;
+        this.voucherValueInPence = voucherEntitlements.get(0).getVoucherValueInPence();
+        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;
     }
 }
