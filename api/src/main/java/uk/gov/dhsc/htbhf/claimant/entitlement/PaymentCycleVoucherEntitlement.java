@@ -25,7 +25,7 @@ public class PaymentCycleVoucherEntitlement {
         this(voucherEntitlements, 0);
     }
 
-    public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements, Integer backdatedVouchers) {
+    public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements, int backdatedVouchers) {
         if (isEmpty(voucherEntitlements)) {
             throw new IllegalArgumentException("List of voucher entitlements must not be null or empty.");
         }

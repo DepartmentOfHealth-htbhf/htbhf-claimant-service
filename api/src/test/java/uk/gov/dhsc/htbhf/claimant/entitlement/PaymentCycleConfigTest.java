@@ -27,7 +27,18 @@ class PaymentCycleConfigTest {
                 () -> new PaymentCycleConfig(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16),
                 IllegalArgumentException.class);
 
-        assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration can not be zero");
+        assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration must be greater than zero");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDurationIsNegative() {
+        int paymentCycleDurationInDays = -5;
+        int numberOfCalculationPeriods = 1;
+        IllegalArgumentException thrown = catchThrowableOfType(
+                () -> new PaymentCycleConfig(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16),
+                IllegalArgumentException.class);
+
+        assertThat(thrown.getMessage()).isEqualTo("Payment cycle duration must be greater than zero");
     }
 
     @Test
@@ -38,7 +49,18 @@ class PaymentCycleConfigTest {
                 () -> new PaymentCycleConfig(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16),
                 IllegalArgumentException.class);
 
-        assertThat(thrown.getMessage()).isEqualTo("Number of calculation periods can not be zero");
+        assertThat(thrown.getMessage()).isEqualTo("Number of calculation periods must be greater than zero");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNumberOrCalculationPeriodsIsNegative() {
+        int paymentCycleDurationInDays = 1;
+        int numberOfCalculationPeriods = -5;
+        IllegalArgumentException thrown = catchThrowableOfType(
+                () -> new PaymentCycleConfig(paymentCycleDurationInDays, numberOfCalculationPeriods, 8, 16),
+                IllegalArgumentException.class);
+
+        assertThat(thrown.getMessage()).isEqualTo("Number of calculation periods must be greater than zero");
     }
 
 }

@@ -8,9 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.min;
 
 /**
  * Calculates the entitlement for a claimant over a given payment cycle. Entitlement is calculated for a number of
@@ -22,23 +20,26 @@ public class CycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDuration;
     private final Integer numberOfCalculationPeriods;
-    private final EntitlementCalculator entitlementCalculator;
     private final Integer weeksBeforeDueDate;
     private final Integer weeksAfterDueDate;
+    private final EntitlementCalculator entitlementCalculator;
+    private final BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator;
 
     /**
      * Constructor for {@link CycleEntitlementCalculator}.
-     *
-     * @param paymentCycleConfig    configuration for the payment cycle
+     * @param paymentCycleConfig configuration for the payment cycle
      * @param entitlementCalculator calculates entitlement for a single calculation period
+     * @param backDatedCycleEntitlementCalculator calculates back dated vouchers for previous cycles
      */
     public CycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
-                                      EntitlementCalculator entitlementCalculator) {
+                                      EntitlementCalculator entitlementCalculator,
+                                      BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator) {
         this.weeksBeforeDueDate = paymentCycleConfig.getWeeksBeforeDueDate();
         this.weeksAfterDueDate = paymentCycleConfig.getWeeksAfterDueDate();
-        this.entitlementCalculationDuration = paymentCycleConfig.getEntitlementCalculationDuration();
+        this.entitlementCalculationDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();
         this.numberOfCalculationPeriods = paymentCycleConfig.getNumberOfCalculationPeriods();
         this.entitlementCalculator = entitlementCalculator;
+        this.backDatedCycleEntitlementCalculator = backDatedCycleEntitlementCalculator;
     }
 
     /**
@@ -49,7 +50,7 @@ public class CycleEntitlementCalculator {
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
-        List<VoucherEntitlement> voucherEntitlements = calculateCurrentCycleEntitlements(expectedDueDate, dateOfBirthOfChildren);
+        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
 
@@ -70,30 +71,13 @@ public class CycleEntitlementCalculator {
         }
 
         // ignore expected due date as we've determined that the pregnancy has happened
-        List<VoucherEntitlement> voucherEntitlements = calculateCurrentCycleEntitlements(Optional.empty(), dateOfBirthOfChildren);
-        Integer backdateVouchers = calculateBackDatedVouchers(expectedDueDate, newChildren);
+        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren);
+        Integer backdateVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);
     }
 
-    private Integer calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths) {
-        List<LocalDate> backDatedEntitlementDates = getBackDatedCycleEntitlementDates(newChildrenDateOfBirths);
-        Integer vouchersForChildren = backDatedEntitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), newChildrenDateOfBirths, date))
-                .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)
-                .sum();
-
-        Integer vouchersFromPregnancy = backDatedEntitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, emptyList(), date))
-                .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)
-                .sum();
-
-        int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;
-        // do not return negative vouchers
-        // TODO unit test scenario
-        return Math.max(backDatedVouchers, 0);
-    }
-
-    private List<VoucherEntitlement> calculateCurrentCycleEntitlements(Optional<LocalDate> expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
+    // move out of private method
+    private List<VoucherEntitlement> calculateCycleEntitlements(Optional<LocalDate> expectedDueDate, List<LocalDate> dateOfBirthOfChildren) {
         List<LocalDate> entitlementDates = getCurrentCycleEntitlementDates();
         return entitlementDates.stream()
                 .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))
@@ -109,7 +93,7 @@ public class CycleEntitlementCalculator {
         }
 
         return dateOfBirthOfChildren.stream()
-                .filter(date -> isWithPregnancyMatchPeriod(expectedDueDate.get(), date))
+                .filter(date -> isWithinPregnancyMatchPeriod(expectedDueDate.get(), date))
                 .collect(Collectors.toList());
     }
 
@@ -121,23 +105,11 @@ public class CycleEntitlementCalculator {
         return vouchersForPregnancy.getVouchersForPregnancy() == 0;
     }
 
-    private boolean isWithPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
+    private boolean isWithinPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
         LocalDate startDate = expectedDueDate.minusWeeks(weeksBeforeDueDate);
         LocalDate endDate = expectedDueDate.plusWeeks(weeksAfterDueDate);
 
         return !dateOfBirth.isBefore(startDate) && !dateOfBirth.isAfter(endDate);
-    }
-
-    private List<LocalDate> getBackDatedCycleEntitlementDates(List<LocalDate> newChildrenDatesOfBirth) {
-        LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);
-        LocalDate backDatedEntitlementDate = LocalDate.now().minusDays(entitlementCalculationDuration);
-        List<LocalDate> backDatedEntitlementDates = newArrayList(backDatedEntitlementDate);
-        while (backDatedEntitlementDate.isAfter(earliestDateOfBirth)) {
-            backDatedEntitlementDate = backDatedEntitlementDate.minusDays(entitlementCalculationDuration);
-            backDatedEntitlementDates.add(backDatedEntitlementDate);
-        }
-
-        return backDatedEntitlementDates;
     }
 
     private List<LocalDate> getCurrentCycleEntitlementDates() {

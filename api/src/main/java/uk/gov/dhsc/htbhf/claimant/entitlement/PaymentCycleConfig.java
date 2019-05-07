@@ -10,7 +10,7 @@ public class PaymentCycleConfig {
 
     private final Integer weeksBeforeDueDate;
     private final Integer weeksAfterDueDate;
-    private final Integer entitlementCalculationDuration;
+    private final Integer entitlementCalculationDurationInDays;
     private final Integer numberOfCalculationPeriods;
 
     public PaymentCycleConfig(@Value("${payment-cycle.cycle-duration-in-days}") Integer paymentCycleDurationInDays,
@@ -20,16 +20,16 @@ public class PaymentCycleConfig {
         validateArguments(paymentCycleDurationInDays, numberOfCalculationPeriods);
         this.weeksBeforeDueDate = weeksBeforeDueDate;
         this.weeksAfterDueDate = weeksAfterDueDate;
-        this.entitlementCalculationDuration = paymentCycleDurationInDays / numberOfCalculationPeriods;
+        this.entitlementCalculationDurationInDays = paymentCycleDurationInDays / numberOfCalculationPeriods;
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
     }
 
     private void validateArguments(Integer paymentCycleDurationInDays, Integer numberOfCalculationPeriods) {
-        if (paymentCycleDurationInDays == 0) {
-            throw new IllegalArgumentException("Payment cycle duration can not be zero");
+        if (paymentCycleDurationInDays <= 0) {
+            throw new IllegalArgumentException("Payment cycle duration must be greater than zero");
         }
-        if (numberOfCalculationPeriods == 0) {
-            throw new IllegalArgumentException("Number of calculation periods can not be zero");
+        if (numberOfCalculationPeriods <= 0) {
+            throw new IllegalArgumentException("Number of calculation periods must be greater than zero");
         }
         if (paymentCycleDurationInDays % numberOfCalculationPeriods != 0) {
             throw new IllegalArgumentException("Payment cycle duration of " + paymentCycleDurationInDays
