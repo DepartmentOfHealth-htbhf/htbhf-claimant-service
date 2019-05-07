@@ -12,7 +12,7 @@ import static java.util.Collections.min;
 
 /**
  * Calculates the number of back dated vouchers a claimant is entitlement to.
- * The new children that have been matched to the expected due date and the expected due date are used to
+ * The expected due date and the birthdays of children resulting from the pregnancy are used to
  * calculate the difference between the number of vouchers that were received for pregnancy and
  * the number of vouchers that should have been received for the new children. If the difference in vouchers
  * is less than zero, zero is returned.
@@ -35,6 +35,12 @@ public class BackDatedCycleEntitlementCalculator {
         this.entitlementCalculator = entitlementCalculator;
     }
 
+    /**
+     * Calculates the back dated vouchers given the expected due date and the dates of births resulting from the pregnancy.
+     * @param expectedDueDate expected due date
+     * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
+     * @return the number of back dated vouchers the claimant is entitled too
+     */
     public Integer calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths) {
         List<LocalDate> backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths);
         Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);
