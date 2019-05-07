@@ -19,6 +19,7 @@ public class PaymentCycleVoucherEntitlement {
     private final int voucherValueInPence;
     private final int totalVoucherValueInPence;
     private final int backdatedVouchers;
+    private final List<VoucherEntitlement> voucherEntitlements;
 
     public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements) {
         this(voucherEntitlements, 0);
@@ -28,6 +29,7 @@ public class PaymentCycleVoucherEntitlement {
         if (isEmpty(voucherEntitlements)) {
             throw new IllegalArgumentException("List of voucher entitlements must not be null or empty.");
         }
+        this.voucherEntitlements = voucherEntitlements;
 
         int childrenUnderOne = 0;
         int childrenBetweenOneAndFour = 0;

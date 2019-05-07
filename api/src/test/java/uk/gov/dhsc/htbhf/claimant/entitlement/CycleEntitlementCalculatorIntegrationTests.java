@@ -19,7 +19,7 @@ class CycleEntitlementCalculatorIntegrationTests {
     @Autowired
     private CycleEntitlementCalculator cycleEntitlementCalculator;
 
-    @DisplayName("Calculates the correct entitlement when there is a child under one,"
+    @DisplayName("Should calculate the correct entitlement when there is a child under one,"
              + " a child under four and neither child changes age during the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForNoChanges() {
@@ -40,7 +40,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
     }
 
-    @DisplayName("Calculates the correct entitlement for a cycle when there is a child under one, whose first birthday"
+    @DisplayName("Should calculate the correct entitlement for a cycle when there is a child under one, whose first birthday"
              + " is on day two of week one of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges1() {
@@ -61,7 +61,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
     }
 
-    @DisplayName("Calculates the correct entitlement for a cycle when the claimant is pregnant and there is a child between"
+    @DisplayName("Should calculate the correct entitlement for a cycle when the claimant is pregnant and there is a child between"
              + " one and four whose fourth birthday is on day two of week two of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges2() {
@@ -83,7 +83,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
     }
 
-    @DisplayName("Calculates the correct entitlement for a cycle when there is one child under one whose first birthday is on"
+    @DisplayName("Should calculate the correct entitlement for a cycle when there is one child under one whose first birthday is on"
              + " day two of week three, and one child between one and four whose fourth birthday is on day one of week four of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChanges3() {
@@ -105,7 +105,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
     }
 
-    @DisplayName("Calculates the correct entitlement for a cycle when there is one child under one whose first birthday is on"
+    @DisplayName("Should calculate the correct entitlement for a cycle when there is one child under one whose first birthday is on"
              + " day two of week three, and one child between one and four whose fourth birthday is on day two of week four of the payment cycle.")
     @Test
     void shouldCalculateCorrectEntitlementForEntitlementChangesOne4() {
