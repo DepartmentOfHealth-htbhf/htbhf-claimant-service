@@ -52,15 +52,15 @@ public class BackDatedCycleEntitlementCalculator {
                 .sum();
     }
 
-    // get the list of entitlement dates that cover the new children.
+    // get the list of entitlement dates since the oldest child was born
     private List<LocalDate> getBackDatedEntitlementDates(List<LocalDate> newChildrenDatesOfBirth) {
         LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);
-        LocalDate rollingEntitlementDate = LocalDate.now();
+        LocalDate rollingEntitlementDate = LocalDate.now().minusDays(entitlementCalculationDurationInDays);
         List<LocalDate> backDatedEntitlementDates = new ArrayList<>();
 
-        while (rollingEntitlementDate.isAfter(earliestDateOfBirth)) {
-            rollingEntitlementDate = rollingEntitlementDate.minusDays(entitlementCalculationDurationInDays);
+        while (rollingEntitlementDate.isAfter(earliestDateOfBirth) || rollingEntitlementDate.isEqual(earliestDateOfBirth)) {
             backDatedEntitlementDates.add(rollingEntitlementDate);
+            rollingEntitlementDate = rollingEntitlementDate.minusDays(entitlementCalculationDurationInDays);
         }
 
         return backDatedEntitlementDates;
