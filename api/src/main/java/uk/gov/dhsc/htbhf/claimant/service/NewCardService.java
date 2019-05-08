@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 
-import java.time.LocalDate;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 
@@ -31,13 +30,12 @@ public class NewCardService {
                 .orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
         CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
-        saveClaimWithCardIdAndNextPaymentDate(claim, cardResponse);
+        saveClaimWithCardId(claim, cardResponse);
         claimAuditor.auditNewCard(claimId, cardResponse);
     }
 
-    private void saveClaimWithCardIdAndNextPaymentDate(Claim claim, CardResponse cardResponse) {
+    private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {
         claim.setCardAccountId(cardResponse.getCardAccountId());
-        claim.setNextPaymentDate(LocalDate.now());
         claimRepository.save(claim);
     }
 }

@@ -46,7 +46,7 @@ class NewCardServiceTest {
     private NewCardService newCardService;
 
     @Test
-    void shouldCallCardClientAndSetNextPaymentDateForNewClaim() {
+    void shouldCallCardClientAndSetCardIdForNewClaim() {
         Claim claim = aValidClaim();
         CardRequest cardRequest = aValidCardRequest();
         CardResponse cardResponse = aCardResponse();
@@ -62,7 +62,6 @@ class NewCardServiceTest {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
-        assertThat(claim.getNextPaymentDate()).isToday();
     }
 
     @Test
