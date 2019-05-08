@@ -14,6 +14,7 @@ import static java.util.Collections.nCopies;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,13 +31,15 @@ class CycleEntitlementCalculatorTest {
     private static final int NUMBER_OF_CALCULATION_PERIODS = 3;
 
     private EntitlementCalculator entitlementCalculator = mock(EntitlementCalculator.class);
+    private BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator = mock(BackDatedCycleEntitlementCalculator.class);
     private PaymentCycleConfig paymentCycleConfig = new PaymentCycleConfig(
             PAYMENT_CYCLE_DURATION_IN_DAYS,
             NUMBER_OF_CALCULATION_PERIODS,
             NUMBER_OF_WEEKS_BEFORE_PREGNANCY,
             NUMBER_OF_WEEKS_AFTER_PREGNANCY);
 
-    private CycleEntitlementCalculator cycleEntitlementCalculator = new CycleEntitlementCalculator(paymentCycleConfig, entitlementCalculator);
+    private CycleEntitlementCalculator cycleEntitlementCalculator
+            = new CycleEntitlementCalculator(paymentCycleConfig, entitlementCalculator, backDatedCycleEntitlementCalculator);
 
     @Test
     void shouldCallEntitlementCalculatorForEachEntitlementDate() {
@@ -53,16 +56,18 @@ class CycleEntitlementCalculatorTest {
 
     @ParameterizedTest
     @ValueSource(ints = {-NUMBER_OF_WEEKS_BEFORE_PREGNANCY, 2, NUMBER_OF_WEEKS_AFTER_PREGNANCY})
-    void shouldCallEntitlementCalculatorWithEmptyDueDateWhenNewChildMatchedToPregnancy(Integer numberOfWeeksDobIsAfterDueDate) {
+    void shouldCallEntitlementCalculatorWithEmptyDueDateAndGetBackDatedVouchersWhenNewChildMatchedToPregnancy(Integer numberOfWeeksDobIsAfterDueDate) {
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        int backDatedVouchers = 2;
+        given(backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(any(), anyList())).willReturn(backDatedVouchers);
         PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now());
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusWeeks(numberOfWeeksDobIsAfterDueDate));
 
         PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
 
-        assertEntitlement(voucherEntitlement, result);
+        assertEntitlementWithBackDatedVouchers(backDatedVouchers, voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
     }
 
@@ -98,7 +103,11 @@ class CycleEntitlementCalculatorTest {
     }
 
     private void assertEntitlement(VoucherEntitlement voucherEntitlement, PaymentCycleVoucherEntitlement result) {
-        PaymentCycleVoucherEntitlement expected = new PaymentCycleVoucherEntitlement(nCopies(NUMBER_OF_CALCULATION_PERIODS, voucherEntitlement));
+        assertEntitlementWithBackDatedVouchers(0, voucherEntitlement, result);
+    }
+
+    private void assertEntitlementWithBackDatedVouchers(int backDatedVouchers, VoucherEntitlement voucherEntitlement, PaymentCycleVoucherEntitlement result) {
+        var expected = new PaymentCycleVoucherEntitlement(nCopies(NUMBER_OF_CALCULATION_PERIODS, voucherEntitlement), backDatedVouchers);
         assertThat(result).isEqualTo(expected);
     }
 

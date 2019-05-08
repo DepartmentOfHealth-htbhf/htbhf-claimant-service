@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.nCopies;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -93,6 +94,38 @@ class EntitlementCalculatorTest {
 
         // When
         VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), null, LocalDate.now());
+
+        // Then
+        assertThat(result).isEqualTo(expected);
+        verifyZeroInteractions(pregnancyEntitlementCalculator);
+    }
+
+    @Test
+    void shouldReturnZeroVouchersForChildBornAfterEntitlementDate() {
+        // Given
+        LocalDate entitlementDate = LocalDate.now().minusDays(2);
+        LocalDate dateOfBirth = entitlementDate.plusDays(1);
+        VoucherEntitlement expected = VoucherEntitlement.builder().voucherValueInPence(VOUCHER_VALUE_IN_PENCE).build();
+
+        // When
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), singletonList(dateOfBirth), entitlementDate);
+
+        // Then
+        assertThat(result).isEqualTo(expected);
+        verifyZeroInteractions(pregnancyEntitlementCalculator);
+    }
+
+    @Test
+    void shouldReturnCorrectVouchersForChildBornOnEntitlementDate() {
+        // Given
+        LocalDate entitlementDate = LocalDate.now().minusDays(2);
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .vouchersForChildrenUnderOne(VOUCHERS_FOR_CHILDREN_UNDER_ONE)
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .build();
+
+        // When
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), singletonList(entitlementDate), entitlementDate);
 
         // Then
         assertThat(result).isEqualTo(expected);

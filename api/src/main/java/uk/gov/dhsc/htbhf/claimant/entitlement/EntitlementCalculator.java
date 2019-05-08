@@ -83,7 +83,7 @@ public class EntitlementCalculator {
         }
         LocalDate pastDate = entitlementDate.minusYears(ageInYears);
         return Math.toIntExact(dateOfBirthOfChildren.stream()
-                .filter(date -> date.isAfter(pastDate))
+                .filter(date -> date.isAfter(pastDate) && !date.isAfter(entitlementDate))
                 .count());
     }
 
