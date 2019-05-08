@@ -15,6 +15,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,8 @@ class CycleEntitlementCalculatorTest {
         List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(6));
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(1));
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now());
 
         assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
@@ -60,12 +62,14 @@ class CycleEntitlementCalculatorTest {
         VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         int backDatedVouchers = 2;
-        given(backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(any(), anyList())).willReturn(backDatedVouchers);
+        LocalDate cycleStartDate = LocalDate.now();
+        given(backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(any(), anyList(), eq(cycleStartDate))).willReturn(backDatedVouchers);
         PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now());
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusWeeks(numberOfWeeksDobIsAfterDueDate));
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, cycleStartDate);
 
         assertEntitlementWithBackDatedVouchers(backDatedVouchers, voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
@@ -82,7 +86,8 @@ class CycleEntitlementCalculatorTest {
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(1));
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusDays(numberOfDaysDobIsAfterDueDate));
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, LocalDate.now());
 
         assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
@@ -96,7 +101,8 @@ class CycleEntitlementCalculatorTest {
         List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(8));
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(8));
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, LocalDate.now());
 
         assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
