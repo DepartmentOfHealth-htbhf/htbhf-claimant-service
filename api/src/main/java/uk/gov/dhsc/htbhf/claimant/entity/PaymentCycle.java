@@ -1,11 +1,15 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import uk.gov.dhsc.htbhf.claimant.entity.converter.ListOfLocalDatesConverter;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.converter.VoucherEntitlementConverter;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -54,15 +58,15 @@ public class PaymentCycle extends BaseEntity {
 
     @NotNull
     @Column(name = "voucher_entitlement_json")
-    // TODO change type to json
-    private String voucherEntitlementJson;
+    @Convert(converter = VoucherEntitlementConverter.class)
+    private VoucherEntitlement voucherEntitlementJson;
 
     @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
     @Column(name = "children_dob_json")
-    // TODO change type to json
-    private String childrenDobJson;
+    @Convert(converter = ListOfLocalDatesConverter.class)
+    private List<LocalDate> childrenDobJson;
 
     @NotNull
     @Column(name = "total_vouchers")
@@ -96,7 +100,6 @@ public class PaymentCycle extends BaseEntity {
     @Column(name = "payment_status")
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
-
 
     public PaymentCycle addPayment(Payment payment) {
         this.payments.add(payment);
