@@ -10,7 +10,7 @@ public class PaymentCycleConfig {
 
     private final Integer weeksBeforeDueDate;
     private final Integer weeksAfterDueDate;
-    private final Integer entitlementCalculationDuration;
+    private final Integer entitlementCalculationDurationInDays;
     private final Integer numberOfCalculationPeriods;
 
     public PaymentCycleConfig(@Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer paymentCycleDurationInDays,
@@ -20,16 +20,16 @@ public class PaymentCycleConfig {
 <span class="fc" id="L20">        validateArguments(paymentCycleDurationInDays, numberOfCalculationPeriods);</span>
 <span class="fc" id="L21">        this.weeksBeforeDueDate = weeksBeforeDueDate;</span>
 <span class="fc" id="L22">        this.weeksAfterDueDate = weeksAfterDueDate;</span>
-<span class="fc" id="L23">        this.entitlementCalculationDuration = paymentCycleDurationInDays / numberOfCalculationPeriods;</span>
+<span class="fc" id="L23">        this.entitlementCalculationDurationInDays = paymentCycleDurationInDays / numberOfCalculationPeriods;</span>
 <span class="fc" id="L24">        this.numberOfCalculationPeriods = numberOfCalculationPeriods;</span>
 <span class="fc" id="L25">    }</span>
 
     private void validateArguments(Integer paymentCycleDurationInDays, Integer numberOfCalculationPeriods) {
-<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (paymentCycleDurationInDays == 0) {</span>
-<span class="fc" id="L29">            throw new IllegalArgumentException(&quot;Payment cycle duration can not be zero&quot;);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (paymentCycleDurationInDays &lt;= 0) {</span>
+<span class="fc" id="L29">            throw new IllegalArgumentException(&quot;Payment cycle duration must be greater than zero&quot;);</span>
         }
-<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (numberOfCalculationPeriods == 0) {</span>
-<span class="fc" id="L32">            throw new IllegalArgumentException(&quot;Number of calculation periods can not be zero&quot;);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (numberOfCalculationPeriods &lt;= 0) {</span>
+<span class="fc" id="L32">            throw new IllegalArgumentException(&quot;Number of calculation periods must be greater than zero&quot;);</span>
         }
 <span class="fc bfc" id="L34" title="All 2 branches covered.">        if (paymentCycleDurationInDays % numberOfCalculationPeriods != 0) {</span>
 <span class="fc" id="L35">            throw new IllegalArgumentException(&quot;Payment cycle duration of &quot; + paymentCycleDurationInDays</span>

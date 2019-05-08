@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BackDatedCycleEntitlementCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.entitlement</a> &gt; <span class="el_source">BackDatedCycleEntitlementCalculator.java</span></div><h1>BackDatedCycleEntitlementCalculator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.entitlement;
+
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.min;
+
+/**
+ * Calculates the number of back dated vouchers a claimant is entitlement to.
+ * The expected due date and the birthdays of children resulting from the pregnancy are used to
+ * calculate the difference between the number of vouchers that were received for pregnancy and
+ * the number of vouchers that should have been received for the new children. If the difference in vouchers
+ * is less than zero, zero is returned.
+ */
+@Service
+public class BackDatedCycleEntitlementCalculator {
+
+    private final Integer entitlementCalculationDurationInDays;
+    private final EntitlementCalculator entitlementCalculator;
+
+    /**
+     * Constructor for {@link BackDatedCycleEntitlementCalculator}.
+     *
+     * @param paymentCycleConfig    configuration for the payment cycle
+     * @param entitlementCalculator calculates entitlement for a single calculation period
+     */
+    public BackDatedCycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
+<span class="fc" id="L33">                                               EntitlementCalculator entitlementCalculator) {</span>
+<span class="fc" id="L34">        this.entitlementCalculationDurationInDays = paymentCycleConfig.getEntitlementCalculationDurationInDays();</span>
+<span class="fc" id="L35">        this.entitlementCalculator = entitlementCalculator;</span>
+<span class="fc" id="L36">    }</span>
+
+    /**
+     * Calculates the back dated vouchers given the expected due date and the dates of births resulting from the pregnancy.
+     * @param expectedDueDate expected due date
+     * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
+     * @return the number of back dated vouchers the claimant is entitled too
+     */
+    public Integer calculateBackDatedVouchers(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; newChildrenDateOfBirths) {
+<span class="fc" id="L45">        List&lt;LocalDate&gt; backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths);</span>
+<span class="fc" id="L46">        Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);</span>
+<span class="fc" id="L47">        Integer vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);</span>
+
+<span class="fc" id="L49">        int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;</span>
+        // do not return negative vouchers
+<span class="fc" id="L51">        return Math.max(backDatedVouchers, 0);</span>
+    }
+
+    private int calculateNumberOfVouchers(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; newChildrenDateOfBirths, List&lt;LocalDate&gt; entitlementDates) {
+<span class="fc" id="L55">        return entitlementDates.stream()</span>
+<span class="fc" id="L56">                .map(date -&gt; entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, newChildrenDateOfBirths, date))</span>
+<span class="fc" id="L57">                .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)</span>
+<span class="fc" id="L58">                .sum();</span>
+    }
+
+    // get the list of entitlement dates since the oldest child was born
+    private List&lt;LocalDate&gt; getBackDatedEntitlementDates(List&lt;LocalDate&gt; newChildrenDatesOfBirth) {
+<span class="fc" id="L63">        LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);</span>
+<span class="fc" id="L64">        LocalDate rollingEntitlementDate = LocalDate.now().minusDays(entitlementCalculationDurationInDays);</span>
+<span class="fc" id="L65">        List&lt;LocalDate&gt; backDatedEntitlementDates = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L67" title="All 4 branches covered.">        while (rollingEntitlementDate.isAfter(earliestDateOfBirth) || rollingEntitlementDate.isEqual(earliestDateOfBirth)) {</span>
+<span class="fc" id="L68">            backDatedEntitlementDates.add(rollingEntitlementDate);</span>
+<span class="fc" id="L69">            rollingEntitlementDate = rollingEntitlementDate.minusDays(entitlementCalculationDurationInDays);</span>
+        }
+
+<span class="fc" id="L72">        return backDatedEntitlementDates;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

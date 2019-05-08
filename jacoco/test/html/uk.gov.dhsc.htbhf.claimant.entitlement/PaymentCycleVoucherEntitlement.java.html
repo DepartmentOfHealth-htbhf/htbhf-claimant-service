@@ -18,34 +18,38 @@ public class PaymentCycleVoucherEntitlement {
     private final int totalVoucherEntitlement;
     private final int voucherValueInPence;
     private final int totalVoucherValueInPence;
+    private final int backdatedVouchers;
     private final List&lt;VoucherEntitlement&gt; voucherEntitlements;
 
-<span class="fc" id="L23">    public PaymentCycleVoucherEntitlement(List&lt;VoucherEntitlement&gt; voucherEntitlements) {</span>
-<span class="fc bfc" id="L24" title="All 2 branches covered.">        if (isEmpty(voucherEntitlements)) {</span>
-<span class="fc" id="L25">            throw new IllegalArgumentException(&quot;List of voucher entitlements must not be null or empty.&quot;);</span>
+    public PaymentCycleVoucherEntitlement(List&lt;VoucherEntitlement&gt; voucherEntitlements) {
+<span class="fc" id="L25">        this(voucherEntitlements, 0);</span>
+<span class="fc" id="L26">    }</span>
+
+<span class="fc" id="L28">    public PaymentCycleVoucherEntitlement(List&lt;VoucherEntitlement&gt; voucherEntitlements, int backdatedVouchers) {</span>
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        if (isEmpty(voucherEntitlements)) {</span>
+<span class="fc" id="L30">            throw new IllegalArgumentException(&quot;List of voucher entitlements must not be null or empty.&quot;);</span>
         }
-<span class="fc" id="L27">        this.voucherEntitlements = voucherEntitlements;</span>
+<span class="fc" id="L32">        this.voucherEntitlements = voucherEntitlements;</span>
 
-<span class="fc" id="L29">        int childrenUnderOne = 0;</span>
-<span class="fc" id="L30">        int childrenBetweenOneAndFour = 0;</span>
-<span class="fc" id="L31">        int pregnancy = 0;</span>
-<span class="fc" id="L32">        int total = 0;</span>
-<span class="fc" id="L33">        int totalValueInPence = 0;</span>
+<span class="fc" id="L34">        int childrenUnderOne = 0;</span>
+<span class="fc" id="L35">        int childrenBetweenOneAndFour = 0;</span>
+<span class="fc" id="L36">        int pregnancy = 0;</span>
+<span class="fc" id="L37">        int total = 0;</span>
 
-<span class="fc bfc" id="L35" title="All 2 branches covered.">        for (VoucherEntitlement voucherEntitlement : voucherEntitlements) {</span>
-<span class="fc" id="L36">            childrenUnderOne += voucherEntitlement.getVouchersForChildrenUnderOne();</span>
-<span class="fc" id="L37">            childrenBetweenOneAndFour += voucherEntitlement.getVouchersForChildrenBetweenOneAndFour();</span>
-<span class="fc" id="L38">            pregnancy += voucherEntitlement.getVouchersForPregnancy();</span>
-<span class="fc" id="L39">            total += voucherEntitlement.getTotalVoucherEntitlement();</span>
-<span class="fc" id="L40">            totalValueInPence += voucherEntitlement.getTotalVoucherValueInPence();</span>
-<span class="fc" id="L41">        }</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        for (VoucherEntitlement voucherEntitlement : voucherEntitlements) {</span>
+<span class="fc" id="L40">            childrenUnderOne += voucherEntitlement.getVouchersForChildrenUnderOne();</span>
+<span class="fc" id="L41">            childrenBetweenOneAndFour += voucherEntitlement.getVouchersForChildrenBetweenOneAndFour();</span>
+<span class="fc" id="L42">            pregnancy += voucherEntitlement.getVouchersForPregnancy();</span>
+<span class="fc" id="L43">            total += voucherEntitlement.getTotalVoucherEntitlement();</span>
+<span class="fc" id="L44">        }</span>
 
-<span class="fc" id="L43">        vouchersForChildrenUnderOne = childrenUnderOne;</span>
-<span class="fc" id="L44">        vouchersForChildrenBetweenOneAndFour = childrenBetweenOneAndFour;</span>
-<span class="fc" id="L45">        vouchersForPregnancy = pregnancy;</span>
-<span class="fc" id="L46">        totalVoucherEntitlement = total;</span>
-<span class="fc" id="L47">        totalVoucherValueInPence = totalValueInPence;</span>
-<span class="fc" id="L48">        voucherValueInPence = voucherEntitlements.get(0).getVoucherValueInPence();</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L46">        this.backdatedVouchers = backdatedVouchers;</span>
+<span class="fc" id="L47">        this.vouchersForChildrenUnderOne = childrenUnderOne;</span>
+<span class="fc" id="L48">        this.vouchersForChildrenBetweenOneAndFour = childrenBetweenOneAndFour;</span>
+<span class="fc" id="L49">        this.vouchersForPregnancy = pregnancy;</span>
+<span class="fc" id="L50">        this.totalVoucherEntitlement = total + backdatedVouchers;</span>
+<span class="fc" id="L51">        this.voucherValueInPence = voucherEntitlements.get(0).getVoucherValueInPence();</span>
+<span class="fc" id="L52">        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;</span>
+<span class="fc" id="L53">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
