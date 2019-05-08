@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -13,10 +12,10 @@ import java.time.LocalDate;
 @Component
 public class PregnancyEntitlementCalculator {
 
-    private final int pregnancyGracePeriodInDays;
+    private final int pregnancyGracePeriodInWeeks;
 
-    public PregnancyEntitlementCalculator(@Value("${entitlement.pregnancy-grace-period-in-days}") int pregnancyGracePeriodInDays) {
-        this.pregnancyGracePeriodInDays = pregnancyGracePeriodInDays;
+    public PregnancyEntitlementCalculator(PaymentCycleConfig paymentCycleConfig) {
+        this.pregnancyGracePeriodInWeeks = paymentCycleConfig.getWeeksAfterDueDate();
     }
 
     public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate) {
@@ -26,7 +25,7 @@ public class PregnancyEntitlementCalculator {
         if (dueDate == null) {
             return false;
         }
-        LocalDate endOfGracePeriod = dueDate.plusDays(pregnancyGracePeriodInDays);
+        LocalDate endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);
         return !endOfGracePeriod.isBefore(entitlementDate);
     }
 }
