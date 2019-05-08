@@ -11,8 +11,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @SuperBuilder
-@Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@MappedSuperclass
 public abstract class BaseEntity {
 
     @Id
