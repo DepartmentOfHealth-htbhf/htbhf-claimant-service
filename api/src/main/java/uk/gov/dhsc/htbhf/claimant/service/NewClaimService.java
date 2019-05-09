@@ -3,7 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -18,10 +19,9 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static java.util.Collections.min;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -34,7 +34,7 @@ public class NewClaimService {
     private final ClaimRepository claimRepository;
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
-    private final EntitlementCalculator entitlementCalculator;
+    private final CycleEntitlementCalculator cycleEntitlementCalculator;
     private final ClaimAuditor claimAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
@@ -53,9 +53,11 @@ public class NewClaimService {
             EligibilityResponse eligibilityResponse = determineEligibility(claimant);
             Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                sendNewCardMessage(claim);
+                PaymentCycleVoucherEntitlement voucherEntitlement = getEntitlement(claim, eligibilityResponse);
+                sendNewCardMessage(claim, voucherEntitlement);
+                return createResult(claim, voucherEntitlement);
             }
-            return createResult(claim, eligibilityResponse);
+            return createResult(claim);
         } catch (RuntimeException e) {
             createAndSaveClaim(claimant, eligibilityResponseWithStatus(EligibilityStatus.ERROR));
             throw e;
@@ -87,8 +89,8 @@ public class NewClaimService {
         return claim;
     }
 
-    private void sendNewCardMessage(Claim claim) {
-        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim);
+    private void sendNewCardMessage(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, voucherEntitlement);
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
@@ -106,19 +108,25 @@ public class NewClaimService {
                 .build();
     }
 
-    private ClaimResult createResult(Claim claim, EligibilityResponse eligibilityResponse) {
-        Optional<VoucherEntitlement> entitlement = eligibilityResponse.getEligibilityStatus() == EligibilityStatus.ELIGIBLE
-                ? Optional.of(getEntitlement(claim, eligibilityResponse))
-                : Optional.empty();
-
+    private ClaimResult createResult(Claim claim) {
         return ClaimResult.builder()
                 .claim(claim)
-                .voucherEntitlement(entitlement)
+                .voucherEntitlement(Optional.empty())
                 .build();
     }
 
-    private VoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
-        return entitlementCalculator.calculateVoucherEntitlement(
+    private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        VoucherEntitlement firstVoucherEntitlement
+                = min(voucherEntitlement.getVoucherEntitlements(), Comparator.comparing(VoucherEntitlement::getEntitlementDate));
+
+        return ClaimResult.builder()
+                .claim(claim)
+                .voucherEntitlement(Optional.of(firstVoucherEntitlement))
+                .build();
+    }
+
+    private PaymentCycleVoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
+        return cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 getDateOfBirthOfChildren(eligibilityResponse),
                 LocalDate.now());

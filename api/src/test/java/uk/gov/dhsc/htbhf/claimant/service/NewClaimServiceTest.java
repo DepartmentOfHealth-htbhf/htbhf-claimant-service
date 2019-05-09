@@ -9,11 +9,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.EntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
@@ -25,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -37,8 +40,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayloadWithClaimId;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 
 @ExtendWith(MockitoExtension.class)
 class NewClaimServiceTest {
@@ -56,7 +58,7 @@ class NewClaimServiceTest {
     EligibilityStatusCalculator eligibilityStatusCalculator;
 
     @Mock
-    EntitlementCalculator entitlementCalculator;
+    CycleEntitlementCalculator cycleEntitlementCalculator;
 
     @Mock
     ClaimAuditor claimAuditor;
@@ -72,8 +74,10 @@ class NewClaimServiceTest {
         EligibilityResponse eligibilityResponse = anEligibilityResponse();
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
-        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
+        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
+        var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
+        given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(paymentCycleVoucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -83,15 +87,17 @@ class NewClaimServiceTest {
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
-        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
+        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
+        verify(cycleEntitlementCalculator).calculateEntitlement(
+                Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
         verify(claimRepository).save(result.getClaim());
         verifyNoMoreInteractions(claimRepository);
         verify(client).checkEligibility(claimant);
         verify(claimAuditor).auditNewClaim(result.getClaim());
-        verifyCreateNewCardMessageSent(result);
+        verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -130,6 +136,7 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(claimAuditor).auditNewClaim(actualClaim);
         verifyZeroInteractions(messageQueueDAO);
+        verifyZeroInteractions(cycleEntitlementCalculator);
     }
 
     @Test
@@ -140,22 +147,24 @@ class NewClaimServiceTest {
         EligibilityResponse eligibilityResponse = anEligibilityResponse();
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(EligibilityStatus.ELIGIBLE);
-        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
-        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
+        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
+        var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
+        given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(paymentCycleVoucherEntitlement);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
 
         //then
         assertThat(result).isNotNull();
-        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(voucherEntitlement));
+        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
-        verify(entitlementCalculator).calculateVoucherEntitlement(
+        verify(cycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
-        verifyCreateNewCardMessageSent(result);
+        verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
     }
 
     /**
@@ -173,9 +182,11 @@ class NewClaimServiceTest {
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(eligibilityStatus);
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(eligibilityStatus);
-        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
+        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
+        var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+            given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(paymentCycleVoucherEntitlement);
         }
 
         //when
@@ -188,9 +199,9 @@ class NewClaimServiceTest {
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
         if (eligibilityStatus == EligibilityStatus.ELIGIBLE) {
-            verify(entitlementCalculator).calculateVoucherEntitlement(
+            verify(cycleEntitlementCalculator).calculateEntitlement(
                     Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
-            verifyCreateNewCardMessageSent(result);
+            verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
         }
     }
 
@@ -207,7 +218,7 @@ class NewClaimServiceTest {
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
         verify(claimRepository).save(result.getClaim());
         verifyNoMoreInteractions(claimRepository);
-        verifyZeroInteractions(client, entitlementCalculator);
+        verifyZeroInteractions(client, cycleEntitlementCalculator);
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verifyZeroInteractions(messageQueueDAO);
     }
@@ -258,7 +269,11 @@ class NewClaimServiceTest {
         assertThat(actualClaim.getClaimant()).isEqualTo(claimant);
     }
 
-    private void verifyCreateNewCardMessageSent(ClaimResult result) {
-        verify(messageQueueDAO).sendMessage(aValidNewCardRequestMessagePayloadWithClaimId(result.getClaim().getId()), CREATE_NEW_CARD);
+    private void verifyCreateNewCardMessageSent(ClaimResult result, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        NewCardRequestMessagePayload newCardRequestMessagePayload = NewCardRequestMessagePayload.builder()
+                .claimId(result.getClaim().getId())
+                .voucherEntitlement(voucherEntitlement)
+                .build();
+        verify(messageQueueDAO).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
     }
 }
