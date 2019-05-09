@@ -27,31 +27,35 @@ public class CycleEntitlementCalculator {
 
     /**
      * Constructor for {@link CycleEntitlementCalculator}.
-     * @param paymentCycleConfig configuration for the payment cycle
-     * @param entitlementCalculator calculates entitlement for a single calculation period
+     *
+     * @param paymentCycleConfig                  configuration for the payment cycle
+     * @param entitlementCalculator               calculates entitlement for a single calculation period
      * @param backDatedCycleEntitlementCalculator calculates back dated vouchers for previous cycles
      */
     public CycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
                                       EntitlementCalculator entitlementCalculator,
-<span class="fc" id="L36">                                      BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator) {</span>
-<span class="fc" id="L37">        this.weeksBeforeDueDate = paymentCycleConfig.getWeeksBeforeDueDate();</span>
-<span class="fc" id="L38">        this.weeksAfterDueDate = paymentCycleConfig.getWeeksAfterDueDate();</span>
-<span class="fc" id="L39">        this.entitlementCalculationDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();</span>
-<span class="fc" id="L40">        this.numberOfCalculationPeriods = paymentCycleConfig.getNumberOfCalculationPeriods();</span>
-<span class="fc" id="L41">        this.entitlementCalculator = entitlementCalculator;</span>
-<span class="fc" id="L42">        this.backDatedCycleEntitlementCalculator = backDatedCycleEntitlementCalculator;</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L37">                                      BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator) {</span>
+<span class="fc" id="L38">        this.weeksBeforeDueDate = paymentCycleConfig.getWeeksBeforeDueDate();</span>
+<span class="fc" id="L39">        this.weeksAfterDueDate = paymentCycleConfig.getWeeksAfterDueDate();</span>
+<span class="fc" id="L40">        this.entitlementCalculationDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();</span>
+<span class="fc" id="L41">        this.numberOfCalculationPeriods = paymentCycleConfig.getNumberOfCalculationPeriods();</span>
+<span class="fc" id="L42">        this.entitlementCalculator = entitlementCalculator;</span>
+<span class="fc" id="L43">        this.backDatedCycleEntitlementCalculator = backDatedCycleEntitlementCalculator;</span>
+<span class="fc" id="L44">    }</span>
 
     /**
      * Calculates the total voucher entitlement for a payment cycle when there is no previous voucher entitlement.
      *
      * @param expectedDueDate       expected due date
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
+     * @param cycleStartDate        the start date of the payment cycle
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
-    public PaymentCycleVoucherEntitlement calculateEntitlement(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; dateOfBirthOfChildren) {
-<span class="fc" id="L53">        List&lt;VoucherEntitlement&gt; voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren);</span>
-<span class="fc" id="L54">        return new PaymentCycleVoucherEntitlement(voucherEntitlements);</span>
+    public PaymentCycleVoucherEntitlement calculateEntitlement(Optional&lt;LocalDate&gt; expectedDueDate,
+                                                               List&lt;LocalDate&gt; dateOfBirthOfChildren,
+                                                               LocalDate cycleStartDate) {
+<span class="fc" id="L57">        List&lt;VoucherEntitlement&gt; voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);</span>
+<span class="fc" id="L58">        return new PaymentCycleVoucherEntitlement(voucherEntitlements);</span>
     }
 
     /**
@@ -59,66 +63,68 @@ public class CycleEntitlementCalculator {
      *
      * @param expectedDueDate            expected due date
      * @param dateOfBirthOfChildren      the date of birth of the claimant's children
+     * @param cycleStartDate             the start date of the payment cycle
      * @param previousVoucherEntitlement voucher entitlement from last payment cycle
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional&lt;LocalDate&gt; expectedDueDate,
                                                                List&lt;LocalDate&gt; dateOfBirthOfChildren,
+                                                               LocalDate cycleStartDate,
                                                                PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
-<span class="fc" id="L68">        List&lt;LocalDate&gt; newChildren = newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement);</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">        if (newChildren.isEmpty()) {</span>
-<span class="fc" id="L70">            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren);</span>
+<span class="fc" id="L74">        List&lt;LocalDate&gt; newChildren = newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (newChildren.isEmpty()) {</span>
+<span class="fc" id="L76">            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);</span>
         }
 
         // ignore expected due date as we've determined that the pregnancy has happened
-<span class="fc" id="L74">        List&lt;VoucherEntitlement&gt; voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren);</span>
-<span class="fc" id="L75">        Integer backdateVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren);</span>
-<span class="fc" id="L76">        return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);</span>
+<span class="fc" id="L80">        List&lt;VoucherEntitlement&gt; voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren, cycleStartDate);</span>
+<span class="fc" id="L81">        Integer backdateVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);</span>
+<span class="fc" id="L82">        return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);</span>
     }
 
-    // move out of private method
-    private List&lt;VoucherEntitlement&gt; calculateCycleEntitlements(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; dateOfBirthOfChildren) {
-<span class="fc" id="L81">        List&lt;LocalDate&gt; entitlementDates = getCurrentCycleEntitlementDates();</span>
-<span class="fc" id="L82">        return entitlementDates.stream()</span>
-<span class="fc" id="L83">                .map(date -&gt; entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))</span>
-<span class="fc" id="L84">                .collect(Collectors.toList());</span>
+    private List&lt;VoucherEntitlement&gt; calculateCycleEntitlements(Optional&lt;LocalDate&gt; expectedDueDate,
+                                                                List&lt;LocalDate&gt; dateOfBirthOfChildren,
+                                                                LocalDate cycleStartDate) {
+<span class="fc" id="L88">        List&lt;LocalDate&gt; entitlementDates = getCurrentCycleEntitlementDates(cycleStartDate);</span>
+<span class="fc" id="L89">        return entitlementDates.stream()</span>
+<span class="fc" id="L90">                .map(date -&gt; entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))</span>
+<span class="fc" id="L91">                .collect(Collectors.toList());</span>
     }
 
     // A child is considered a result of expected due date if their date of birth falls within a range of that date
     private List&lt;LocalDate&gt; newChildrenMatchedToExpectedDeliveryDate(Optional&lt;LocalDate&gt; expectedDueDate,
                                                                      List&lt;LocalDate&gt; dateOfBirthOfChildren,
                                                                      PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
-<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if (noPregnancyVouchers(previousVoucherEntitlement) || notPregnant(expectedDueDate)) {</span>
-<span class="fc" id="L92">            return emptyList();</span>
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">        if (noPregnancyVouchers(previousVoucherEntitlement) || notPregnant(expectedDueDate)) {</span>
+<span class="fc" id="L99">            return emptyList();</span>
         }
 
-<span class="fc" id="L95">        return dateOfBirthOfChildren.stream()</span>
-<span class="fc" id="L96">                .filter(date -&gt; isWithinPregnancyMatchPeriod(expectedDueDate.get(), date))</span>
-<span class="fc" id="L97">                .collect(Collectors.toList());</span>
+<span class="fc" id="L102">        return dateOfBirthOfChildren.stream()</span>
+<span class="fc" id="L103">                .filter(date -&gt; isWithinPregnancyMatchPeriod(expectedDueDate.get(), date))</span>
+<span class="fc" id="L104">                .collect(Collectors.toList());</span>
     }
 
     private boolean notPregnant(Optional&lt;LocalDate&gt; expectedDueDate) {
-<span class="fc" id="L101">        return expectedDueDate.isEmpty();</span>
+<span class="fc" id="L108">        return expectedDueDate.isEmpty();</span>
     }
 
     private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement vouchersForPregnancy) {
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        return vouchersForPregnancy.getVouchersForPregnancy() == 0;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        return vouchersForPregnancy.getVouchersForPregnancy() == 0;</span>
     }
 
     private boolean isWithinPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
-<span class="fc" id="L109">        LocalDate startDate = expectedDueDate.minusWeeks(weeksBeforeDueDate);</span>
-<span class="fc" id="L110">        LocalDate endDate = expectedDueDate.plusWeeks(weeksAfterDueDate);</span>
+<span class="fc" id="L116">        LocalDate startDate = expectedDueDate.minusWeeks(weeksBeforeDueDate);</span>
+<span class="fc" id="L117">        LocalDate endDate = expectedDueDate.plusWeeks(weeksAfterDueDate);</span>
 
-<span class="fc bfc" id="L112" title="All 4 branches covered.">        return !dateOfBirth.isBefore(startDate) &amp;&amp; !dateOfBirth.isAfter(endDate);</span>
+<span class="fc bfc" id="L119" title="All 4 branches covered.">        return !dateOfBirth.isBefore(startDate) &amp;&amp; !dateOfBirth.isAfter(endDate);</span>
     }
 
-    private List&lt;LocalDate&gt; getCurrentCycleEntitlementDates() {
-<span class="fc" id="L116">        LocalDate today = LocalDate.now();</span>
-<span class="fc" id="L117">        List&lt;LocalDate&gt; entitlementDates = new ArrayList&lt;&gt;(numberOfCalculationPeriods);</span>
-<span class="fc bfc" id="L118" title="All 2 branches covered.">        for (int i = 0; i &lt; numberOfCalculationPeriods; i++) {</span>
-<span class="fc" id="L119">            entitlementDates.add(today.plusDays(i * entitlementCalculationDuration));</span>
+    private List&lt;LocalDate&gt; getCurrentCycleEntitlementDates(LocalDate cycleStartDate) {
+<span class="fc" id="L123">        List&lt;LocalDate&gt; entitlementDates = new ArrayList&lt;&gt;(numberOfCalculationPeriods);</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        for (int i = 0; i &lt; numberOfCalculationPeriods; i++) {</span>
+<span class="fc" id="L125">            entitlementDates.add(cycleStartDate.plusDays(i * entitlementCalculationDuration));</span>
         }
-<span class="fc" id="L121">        return entitlementDates;</span>
+<span class="fc" id="L127">        return entitlementDates;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

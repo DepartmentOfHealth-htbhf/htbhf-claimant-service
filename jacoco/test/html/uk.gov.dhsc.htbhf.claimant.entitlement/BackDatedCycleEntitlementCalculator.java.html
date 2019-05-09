@@ -37,39 +37,41 @@ public class BackDatedCycleEntitlementCalculator {
 
     /**
      * Calculates the back dated vouchers given the expected due date and the dates of births resulting from the pregnancy.
-     * @param expectedDueDate expected due date
+     *
+     * @param expectedDueDate         expected due date
      * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
-     * @return the number of back dated vouchers the claimant is entitled too
+     * @param cycleStartDate          the start date of the payment cycle
+     * @return the number of back dated vouchers the claimant is entitled to
      */
-    public Integer calculateBackDatedVouchers(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; newChildrenDateOfBirths) {
-<span class="fc" id="L45">        List&lt;LocalDate&gt; backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths);</span>
-<span class="fc" id="L46">        Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);</span>
-<span class="fc" id="L47">        Integer vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);</span>
+    public Integer calculateBackDatedVouchers(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; newChildrenDateOfBirths, LocalDate cycleStartDate) {
+<span class="fc" id="L47">        List&lt;LocalDate&gt; backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths, cycleStartDate);</span>
+<span class="fc" id="L48">        Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);</span>
+<span class="fc" id="L49">        Integer vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);</span>
 
-<span class="fc" id="L49">        int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;</span>
+<span class="fc" id="L51">        int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;</span>
         // do not return negative vouchers
-<span class="fc" id="L51">        return Math.max(backDatedVouchers, 0);</span>
+<span class="fc" id="L53">        return Math.max(backDatedVouchers, 0);</span>
     }
 
     private int calculateNumberOfVouchers(Optional&lt;LocalDate&gt; expectedDueDate, List&lt;LocalDate&gt; newChildrenDateOfBirths, List&lt;LocalDate&gt; entitlementDates) {
-<span class="fc" id="L55">        return entitlementDates.stream()</span>
-<span class="fc" id="L56">                .map(date -&gt; entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, newChildrenDateOfBirths, date))</span>
-<span class="fc" id="L57">                .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)</span>
-<span class="fc" id="L58">                .sum();</span>
+<span class="fc" id="L57">        return entitlementDates.stream()</span>
+<span class="fc" id="L58">                .map(date -&gt; entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, newChildrenDateOfBirths, date))</span>
+<span class="fc" id="L59">                .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)</span>
+<span class="fc" id="L60">                .sum();</span>
     }
 
     // get the list of entitlement dates since the oldest child was born
-    private List&lt;LocalDate&gt; getBackDatedEntitlementDates(List&lt;LocalDate&gt; newChildrenDatesOfBirth) {
-<span class="fc" id="L63">        LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);</span>
-<span class="fc" id="L64">        LocalDate rollingEntitlementDate = LocalDate.now().minusDays(entitlementCalculationDurationInDays);</span>
-<span class="fc" id="L65">        List&lt;LocalDate&gt; backDatedEntitlementDates = new ArrayList&lt;&gt;();</span>
+    private List&lt;LocalDate&gt; getBackDatedEntitlementDates(List&lt;LocalDate&gt; newChildrenDatesOfBirth, LocalDate cycleStartDate) {
+<span class="fc" id="L65">        LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);</span>
+<span class="fc" id="L66">        LocalDate rollingEntitlementDate = cycleStartDate.minusDays(entitlementCalculationDurationInDays);</span>
+<span class="fc" id="L67">        List&lt;LocalDate&gt; backDatedEntitlementDates = new ArrayList&lt;&gt;();</span>
 
-<span class="fc bfc" id="L67" title="All 4 branches covered.">        while (rollingEntitlementDate.isAfter(earliestDateOfBirth) || rollingEntitlementDate.isEqual(earliestDateOfBirth)) {</span>
-<span class="fc" id="L68">            backDatedEntitlementDates.add(rollingEntitlementDate);</span>
-<span class="fc" id="L69">            rollingEntitlementDate = rollingEntitlementDate.minusDays(entitlementCalculationDurationInDays);</span>
+<span class="fc bfc" id="L69" title="All 4 branches covered.">        while (rollingEntitlementDate.isAfter(earliestDateOfBirth) || rollingEntitlementDate.isEqual(earliestDateOfBirth)) {</span>
+<span class="fc" id="L70">            backDatedEntitlementDates.add(rollingEntitlementDate);</span>
+<span class="fc" id="L71">            rollingEntitlementDate = rollingEntitlementDate.minusDays(entitlementCalculationDurationInDays);</span>
         }
 
-<span class="fc" id="L72">        return backDatedEntitlementDates;</span>
+<span class="fc" id="L74">        return backDatedEntitlementDates;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
