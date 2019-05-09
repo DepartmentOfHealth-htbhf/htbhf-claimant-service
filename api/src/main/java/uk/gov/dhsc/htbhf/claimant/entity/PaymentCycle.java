@@ -49,12 +49,10 @@ public class PaymentCycle extends BaseEntity {
     @Column(name = "cycle_end_date")
     private LocalDate cycleEndDate;
 
-    @NotNull
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
 
-    @NotNull
     @Column(name = "voucher_entitlement_json")
     @Convert(converter = PaymentCycleVoucherEntitlementConverter.class)
     private PaymentCycleVoucherEntitlement voucherEntitlement;
@@ -66,11 +64,9 @@ public class PaymentCycle extends BaseEntity {
     @Convert(converter = ListOfLocalDatesConverter.class)
     private List<LocalDate> childrenDob;
 
-    @NotNull
     @Column(name = "total_vouchers")
     private Integer totalVouchers;
 
-    @NotNull
     @Column(name = "total_entitlement_amount_in_pence")
     private Integer totalEntitlementAmountInPence;
 

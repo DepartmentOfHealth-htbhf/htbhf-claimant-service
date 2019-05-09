@@ -40,44 +40,4 @@ public class PaymentCycleTest extends AbstractValidationTest {
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "cardAccountId");
     }
-
-    @Test
-    void shouldFailToValidatePaymentCycleWithNoEligibilityStatus() {
-        //Given
-        var paymentCycle = aPaymentCycleWithEligibilityStatus(null);
-        //When
-        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "eligibilityStatus");
-    }
-
-    @Test
-    void shouldFailToValidatePaymentCycleWithNoVoucherEntitlement() {
-        //Given
-        var paymentCycle = aPaymentCycleWithVoucherEntitlement(null);
-        //When
-        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "voucherEntitlement");
-    }
-
-    @Test
-    void shouldFailToValidatePaymentCycleWithNoTotalVouchers() {
-        //Given
-        var paymentCycle = aPaymentCycleWithTotalVouchers(null);
-        //When
-        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "totalVouchers");
-    }
-
-    @Test
-    void shouldFailToValidatePaymentCycleWithNoTotalEntitlementAmountInPence() {
-        //Given
-        var paymentCycle = aPaymentCycleWithTotalEntitlementAmountInPence(null);
-        //When
-        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "totalEntitlementAmountInPence");
-    }
 }
