@@ -9,14 +9,24 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class PregnancyEntitlementCalculatorTest {
 
-    private static final int PREGNANCY_GRACE_PERIOD_IN_DAYS = 14;
+    private static final int WEEKS_BEFORE_DUE_DATE = 16;
+    private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 28;
+    private static final int PAYMENT_CYCLE_NO_CALCULATION_PERIODS = 4;
+    //This is the important values for these tests.
+    private static final int PREGNANCY_GRACE_PERIOD_IN_WEEKS = 8;
+    private static final PaymentCycleConfig CONFIG = new PaymentCycleConfig(
+            PAYMENT_CYCLE_DURATION_IN_DAYS,
+            PAYMENT_CYCLE_NO_CALCULATION_PERIODS,
+            WEEKS_BEFORE_DUE_DATE,
+            PREGNANCY_GRACE_PERIOD_IN_WEEKS
+    );
 
-    PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_DAYS);
+    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(CONFIG);
 
     @Test
     void shouldReturnTrueForDueDateInFuture() {
         LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.plusDays(1);
+        LocalDate dueDate = entitlementDate.plusWeeks(1);
 
         boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
 
@@ -33,9 +43,9 @@ class PregnancyEntitlementCalculatorTest {
     }
 
     @Test
-    void shouldReturnTrueForDueDateLessThanGracePeriodDaysAgo() {
+    void shouldReturnTrueForDueDateLessThanGracePeriodWeeksAgo() {
         LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.minusDays(1);
+        LocalDate dueDate = entitlementDate.minusWeeks(1);
 
         boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
 
@@ -43,9 +53,9 @@ class PregnancyEntitlementCalculatorTest {
     }
 
     @Test
-    void shouldReturnTrueForDueDateGracePeriodDaysAgo() {
+    void shouldReturnTrueForDueDateGracePeriodWeeksAgo() {
         LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS);
+        LocalDate dueDate = entitlementDate.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS);
 
         boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
 
@@ -53,9 +63,9 @@ class PregnancyEntitlementCalculatorTest {
     }
 
     @Test
-    void shouldReturnFalseForDueDateMoreThanGracePeriodDaysAgo() {
+    void shouldReturnFalseForDueDateMoreThanGracePeriodWeeksAgo() {
         LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.minusDays(PREGNANCY_GRACE_PERIOD_IN_DAYS + 1);
+        LocalDate dueDate = entitlementDate.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS + 1);
 
         boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
 

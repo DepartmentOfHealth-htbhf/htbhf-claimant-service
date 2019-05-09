@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -229,6 +230,60 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0); // we've determine that the child is from the pregnancy, so no longer pregnant
+        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedWithin8WeeksAfterExpectedDueDate() {
+        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
+        PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8).minusDays(2));
+        List<LocalDate> childrenDatesOfBirth = emptyList();
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(0);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(0);
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
+        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateGoesOver8WeekThresholdWithinNextPaymentCycle() {
+        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
+        PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(6).minusDays(2));
+        List<LocalDate> childrenDatesOfBirth = emptyList();
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(620);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(2);
+        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getBackdatedVouchers()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateIsExactlyOn8WeekThresholdAtStartOfPaymentCycle() {
+        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
+        PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8));
+        List<LocalDate> childrenDatesOfBirth = emptyList();
+
+        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+
+        assertThat(result.getTotalVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getTotalVoucherEntitlement()).isEqualTo(1);
+        assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
+        assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
+        assertThat(result.getVouchersForPregnancy()).isEqualTo(1);
         assertThat(result.getVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
