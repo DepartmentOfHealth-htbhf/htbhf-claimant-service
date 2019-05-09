@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentCycle.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.entity</a> &gt; <span class="el_source">PaymentCycle.java</span></div><h1>PaymentCycle.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.entity;
+
+import lombok.*;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.converter.ListOfLocalDatesConverter;
+import uk.gov.dhsc.htbhf.claimant.entity.converter.PaymentCycleVoucherEntitlementConverter;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+
+import static java.util.Collections.unmodifiableSet;
+
+@Entity
+@Table(name = &quot;payment_cycle&quot;)
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
+public class PaymentCycle extends BaseEntity {
+
+    @Version
+    @Column(name = &quot;version_number&quot;)
+    private Integer versionNumber;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Claim claim;
+
+    @NotNull
+    @Column(name = &quot;card_account_id&quot;)
+    private String cardAccountId;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private final Set&lt;Payment&gt; payments = new HashSet&lt;&gt;();
+
+    @Column(name = &quot;cycle_start_date&quot;)
+    private LocalDate cycleStartDate;
+
+    @Column(name = &quot;cycle_end_date&quot;)
+    private LocalDate cycleEndDate;
+
+    @Column(name = &quot;eligibility_status&quot;)
+    @Enumerated(EnumType.STRING)
+    private EligibilityStatus eligibilityStatus;
+
+    @Column(name = &quot;voucher_entitlement_json&quot;)
+    @Convert(converter = PaymentCycleVoucherEntitlementConverter.class)
+    private PaymentCycleVoucherEntitlement voucherEntitlement;
+
+    @Column(name = &quot;expected_delivery_date&quot;)
+    private LocalDate expectedDeliveryDate;
+
+    @Column(name = &quot;children_dob_json&quot;)
+    @Convert(converter = ListOfLocalDatesConverter.class)
+    private List&lt;LocalDate&gt; childrenDob;
+
+    @Column(name = &quot;total_vouchers&quot;)
+    private Integer totalVouchers;
+
+    @Column(name = &quot;total_entitlement_amount_in_pence&quot;)
+    private Integer totalEntitlementAmountInPence;
+
+    @Column(name = &quot;card_balance_in_pence&quot;)
+    private Integer cardBalanceInPence;
+
+    @Column(name = &quot;card_balance_timestamp&quot;)
+    private LocalDateTime cardBalanceTimestamp;
+
+    public PaymentCycle addPayment(Payment payment) {
+<span class="nc" id="L80">        this.payments.add(payment);</span>
+<span class="nc" id="L81">        return this;</span>
+    }
+
+    public Set&lt;Payment&gt; getPayments() {
+<span class="nc" id="L85">        return unmodifiableSet(payments);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
