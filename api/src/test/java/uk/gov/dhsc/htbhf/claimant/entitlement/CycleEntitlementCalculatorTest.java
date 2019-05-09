@@ -15,7 +15,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -63,7 +62,7 @@ class CycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         int backDatedVouchers = 2;
         LocalDate cycleStartDate = LocalDate.now();
-        given(backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(any(), anyList(), eq(cycleStartDate))).willReturn(backDatedVouchers);
+        given(backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(any(), anyList(), any())).willReturn(backDatedVouchers);
         PaymentCycleVoucherEntitlement previousEntitlement = createPaymentEntitlementWithPregnancyVouchers(1);
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now());
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusWeeks(numberOfWeeksDobIsAfterDueDate));
@@ -73,6 +72,7 @@ class CycleEntitlementCalculatorTest {
 
         assertEntitlementWithBackDatedVouchers(backDatedVouchers, voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
+        verify(backDatedCycleEntitlementCalculator).calculateBackDatedVouchers(expectedDueDate, dateOfBirthsOfChildren, cycleStartDate);
     }
 
     // Children's dates of birth set to one day before and one day after the period where we match the child to the expected due date
