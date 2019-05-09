@@ -63,14 +63,14 @@ public class CycleEntitlementCalculator {
      *
      * @param expectedDueDate            expected due date
      * @param dateOfBirthOfChildren      the date of birth of the claimant's children
-     * @param previousVoucherEntitlement voucher entitlement from last payment cycle
      * @param cycleStartDate             the start date of the payment cycle
+     * @param previousVoucherEntitlement voucher entitlement from last payment cycle
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
                                                                List<LocalDate> dateOfBirthOfChildren,
-                                                               PaymentCycleVoucherEntitlement previousVoucherEntitlement,
-                                                               LocalDate cycleStartDate) {
+                                                               LocalDate cycleStartDate,
+                                                               PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
         List<LocalDate> newChildren = newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement);
         if (newChildren.isEmpty()) {
             return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);

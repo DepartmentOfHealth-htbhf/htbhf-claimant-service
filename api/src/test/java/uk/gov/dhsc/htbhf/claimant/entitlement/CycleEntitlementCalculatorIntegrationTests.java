@@ -138,7 +138,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         List<LocalDate> childrenDatesOfBirth = singletonList(bornSevenWeeksAgo);
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         // For back dated vouchers: over seven weeks the claimant received seven vouchers for pregnancy.
         // for those seven weeks the claimant had a new child under one which entitles them to 14 vouchers.
@@ -163,7 +163,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         List<LocalDate> childrenDatesOfBirth = asList(bornTwoWeeksAgo, bornThirteenDaysAgo);
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         // For back dated vouchers: over two weeks the claimant received two vouchers for pregnancy.
         // for week one there was a single child under one, for week two there were two children under one, six vouchers total.
@@ -186,7 +186,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         List<LocalDate> childrenDatesOfBirth = singletonList(bornLastWeek);
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2480);
@@ -207,7 +207,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         List<LocalDate> childrenDatesOfBirth = singletonList(threeYearsOld);
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2480);
@@ -228,7 +228,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         List<LocalDate> childrenDatesOfBirth = singletonList(bornYesterday);
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2480);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(8);
@@ -246,7 +246,8 @@ class CycleEntitlementCalculatorIntegrationTests {
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8).minusDays(2));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(0);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(0);
@@ -264,7 +265,8 @@ class CycleEntitlementCalculatorIntegrationTests {
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(6).minusDays(2));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(620);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
@@ -282,7 +284,8 @@ class CycleEntitlementCalculatorIntegrationTests {
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
-        PaymentCycleVoucherEntitlement result = cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, previousEntitlement);
+        PaymentCycleVoucherEntitlement result =
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, childrenDatesOfBirth, LocalDate.now(), previousEntitlement);
 
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(1);

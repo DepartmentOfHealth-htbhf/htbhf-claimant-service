@@ -68,7 +68,7 @@ class CycleEntitlementCalculatorTest {
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusWeeks(numberOfWeeksDobIsAfterDueDate));
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, cycleStartDate);
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, cycleStartDate, previousEntitlement);
 
         assertEntitlementWithBackDatedVouchers(backDatedVouchers, voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(Optional.empty(), dateOfBirthsOfChildren);
@@ -87,7 +87,7 @@ class CycleEntitlementCalculatorTest {
         List<LocalDate> dateOfBirthsOfChildren = singletonList(expectedDueDate.get().plusDays(numberOfDaysDobIsAfterDueDate));
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now(), previousEntitlement);
 
         assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
@@ -102,7 +102,7 @@ class CycleEntitlementCalculatorTest {
         Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(8));
 
         PaymentCycleVoucherEntitlement result =
-                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, previousEntitlement, LocalDate.now());
+                cycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now(), previousEntitlement);
 
         assertEntitlement(voucherEntitlement, result);
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
