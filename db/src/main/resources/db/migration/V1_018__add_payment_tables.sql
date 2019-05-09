@@ -11,7 +11,7 @@ create table payment_cycle(
     children_dob_json json,
     total_vouchers int,
     total_entitlement_amount_in_pence int,
-    card_balance_in_pence int default 0,
+    card_balance_in_pence int,
     card_balance_timestamp timestamp default now(),
     created_timestamp timestamp not null default now()
 );
