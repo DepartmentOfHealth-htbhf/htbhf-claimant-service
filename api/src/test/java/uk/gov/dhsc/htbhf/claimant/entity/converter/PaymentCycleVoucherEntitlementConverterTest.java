@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
 import java.io.IOException;
 
@@ -18,20 +18,21 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
 
 @SpringBootTest
-class VoucherEntitlementConverterTest {
+class PaymentCycleVoucherEntitlementConverterTest {
 
     @MockBean
     private ObjectMapper objectMapper;
 
     @Autowired
-    private VoucherEntitlementConverter converter;
+    private PaymentCycleVoucherEntitlementConverter converter;
 
     @Test
     void shouldConvertVoucherEntitlementToString() throws JsonProcessingException {
         String voucherEntitlementJson = "{pregnancyVoucher: 1}";
-        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().build();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
         given(objectMapper.writeValueAsString(any())).willReturn(voucherEntitlementJson);
 
         String result = converter.convertToDatabaseColumn(voucherEntitlement);
@@ -44,30 +45,30 @@ class VoucherEntitlementConverterTest {
     void shouldThrowExceptionWhenFailingToConvertVoucherEntitlementToString() throws JsonProcessingException {
         JsonProcessingException jsonException = new JsonParseException(null, "Unable to parse json");
         given(objectMapper.writeValueAsString(any())).willThrow(jsonException);
-        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().build();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
 
         RuntimeException thrown = catchThrowableOfType(() -> converter.convertToDatabaseColumn(voucherEntitlement), RuntimeException.class);
 
-        assertThat(thrown.getMessage()).isEqualTo("Unable to convert voucher entitlement " + voucherEntitlement.toString() +" into a json string");
+        assertThat(thrown.getMessage()).isEqualTo("Unable to convert voucher entitlement " + voucherEntitlement.toString() + " into a json string");
         assertThat(thrown.getCause()).isEqualTo(jsonException);
     }
 
     @Test
     void shouldConvertJsonStringToVoucherEntitlement() throws IOException {
         String voucherEntitlementJson = "{pregnancyVoucher: 1}";
-        VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().build();
-        given(objectMapper.readValue(anyString(), eq(VoucherEntitlement.class))).willReturn(voucherEntitlement);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
+        given(objectMapper.readValue(anyString(), eq(PaymentCycleVoucherEntitlement.class))).willReturn(voucherEntitlement);
 
-        VoucherEntitlement result = converter.convertToEntityAttribute(voucherEntitlementJson);
+        PaymentCycleVoucherEntitlement result = converter.convertToEntityAttribute(voucherEntitlementJson);
 
         assertThat(result).isEqualTo(voucherEntitlement);
-        verify(objectMapper).readValue(voucherEntitlementJson, VoucherEntitlement.class);
+        verify(objectMapper).readValue(voucherEntitlementJson, PaymentCycleVoucherEntitlement.class);
     }
 
     @Test
     void shouldThrowExceptionWhenFailingToConvertStringToVoucherEntitlement() throws IOException {
         JsonProcessingException jsonException = new JsonParseException(null, "Unable to parse json");
-        given(objectMapper.readValue(anyString(), eq(VoucherEntitlement.class))).willThrow(jsonException);
+        given(objectMapper.readValue(anyString(), eq(PaymentCycleVoucherEntitlement.class))).willThrow(jsonException);
         String voucherEntitlementJson = "{pregnancyVoucher: 1}";
 
         RuntimeException thrown = catchThrowableOfType(() -> converter.convertToEntityAttribute(voucherEntitlementJson), RuntimeException.class);

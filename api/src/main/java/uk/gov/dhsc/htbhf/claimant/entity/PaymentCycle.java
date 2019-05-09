@@ -1,9 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.converter.ListOfLocalDatesConverter;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.converter.VoucherEntitlementConverter;
+import uk.gov.dhsc.htbhf.claimant.entity.converter.PaymentCycleVoucherEntitlementConverter;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -24,23 +24,21 @@ import static java.util.Collections.unmodifiableSet;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
-@SuppressWarnings("PMD.TooManyFields")
 public class PaymentCycle extends BaseEntity {
 
-    @NotNull
     @Version
     @Column(name = "version_number")
     private Integer versionNumber;
 
     @NotNull
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Claim claim;
 
     @NotNull
     @Column(name = "card_account_id")
     private String cardAccountId;
 
-    @NotNull
     @OneToMany(cascade = CascadeType.ALL)
     @ToString.Exclude
     private final Set<Payment> payments = new HashSet<>();
@@ -58,15 +56,15 @@ public class PaymentCycle extends BaseEntity {
 
     @NotNull
     @Column(name = "voucher_entitlement_json")
-    @Convert(converter = VoucherEntitlementConverter.class)
-    private VoucherEntitlement voucherEntitlementJson;
+    @Convert(converter = PaymentCycleVoucherEntitlementConverter.class)
+    private PaymentCycleVoucherEntitlement voucherEntitlement;
 
     @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
     @Column(name = "children_dob_json")
     @Convert(converter = ListOfLocalDatesConverter.class)
-    private List<LocalDate> childrenDobJson;
+    private List<LocalDate> childrenDob;
 
     @NotNull
     @Column(name = "total_vouchers")
@@ -76,30 +74,11 @@ public class PaymentCycle extends BaseEntity {
     @Column(name = "total_entitlement_amount_in_pence")
     private Integer totalEntitlementAmountInPence;
 
-    @NotNull
     @Column(name = "card_balance_in_pence")
     private Integer cardBalanceInPence;
 
-    @NotNull
     @Column(name = "card_balance_timestamp")
     private LocalDateTime cardBalanceTimestamp;
-
-    @NotNull
-    @Column(name = "payment_amount_in_pence")
-    private Integer paymentAmountInPence;
-
-    @NotNull
-    @Column(name = "payment_timestamp")
-    private LocalDateTime paymentTimestamp;
-
-    @NotNull
-    @Column(name = "payment_reference")
-    private String paymentReference;
-
-    @NotNull
-    @Column(name = "payment_status")
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
 
     public PaymentCycle addPayment(Payment payment) {
         this.payments.add(payment);

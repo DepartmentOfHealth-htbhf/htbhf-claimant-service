@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.io.IOException;
@@ -15,12 +16,13 @@ import javax.persistence.AttributeConverter;
  */
 @Component
 @AllArgsConstructor
-public class VoucherEntitlementConverter implements AttributeConverter<VoucherEntitlement, String> {
+@SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
+public class PaymentCycleVoucherEntitlementConverter implements AttributeConverter<PaymentCycleVoucherEntitlement, String> {
 
     private ObjectMapper objectMapper;
 
     @Override
-    public String convertToDatabaseColumn(VoucherEntitlement voucherEntitlement) {
+    public String convertToDatabaseColumn(PaymentCycleVoucherEntitlement voucherEntitlement) {
         try {
             return objectMapper.writeValueAsString(voucherEntitlement);
         } catch (JsonProcessingException e) {
@@ -29,9 +31,9 @@ public class VoucherEntitlementConverter implements AttributeConverter<VoucherEn
     }
 
     @Override
-    public VoucherEntitlement convertToEntityAttribute(String voucherEntitlement) {
+    public PaymentCycleVoucherEntitlement convertToEntityAttribute(String voucherEntitlement) {
         try {
-            return objectMapper.readValue(voucherEntitlement, VoucherEntitlement.class);
+            return objectMapper.readValue(voucherEntitlement, PaymentCycleVoucherEntitlement.class);
         } catch (IOException e) {
             throw new RuntimeException(String.format("Unable to convert json string %s into a voucher entitlement object", voucherEntitlement), e);
         }

@@ -17,6 +17,7 @@ import javax.persistence.AttributeConverter;
  */
 @Component
 @AllArgsConstructor
+@SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
 public class ListOfLocalDatesConverter implements AttributeConverter<List<LocalDate>, String> {
 
     private static final TypeReference<List<LocalDate>> LIST_OF_LOCAL_DATES_TYPE = new TypeReference<>() {};

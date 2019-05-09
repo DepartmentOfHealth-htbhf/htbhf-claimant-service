@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class PaymentCycleVoucherEntitlement {
         this(voucherEntitlements, 0);
     }
 
+    @Builder
     public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements, int backdatedVouchers) {
         if (isEmpty(voucherEntitlements)) {
             throw new IllegalArgumentException("List of voucher entitlements must not be null or empty.");

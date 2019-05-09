@@ -70,7 +70,7 @@ class ListOfLocalDatesConverterTest {
 
     @Test
     void shouldThrowExceptionWhenFailingToConvertListOfLocalDatesToJsonString() throws IOException {
-        List<LocalDate> dates = singletonList(LocalDate.now());
+        List<LocalDate> dates = singletonList(LocalDate.parse("2019-05-08"));
         JsonParseException jsonException = new JsonParseException(null, "json error");
         given(objectMapper.writeValueAsString(anyList())).willThrow(jsonException);
 

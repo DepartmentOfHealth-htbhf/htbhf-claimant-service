@@ -3,7 +3,6 @@ create table payment_cycle(
     version_number int not null,
     claim_id uuid not null references claim(id),
     card_account_id varchar(50) not null,
-    payment_id uuid not null,
     cycle_start_date timestamp,
     cycle_end_date timestamp,
     eligibility_status varchar(50) not null,
@@ -12,12 +11,8 @@ create table payment_cycle(
     children_dob_json json,
     total_vouchers int not null,
     total_entitlement_amount_in_pence int not null,
-    card_balance_in_pence int not null default 0,
-    card_balance_timestamp timestamp not null default now(),
-    payment_amount_in_pence int,
-    payment_timestamp timestamp,
-    payment_reference varchar(50),
-    payment_status varchar(50),
+    card_balance_in_pence int default 0,
+    card_balance_timestamp timestamp default now(),
     created_timestamp timestamp not null default now()
 );
 
