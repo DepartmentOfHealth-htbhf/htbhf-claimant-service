@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -25,22 +24,6 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithCardAccountId(String cardAccountId) {
         return aValidPaymentCycleBuilder().cardAccountId(cardAccountId).build();
-    }
-
-    public static PaymentCycle aPaymentCycleWithEligibilityStatus(EligibilityStatus eligibilityStatus) {
-        return aValidPaymentCycleBuilder().eligibilityStatus(eligibilityStatus).build();
-    }
-
-    public static PaymentCycle aPaymentCycleWithVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return aValidPaymentCycleBuilder().voucherEntitlement(voucherEntitlement).build();
-    }
-
-    public static PaymentCycle aPaymentCycleWithTotalVouchers(Integer totalVouchers) {
-        return aValidPaymentCycleBuilder().totalVouchers(totalVouchers).build();
-    }
-
-    public static PaymentCycle aPaymentCycleWithTotalEntitlementAmountInPence(Integer totalEntitlementAmountInPence) {
-        return aValidPaymentCycleBuilder().totalEntitlementAmountInPence(totalEntitlementAmountInPence).build();
     }
 
     private static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {

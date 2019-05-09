@@ -14,7 +14,7 @@ public class PaymentCycleTest extends AbstractValidationTest {
     @Test
     void shouldValidatePaymentCycleSuccessfully() {
         //Given
-        var paymentCycle = aValidPaymentCycle();
+        PaymentCycle paymentCycle = aValidPaymentCycle();
         //When
         Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
         //Then
@@ -24,7 +24,7 @@ public class PaymentCycleTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentCycleWithNoClaim() {
         //Given
-        var paymentCycle = aPaymentCycleWithClaim(null);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(null);
         //When
         Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
         //Then
@@ -34,7 +34,7 @@ public class PaymentCycleTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentCycleWithNoCardAccountId() {
         //Given
-        var paymentCycle = aPaymentCycleWithCardAccountId(null);
+        PaymentCycle paymentCycle = aPaymentCycleWithCardAccountId(null);
         //When
         Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
         //Then

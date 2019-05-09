@@ -13,7 +13,7 @@ class PaymentTest extends AbstractValidationTest {
     @Test
     void shouldValidatePaymentSuccessfully() {
         //Given
-        var payment = aValidPayment();
+        Payment payment = aValidPayment();
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
@@ -23,17 +23,17 @@ class PaymentTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentWithNoClaim() {
         //Given
-        var payment = aPaymentWithClaimId(null);
+        Payment payment = aPaymentWithClaim(null);
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "claimId");
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "claim");
     }
 
     @Test
     void shouldFailToValidatePaymentWithNoCardAccountId() {
         //Given
-        var payment = aPaymentWithCardAccountId(null);
+        Payment payment = aPaymentWithCardAccountId(null);
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
@@ -43,7 +43,7 @@ class PaymentTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentWithNoPaymentAmountInPence() {
         //Given
-        var payment = aPaymentWithPaymentAmountInPence(null);
+        Payment payment = aPaymentWithPaymentAmountInPence(null);
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
@@ -53,7 +53,7 @@ class PaymentTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentWithNoPaymentTimestamp() {
         //Given
-        var payment = aPaymentWithPaymentTimestamp(null);
+        Payment payment = aPaymentWithPaymentTimestamp(null);
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
@@ -63,7 +63,7 @@ class PaymentTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidatePaymentWithNoPaymentStatus() {
         //Given
-        var payment = aPaymentWithPaymentStatus(null);
+        Payment payment = aPaymentWithPaymentStatus(null);
         //When
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then

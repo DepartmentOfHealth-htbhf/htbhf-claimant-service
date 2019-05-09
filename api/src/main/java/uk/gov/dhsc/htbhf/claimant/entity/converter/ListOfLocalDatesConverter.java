@@ -38,7 +38,7 @@ public class ListOfLocalDatesConverter implements AttributeConverter<List<LocalD
         try {
             return objectMapper.readValue(datesJson, LIST_OF_LOCAL_DATES_TYPE);
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Unable to convert json string %s into a a list of local dates", datesJson), e);
+            throw new RuntimeException(String.format("Unable to convert json string %s into a list of local dates", datesJson), e);
         }
     }
 }

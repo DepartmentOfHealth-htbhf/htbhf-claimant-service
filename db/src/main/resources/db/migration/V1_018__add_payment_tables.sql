@@ -16,8 +16,6 @@ create table payment_cycle(
     created_timestamp timestamp not null default now()
 );
 
-create index payment_cycle_cycle_end_date_idx on payment_cycle (cycle_end_date, eligibility_status);
-
 create table payment(
     id uuid not null,
     claim_id uuid not null references claim(id),
@@ -30,3 +28,8 @@ create table payment(
     payment_cycle_id uuid references payment_cycle(id),
     primary key (id, payment_reference)
 );
+
+create index payment_cycle_cycle_end_date_idx on payment_cycle (cycle_end_date, eligibility_status);
+create index payment_cycle_claim_id_idx on payment_cycle (claim_id);
+create index payment_claim_id_idx on payment (claim_id);
+create index payment_payment_cycle_id_idx on payment (payment_cycle_id);

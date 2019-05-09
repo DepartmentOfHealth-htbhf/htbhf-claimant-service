@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -18,8 +17,9 @@ import javax.validation.constraints.NotNull;
 public class Payment extends BaseEntity {
 
     @NotNull
-    @Column(name = "claim_id")
-    private UUID claimId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Claim claim;
 
     @NotNull
     @Column(name = "card_account_id")
