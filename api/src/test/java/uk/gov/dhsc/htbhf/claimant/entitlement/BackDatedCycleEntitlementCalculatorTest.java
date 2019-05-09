@@ -49,7 +49,7 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(TWO_VOUCHERS);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(ONE_VOUCHER);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth);
+        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and a child born six or seven days ago, we must go back three entitlement dates to cover the new child
         // the vouchers for the new child is 2 * 3 = 6
@@ -74,7 +74,7 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(TWO_VOUCHERS);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(ONE_VOUCHER);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth);
+        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and the youngest child born seven days ago, we must go back three entitlement dates to cover the new children
         // the vouchers for the new child is 2 * 3 = 6
@@ -99,7 +99,7 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(ONE_VOUCHER);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(TWO_VOUCHERS);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth);
+        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and a child born three days ago, we must go back one entitlement date to cover the new child
         // the vouchers for the new child is 1 * 1 = 1

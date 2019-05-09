@@ -37,12 +37,14 @@ public class BackDatedCycleEntitlementCalculator {
 
     /**
      * Calculates the back dated vouchers given the expected due date and the dates of births resulting from the pregnancy.
-     * @param expectedDueDate expected due date
+     *
+     * @param expectedDueDate         expected due date
      * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
-     * @return the number of back dated vouchers the claimant is entitled too
+     * @param cycleStartDate          the start date of the payment cycle
+     * @return the number of back dated vouchers the claimant is entitled to
      */
-    public Integer calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths) {
-        List<LocalDate> backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths);
+    public Integer calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths, LocalDate cycleStartDate) {
+        List<LocalDate> backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths, cycleStartDate);
         Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);
         Integer vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);
 
@@ -59,9 +61,9 @@ public class BackDatedCycleEntitlementCalculator {
     }
 
     // get the list of entitlement dates since the oldest child was born
-    private List<LocalDate> getBackDatedEntitlementDates(List<LocalDate> newChildrenDatesOfBirth) {
+    private List<LocalDate> getBackDatedEntitlementDates(List<LocalDate> newChildrenDatesOfBirth, LocalDate cycleStartDate) {
         LocalDate earliestDateOfBirth = min(newChildrenDatesOfBirth);
-        LocalDate rollingEntitlementDate = LocalDate.now().minusDays(entitlementCalculationDurationInDays);
+        LocalDate rollingEntitlementDate = cycleStartDate.minusDays(entitlementCalculationDurationInDays);
         List<LocalDate> backDatedEntitlementDates = new ArrayList<>();
 
         while (rollingEntitlementDate.isAfter(earliestDateOfBirth) || rollingEntitlementDate.isEqual(earliestDateOfBirth)) {
