@@ -36,10 +36,6 @@ public class PaymentTestDataFactory {
         return aValidPaymentBuilder().paymentTimestamp(paymentTimestamp).build();
     }
 
-    public static Payment aPaymentWithPaymentReference(String paymentReference) {
-        return aValidPaymentBuilder().paymentReference(paymentReference).build();
-    }
-
     public static Payment aPaymentWithPaymentStatus(PaymentStatus paymentStatus) {
         return aValidPaymentBuilder().paymentStatus(paymentStatus).build();
     }

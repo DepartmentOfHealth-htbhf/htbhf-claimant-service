@@ -33,7 +33,6 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_timestamp")
     private LocalDateTime paymentTimestamp;
 
-    @NotNull
     @Column(name = "payment_reference")
     private String paymentReference;
 

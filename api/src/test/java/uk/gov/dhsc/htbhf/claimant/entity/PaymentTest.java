@@ -61,16 +61,6 @@ class PaymentTest extends AbstractValidationTest {
     }
 
     @Test
-    void shouldFailToValidatePaymentWithNoPaymentReference() {
-        //Given
-        var payment = aPaymentWithPaymentReference(null);
-        //When
-        Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "paymentReference");
-    }
-
-    @Test
     void shouldFailToValidatePaymentWithNoPaymentStatus() {
         //Given
         var payment = aPaymentWithPaymentStatus(null);

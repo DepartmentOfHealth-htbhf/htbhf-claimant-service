@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.io.IOException;
 import javax.persistence.AttributeConverter;
 
 /**
- * Converts a {@link VoucherEntitlement} to json and visa versa.
+ * Converts a {@link PaymentCycleVoucherEntitlementConverter} to json and visa versa.
  * Used to read/write values in the database.
  */
 @Component
