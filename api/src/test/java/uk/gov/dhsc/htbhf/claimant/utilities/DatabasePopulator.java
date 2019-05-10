@@ -21,7 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -70,7 +70,6 @@ public class DatabasePopulator {
             ClaimStatus.PENDING_EXPIRY, EligibilityStatus.INELIGIBLE
     );
 
-    private final Random random = new Random();
     private final NumberFormat numberFormat = getNumberFormat();
 
     @Autowired
@@ -127,17 +126,9 @@ public class DatabasePopulator {
         return claim;
     }
 
-    private static NumberFormat getNumberFormat() {
-        NumberFormat format = NumberFormat.getIntegerInstance();
-        format.setGroupingUsed(false);
-        format.setMaximumFractionDigits(0);
-        format.setMinimumIntegerDigits(6);
-        return format;
-    }
-
     private void createPaymentCycle(Integer cycleDuration, EligibilityStatus paymentEligibility, Claim claim) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
-        LocalDate cycleStart = LocalDate.now().minusDays(random.nextInt(cycleDuration));
+        LocalDate cycleStart = LocalDate.now().minusDays(ThreadLocalRandom.current().nextInt(cycleDuration));
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .cardAccountId(claim.getCardAccountId())
@@ -158,5 +149,13 @@ public class DatabasePopulator {
                 .build();
         paymentCycle.addPayment(payment);
         paymentCycleRepository.save(paymentCycle);
+    }
+
+    private static NumberFormat getNumberFormat() {
+        NumberFormat format = NumberFormat.getIntegerInstance();
+        format.setGroupingUsed(false);
+        format.setMaximumFractionDigits(0);
+        format.setMinimumIntegerDigits(6);
+        return format;
     }
 }
