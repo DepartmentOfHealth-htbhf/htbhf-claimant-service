@@ -34,10 +34,6 @@ public class PaymentCycle extends BaseEntity {
     @ToString.Exclude
     private Claim claim;
 
-    @NotNull
-    @Column(name = &quot;card_account_id&quot;)
-    private String cardAccountId;
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = &quot;payment_cycle_id&quot;)
     @ToString.Exclude
@@ -77,13 +73,13 @@ public class PaymentCycle extends BaseEntity {
     private LocalDateTime cardBalanceTimestamp;
 
     public PaymentCycle addPayment(Payment payment) {
-<span class="nc" id="L80">        this.payments.add(payment);</span>
-<span class="nc" id="L81">        payment.setPaymentCycle(this);</span>
-<span class="nc" id="L82">        return this;</span>
+<span class="nc" id="L76">        this.payments.add(payment);</span>
+<span class="nc" id="L77">        payment.setPaymentCycle(this);</span>
+<span class="nc" id="L78">        return this;</span>
     }
 
     public Set&lt;Payment&gt; getPayments() {
-<span class="nc" id="L86">        return unmodifiableSet(payments);</span>
+<span class="nc" id="L82">        return unmodifiableSet(payments);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
