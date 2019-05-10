@@ -25,6 +25,7 @@ import static java.util.Collections.min;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
 
 @Service
 @Slf4j
@@ -32,8 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 public class NewClaimService {
 
     private final ClaimRepository claimRepository;
-    private final EligibilityClient client;
-    private final EligibilityStatusCalculator eligibilityStatusCalculator;
+    private final EligibilityService eligibilityService;
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
     private final ClaimAuditor claimAuditor;
     private final MessageQueueDAO messageQueueDAO;
@@ -50,7 +50,7 @@ public class NewClaimService {
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public ClaimResult createClaim(Claimant claimant) {
         try {
-            EligibilityResponse eligibilityResponse = determineEligibility(claimant);
+            EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
             Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 PaymentCycleVoucherEntitlement voucherEntitlement = getEntitlement(claim, eligibilityResponse);
@@ -59,26 +59,9 @@ public class NewClaimService {
             }
             return createResult(claim);
         } catch (RuntimeException e) {
-            createAndSaveClaim(claimant, eligibilityResponseWithStatus(EligibilityStatus.ERROR));
+            createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
             throw e;
         }
-    }
-
-    private EligibilityResponse determineEligibility(Claimant claimant) {
-        if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
-            return eligibilityResponseWithStatus(EligibilityStatus.DUPLICATE);
-        }
-        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-        EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);
-        return eligibilityResponse.toBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .build();
-    }
-
-    private EligibilityResponse eligibilityResponseWithStatus(EligibilityStatus status) {
-        return EligibilityResponse.builder()
-                .eligibilityStatus(status)
-                .build();
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
