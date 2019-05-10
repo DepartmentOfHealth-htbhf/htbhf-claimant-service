@@ -66,7 +66,7 @@ public class EntitlementCalculator {
         boolean isEntitledToPregnancyVoucher = expectedDueDate
                 .map(dueDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate)).orElse(false);
 
-        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne);
+        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne, entitlementDate);
     }
 
     private Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
@@ -87,7 +87,10 @@ public class EntitlementCalculator {
                 .count());
     }
 
-    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
+    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher,
+                                                        int numberOfChildrenUnderFour,
+                                                        int numberOfChildrenUnderOne,
+                                                        LocalDate entitlementDate) {
         int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;
 
         int vouchersForPregnancy = calculateVouchersForPregnancy(isEntitledToPregnancyVoucher);
@@ -99,6 +102,7 @@ public class EntitlementCalculator {
                 .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
                 .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
                 .voucherValueInPence(voucherValueInPence)
+                .entitlementDate(entitlementDate)
                 .build();
     }
 

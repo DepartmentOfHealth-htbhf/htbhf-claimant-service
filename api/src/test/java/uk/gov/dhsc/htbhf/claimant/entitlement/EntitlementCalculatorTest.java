@@ -34,7 +34,6 @@ class EntitlementCalculatorTest {
 
     private EntitlementCalculator entitlementCalculator;
 
-
     @BeforeEach
     void setup() {
         entitlementCalculator = new EntitlementCalculator(
@@ -58,6 +57,7 @@ class EntitlementCalculatorTest {
                 .vouchersForChildrenUnderOne(12)
                 .vouchersForChildrenBetweenOneAndFour(6)
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .entitlementDate(entitlementDate)
                 .build();
         LocalDate dueDate = LocalDate.now();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(isPregnant);
@@ -73,12 +73,14 @@ class EntitlementCalculatorTest {
     @Test
     void shouldReturnZeroVouchersWhenThereAreNoChildrenAndNotPregnant() {
         // Given
+        LocalDate entitlementDate = LocalDate.now();
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .entitlementDate(entitlementDate)
                 .build();
 
         // When
-        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), emptyList(), LocalDate.now());
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), emptyList(), entitlementDate);
 
         // Then
         assertThat(result).isEqualTo(expected);
@@ -88,12 +90,14 @@ class EntitlementCalculatorTest {
     @Test
     void shouldReturnZeroVouchersWhenChildrenAreNullAndNotPregnant() {
         // Given
+        LocalDate entitlementDate = LocalDate.now();
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .entitlementDate(entitlementDate)
                 .build();
 
         // When
-        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), null, LocalDate.now());
+        VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), null, entitlementDate);
 
         // Then
         assertThat(result).isEqualTo(expected);
@@ -105,7 +109,10 @@ class EntitlementCalculatorTest {
         // Given
         LocalDate entitlementDate = LocalDate.now().minusDays(2);
         LocalDate dateOfBirth = entitlementDate.plusDays(1);
-        VoucherEntitlement expected = VoucherEntitlement.builder().voucherValueInPence(VOUCHER_VALUE_IN_PENCE).build();
+        VoucherEntitlement expected = VoucherEntitlement.builder()
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .entitlementDate(entitlementDate)
+                .build();
 
         // When
         VoucherEntitlement result = entitlementCalculator.calculateVoucherEntitlement(Optional.empty(), singletonList(dateOfBirth), entitlementDate);
@@ -122,6 +129,7 @@ class EntitlementCalculatorTest {
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .vouchersForChildrenUnderOne(VOUCHERS_FOR_CHILDREN_UNDER_ONE)
                 .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .entitlementDate(entitlementDate)
                 .build();
 
         // When

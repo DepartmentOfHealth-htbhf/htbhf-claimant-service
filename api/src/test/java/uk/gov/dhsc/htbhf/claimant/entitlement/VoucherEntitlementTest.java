@@ -2,17 +2,21 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class VoucherEntitlementTest {
 
     @Test
     void shouldSetTheCorrectEntitlementAndValueTotals() {
+        LocalDate entitlementDate = LocalDate.now();
         VoucherEntitlement entitlement = VoucherEntitlement.builder()
                 .vouchersForPregnancy(2)
                 .vouchersForChildrenUnderOne(4)
                 .vouchersForChildrenBetweenOneAndFour(3)
                 .voucherValueInPence(310)
+                .entitlementDate(entitlementDate)
                 .build();
 
         assertThat(entitlement.getVouchersForPregnancy()).isEqualTo(2);
@@ -21,5 +25,6 @@ class VoucherEntitlementTest {
         assertThat(entitlement.getVoucherValueInPence()).isEqualTo(310);
         assertThat(entitlement.getTotalVoucherEntitlement()).isEqualTo(9);
         assertThat(entitlement.getTotalVoucherValueInPence()).isEqualTo(2790);
+        assertThat(entitlement.getEntitlementDate()).isEqualTo(entitlementDate);
     }
 }
