@@ -43,8 +43,7 @@ class EligibilityServiceTest {
 
         assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(DUPLICATE);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
-        verifyZeroInteractions(client);
-        verifyZeroInteractions(eligibilityStatusCalculator);
+        verifyZeroInteractions(client, eligibilityStatusCalculator);
     }
 
     @Test
