@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,12 @@ class PaymentRepositoryTest {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @AfterEach
+    public void tearDown() {
+        paymentRepository.deleteAll();
+        claimRepository.deleteAll();
+    }
 
     @Test
     void shouldSavePayment() {
