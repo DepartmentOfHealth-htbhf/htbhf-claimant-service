@@ -21,12 +21,11 @@ public class VoucherEntitlement {
     private LocalDate entitlementDate;
 
     @Builder
-    public VoucherEntitlement(
-            int vouchersForChildrenUnderOne,
-            int vouchersForChildrenBetweenOneAndFour,
-            int vouchersForPregnancy,
-            int voucherValueInPence,
-            LocalDate entitlementDate) {
+    public VoucherEntitlement(int vouchersForChildrenUnderOne,
+                              int vouchersForChildrenBetweenOneAndFour,
+                              int vouchersForPregnancy,
+                              int voucherValueInPence,
+                              LocalDate entitlementDate) {
         this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;
         this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;
         this.vouchersForPregnancy = vouchersForPregnancy;
