@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 class CycleEntitlementCalculatorIntegrationTests {
 
     @Autowired

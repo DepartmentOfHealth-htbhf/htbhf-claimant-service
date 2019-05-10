@@ -1,6 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @MappedSuperclass
 @TypeDefs({
-        @TypeDef(name = "json", typeClass = JsonStringType.class),
+        @TypeDef(name = "json", typeClass = JsonBinaryType.class),
 })
 
 public abstract class BaseEntity {

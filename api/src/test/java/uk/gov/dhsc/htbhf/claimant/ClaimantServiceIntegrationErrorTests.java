@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +25,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
  * so that it can test the scenario when an Exception is thrown from it.
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@AutoConfigureEmbeddedDatabase
 public class ClaimantServiceIntegrationErrorTests {
 
     @Autowired

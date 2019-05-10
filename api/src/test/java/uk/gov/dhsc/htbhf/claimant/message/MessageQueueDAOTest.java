@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFacto
 
 @SpringBootTest
 @Transactional
+@AutoConfigureEmbeddedDatabase
 class MessageQueueDAOTest {
 
     @MockBean
