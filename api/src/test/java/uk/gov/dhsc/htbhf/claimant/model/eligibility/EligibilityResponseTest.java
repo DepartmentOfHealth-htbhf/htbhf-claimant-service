@@ -11,7 +11,7 @@ class EligibilityResponseTest {
     @ParameterizedTest
     @EnumSource(EligibilityStatus.class)
     void shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus eligibilityStatus) {
-        EligibilityResponse eligibilityResponse = EligibilityResponse.withStatus(eligibilityStatus);
+        EligibilityResponse eligibilityResponse = EligibilityResponse.buildWithStatus(eligibilityStatus);
 
         assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(eligibilityStatus);
     }

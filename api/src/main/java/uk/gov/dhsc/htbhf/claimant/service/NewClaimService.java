@@ -25,6 +25,7 @@ import static java.util.Collections.min;
 import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
 
 @Service
 @Slf4j
@@ -58,7 +59,7 @@ public class NewClaimService {
             }
             return createResult(claim);
         } catch (RuntimeException e) {
-            createAndSaveClaim(claimant, EligibilityResponse.withStatus(EligibilityStatus.ERROR));
+            createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
             throw e;
         }
     }

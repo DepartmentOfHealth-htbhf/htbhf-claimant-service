@@ -7,6 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
+
 @Service
 @AllArgsConstructor
 public class EligibilityService {
@@ -15,9 +17,15 @@ public class EligibilityService {
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
     private final ClaimRepository claimRepository;
 
+    /**
+     * Determines the eligibility for a given status. If the claimant's nino is not found in the database,
+     * the external eligibility service is called.
+     * @param claimant the claimant to check the eligibility for
+     * @return an eligibility response for the claimant
+     */
     public EligibilityResponse determineEligibility(Claimant claimant) {
         if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
-            return EligibilityResponse.withStatus(EligibilityStatus.DUPLICATE);
+            return buildWithStatus(EligibilityStatus.DUPLICATE);
         }
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatus(eligibilityResponse);

@@ -123,8 +123,7 @@ class NewClaimServiceTest {
         verify(eligibilityService).determineEligibility(claimant);
         verify(claimRepository).save(actualClaim);
         verify(claimAuditor).auditNewClaim(actualClaim);
-        verifyZeroInteractions(messageQueueDAO);
-        verifyZeroInteractions(cycleEntitlementCalculator);
+        verifyZeroInteractions(messageQueueDAO, cycleEntitlementCalculator);
     }
 
     @Test
@@ -191,7 +190,7 @@ class NewClaimServiceTest {
     void shouldSaveDuplicateClaimantForMatchingNino() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityService.determineEligibility(any())).willReturn(EligibilityResponse.withStatus(DUPLICATE));
+        given(eligibilityService.determineEligibility(any())).willReturn(EligibilityResponse.buildWithStatus(DUPLICATE));
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);

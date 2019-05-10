@@ -25,7 +25,7 @@ public class EligibilityResponse {
     @JsonProperty("children")
     private final List<ChildDTO> children;
 
-    public static EligibilityResponse withStatus(EligibilityStatus eligibilityStatus) {
+    public static EligibilityResponse buildWithStatus(EligibilityStatus eligibilityStatus) {
         return EligibilityResponse.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
