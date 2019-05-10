@@ -1,9 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.converter.ListOfLocalDatesConverter;
-import uk.gov.dhsc.htbhf.claimant.entity.converter.PaymentCycleVoucherEntitlementConverter;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -40,6 +39,7 @@ public class PaymentCycle extends BaseEntity {
     private String cardAccountId;
 
     @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_cycle_id")
     @ToString.Exclude
     private final Set<Payment> payments = new HashSet<>();
 
@@ -54,14 +54,14 @@ public class PaymentCycle extends BaseEntity {
     private EligibilityStatus eligibilityStatus;
 
     @Column(name = "voucher_entitlement_json")
-    @Convert(converter = PaymentCycleVoucherEntitlementConverter.class)
+    @Type(type = "json")
     private PaymentCycleVoucherEntitlement voucherEntitlement;
 
     @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
     @Column(name = "children_dob_json")
-    @Convert(converter = ListOfLocalDatesConverter.class)
+    @Type(type = "json")
     private List<LocalDate> childrenDob;
 
     @Column(name = "total_vouchers")
@@ -78,6 +78,7 @@ public class PaymentCycle extends BaseEntity {
 
     public PaymentCycle addPayment(Payment payment) {
         this.payments.add(payment);
+        payment.setPaymentCycle(this);
         return this;
     }
 

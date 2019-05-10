@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -11,16 +12,17 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  * Represents the number (and value) of vouchers a claimant is entitled to for a given payment cycle.
  */
 @Data
+@NoArgsConstructor
 public class PaymentCycleVoucherEntitlement {
 
-    private final int vouchersForChildrenUnderOne;
-    private final int vouchersForChildrenBetweenOneAndFour;
-    private final int vouchersForPregnancy;
-    private final int totalVoucherEntitlement;
-    private final int voucherValueInPence;
-    private final int totalVoucherValueInPence;
-    private final int backdatedVouchers;
-    private final List<VoucherEntitlement> voucherEntitlements;
+    private int vouchersForChildrenUnderOne;
+    private int vouchersForChildrenBetweenOneAndFour;
+    private int vouchersForPregnancy;
+    private int totalVoucherEntitlement;
+    private int voucherValueInPence;
+    private int totalVoucherValueInPence;
+    private int backdatedVouchers;
+    private List<VoucherEntitlement> voucherEntitlements;
 
     public PaymentCycleVoucherEntitlement(List<VoucherEntitlement> voucherEntitlements) {
         this(voucherEntitlements, 0);
