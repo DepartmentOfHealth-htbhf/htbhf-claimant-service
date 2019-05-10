@@ -11,7 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 public class PaymentCycleService {
     private PaymentCycleRepository paymentCycleRepository;
 
-    void createNewPaymentCycle(Claim claim) {
+    public void createNewPaymentCycle(Claim claim) {
         PaymentCycle paymentCycle = PaymentCycle.builder().claim(claim).build();
         paymentCycleRepository.save(paymentCycle);
     }
