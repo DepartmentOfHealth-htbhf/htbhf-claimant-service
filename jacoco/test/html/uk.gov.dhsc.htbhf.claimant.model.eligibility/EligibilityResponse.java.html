@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.model.eligibility</a> &gt; <span class="el_source">EligibilityResponse.java</span></div><h1>EligibilityResponse.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.model.eligibility;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+
+import java.util.List;
+
+@Data
+@Builder(toBuilder = true)
+@AllArgsConstructor
+public class EligibilityResponse {
+
+    @JsonProperty(&quot;eligibilityStatus&quot;)
+    private EligibilityStatus eligibilityStatus;
+
+    @JsonProperty(&quot;dwpHouseholdIdentifier&quot;)
+    private String dwpHouseholdIdentifier;
+
+    @JsonProperty(&quot;hmrcHouseholdIdentifier&quot;)
+    private String hmrcHouseholdIdentifier;
+
+    @JsonProperty(&quot;children&quot;)
+    private final List&lt;ChildDTO&gt; children;
+
+    public static EligibilityResponse buildWithStatus(EligibilityStatus eligibilityStatus) {
+<span class="fc" id="L29">        return EligibilityResponse.builder()</span>
+<span class="fc" id="L30">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L31">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
