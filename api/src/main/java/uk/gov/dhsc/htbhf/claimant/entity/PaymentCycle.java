@@ -34,10 +34,6 @@ public class PaymentCycle extends BaseEntity {
     @ToString.Exclude
     private Claim claim;
 
-    @NotNull
-    @Column(name = "card_account_id")
-    private String cardAccountId;
-
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_cycle_id")
     @ToString.Exclude

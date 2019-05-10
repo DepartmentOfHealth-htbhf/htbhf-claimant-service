@@ -30,14 +30,4 @@ public class PaymentCycleTest extends AbstractValidationTest {
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "claim");
     }
-
-    @Test
-    void shouldFailToValidatePaymentCycleWithNoCardAccountId() {
-        //Given
-        PaymentCycle paymentCycle = aPaymentCycleWithCardAccountId(null);
-        //When
-        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "cardAccountId");
-    }
 }
