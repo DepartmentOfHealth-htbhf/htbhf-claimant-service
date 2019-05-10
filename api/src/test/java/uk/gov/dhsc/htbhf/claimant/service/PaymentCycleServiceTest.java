@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;

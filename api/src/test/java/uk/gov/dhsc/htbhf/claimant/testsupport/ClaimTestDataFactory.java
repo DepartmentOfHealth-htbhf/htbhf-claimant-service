@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDateTime;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 
@@ -45,7 +46,8 @@ public class ClaimTestDataFactory {
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
                 .claimStatusTimestamp(LocalDateTime.now())
                 .eligibilityStatusTimestamp(LocalDateTime.now())
-                .claimStatus(claimStatus);
+                .claimStatus(claimStatus)
+                .cardAccountId(CARD_ACCOUNT_ID);
     }
 
 }
