@@ -131,7 +131,6 @@ public class DatabasePopulator {
         LocalDate cycleStart = LocalDate.now().minusDays(ThreadLocalRandom.current().nextInt(cycleDuration));
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
-                .cardAccountId(claim.getCardAccountId())
                 .eligibilityStatus(paymentEligibility)
                 .voucherEntitlement(voucherEntitlement)
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
