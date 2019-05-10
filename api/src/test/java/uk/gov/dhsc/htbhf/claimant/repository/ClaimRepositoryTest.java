@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,6 +25,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaim
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 class ClaimRepositoryTest {
 
     @Autowired

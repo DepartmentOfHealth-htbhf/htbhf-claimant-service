@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.NO_MATCH;
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 class EligibilityClientTest {
 
     @MockBean

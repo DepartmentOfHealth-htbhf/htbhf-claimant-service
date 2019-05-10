@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithPayload;
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 @Transactional
 class NewCardMessageProcessorTest {
 
