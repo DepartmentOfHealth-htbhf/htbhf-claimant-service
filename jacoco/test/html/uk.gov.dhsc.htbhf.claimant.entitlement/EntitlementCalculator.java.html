@@ -66,7 +66,7 @@ public class EntitlementCalculator {
 <span class="fc" id="L66">        boolean isEntitledToPregnancyVoucher = expectedDueDate</span>
 <span class="fc" id="L67">                .map(dueDate -&gt; pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate)).orElse(false);</span>
 
-<span class="fc" id="L69">        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne);</span>
+<span class="fc" id="L69">        return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne, entitlementDate);</span>
     }
 
     private Integer getNumberOfChildrenUnderOne(List&lt;LocalDate&gt; dateOfBirthOfChildren, LocalDate entitlementDate) {
@@ -87,31 +87,35 @@ public class EntitlementCalculator {
 <span class="fc" id="L87">                .count());</span>
     }
 
-    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher, int numberOfChildrenUnderFour, int numberOfChildrenUnderOne) {
-<span class="fc" id="L91">        int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;</span>
+    private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher,
+                                                        int numberOfChildrenUnderFour,
+                                                        int numberOfChildrenUnderOne,
+                                                        LocalDate entitlementDate) {
+<span class="fc" id="L94">        int numberOfChildrenBetweenOneAndFour = numberOfChildrenUnderFour - numberOfChildrenUnderOne;</span>
 
-<span class="fc" id="L93">        int vouchersForPregnancy = calculateVouchersForPregnancy(isEntitledToPregnancyVoucher);</span>
-<span class="fc" id="L94">        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);</span>
-<span class="fc" id="L95">        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);</span>
+<span class="fc" id="L96">        int vouchersForPregnancy = calculateVouchersForPregnancy(isEntitledToPregnancyVoucher);</span>
+<span class="fc" id="L97">        int vouchersForChildrenUnderOne = calculateVouchersForChildrenUnderOne(numberOfChildrenUnderOne);</span>
+<span class="fc" id="L98">        int vouchersForChildrenBetweenOneAndFour = calculateVouchersForChildrenBetweenOneAndFour(numberOfChildrenBetweenOneAndFour);</span>
 
-<span class="fc" id="L97">        return VoucherEntitlement.builder()</span>
-<span class="fc" id="L98">                .vouchersForPregnancy(vouchersForPregnancy)</span>
-<span class="fc" id="L99">                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)</span>
-<span class="fc" id="L100">                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)</span>
-<span class="fc" id="L101">                .voucherValueInPence(voucherValueInPence)</span>
-<span class="fc" id="L102">                .build();</span>
+<span class="fc" id="L100">        return VoucherEntitlement.builder()</span>
+<span class="fc" id="L101">                .vouchersForPregnancy(vouchersForPregnancy)</span>
+<span class="fc" id="L102">                .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)</span>
+<span class="fc" id="L103">                .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)</span>
+<span class="fc" id="L104">                .voucherValueInPence(voucherValueInPence)</span>
+<span class="fc" id="L105">                .entitlementDate(entitlementDate)</span>
+<span class="fc" id="L106">                .build();</span>
     }
 
     private int calculateVouchersForPregnancy(boolean isEntitledToPregnancyVoucher) {
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        return isEntitledToPregnancyVoucher ? vouchersPerPregnancy : 0;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        return isEntitledToPregnancyVoucher ? vouchersPerPregnancy : 0;</span>
     }
 
     private int calculateVouchersForChildrenUnderOne(int numberOfChildrenUnderOne) {
-<span class="fc" id="L110">        return numberOfChildrenUnderOne * vouchersPerChildUnderOne;</span>
+<span class="fc" id="L114">        return numberOfChildrenUnderOne * vouchersPerChildUnderOne;</span>
     }
 
     private int calculateVouchersForChildrenBetweenOneAndFour(int numberOfChildrenBetweenOneAndFour) {
-<span class="fc" id="L114">        return numberOfChildrenBetweenOneAndFour * vouchersPerChildBetweenOneAndFour;</span>
+<span class="fc" id="L118">        return numberOfChildrenBetweenOneAndFour * vouchersPerChildBetweenOneAndFour;</span>
     }
 
 }
