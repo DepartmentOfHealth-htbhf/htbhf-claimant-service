@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.factory;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.a
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @SpringBootTest
+@AutoConfigureEmbeddedDatabase
 class CardRequestFactoryTest {
 
     @MockBean

@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
+import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.io.IOException;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = ClaimantServiceApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureEmbeddedDatabase
 public class ClaimantServiceApplicationTests {
 
     @LocalServerPort

@@ -21,6 +21,10 @@ public class Payment extends BaseEntity {
     @ToString.Exclude
     private Claim claim;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private PaymentCycle paymentCycle;
+
     @NotNull
     @Column(name = "card_account_id")
     private String cardAccountId;

@@ -2,18 +2,20 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents the number (and value) of vouchers a claimant is entitled to.
  */
 @Data
+@NoArgsConstructor
 public class VoucherEntitlement {
-    private final int vouchersForChildrenUnderOne;
-    private final int vouchersForChildrenBetweenOneAndFour;
-    private final int vouchersForPregnancy;
-    private final int totalVoucherEntitlement;
-    private final int voucherValueInPence;
-    private final int totalVoucherValueInPence;
+    private int vouchersForChildrenUnderOne;
+    private int vouchersForChildrenBetweenOneAndFour;
+    private int vouchersForPregnancy;
+    private int totalVoucherEntitlement;
+    private int voucherValueInPence;
+    private int totalVoucherValueInPence;
 
     @Builder
     public VoucherEntitlement(
