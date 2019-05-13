@@ -7,11 +7,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import java.time.LocalDateTime;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 public class PaymentTestDataFactory {
 
     private static final Claim CLAIM = aValidClaim();
-    private static final String CARD_ACCOUNT_ID = "123456789";
     private static final int PAYMENT_AMOUNT_IN_PENCE = 310;
     private static final LocalDateTime PAYMENT_TIMESTAMP = LocalDateTime.now();
     private static final String PAYMENT_REFERENCE = "123456789";

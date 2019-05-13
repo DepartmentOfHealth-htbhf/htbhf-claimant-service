@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
@@ -33,7 +34,7 @@ public class NewCardService {
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
         saveClaimWithCardId(claim, cardResponse);
         claimAuditor.auditNewCard(claimId, cardResponse);
-        paymentCycleService.createNewPaymentCycle(claim);
+        paymentCycleService.createNewPaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());
     }
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {

@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.service.payments;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
@@ -9,6 +9,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -26,13 +28,16 @@ class PaymentCycleServiceTest {
 
     @Test
     void shouldCreateNewPaymentCycle() {
+        LocalDate today = LocalDate.now();
         Claim claim = aValidClaim();
 
-        paymentCycleService.createNewPaymentCycle(claim);
+        paymentCycleService.createNewPaymentCycle(claim, today);
 
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleRepository).save(argumentCaptor.capture());
         PaymentCycle paymentCycle = argumentCaptor.getValue();
         assertThat(paymentCycle.getClaim()).isEqualTo(claim);
+        assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today);
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.plusDays(28));
     }
 }

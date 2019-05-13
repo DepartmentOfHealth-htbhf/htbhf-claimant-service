@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -65,7 +66,7 @@ class NewCardServiceTest {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
-        verify(paymentCycleService).createNewPaymentCycle(claim);
+        verify(paymentCycleService).createNewPaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());
     }
 
     @Test
