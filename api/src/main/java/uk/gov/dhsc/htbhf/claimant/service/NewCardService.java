@@ -34,7 +34,7 @@ public class NewCardService {
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
         saveClaimWithCardId(claim, cardResponse);
         claimAuditor.auditNewCard(claimId, cardResponse);
-        paymentCycleService.createNewPaymentCycle(claim);
+        paymentCycleService.createNewPaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());
     }
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {

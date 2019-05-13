@@ -10,11 +10,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatusTimestamp;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -28,16 +28,16 @@ class PaymentCycleServiceTest {
 
     @Test
     void shouldCreateNewPaymentCycle() {
-        LocalDateTime today = LocalDateTime.now();
-        Claim claim = aClaimWithClaimStatusTimestamp(today);
+        LocalDate today = LocalDate.now();
+        Claim claim = aValidClaim();
 
-        paymentCycleService.createNewPaymentCycle(claim);
+        paymentCycleService.createNewPaymentCycle(claim, today);
 
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleRepository).save(argumentCaptor.capture());
         PaymentCycle paymentCycle = argumentCaptor.getValue();
         assertThat(paymentCycle.getClaim()).isEqualTo(claim);
-        assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today.toLocalDate());
-        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.toLocalDate().plusDays(28));
+        assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today);
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.plusDays(28));
     }
 }
