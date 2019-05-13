@@ -11,6 +11,11 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
+ * for active claims whose current PaymentCycle is due to come to an end.
+ * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
+ */
 @Component
 @Slf4j
 public class PaymentCycleScheduler {
