@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.UUID.randomUUID;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
@@ -41,9 +42,9 @@ class PaymentCycleSchedulerTest {
     void shouldInvokeJobOnceForEachCycleWithIncrementedStartDate() {
         LocalDate today = LocalDate.now();
         List<ClosingPaymentCycle> matchingCycles = List.of(
-                createClosingPaymentCycle(UUID.randomUUID(), today),
-                createClosingPaymentCycle(UUID.randomUUID(), today.minusDays(2)),
-                createClosingPaymentCycle(UUID.randomUUID(), today.minusDays(1))
+                createClosingPaymentCycle(randomUUID(), randomUUID(), today),
+                createClosingPaymentCycle(randomUUID(), randomUUID(), today.minusDays(2)),
+                createClosingPaymentCycle(randomUUID(), randomUUID(), today.minusDays(1))
         );
         given(paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(any())).willReturn(matchingCycles);
 
@@ -51,15 +52,20 @@ class PaymentCycleSchedulerTest {
 
         verify(paymentCycleRepository).findActiveClaimsWithCycleEndingOnOrBefore(today.plusDays(END_DATE_OFFSET_DAYS));
         matchingCycles.forEach(match -> {
-            verify(job).createNewPaymentCycle(match.getClaimId(), match.getCycleEndDate().plusDays(1));
+            verify(job).createNewPaymentCycle(match.getClaimId(), match.getCycleId(), match.getCycleEndDate().plusDays(1));
         });
     }
 
-    ClosingPaymentCycle createClosingPaymentCycle(UUID id, LocalDate endDate) {
+    ClosingPaymentCycle createClosingPaymentCycle(UUID claimId, UUID cycleId, LocalDate endDate) {
         return new ClosingPaymentCycle() {
             @Override
             public String getClaimIdString() {
-                return id.toString();
+                return claimId.toString();
+            }
+
+            @Override
+            public String getCycleIdString() {
+                return cycleId.toString();
             }
 
             @Override

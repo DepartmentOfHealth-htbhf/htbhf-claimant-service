@@ -15,7 +15,7 @@ import javax.transaction.Transactional;
 public class CreateNewPaymentCycleJob {
 
     @Transactional
-    public PaymentCycle createNewPaymentCycle(UUID claimId, LocalDate cycleStartDate) {
+    public PaymentCycle createNewPaymentCycle(UUID claimId, UUID previousCycleId, LocalDate cycleStartDate) {
         // TODO: MGS: Implement this method
         return null;
     }

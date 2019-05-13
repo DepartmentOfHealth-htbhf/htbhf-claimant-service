@@ -45,7 +45,7 @@ public class PaymentCycleScheduler {
         List<ClosingPaymentCycle> cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);
 
         log.info("Creating new PaymentCycles for {} claims", cycles.size());
-        cycles.forEach(cycle -> job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleEndDate().plusDays(1)));
+        cycles.forEach(cycle -> job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));
         log.debug("Finished creating new PaymentCycles for {} claims", cycles.size());
     }
 }
