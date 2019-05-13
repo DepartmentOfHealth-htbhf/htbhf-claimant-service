@@ -19,7 +19,6 @@ import javax.persistence.*;
 @TypeDefs({
         @TypeDef(name = &quot;json&quot;, typeClass = JsonBinaryType.class),
 })
-
 public abstract class BaseEntity {
 
     @Id
@@ -34,10 +33,10 @@ public abstract class BaseEntity {
      * @return The id for the entity.
      */
     public UUID getId() {
-<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L38">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L37">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L40">        return this.id;</span>
+<span class="fc" id="L39">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
