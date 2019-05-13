@@ -3,11 +3,14 @@ package uk.gov.dhsc.htbhf.claimant.repository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import java.time.LocalDate;
 import java.util.Iterator;
@@ -17,6 +20,7 @@ import javax.validation.ConstraintViolationException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPaymentAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
@@ -76,6 +80,36 @@ class PaymentCycleRepositoryTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getClaimId()).isEqualTo(claim.getId());
         assertThat(result.get(0).getCycleEndDate()).isEqualTo(today);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"ACTIVE", "PENDING_EXPIRY"})
+    void shouldIdentifyPaymentCyclesForActiveClaims(ClaimStatus activeStatus) {
+        LocalDate today = LocalDate.now();
+        Claim claim = aValidClaimBuilder().claimStatus(activeStatus).build();
+        claimRepository.save(claim);
+        createAndSavePaymentCycleEnding(today, claim);
+
+        List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
+
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getClaimId()).isEqualTo(claim.getId());
+        assertThat(result.get(0).getCycleEndDate()).isEqualTo(today);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"REJECTED", "PENDING", "NEW", "EXPIRED", "ERROR"})
+    void shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus inactiveStatus) {
+        LocalDate today = LocalDate.now();
+        Claim claim = aValidClaimBuilder().claimStatus(inactiveStatus).build();
+        claimRepository.save(claim);
+        createAndSavePaymentCycleEnding(today, claim);
+
+        List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
