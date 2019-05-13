@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -15,6 +16,14 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aValidPaymentCycle() {
         return aValidPaymentCycleBuilder().build();
+    }
+
+    public static PaymentCycle aPaymentCycleWithPaymentAndClaim(Payment payment, Claim claim) {
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .claim(claim)
+                .build();
+        paymentCycle.addPayment(payment);
+        return paymentCycle;
     }
 
     public static PaymentCycle aPaymentCycleWithClaim(Claim claim) {

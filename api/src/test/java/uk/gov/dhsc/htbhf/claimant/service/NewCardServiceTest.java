@@ -42,6 +42,9 @@ class NewCardServiceTest {
     @Mock
     private ClaimAuditor claimAuditor;
 
+    @Mock
+    private PaymentCycleService paymentCycleService;
+
     @InjectMocks
     private NewCardService newCardService;
 
@@ -62,6 +65,7 @@ class NewCardServiceTest {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
+        verify(paymentCycleService).createNewPaymentCycle(claim);
     }
 
     @Test
