@@ -23,6 +23,7 @@ public class NewCardService {
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
     private ClaimAuditor claimAuditor;
+    private PaymentCycleService paymentCycleService;
 
     @Transactional
     public void createNewCard(UUID claimId) {
@@ -32,6 +33,7 @@ public class NewCardService {
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
         saveClaimWithCardId(claim, cardResponse);
         claimAuditor.auditNewCard(claimId, cardResponse);
+        paymentCycleService.createNewPaymentCycle(claim);
     }
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {

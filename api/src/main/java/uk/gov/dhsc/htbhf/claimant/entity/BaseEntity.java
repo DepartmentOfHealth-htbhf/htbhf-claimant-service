@@ -19,7 +19,6 @@ import javax.persistence.*;
 @TypeDefs({
         @TypeDef(name = "json", typeClass = JsonBinaryType.class),
 })
-
 public abstract class BaseEntity {
 
     @Id
