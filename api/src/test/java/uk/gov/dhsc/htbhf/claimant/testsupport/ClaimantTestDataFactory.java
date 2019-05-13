@@ -6,6 +6,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.nio.CharBuffer;
 import java.time.LocalDate;
 
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
+
 public final class ClaimantTestDataFactory {
 
     // Create a string 501 characters long
@@ -15,8 +17,6 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
-    private static final Address VALID_ADDRESS = AddressTestDataFactory.aValidAddress();
-
 
     public static Claimant aValidClaimant() {
         return aValidClaimantBuilder().build();
@@ -64,7 +64,7 @@ public final class ClaimantTestDataFactory {
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
-                .cardDeliveryAddress(VALID_ADDRESS);
+                .cardDeliveryAddress(aValidAddress());
     }
 
     public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {
