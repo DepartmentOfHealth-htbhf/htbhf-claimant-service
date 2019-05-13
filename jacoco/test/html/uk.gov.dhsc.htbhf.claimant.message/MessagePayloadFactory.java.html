@@ -2,15 +2,25 @@
 
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 
-<span class="nc" id="L7">public class MessagePayloadFactory {</span>
+<span class="nc" id="L9">public class MessagePayloadFactory {</span>
 
     public static NewCardRequestMessagePayload buildNewCardMessagePayload(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L10">        return NewCardRequestMessagePayload.builder()</span>
-<span class="fc" id="L11">                .claimId(claim.getId())</span>
-<span class="fc" id="L12">                .voucherEntitlement(voucherEntitlement)</span>
-<span class="fc" id="L13">                .build();</span>
+<span class="fc" id="L12">        return NewCardRequestMessagePayload.builder()</span>
+<span class="fc" id="L13">                .claimId(claim.getId())</span>
+<span class="fc" id="L14">                .voucherEntitlement(voucherEntitlement)</span>
+<span class="fc" id="L15">                .build();</span>
+    }
+
+    public static MakePaymentMessagePayload buildMakePaymentMessagePayload(PaymentCycle paymentCycle) {
+<span class="fc" id="L19">        return MakePaymentMessagePayload.builder()</span>
+<span class="fc" id="L20">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L21">                .paymentCycleId(paymentCycle.getId())</span>
+<span class="fc" id="L22">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
+<span class="fc" id="L23">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
