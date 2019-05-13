@@ -30,7 +30,7 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder().claim(claim).build();
     }
 
-    private static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
+    public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
         return PaymentCycle.builder()
                 .claim(aValidClaim())
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
