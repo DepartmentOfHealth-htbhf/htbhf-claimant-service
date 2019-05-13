@@ -244,4 +244,14 @@ class ClaimRepositoryTest {
         //Then
         assertThat(result).containsOnly(newClaim.getId());
     }
+
+    @Test
+    void shouldReturnLazyLoadedReferenceToClaim() {
+        UUID id = UUID.randomUUID();
+
+        Claim result = claimRepository.getLazyLoadingClaim(id);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(id);
+    }
 }
