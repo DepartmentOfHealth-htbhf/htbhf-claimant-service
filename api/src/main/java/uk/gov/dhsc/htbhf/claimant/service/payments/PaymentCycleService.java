@@ -20,6 +20,11 @@ public class PaymentCycleService {
         this.cycleDurationInDays = cycleDurationInDays;
     }
 
+    /**
+     * Creates a new payment cycle for the given claim. The cycle start date is set to the claim status
+     * date, and the cycle end date is set to the start date, plus the payment cycle duration time.
+     * @param claim claim to create a payment cycle for
+     */
     public void createNewPaymentCycle(Claim claim) {
         LocalDate cycleStartDate = claim.getClaimStatusTimestamp().toLocalDate();
         PaymentCycle paymentCycle = PaymentCycle.builder()
