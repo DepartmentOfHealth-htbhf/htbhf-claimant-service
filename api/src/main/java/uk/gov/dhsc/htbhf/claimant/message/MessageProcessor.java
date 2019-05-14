@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class MessageProcessor {
             name = "Process all messages",
             lockAtLeastForString = "${message-processor.minimum-lock-time}",
             lockAtMostForString = "${message-processor.maximum-lock-time}")
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor")
     public void processAllMessages() {
         Stream.of(MessageType.values()).forEach(this::processMessagesOfType);
     }
