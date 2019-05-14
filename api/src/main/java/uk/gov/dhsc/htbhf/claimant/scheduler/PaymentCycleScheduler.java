@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.repository.ClosingPaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,6 +40,7 @@ public class PaymentCycleScheduler {
             name = "Create new payment cycles",
             lockAtLeastForString = "${payment-cycle.schedule.minimum-lock-time}",
             lockAtMostForString = "${payment-cycle.schedule.maximum-lock-time}")
+    @NewRequestContextWithSessionId(sessionId = "PaymentCycleScheduler")
     public void createNewPaymentCycles() {
         LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);
         log.debug("Querying for active claims with cycles ending on {}", cycleEndDate);
