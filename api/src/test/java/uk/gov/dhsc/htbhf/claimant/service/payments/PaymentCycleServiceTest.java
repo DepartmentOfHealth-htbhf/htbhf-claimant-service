@@ -31,7 +31,7 @@ class PaymentCycleServiceTest {
         LocalDate today = LocalDate.now();
         Claim claim = aValidClaim();
 
-        paymentCycleService.createNewPaymentCycle(claim, today);
+        PaymentCycle result = paymentCycleService.createAndSavePaymentCycle(claim, today);
 
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleRepository).save(argumentCaptor.capture());
@@ -39,5 +39,6 @@ class PaymentCycleServiceTest {
         assertThat(paymentCycle.getClaim()).isEqualTo(claim);
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today);
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.plusDays(28));
+        assertThat(result).isEqualTo(paymentCycle);
     }
 }

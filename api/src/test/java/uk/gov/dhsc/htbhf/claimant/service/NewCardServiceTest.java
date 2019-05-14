@@ -66,7 +66,7 @@ class NewCardServiceTest {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
-        verify(paymentCycleService).createNewPaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());
+        verify(paymentCycleService).createAndSavePaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());
     }
 
     @Test

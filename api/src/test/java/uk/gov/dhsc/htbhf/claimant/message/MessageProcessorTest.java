@@ -28,6 +28,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_FIRST_EMAIL;
 
@@ -66,6 +67,7 @@ class MessageProcessorTest {
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(singletonList(cardMessage));
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT)).thenReturn(emptyList());
         //When
         messageProcessor.processAllMessages();
         //Then
@@ -74,6 +76,7 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL);
+        verify(messageRepository).findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT);
         verifyNoMoreInteractions(messageRepository);
     }
 
