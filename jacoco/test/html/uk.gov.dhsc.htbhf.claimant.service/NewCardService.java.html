@@ -34,7 +34,7 @@ public class NewCardService {
 <span class="fc" id="L34">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
 <span class="fc" id="L35">        saveClaimWithCardId(claim, cardResponse);</span>
 <span class="fc" id="L36">        claimAuditor.auditNewCard(claimId, cardResponse);</span>
-<span class="fc" id="L37">        paymentCycleService.createNewPaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());</span>
+<span class="fc" id="L37">        paymentCycleService.createAndSavePaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());</span>
 <span class="fc" id="L38">    }</span>
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {

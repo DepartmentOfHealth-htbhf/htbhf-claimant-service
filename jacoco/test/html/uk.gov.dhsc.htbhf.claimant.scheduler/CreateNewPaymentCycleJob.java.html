@@ -3,7 +3,13 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -11,13 +17,36 @@ import javax.transaction.Transactional;
 
 @Component
 @AllArgsConstructor
-<span class="fc" id="L14">@Slf4j</span>
+<span class="fc" id="L20">@Slf4j</span>
 public class CreateNewPaymentCycleJob {
 
+    private final PaymentCycleService paymentCycleService;
+    private final ClaimRepository claimRepository;
+    private final MessageQueueClient messageQueue;
+
+    /**
+     * Creates and saves a new {@link PaymentCycle},
+     * and puts a DETERMINE_ENTITLEMENT message on the queue for that cycle.
+     * @param claimId the id of the claim the new cycle is for.
+     * @param previousCycleId The id of the previous payment cycle.
+     * @param cycleStartDate the start date of the new cycle.
+     * @return the new cycle.
+     */
     @Transactional
     public PaymentCycle createNewPaymentCycle(UUID claimId, UUID previousCycleId, LocalDate cycleStartDate) {
-        // TODO: MGS: Implement this method
-<span class="nc" id="L20">        return null;</span>
+
+<span class="fc" id="L38">        Claim claim = claimRepository.getLazyLoadingClaim(claimId);</span>
+<span class="fc" id="L39">        PaymentCycle cycle = paymentCycleService.createAndSavePaymentCycle(claim, cycleStartDate);</span>
+
+<span class="fc" id="L41">        DetermineEntitlementMessagePayload messagePayload = DetermineEntitlementMessagePayload.builder()</span>
+<span class="fc" id="L42">                .claimId(claimId)</span>
+<span class="fc" id="L43">                .currentPaymentCycleId(cycle.getId())</span>
+<span class="fc" id="L44">                .previousPaymentCycleId(previousCycleId)</span>
+<span class="fc" id="L45">                .build();</span>
+
+<span class="fc" id="L47">        messageQueue.sendMessage(messagePayload, MessageType.DETERMINE_ENTITLEMENT);</span>
+
+<span class="fc" id="L49">        return cycle;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
