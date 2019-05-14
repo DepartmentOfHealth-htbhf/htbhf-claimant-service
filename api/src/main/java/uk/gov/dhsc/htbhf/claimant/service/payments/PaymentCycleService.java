@@ -21,17 +21,19 @@ public class PaymentCycleService {
     }
 
     /**
-     * Creates a new payment cycle for the given claim and cycle start date.
+     * Creates a new payment cycle for the given claim and cycle start date, saving it in the database.
      * The cycle end date is set to the start date plus the payment cycle duration time.
      * @param claim claim to create a payment cycle for
      * @param cycleStartDate the start date of the new payment cycle
+     * @return the new payment cycle.
      */
-    public void createNewPaymentCycle(Claim claim, LocalDate cycleStartDate) {
+    public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .build();
         paymentCycleRepository.save(paymentCycle);
+        return paymentCycle;
     }
 }
