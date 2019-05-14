@@ -5,20 +5,26 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * Identifies a claim with a payment cycle due to expire on cycleEndDate.
+ * Identifies a payment cycle due to expire on cycleEndDate.
  */
 public interface ClosingPaymentCycle {
 
     String getClaimIdString();
 
+    String getCycleIdString();
+
     Timestamp getCycleEndDateTimestamp();
 
     default UUID getClaimId() {
-<span class="fc" id="L17">        return UUID.fromString(getClaimIdString());</span>
+<span class="fc" id="L19">        return UUID.fromString(getClaimIdString());</span>
+    }
+
+    default UUID getCycleId() {
+<span class="fc" id="L23">        return UUID.fromString(getCycleIdString());</span>
     }
 
     default LocalDate getCycleEndDate() {
-<span class="fc" id="L21">        return getCycleEndDateTimestamp().toLocalDateTime().toLocalDate();</span>
+<span class="fc" id="L27">        return getCycleEndDateTimestamp().toLocalDateTime().toLocalDate();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

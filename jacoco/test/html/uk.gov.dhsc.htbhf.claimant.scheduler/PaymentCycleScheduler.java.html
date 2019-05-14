@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentCycleScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.scheduler</a> &gt; <span class="el_source">PaymentCycleScheduler.java</span></div><h1>PaymentCycleScheduler.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.scheduler;
+
+import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.SchedulerLock;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.repository.ClosingPaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
+ * for active claims whose current PaymentCycle is due to come to an end.
+ * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
+ */
+@Component
+<span class="fc" id="L20">@Slf4j</span>
+public class PaymentCycleScheduler {
+
+    private final PaymentCycleRepository paymentCycleRepository;
+    private final CreateNewPaymentCycleJob job;
+    private final int endDateOffsetDays;
+
+    public PaymentCycleScheduler(
+            PaymentCycleRepository paymentCycleRepository,
+            CreateNewPaymentCycleJob job,
+<span class="fc" id="L30">            @Value(&quot;${payment-cycle.schedule.end-date-offset-days:0}&quot;) int endDateOffsetDays) {</span>
+
+<span class="fc" id="L32">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L33">        this.job = job;</span>
+<span class="fc" id="L34">        this.endDateOffsetDays = endDateOffsetDays;</span>
+<span class="fc" id="L35">    }</span>
+
+    @Scheduled(cron = &quot;${payment-cycle.schedule.cron-schedule}&quot;)
+    @SchedulerLock(
+            name = &quot;Create new payment cycles&quot;,
+            lockAtLeastForString = &quot;${payment-cycle.schedule.minimum-lock-time}&quot;,
+            lockAtMostForString = &quot;${payment-cycle.schedule.maximum-lock-time}&quot;)
+    public void createNewPaymentCycles() {
+<span class="fc" id="L43">        LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);</span>
+<span class="fc" id="L44">        log.debug(&quot;Querying for active claims with cycles ending on {}&quot;, cycleEndDate);</span>
+<span class="fc" id="L45">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
+
+<span class="fc" id="L47">        log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L48">        cycles.forEach(cycle -&gt; job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));</span>
+<span class="fc" id="L49">        log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L50">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
