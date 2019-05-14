@@ -117,13 +117,14 @@ class PaymentCycleRepositoryTest {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
         Claim claim = createAndSaveClaim();
-        createAndSavePaymentCycleEnding(yesterday, claim);
+        PaymentCycle cycle = createAndSavePaymentCycleEnding(yesterday, claim);
 
         List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getClaimId()).isEqualTo(claim.getId());
+        assertThat(result.get(0).getCycleId()).isEqualTo(cycle.getId());
         assertThat(result.get(0).getCycleEndDate()).isEqualTo(yesterday);
     }
 
@@ -185,13 +186,14 @@ class PaymentCycleRepositoryTest {
         return claim;
     }
 
-    private void createAndSavePaymentCycleEnding(LocalDate today, Claim claim) {
-        PaymentCycle currentPaymentCycle = aValidPaymentCycleBuilder()
+    private PaymentCycle createAndSavePaymentCycleEnding(LocalDate endDate, Claim claim) {
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
-                .cycleStartDate(today.minusDays(28))
-                .cycleEndDate(today)
+                .cycleStartDate(endDate.minusDays(28))
+                .cycleEndDate(endDate)
                 .build();
-        paymentCycleRepository.save(currentPaymentCycle);
+        paymentCycleRepository.save(paymentCycle);
+        return paymentCycle;
     }
 
 }
