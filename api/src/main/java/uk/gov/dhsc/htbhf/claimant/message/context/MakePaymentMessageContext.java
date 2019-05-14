@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.context;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,10 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 @Data
 @Builder
-public class DetermineEntitlementMessageContext {
-
-    private PaymentCycle currentPaymentCycle;
-    private PaymentCycle previousPaymentCycle;
+public class MakePaymentMessageContext {
     private Claim claim;
-
+    private PaymentCycle paymentCycle;
+    private String cardAccountId;
 }
