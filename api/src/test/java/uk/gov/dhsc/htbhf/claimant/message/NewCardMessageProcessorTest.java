@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,17 +11,16 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 
-import java.io.IOException;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
@@ -37,7 +35,7 @@ class NewCardMessageProcessorTest {
     private NewCardService newCardService;
 
     @MockBean
-    private ObjectMapper objectMapper;
+    private PayloadMapper payloadMapper;
 
     @MockBean
     private MessageRepository messageRepository;
@@ -46,28 +44,36 @@ class NewCardMessageProcessorTest {
     private NewCardMessageProcessor newCardMessageProcessor;
 
     @Test
-    void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() throws IOException {
-        given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willThrow(new IOException("Error reading value"));
+    void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() {
+        //Given
+        MessageProcessingException testException = new MessageProcessingException("Error reading value");
+        given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willThrow(testException);
+        Message message = aValidMessageWithPayload(MESSAGE_PAYLOAD);
 
-        MessageStatus status = newCardMessageProcessor.processMessage(aValidMessageWithPayload(MESSAGE_PAYLOAD));
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> newCardMessageProcessor.processMessage(message), MessageProcessingException.class);
 
-        assertThat(status).isEqualTo(ERROR);
+        //Then
+        assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
-        verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
+        verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
         verifyZeroInteractions(newCardService, messageRepository);
     }
 
     @Test
-    void shouldCreateNewCardAndDeleteMessage() throws IOException {
+    void shouldCreateNewCardAndDeleteMessage() {
+        //Given
         NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
-        given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
+        given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
         Message message = aValidMessage();
 
+        //When
         MessageStatus status = newCardMessageProcessor.processMessage(message);
 
+        //Then
         assertThat(status).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
-        verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
+        verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
         verify(newCardService).createNewCard(payload.getClaimId());
         verify(messageRepository).delete(message);
     }
