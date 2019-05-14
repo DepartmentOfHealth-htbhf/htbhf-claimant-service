@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
@@ -19,10 +18,11 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.min;
-import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
@@ -111,14 +111,9 @@ public class NewClaimService {
     private PaymentCycleVoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
 <span class="fc" id="L112">        return cycleEntitlementCalculator.calculateEntitlement(</span>
 <span class="fc" id="L113">                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),</span>
-<span class="fc" id="L114">                getDateOfBirthOfChildren(eligibilityResponse),</span>
+<span class="fc" id="L114">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
 <span class="fc" id="L115">                LocalDate.now());</span>
     }
 
-    private List&lt;LocalDate&gt; getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
-<span class="fc" id="L119">        return eligibilityResponse.getChildren().stream()</span>
-<span class="fc" id="L120">                .map(ChildDTO::getDateOfBirth)</span>
-<span class="fc" id="L121">                .collect(toList());</span>
-    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
