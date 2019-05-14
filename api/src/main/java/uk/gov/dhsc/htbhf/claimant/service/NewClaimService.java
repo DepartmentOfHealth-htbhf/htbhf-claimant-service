@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
@@ -19,10 +18,11 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.min;
-import static java.util.stream.Collectors.toList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
@@ -111,13 +111,8 @@ public class NewClaimService {
     private PaymentCycleVoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
         return cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
-                getDateOfBirthOfChildren(eligibilityResponse),
+                eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
     }
 
-    private List<LocalDate> getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
-        return eligibilityResponse.getChildren().stream()
-                .map(ChildDTO::getDateOfBirth)
-                .collect(toList());
-    }
 }

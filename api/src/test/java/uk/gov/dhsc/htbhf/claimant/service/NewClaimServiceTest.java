@@ -17,18 +17,15 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -87,7 +84,7 @@ class NewClaimServiceTest {
 
         verify(eligibilityService).determineEligibility(claimant);
         verify(cycleEntitlementCalculator).calculateEntitlement(
-                Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
+                Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
         verify(claimRepository).save(result.getClaim());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
@@ -146,7 +143,7 @@ class NewClaimServiceTest {
 
         verify(eligibilityService).determineEligibility(claimant);
         verify(cycleEntitlementCalculator).calculateEntitlement(
-                Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
+                Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
     }
@@ -181,7 +178,7 @@ class NewClaimServiceTest {
         verify(eligibilityService).determineEligibility(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verify(cycleEntitlementCalculator).calculateEntitlement(
-                    Optional.ofNullable(claimant.getExpectedDeliveryDate()), getDateOfBirthOfChildren(eligibilityResponse), LocalDate.now());
+                    Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
             verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
         }
     }
@@ -226,13 +223,6 @@ class NewClaimServiceTest {
         assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
         assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
         verifyZeroInteractions(messageQueueDAO);
-    }
-
-    private List<LocalDate> getDateOfBirthOfChildren(EligibilityResponse eligibilityResponse) {
-        return eligibilityResponse.getChildren()
-                .stream()
-                .map(ChildDTO::getDateOfBirth)
-                .collect(toList());
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
