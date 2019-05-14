@@ -42,18 +42,20 @@ class CreateNewPaymentCycleJobTest {
         UUID previousCycleId = UUID.randomUUID();
         LocalDate cycleStartDate = LocalDate.now();
         Claim claim = Claim.builder().build();
+        UUID claimId = claim.getId();
         given(claimRepository.getLazyLoadingClaim(any())).willReturn(claim);
         PaymentCycle paymentCycle = PaymentCycle.builder().build();
         given(paymentCycleService.createAndSavePaymentCycle(any(), any())).willReturn(paymentCycle);
 
-        PaymentCycle result = job.createNewPaymentCycle(claim.getId(), previousCycleId, cycleStartDate);
+        PaymentCycle result = job.createNewPaymentCycle(claimId, previousCycleId, cycleStartDate);
 
         assertThat(result).isEqualTo(paymentCycle);
+        verify(claimRepository).getLazyLoadingClaim(claimId);
         verify(paymentCycleService).createAndSavePaymentCycle(claim, cycleStartDate);
         ArgumentCaptor<DetermineEntitlementMessagePayload> argumentCaptor = ArgumentCaptor.forClass(DetermineEntitlementMessagePayload.class);
         verify(messageQueue).sendMessage(argumentCaptor.capture(), eq(MessageType.DETERMINE_ENTITLEMENT));
         DetermineEntitlementMessagePayload messagePayload = argumentCaptor.getValue();
-        assertThat(messagePayload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(messagePayload.getClaimId()).isEqualTo(claimId);
         assertThat(messagePayload.getCurrentPaymentCycleId()).isEqualTo(result.getId());
         assertThat(messagePayload.getPreviousPaymentCycleId()).isEqualTo(previousCycleId);
     }
