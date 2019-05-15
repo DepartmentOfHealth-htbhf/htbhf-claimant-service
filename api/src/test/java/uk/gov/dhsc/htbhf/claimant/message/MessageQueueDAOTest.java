@@ -23,8 +23,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.PAYLOAD_JSON;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewCardRequestMessagePayloadTestDataFactory.PAYLOAD_JSON;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewCardRequestMessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 
 @SpringBootTest
 @Transactional
