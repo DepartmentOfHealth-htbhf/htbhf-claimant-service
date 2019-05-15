@@ -20,7 +20,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,7 +49,7 @@ class MessageContextLoaderTest {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        when(paymentCycleRepository.findById(paymentCycleId)).thenReturn(Optional.of(paymentCycle));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
 
         //When
@@ -67,9 +70,8 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         PaymentCycle paymentCycle = aValidPaymentCycle();
         UUID paymentCycleId = paymentCycle.getId();
-        when(paymentCycleRepository.findById(paymentCycleId)).thenReturn(Optional.of(paymentCycle));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         given(claimRepository.findById(any())).willReturn(Optional.empty());
-        when(paymentCycleRepository.findById(paymentCycleId)).thenReturn(Optional.of(paymentCycle));
         MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
 
         //When
@@ -85,7 +87,7 @@ class MessageContextLoaderTest {
         //Given
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
-        when(paymentCycleRepository.findById(paymentCycleId)).thenReturn(Optional.empty());
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
         MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
 
         //When
