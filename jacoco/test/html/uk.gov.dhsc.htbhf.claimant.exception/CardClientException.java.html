@@ -11,7 +11,7 @@ public class CardClientException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     public CardClientException(HttpStatus httpStatus) {
-<span class="fc" id="L14">        super(&quot;Response code from card service was not CREATED, received: &quot; + httpStatus.name());</span>
+<span class="fc" id="L14">        super(&quot;Response code from card service was not as expected, received: &quot; + httpStatus.name());</span>
 <span class="fc" id="L15">    }</span>
 
     public CardClientException(RestClientException restClientException, String endpointUrl) {
