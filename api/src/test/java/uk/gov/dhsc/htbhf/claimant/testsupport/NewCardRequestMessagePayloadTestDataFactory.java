@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
 
-public class MessagePayloadTestDataFactory {
+public class NewCardRequestMessagePayloadTestDataFactory {
 
     private static final UUID CLAIM_ID = UUID.fromString("bc78da28-5bea-45fd-95ca-8bd82979c584");
 
@@ -16,7 +16,7 @@ public class MessagePayloadTestDataFactory {
         return aValidNewCardRequestMessagePayloadWithClaimId(CLAIM_ID);
     }
 
-    public static NewCardRequestMessagePayload aValidNewCardRequestMessagePayloadWithClaimId(UUID claimId) {
+    private static NewCardRequestMessagePayload aValidNewCardRequestMessagePayloadWithClaimId(UUID claimId) {
         return NewCardRequestMessagePayload.builder()
                 .claimId(claimId)
                 .voucherEntitlement(aValidPaymentCycleVoucherEntitlement())
