@@ -39,12 +39,7 @@ public class CardClient {
     public CardResponse requestNewCard(CardRequest cardRequest) {
         try {
             ResponseEntity<CardResponse> response = restTemplate.postForEntity(cardsUri, cardRequest, CardResponse.class);
-            if (response.getStatusCode() != HttpStatus.CREATED) {
-                log.error("Expecting a CREATED response from the card service api, instead received {} with response body {}",
-                        response.getStatusCode().name(), response.getBody());
-                throw new CardClientException(response.getStatusCode());
-            }
-
+            checkResponse(response, HttpStatus.CREATED);
             return response.getBody();
         } catch (RestClientException e) {
             log.error("Exception caught trying to post to {}", cardsUri);
@@ -56,16 +51,19 @@ public class CardClient {
         String uri = String.format("%s/%s/deposit", cardsUri, cardAccountId);
         try {
             ResponseEntity<DepositFundsResponse> response = restTemplate.postForEntity(uri, depositRequest, DepositFundsResponse.class);
-            if (response.getStatusCode() != HttpStatus.OK) {
-                log.error("Expecting an OK response from the card service api, instead received {} with response body {}",
-                        response.getStatusCode().name(), response.getBody());
-                throw new CardClientException(response.getStatusCode());
-            }
-
+            checkResponse(response, HttpStatus.OK);
             return response.getBody();
         } catch (RestClientException e) {
             log.error("Exception caught trying to post to {}", uri);
             throw new CardClientException(e, uri);
+        }
+    }
+
+    private void checkResponse(ResponseEntity<?> response, HttpStatus expectedStatus) {
+        if (response.getStatusCode() != expectedStatus) {
+            log.error("Expecting an OK response from the card service api, instead received {} with response body {}",
+                    response.getStatusCode().name(), response.getBody());
+            throw new CardClientException(response.getStatusCode());
         }
     }
 }
