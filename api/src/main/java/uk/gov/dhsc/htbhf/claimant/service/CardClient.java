@@ -61,8 +61,8 @@ public class CardClient {
 
     private void checkResponse(ResponseEntity<?> response, HttpStatus expectedStatus) {
         if (response.getStatusCode() != expectedStatus) {
-            log.error("Expecting an OK response from the card service api, instead received {} with response body {}",
-                    response.getStatusCode().name(), response.getBody());
+            log.error("Expecting {} response from the card service api, instead received {} with response body {}",
+                    expectedStatus, response.getStatusCode(), response.getBody());
             throw new CardClientException(response.getStatusCode());
         }
     }
