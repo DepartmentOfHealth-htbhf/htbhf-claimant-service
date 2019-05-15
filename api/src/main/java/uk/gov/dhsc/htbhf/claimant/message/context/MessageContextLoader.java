@@ -1,23 +1,23 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.context;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
-
 @Component
 @AllArgsConstructor
 @Slf4j
-public class DetermineEntitlementMessageContextLoader {
+public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
 
@@ -31,9 +31,9 @@ public class DetermineEntitlementMessageContextLoader {
      */
     public DetermineEntitlementMessageContext loadContext(DetermineEntitlementMessagePayload payload) {
 
-        PaymentCycle currentPaymentCycle = getAndCheckCurrentPaymentCycle(payload);
-        PaymentCycle previousPaymentCycle = getAndCheckPreviousPaymentCycle(payload);
-        Claim claim = getAndCheckClaim(payload);
+        PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), "current payment cycle");
+        PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), "previous payment cycle");
+        Claim claim = getAndCheckClaim(payload.getClaimId());
 
         return DetermineEntitlementMessageContext.builder()
                 .currentPaymentCycle(currentPaymentCycle)
@@ -42,23 +42,29 @@ public class DetermineEntitlementMessageContextLoader {
                 .build();
     }
 
-    private Claim getAndCheckClaim(DetermineEntitlementMessagePayload payload) {
-        UUID claimId = payload.getClaimId();
+    /**
+     * Method used to inflate the contents of the objects identified by ids in the MAKE_PAYMENT message payload.
+     *
+     * @param payload The payload containing the object ids
+     * @return A wrapper object with the inflated objects
+     */
+    public MakePaymentMessageContext loadContext(MakePaymentMessagePayload payload) {
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), "payment cycle");
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+
+        return MakePaymentMessageContext.builder()
+                .cardAccountId(payload.getCardAccountId())
+                .claim(claim)
+                .paymentCycle(paymentCycle)
+                .build();
+    }
+
+    private Claim getAndCheckClaim(UUID claimId) {
         Optional<Claim> claim = claimRepository.findById(claimId);
         if (claim.isEmpty()) {
             logAndThrowException("claim", claimId);
         }
         return claim.get();
-    }
-
-    private PaymentCycle getAndCheckCurrentPaymentCycle(DetermineEntitlementMessagePayload payload) {
-        UUID currentPaymentCycleId = payload.getCurrentPaymentCycleId();
-        return getAndCheckPaymentCycle(currentPaymentCycleId, "current payment cycle");
-    }
-
-    private PaymentCycle getAndCheckPreviousPaymentCycle(DetermineEntitlementMessagePayload payload) {
-        UUID previousPaymentCycleId = payload.getPreviousPaymentCycleId();
-        return getAndCheckPaymentCycle(previousPaymentCycleId, "previous payment cycle");
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {
@@ -70,7 +76,7 @@ public class DetermineEntitlementMessageContextLoader {
     }
 
     private void logAndThrowException(String fieldName, UUID uuid) {
-        String errorMessage = String.format("Unable to process %s message, unable to load %s using id: %s", DETERMINE_ENTITLEMENT, fieldName, uuid);
+        String errorMessage = String.format("Unable to process message, unable to load %s using id: %s", fieldName, uuid);
         log.error(errorMessage);
         throw new MessageProcessingException(errorMessage);
     }

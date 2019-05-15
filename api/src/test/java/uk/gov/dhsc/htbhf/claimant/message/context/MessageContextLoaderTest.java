@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.context;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,7 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory;
@@ -25,8 +27,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 
 @ExtendWith(MockitoExtension.class)
-class DetermineEntitlementMessageContextLoaderTest {
+class MessageContextLoaderTest {
 
+    public static final String CARD_ACCOUNT_ID = "myCardAccountId";
     @Mock
     private ClaimRepository claimRepository;
 
@@ -34,12 +37,73 @@ class DetermineEntitlementMessageContextLoaderTest {
     private PaymentCycleRepository paymentCycleRepository;
 
     @InjectMocks
-    private DetermineEntitlementMessageContextLoader loader;
+    private MessageContextLoader loader;
 
     //These calls need to be lenient as Mockito sees mocking the same method call multiple times as a sign of an error
     //and will fail the test without setting the mode to lenient.
     @Test
-    void shouldSuccessfullyLoadContext() {
+    void shouldSuccessfullyLoadPaymentContext() {
+        //Given
+        Claim claim = ClaimTestDataFactory.aValidClaim();
+        UUID claimId = claim.getId();
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        UUID paymentCycleId = paymentCycle.getId();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
+        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
+
+        //When
+        MakePaymentMessageContext context = loader.loadContext(payload);
+
+        //Then
+        assertThat(context).isNotNull();
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
+        verify(claimRepository).findById(claimId);
+        verify(paymentCycleRepository).findById(paymentCycleId);
+        verifyNoMoreInteractions(paymentCycleRepository, claimRepository);
+    }
+
+    @Test
+    void shouldFailToLoadPaymentContextIfClaimNotFound() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        UUID paymentCycleId = paymentCycle.getId();
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
+        given(claimRepository.findById(any())).willReturn(Optional.empty());
+        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
+
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadContext(payload), MessageProcessingException.class);
+
+        //Then
+        assertThat(thrown).hasMessage("Unable to process message, unable to load claim using id: " + claimId);
+        verify(claimRepository).findById(claimId);
+    }
+
+    @Test
+    void shouldFailToLoadPaymentContextIfPaymentCycleNotFound() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+        UUID paymentCycleId = UUID.randomUUID();
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
+        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId, CARD_ACCOUNT_ID);
+
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadContext(payload), MessageProcessingException.class);
+
+        //Then
+        assertThat(thrown).hasMessage("Unable to process message, unable to load payment cycle using id: "
+                + paymentCycleId);
+        verify(paymentCycleRepository).findById(paymentCycleId);
+    }
+
+
+    //These calls need to be lenient as Mockito sees mocking the same method call multiple times as a sign of an error
+    //and will fail the test without setting the mode to lenient.
+    @Test
+    void shouldSuccessfullyLoadEntitlementContext() {
         //Given
         Claim claim = ClaimTestDataFactory.aValidClaim();
         UUID claimId = claim.getId();
@@ -50,7 +114,7 @@ class DetermineEntitlementMessageContextLoaderTest {
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
         lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.of(previousPaymentCycle));
-        DetermineEntitlementMessagePayload payload = buildPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
 
         //When
         DetermineEntitlementMessageContext context = loader.loadContext(payload);
@@ -68,7 +132,7 @@ class DetermineEntitlementMessageContextLoaderTest {
     }
 
     @Test
-    void shouldFailToLoadContextIfClaimNotFound() {
+    void shouldFailToLoadEntitlementContextIfClaimNotFound() {
         //Given
         Claim claim = ClaimTestDataFactory.aValidClaim();
         UUID claimId = claim.getId();
@@ -79,13 +143,13 @@ class DetermineEntitlementMessageContextLoaderTest {
         given(claimRepository.findById(any())).willReturn(Optional.empty());
         lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
         lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.of(previousPaymentCycle));
-        DetermineEntitlementMessagePayload payload = buildPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
 
         //When
         MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadContext(payload), MessageProcessingException.class);
 
         //Then
-        assertThat(thrown).hasMessage("Unable to process DETERMINE_ENTITLEMENT message, unable to load claim using id: " + claimId);
+        assertThat(thrown).hasMessage("Unable to process message, unable to load claim using id: " + claimId);
         assertThat(previousPaymentCycleId).isNotEqualTo(currentPaymentCycleId);
         verify(claimRepository).findById(claimId);
         verify(paymentCycleRepository).findById(currentPaymentCycleId);
@@ -93,25 +157,25 @@ class DetermineEntitlementMessageContextLoaderTest {
     }
 
     @Test
-    void shouldFailToLoadContextIfCurrentPaymentCycleNotFound() {
+    void shouldFailToLoadEntitlementContextIfCurrentPaymentCycleNotFound() {
         //Given
         UUID claimId = UUID.randomUUID();
         UUID previousPaymentCycleId = UUID.randomUUID();
         UUID currentPaymentCycleId = UUID.randomUUID();
         lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.empty());
-        DetermineEntitlementMessagePayload payload = buildPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
 
         //When
         MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadContext(payload), MessageProcessingException.class);
 
         //Then
-        assertThat(thrown).hasMessage("Unable to process DETERMINE_ENTITLEMENT message, unable to load current payment cycle using id: "
+        assertThat(thrown).hasMessage("Unable to process message, unable to load current payment cycle using id: "
                 + currentPaymentCycleId);
         verify(paymentCycleRepository).findById(currentPaymentCycleId);
     }
 
     @Test
-    void shouldFailToLoadContextIfPreviousPaymentCycleNotFound() {
+    void shouldFailToLoadEntitlementContextIfPreviousPaymentCycleNotFound() {
         //Given
         UUID claimId = UUID.randomUUID();
         UUID previousPaymentCycleId = UUID.randomUUID();
@@ -119,24 +183,32 @@ class DetermineEntitlementMessageContextLoaderTest {
         UUID currentPaymentCycleId = currentPaymentCycle.getId();
         lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
         lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.empty());
-        DetermineEntitlementMessagePayload payload = buildPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
 
         //When
         MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadContext(payload), MessageProcessingException.class);
 
         //Then
-        assertThat(thrown).hasMessage("Unable to process DETERMINE_ENTITLEMENT message, unable to load previous payment cycle using id: "
+        assertThat(thrown).hasMessage("Unable to process message, unable to load previous payment cycle using id: "
                 + previousPaymentCycleId);
         assertThat(previousPaymentCycleId).isNotEqualTo(currentPaymentCycleId);
         verify(paymentCycleRepository).findById(currentPaymentCycleId);
         verify(paymentCycleRepository).findById(previousPaymentCycleId);
     }
 
-    private DetermineEntitlementMessagePayload buildPayload(UUID claimId, UUID previousPaymentCycleId, UUID currentPaymentCycleId) {
+    private DetermineEntitlementMessagePayload buildEntitlementPayload(UUID claimId, UUID previousPaymentCycleId, UUID currentPaymentCycleId) {
         return DetermineEntitlementMessagePayload.builder()
                 .claimId(claimId)
                 .currentPaymentCycleId(currentPaymentCycleId)
                 .previousPaymentCycleId(previousPaymentCycleId)
+                .build();
+    }
+
+    private MakePaymentMessagePayload buildPaymentPayload(UUID claimId, UUID paymentCycleId, String cardAccountId) {
+        return MakePaymentMessagePayload.builder()
+                .claimId(claimId)
+                .paymentCycleId(paymentCycleId)
+                .cardAccountId(cardAccountId)
                 .build();
     }
 }
