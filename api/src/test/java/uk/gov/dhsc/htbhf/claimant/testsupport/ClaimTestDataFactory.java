@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -29,14 +30,14 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-    public static Claim aClaimWithClaimStatus(ClaimStatus claimStatus) {
-        return aValidClaimBuilderWithStatus(claimStatus)
+    public static Claim aClaimWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+        return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE)
+                .claimant(ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate(expectedDeliveryDate))
                 .build();
     }
 
-    public static Claim aClaimWithClaimStatusTimestamp(LocalDateTime claimStatusTimestamp) {
-        return aValidClaimBuilder()
-                .claimStatusTimestamp(claimStatusTimestamp)
+    public static Claim aClaimWithClaimStatus(ClaimStatus claimStatus) {
+        return aValidClaimBuilderWithStatus(claimStatus)
                 .build();
     }
 
