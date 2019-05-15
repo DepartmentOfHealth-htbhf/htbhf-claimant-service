@@ -10,6 +10,8 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 
 /**
  * Service for interacting with the card services api.
@@ -47,6 +49,23 @@ public class CardClient {
         } catch (RestClientException e) {
             log.error("Exception caught trying to post to {}", cardsUri);
             throw new CardClientException(e, cardsUri);
+        }
+    }
+
+    public DepositFundsResponse depositFundsToCard(String cardAccountId, DepositFundsRequest depositRequest) {
+        String uri = String.format("%s/%s/deposit", cardsUri, cardAccountId);
+        try {
+            ResponseEntity<DepositFundsResponse> response = restTemplate.postForEntity(uri, depositRequest, DepositFundsResponse.class);
+            if (response.getStatusCode() != HttpStatus.OK) {
+                log.error("Expecting an OK response from the card service api, instead received {} with response body {}",
+                        response.getStatusCode().name(), response.getBody());
+                throw new CardClientException(response.getStatusCode());
+            }
+
+            return response.getBody();
+        } catch (RestClientException e) {
+            log.error("Exception caught trying to post to {}", uri);
+            throw new CardClientException(e, uri);
         }
     }
 }
