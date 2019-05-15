@@ -17,9 +17,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewCardRequestMessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 
 @ExtendWith(MockitoExtension.class)
 class PayloadMapperTest {
