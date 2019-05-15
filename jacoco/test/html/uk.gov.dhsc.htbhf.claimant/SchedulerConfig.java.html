@@ -3,6 +3,7 @@
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -17,11 +18,12 @@ import javax.sql.DataSource;
 @Configuration
 @EnableScheduling
 @EnableSchedulerLock(defaultLockAtMostFor = &quot;PT60M&quot;)
-<span class="fc" id="L20">public class SchedulerConfig {</span>
+@ConditionalOnProperty(name = &quot;enable-scheduler&quot;) // annotation has no affect if the property isn't set
+<span class="nc" id="L22">public class SchedulerConfig {</span>
 
     @Bean
     public LockProvider lockProvider(DataSource dataSource) {
-<span class="fc" id="L24">        return new JdbcTemplateLockProvider(dataSource, &quot;schedule_tasks_locks&quot;);</span>
+<span class="nc" id="L26">        return new JdbcTemplateLockProvider(dataSource, &quot;schedule_tasks_locks&quot;);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

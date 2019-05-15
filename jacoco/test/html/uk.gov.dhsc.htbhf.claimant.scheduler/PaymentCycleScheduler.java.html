@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.repository.ClosingPaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
@@ -17,8 +16,7 @@ import java.util.List;
  * for active claims whose current PaymentCycle is due to come to an end.
  * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
  */
-@Component
-<span class="fc" id="L21">@Slf4j</span>
+<span class="fc" id="L19">@Slf4j</span>
 public class PaymentCycleScheduler {
 
     private final PaymentCycleRepository paymentCycleRepository;
@@ -28,12 +26,12 @@ public class PaymentCycleScheduler {
     public PaymentCycleScheduler(
             PaymentCycleRepository paymentCycleRepository,
             CreateNewPaymentCycleJob job,
-<span class="fc" id="L31">            @Value(&quot;${payment-cycle.schedule.end-date-offset-days:0}&quot;) int endDateOffsetDays) {</span>
+<span class="fc" id="L29">            @Value(&quot;${payment-cycle.schedule.end-date-offset-days:0}&quot;) int endDateOffsetDays) {</span>
 
-<span class="fc" id="L33">        this.paymentCycleRepository = paymentCycleRepository;</span>
-<span class="fc" id="L34">        this.job = job;</span>
-<span class="fc" id="L35">        this.endDateOffsetDays = endDateOffsetDays;</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L31">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L32">        this.job = job;</span>
+<span class="fc" id="L33">        this.endDateOffsetDays = endDateOffsetDays;</span>
+<span class="fc" id="L34">    }</span>
 
     @Scheduled(cron = &quot;${payment-cycle.schedule.cron-schedule}&quot;)
     @SchedulerLock(
@@ -42,13 +40,13 @@ public class PaymentCycleScheduler {
             lockAtMostForString = &quot;${payment-cycle.schedule.maximum-lock-time}&quot;)
     @NewRequestContextWithSessionId(sessionId = &quot;PaymentCycleScheduler&quot;)
     public void createNewPaymentCycles() {
-<span class="fc" id="L45">        LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);</span>
-<span class="fc" id="L46">        log.debug(&quot;Querying for active claims with cycles ending on {}&quot;, cycleEndDate);</span>
-<span class="fc" id="L47">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
+<span class="fc" id="L43">        LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);</span>
+<span class="fc" id="L44">        log.debug(&quot;Querying for active claims with cycles ending on {}&quot;, cycleEndDate);</span>
+<span class="fc" id="L45">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
 
-<span class="fc" id="L49">        log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
-<span class="fc" id="L50">        cycles.forEach(cycle -&gt; job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));</span>
-<span class="fc" id="L51">        log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L47">        log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L48">        cycles.forEach(cycle -&gt; job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));</span>
+<span class="fc" id="L49">        log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L50">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
