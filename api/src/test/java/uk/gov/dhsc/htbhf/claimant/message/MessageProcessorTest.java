@@ -27,10 +27,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_FIRST_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 
 @ExtendWith(MockitoExtension.class)
 class MessageProcessorTest {
@@ -74,6 +71,7 @@ class MessageProcessorTest {
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
         verify(sendFirstEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD);
+        verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT);
@@ -84,6 +82,7 @@ class MessageProcessorTest {
     void shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor() {
         Message cardMessage = MessageTestDataFactory.aValidMessageWithType(MAKE_PAYMENT);
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT)).thenReturn(singletonList(cardMessage));
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(emptyList());
         //When
@@ -94,6 +93,7 @@ class MessageProcessorTest {
         verify(sendFirstEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         verify(createNewCardDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD);
+        verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT);
         verifyNoMoreInteractions(messageRepository);
     }
@@ -102,6 +102,7 @@ class MessageProcessorTest {
     void shouldLogMessageProcessResults() {
         Message cardMessage = MessageTestDataFactory.aValidMessageWithType(CREATE_NEW_CARD);
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(asList(cardMessage, cardMessage));
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(emptyList());
         //When
@@ -120,6 +121,7 @@ class MessageProcessorTest {
         Message emailMessage = MessageTestDataFactory.aValidMessageWithType(SEND_FIRST_EMAIL);
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL)).thenReturn(singletonList(emailMessage));
         //When
         messageProcessor.processAllMessages();

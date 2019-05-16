@@ -57,6 +57,25 @@ class PaymentServiceTest {
     }
 
     @Test
+    void shouldMakeFirstPayment() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        String cardAccountId = "myCardAccountId";
+        DepositFundsResponse depositFundsResponse = DepositFundsResponse.builder().referenceId(CARD_PROVIDER_PAYMENT_REFERENCE).build();
+        given(cardClient.depositFundsToCard(any(), any())).willReturn(depositFundsResponse);
+
+        Payment result = paymentService.makeFirstPayment(paymentCycle, cardAccountId);
+
+        assertSuccessfulPayment(result, paymentCycle, cardAccountId);
+        verify(paymentRepository).save(result);
+        verify(claimAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
+        ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
+        verify(cardClient).depositFundsToCard(eq(cardAccountId), argumentCaptor.capture());
+        DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
+        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCycle.getTotalEntitlementAmountInPence());
+        assertThat(depositFundsRequest.getReference()).isEqualTo(result.getId().toString());
+    }
+
+    @Test
     void shouldMakePayment() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         String cardAccountId = "myCardAccountId";

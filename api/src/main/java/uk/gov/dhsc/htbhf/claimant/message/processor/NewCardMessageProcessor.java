@@ -3,43 +3,71 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
 
+/**
+ * Responsible for processing CREATE_NEW_CARD messages by:
+ * Creating a new card,
+ * Creating a PaymentCycle for the claim,
+ * Sending a MAKE_FIRST_PAYMENT message.
+ */
 @Component
 @AllArgsConstructor
 @Slf4j
 public class NewCardMessageProcessor implements MessageTypeProcessor {
 
     private NewCardService newCardService;
-
     private MessageRepository messageRepository;
-
     private MessageContextLoader messageContextLoader;
+    private PaymentCycleService paymentCycleService;
+    private MessageQueueClient messageQueueClient;
+
+    @Override
+    public MessageType supportsMessageType() {
+        return CREATE_NEW_CARD;
+    }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);
         newCardService.createNewCard(context.getClaim());
+        PaymentCycle paymentCycle = createAndSavePaymentCycle(context);
+        sendMakeFirstPaymentMessage(paymentCycle);
         messageRepository.delete(message);
         return COMPLETED;
     }
 
-    @Override
-    public MessageType supportsMessageType() {
-        return CREATE_NEW_CARD;
+    private PaymentCycle createAndSavePaymentCycle(NewCardMessageContext context) {
+        Claim claim = context.getClaim();
+        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(
+                claim,
+                claim.getClaimStatusTimestamp().toLocalDate(),
+                context.getPaymentCycleVoucherEntitlement());
+    }
+
+    private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
+        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);
+        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);
     }
 
 }
