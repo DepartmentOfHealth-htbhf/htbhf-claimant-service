@@ -4,7 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 
@@ -22,13 +23,13 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
 
     private MessageRepository messageRepository;
 
-    private PayloadMapper payloadMapper;
+    private MessageContextLoader messageContextLoader;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-        NewCardRequestMessagePayload payload = payloadMapper.getPayload(message, NewCardRequestMessagePayload.class);
-        newCardService.createNewCard(payload.getClaimId());
+        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);
+        newCardService.createNewCard(context.getClaim());
         messageRepository.delete(message);
         return COMPLETED;
     }

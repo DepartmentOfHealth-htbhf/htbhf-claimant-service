@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -23,13 +26,17 @@ public class MessageContextLoader {
 
     private PaymentCycleRepository paymentCycleRepository;
 
+    private PayloadMapper payloadMapper;
+
     /**
      * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
      *
-     * @param payload The payload containing the object ids
-     * @return A wrapper object with the inflated objects
+     * @param message The message containing the payload to inflate
+     * @return A wrapper object with the inflated objects from the message
      */
-    public DetermineEntitlementMessageContext loadContext(DetermineEntitlementMessagePayload payload) {
+    public DetermineEntitlementMessageContext loadDetermineEntitlementContext(Message message) {
+
+        DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);
 
         PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), "current payment cycle");
         PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), "previous payment cycle");
@@ -45,10 +52,13 @@ public class MessageContextLoader {
     /**
      * Method used to inflate the contents of the objects identified by ids in the MAKE_PAYMENT message payload.
      *
-     * @param payload The payload containing the object ids
+     * @param message The message containing the payload to inflate
      * @return A wrapper object with the inflated objects
      */
-    public MakePaymentMessageContext loadContext(MakePaymentMessagePayload payload) {
+    public MakePaymentMessageContext loadMakePaymentContext(Message message) {
+
+        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);
+
         PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), "payment cycle");
         Claim claim = getAndCheckClaim(payload.getClaimId());
 
@@ -56,6 +66,22 @@ public class MessageContextLoader {
                 .cardAccountId(payload.getCardAccountId())
                 .claim(claim)
                 .paymentCycle(paymentCycle)
+                .build();
+    }
+
+    /**
+     * Method used to inflate the contents of a NEW_CARD message, which is currently just the claim.
+     *
+     * @param message The message to inflate.
+     * @return A wrapper object with the inflated objects
+     */
+    public NewCardMessageContext loadNewCardContext(Message message) {
+        NewCardRequestMessagePayload payload = payloadMapper.getPayload(message, NewCardRequestMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        return NewCardMessageContext.builder()
+                .claim(claim)
+                .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())
                 .build();
     }
 

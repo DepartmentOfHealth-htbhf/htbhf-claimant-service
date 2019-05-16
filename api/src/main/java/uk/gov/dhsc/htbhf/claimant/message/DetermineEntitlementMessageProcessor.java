@@ -10,7 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
@@ -28,8 +27,6 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEME
 @Component
 @AllArgsConstructor
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
-
-    private PayloadMapper payloadMapper;
 
     private MessageRepository messageRepository;
 
@@ -58,7 +55,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
 
-        DetermineEntitlementMessageContext messageContext = loadContext(message);
+        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
         Claimant claimant = messageContext.getClaim().getClaimant();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
@@ -74,12 +71,6 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
         messageRepository.delete(message);
         return COMPLETED;
-    }
-
-    private DetermineEntitlementMessageContext loadContext(Message message) {
-        //TODO MRS 2019-05-15: Next PR - wrap payload mapper into messageContextLoader
-        DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);
-        return messageContextLoader.loadContext(payload);
     }
 
     private PaymentCycleVoucherEntitlement determineVoucherEntitlement(PaymentCycle currentPaymentCycle,
