@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import com.google.common.collect.ImmutableList;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
@@ -14,9 +14,10 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
@@ -31,16 +32,14 @@ import javax.transaction.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.DetermineEntitlementMessageContextTestDataFactory.aDetermineEntitlementMessageContext;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.DetermineEntitlementMessagePayloadTestDataFactory.aValidDetermineEntitlementMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aDetermineEntitlementMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDateAndEntitlement;
@@ -56,8 +55,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 @Transactional
 class DetermineEntitlementMessageProcessorTest {
 
-    @MockBean
-    private PayloadMapper payloadMapper;
     @MockBean
     private MessageRepository messageRepository;
     @MockBean
@@ -76,7 +73,7 @@ class DetermineEntitlementMessageProcessorTest {
     void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() {
         //Given
         MessageProcessingException testException = new MessageProcessingException("Error reading value");
-        given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willThrow(testException);
+        given(messageContextLoader.loadDetermineEntitlementContext(any())).willThrow(testException);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
         //When
@@ -85,18 +82,15 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
-        verify(payloadMapper).getPayload(message, DetermineEntitlementMessagePayload.class);
+        verify(messageContextLoader).loadDetermineEntitlementContext(message);
         verifyZeroInteractions(eligibilityService, messageRepository, cycleEntitlementCalculator, messageContextLoader, paymentCycleRepository);
     }
 
     @Test
     void shouldSuccessfullyProcessMessage() {
         //Given
-        DetermineEntitlementMessagePayload payload = aValidDetermineEntitlementMessagePayload();
-        given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
-
         DetermineEntitlementMessageContext context = buildMessageContext();
-        given(messageContextLoader.loadContext(any(DetermineEntitlementMessagePayload.class))).willReturn(context);
+        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
@@ -113,8 +107,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
-        verify(payloadMapper).getPayload(message, DetermineEntitlementMessagePayload.class);
-        verify(messageContextLoader).loadContext(payload);
+        verify(messageContextLoader).loadDetermineEntitlementContext(message);
         verify(eligibilityService).determineEligibility(context.getClaim().getClaimant());
 
         List<LocalDate> dateOfBirthOfChildren = ImmutableList.of(MAGGIE_DOB, LISA_DOB);

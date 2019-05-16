@@ -7,10 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
-import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
@@ -29,14 +27,12 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
     private MessageRepository messageRepository;
-    private PayloadMapper payloadMapper;
     private MessageContextLoader messageContextLoader;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);
-        MakePaymentMessageContext messageContext = messageContextLoader.loadContext(payload);
+        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
         paymentService.makePayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());
         messageRepository.delete(message);
         return COMPLETED;
