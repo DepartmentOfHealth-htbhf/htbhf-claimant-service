@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,9 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;

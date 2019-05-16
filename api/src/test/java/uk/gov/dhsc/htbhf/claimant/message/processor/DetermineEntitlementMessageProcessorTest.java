@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import com.google.common.collect.ImmutableList;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
@@ -14,6 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
@@ -36,8 +38,8 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.DetermineEntitlementMessageContextTestDataFactory.aDetermineEntitlementMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aDetermineEntitlementMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDateAndEntitlement;

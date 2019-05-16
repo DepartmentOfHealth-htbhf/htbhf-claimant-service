@@ -142,8 +142,9 @@ class MessageContextLoaderTest {
         PaymentCycle currentPaymentCycle = aValidPaymentCycle();
         UUID currentPaymentCycleId = currentPaymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
-        lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.of(previousPaymentCycle));
+        lenient().when(paymentCycleRepository.findById(any()))
+                .thenReturn(Optional.of(currentPaymentCycle))
+                .thenReturn(Optional.of(previousPaymentCycle));
         DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -167,15 +168,15 @@ class MessageContextLoaderTest {
     @Test
     void shouldFailToLoadEntitlementContextIfClaimNotFound() {
         //Given
-        Claim claim = ClaimTestDataFactory.aValidClaim();
-        UUID claimId = claim.getId();
+        UUID claimId = UUID.randomUUID();
         PaymentCycle previousPaymentCycle = aValidPaymentCycle();
         UUID previousPaymentCycleId = previousPaymentCycle.getId();
         PaymentCycle currentPaymentCycle = aValidPaymentCycle();
         UUID currentPaymentCycleId = currentPaymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.empty());
-        lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
-        lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.of(previousPaymentCycle));
+        lenient().when(paymentCycleRepository.findById(any()))
+                .thenReturn(Optional.of(currentPaymentCycle))
+                .thenReturn(Optional.of(previousPaymentCycle));
         DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -198,7 +199,7 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         UUID previousPaymentCycleId = UUID.randomUUID();
         UUID currentPaymentCycleId = UUID.randomUUID();
-        lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.empty());
+        lenient().when(paymentCycleRepository.findById(any())).thenReturn(Optional.empty());
         DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -220,8 +221,9 @@ class MessageContextLoaderTest {
         UUID previousPaymentCycleId = UUID.randomUUID();
         PaymentCycle currentPaymentCycle = aValidPaymentCycle();
         UUID currentPaymentCycleId = currentPaymentCycle.getId();
-        lenient().when(paymentCycleRepository.findById(currentPaymentCycleId)).thenReturn(Optional.of(currentPaymentCycle));
-        lenient().when(paymentCycleRepository.findById(previousPaymentCycleId)).thenReturn(Optional.empty());
+        lenient().when(paymentCycleRepository.findById(any()))
+                .thenReturn(Optional.of(currentPaymentCycle))
+                .thenReturn(Optional.empty());
         DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -247,7 +249,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         String cardAccountId = "cardId";
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        given(paymentCycleRepository.findById(paymentCycleId)).willReturn(Optional.of(paymentCycle));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
@@ -273,7 +275,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         String cardAccountId = "cardId";
         given(claimRepository.findById(any())).willReturn(Optional.empty());
-        given(paymentCycleRepository.findById(paymentCycleId)).willReturn(Optional.of(paymentCycle));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
@@ -294,7 +296,7 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
         String cardAccountId = "cardId";
-        given(paymentCycleRepository.findById(paymentCycleId)).willReturn(Optional.empty());
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
         MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);

@@ -1,9 +1,12 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;

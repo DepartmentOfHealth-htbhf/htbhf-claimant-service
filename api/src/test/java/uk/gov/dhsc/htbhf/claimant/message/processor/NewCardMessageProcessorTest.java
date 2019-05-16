@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message;
+package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.transaction.TestTransaction;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -21,11 +23,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidNewCardMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithPayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -64,7 +65,7 @@ class NewCardMessageProcessorTest {
     @Test
     void shouldCreateNewCardAndDeleteMessage() {
         //Given
-        NewCardMessageContext context = buildNewCardMessageContext();
+        NewCardMessageContext context = aValidNewCardMessageContext();
         given(messageContextLoader.loadNewCardContext(any())).willReturn(context);
         Message message = aValidMessage();
 
@@ -79,10 +80,4 @@ class NewCardMessageProcessorTest {
         verify(messageRepository).delete(message);
     }
 
-    private NewCardMessageContext buildNewCardMessageContext() {
-        return NewCardMessageContext.builder()
-                .claim(aValidClaim())
-                .paymentCycleVoucherEntitlement(aValidPaymentCycleVoucherEntitlement())
-                .build();
-    }
 }
