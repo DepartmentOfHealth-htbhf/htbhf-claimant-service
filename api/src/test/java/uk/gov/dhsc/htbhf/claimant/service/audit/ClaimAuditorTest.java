@@ -44,7 +44,6 @@ class ClaimAuditorTest {
         UUID claimId = claim.getId();
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
-        assertThat(eventArgumentCaptor.getAllValues()).hasSize(1);
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CLAIM);
         assertThat(actualEvent.getTimestamp()).isNotNull();
@@ -77,7 +76,6 @@ class ClaimAuditorTest {
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
-        assertThat(eventArgumentCaptor.getAllValues()).hasSize(1);
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CARD);
         assertThat(actualEvent.getTimestamp()).isNotNull();
@@ -121,7 +119,6 @@ class ClaimAuditorTest {
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
-        assertThat(eventArgumentCaptor.getAllValues()).hasSize(1);
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(MAKE_PAYMENT);
         assertThat(actualEvent.getTimestamp()).isNotNull();

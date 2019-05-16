@@ -46,7 +46,7 @@ public class PaymentService {
                 .paymentCycle(paymentCycle)
                 .build();
         DepositFundsResponse response = depositFundsToCard(payment);
-        updateAndSavePayment(payment, response);
+        updateAndSavePayment(payment, response.getReferenceId());
         claimAuditor.auditMakePayment(claim.getId(), payment.getId(), response.getReferenceId());
         return payment;
     }
@@ -59,8 +59,8 @@ public class PaymentService {
         return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);
     }
 
-    private void updateAndSavePayment(Payment payment, DepositFundsResponse response) {
-        payment.setPaymentReference(response.getReferenceId());
+    private void updateAndSavePayment(Payment payment, String referenceId) {
+        payment.setPaymentReference(referenceId);
         payment.setPaymentTimestamp(LocalDateTime.now());
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         paymentRepository.save(payment);
