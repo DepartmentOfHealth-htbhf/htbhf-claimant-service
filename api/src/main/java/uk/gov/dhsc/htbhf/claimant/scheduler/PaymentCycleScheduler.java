@@ -45,7 +45,16 @@ public class PaymentCycleScheduler {
         List<ClosingPaymentCycle> cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);
 
         log.info("Creating new PaymentCycles for {} claims", cycles.size());
-        cycles.forEach(cycle -> job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));
+        cycles.forEach(this::createNewPaymentCycle);
         log.debug("Finished creating new PaymentCycles for {} claims", cycles.size());
+    }
+
+    private void createNewPaymentCycle(ClosingPaymentCycle cycle) {
+        try {
+            job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1));
+        } catch (RuntimeException e) {
+            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail from java common and include it in error handling
+            log.error("Unable to create new payment cycle for claim {}", cycle.getClaimId(), e);
+        }
     }
 }

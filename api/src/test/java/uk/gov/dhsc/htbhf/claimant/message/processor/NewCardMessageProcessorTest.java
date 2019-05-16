@@ -10,12 +10,14 @@ import org.springframework.test.context.transaction.TestTransaction;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.*;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -43,12 +45,8 @@ class NewCardMessageProcessorTest {
 
     @MockBean
     private NewCardService newCardService;
-
     @MockBean
     private MessageContextLoader messageContextLoader;
-
-    @MockBean
-    private MessageRepository messageRepository;
     @MockBean
     private PaymentCycleService paymentCycleService;
     @MockBean
@@ -71,7 +69,7 @@ class NewCardMessageProcessorTest {
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
         verify(messageContextLoader).loadNewCardContext(message);
-        verifyZeroInteractions(newCardService, messageRepository);
+        verifyZeroInteractions(newCardService);
     }
 
     @Test
@@ -97,7 +95,6 @@ class NewCardMessageProcessorTest {
                 cycleStartDate,
                 context.getPaymentCycleVoucherEntitlement());
         verifyMakeFirstPaymentMessageSent(context.getClaim(), paymentCycle);
-        verify(messageRepository).delete(message);
     }
 
     private PaymentCycle aValidPaymentCycleForContext(NewCardMessageContext context, LocalDate cycleStartDate) {

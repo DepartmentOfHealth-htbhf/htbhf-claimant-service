@@ -19,11 +19,14 @@ import static java.util.UUID.randomUUID;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleSchedulerTest {
 
     private static final int END_DATE_OFFSET_DAYS = 2;
+    private static final LocalDate TODAY = LocalDate.now();
 
     @Mock
     PaymentCycleRepository paymentCycleRepository;
@@ -31,7 +34,7 @@ class PaymentCycleSchedulerTest {
     @Mock
     CreateNewPaymentCycleJob job;
 
-    PaymentCycleScheduler scheduler;
+    private PaymentCycleScheduler scheduler;
 
     @BeforeEach
     void setUp() {
@@ -39,21 +42,43 @@ class PaymentCycleSchedulerTest {
     }
 
     @Test
+    void shouldContinueToProcessAfterException() {
+        ClosingPaymentCycle paymentCycle1 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY);
+        ClosingPaymentCycle paymentCycle2 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY.minusDays(2));
+        ClosingPaymentCycle paymentCycle3 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY.minusDays(1));
+        List<ClosingPaymentCycle> matchingCycles = List.of(paymentCycle1, paymentCycle2, paymentCycle3);
+
+        given(paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(any())).willReturn(matchingCycles);
+        given(job.createNewPaymentCycle(any(), any(), any()))
+                .willThrow(new RuntimeException("foo"))
+                .willReturn(aValidPaymentCycle())
+                .willReturn(aValidPaymentCycle());
+
+        scheduler.createNewPaymentCycles();
+
+        verify(paymentCycleRepository).findActiveClaimsWithCycleEndingOnOrBefore(TODAY.plusDays(END_DATE_OFFSET_DAYS));
+        verify(job).createNewPaymentCycle(paymentCycle1.getClaimId(), paymentCycle1.getCycleId(), paymentCycle1.getCycleEndDate().plusDays(1));
+        verify(job).createNewPaymentCycle(paymentCycle2.getClaimId(), paymentCycle2.getCycleId(), paymentCycle2.getCycleEndDate().plusDays(1));
+        verify(job).createNewPaymentCycle(paymentCycle3.getClaimId(), paymentCycle3.getCycleId(), paymentCycle3.getCycleEndDate().plusDays(1));
+        verifyNoMoreInteractions(job);
+    }
+
+    @Test
     void shouldInvokeJobOnceForEachCycleWithIncrementedStartDate() {
-        LocalDate today = LocalDate.now();
-        List<ClosingPaymentCycle> matchingCycles = List.of(
-                createClosingPaymentCycle(randomUUID(), randomUUID(), today),
-                createClosingPaymentCycle(randomUUID(), randomUUID(), today.minusDays(2)),
-                createClosingPaymentCycle(randomUUID(), randomUUID(), today.minusDays(1))
-        );
+        ClosingPaymentCycle paymentCycle1 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY);
+        ClosingPaymentCycle paymentCycle2 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY.minusDays(2));
+        ClosingPaymentCycle paymentCycle3 = createClosingPaymentCycle(randomUUID(), randomUUID(), TODAY.minusDays(1));
+        List<ClosingPaymentCycle> matchingCycles = List.of(paymentCycle1, paymentCycle2, paymentCycle3);
+
         given(paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(any())).willReturn(matchingCycles);
 
         scheduler.createNewPaymentCycles();
 
-        verify(paymentCycleRepository).findActiveClaimsWithCycleEndingOnOrBefore(today.plusDays(END_DATE_OFFSET_DAYS));
-        matchingCycles.forEach(match -> {
-            verify(job).createNewPaymentCycle(match.getClaimId(), match.getCycleId(), match.getCycleEndDate().plusDays(1));
-        });
+        verify(paymentCycleRepository).findActiveClaimsWithCycleEndingOnOrBefore(TODAY.plusDays(END_DATE_OFFSET_DAYS));
+        verify(job).createNewPaymentCycle(paymentCycle1.getClaimId(), paymentCycle1.getCycleId(), paymentCycle1.getCycleEndDate().plusDays(1));
+        verify(job).createNewPaymentCycle(paymentCycle2.getClaimId(), paymentCycle2.getCycleId(), paymentCycle2.getCycleEndDate().plusDays(1));
+        verify(job).createNewPaymentCycle(paymentCycle3.getClaimId(), paymentCycle3.getCycleId(), paymentCycle3.getCycleEndDate().plusDays(1));
+        verifyNoMoreInteractions(job);
     }
 
     ClosingPaymentCycle createClosingPaymentCycle(UUID claimId, UUID cycleId, LocalDate endDate) {
@@ -71,8 +96,7 @@ class PaymentCycleSchedulerTest {
             @Override
             public Timestamp getCycleEndDateTimestamp() {
                 Date date = Date.from(endDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-                Timestamp timeStamp = new Timestamp(date.getTime());
-                return timeStamp;
+                return new Timestamp(date.getTime());
             }
         };
     }

@@ -21,7 +21,6 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -62,8 +61,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 class DetermineEntitlementMessageProcessorTest {
 
     @MockBean
-    private MessageRepository messageRepository;
-    @MockBean
     private EligibilityService eligibilityService;
     @MockBean
     private CycleEntitlementCalculator cycleEntitlementCalculator;
@@ -91,7 +88,7 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verifyZeroInteractions(eligibilityService, messageRepository, cycleEntitlementCalculator, messageContextLoader, paymentCycleRepository);
+        verifyZeroInteractions(eligibilityService, cycleEntitlementCalculator, messageContextLoader, paymentCycleRepository);
     }
 
     @Test
@@ -128,7 +125,6 @@ class DetermineEntitlementMessageProcessorTest {
         verifyPaymentCycleUpdatedSuccessfully(context.getCurrentPaymentCycle().getId(), currentPaymentCycleVoucherEntitlement, ELIGIBLE);
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
-        verify(messageRepository).delete(message);
     }
 
     @Test
@@ -153,7 +149,6 @@ class DetermineEntitlementMessageProcessorTest {
         verify(eligibilityService).determineEligibility(context.getClaim().getClaimant());
 
         verifyPaymentCycleUpdatedSuccessfully(context.getCurrentPaymentCycle().getId(), null, INELIGIBLE);
-        verify(messageRepository).delete(message);
         verifyZeroInteractions(cycleEntitlementCalculator, messageQueueDAO);
     }
 

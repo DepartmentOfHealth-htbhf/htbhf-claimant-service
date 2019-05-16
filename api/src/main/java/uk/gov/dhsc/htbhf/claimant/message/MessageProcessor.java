@@ -55,7 +55,7 @@ public class MessageProcessor {
         log.info("Processing {} message(s) of type {}", messages.size(), messageType);
         MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);
         List<MessageStatus> statuses = messages.stream()
-                .map(messageTypeProcessor::processMessage)
+                .map(message -> processMessage(message, messageTypeProcessor))
                 .collect(Collectors.toList());
 
         logResults(statuses, messageTypeProcessor);
@@ -68,6 +68,23 @@ public class MessageProcessor {
                     + messageType + ", there are " + messages.size() + " message(s) in the queue");
         }
         return messageTypeProcessor;
+    }
+
+    private MessageStatus processMessage(Message message, MessageTypeProcessor messageTypeProcessor) {
+        try {
+            MessageStatus status = messageTypeProcessor.processMessage(message);
+            if (status == MessageStatus.COMPLETED) {
+                messageRepository.delete(message);
+            }
+            // TODO: HTBHF-1285: handle other message statuses
+            return status;
+        } catch (RuntimeException e) {
+            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail
+            //                  from java common and include it in error handling
+            log.error("Unable to process message with id {}", message.getId(), e);
+            // TODO: HTBHF-1285: increment delivery count and message timestamp
+            return MessageStatus.ERROR;
+        }
     }
 
     private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
