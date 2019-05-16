@@ -3,22 +3,67 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
+import uk.gov.dhsc.htbhf.claimant.service.CardClient;
+import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+
+import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L14">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 public class PaymentService {
 
     private MessageQueueClient messageQueueClient;
+    private CardClient cardClient;
+    private PaymentRepository paymentRepository;
+    private ClaimAuditor claimAuditor;
 
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L20">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L21">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L22">    }</span>
+<span class="fc" id="L33">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L34">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L35">    }</span>
+
+    public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
+<span class="fc" id="L38">        Claim claim = paymentCycle.getClaim();</span>
+<span class="fc" id="L39">        Integer amountToPay = paymentCycle.getTotalEntitlementAmountInPence();</span>
+        // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
+        // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
+<span class="fc" id="L42">        Payment payment = Payment.builder()</span>
+<span class="fc" id="L43">                .cardAccountId(cardAccountId)</span>
+<span class="fc" id="L44">                .claim(claim)</span>
+<span class="fc" id="L45">                .paymentAmountInPence(amountToPay)</span>
+<span class="fc" id="L46">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L47">                .build();</span>
+<span class="fc" id="L48">        DepositFundsResponse response = depositFundsToCard(payment);</span>
+<span class="fc" id="L49">        updateAndSavePayment(payment, response.getReferenceId());</span>
+<span class="fc" id="L50">        claimAuditor.auditMakePayment(claim.getId(), payment.getId(), response.getReferenceId());</span>
+<span class="fc" id="L51">        return payment;</span>
+    }
+
+    private DepositFundsResponse depositFundsToCard(Payment payment) {
+<span class="fc" id="L55">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
+<span class="fc" id="L56">                .reference(payment.getId().toString())</span>
+<span class="fc" id="L57">                .amountInPence(payment.getPaymentAmountInPence())</span>
+<span class="fc" id="L58">                .build();</span>
+<span class="fc" id="L59">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
+    }
+
+    private void updateAndSavePayment(Payment payment, String referenceId) {
+<span class="fc" id="L63">        payment.setPaymentReference(referenceId);</span>
+<span class="fc" id="L64">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
+<span class="fc" id="L65">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
+<span class="fc" id="L66">        paymentRepository.save(payment);</span>
+<span class="fc" id="L67">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -48,5 +48,14 @@ public class ClaimAuditor {
 <span class="fc" id="L48">                .build();</span>
 <span class="fc" id="L49">        eventLogger.logEvent(newCardEvent);</span>
 <span class="fc" id="L50">    }</span>
+
+    public void auditMakePayment(UUID claimId, UUID paymentId, String paymentReference) {
+<span class="fc" id="L53">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
+<span class="fc" id="L54">                .claimId(claimId)</span>
+<span class="fc" id="L55">                .paymentId(paymentId)</span>
+<span class="fc" id="L56">                .reference(paymentReference)</span>
+<span class="fc" id="L57">                .build();</span>
+<span class="fc" id="L58">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L59">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
