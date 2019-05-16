@@ -45,4 +45,13 @@ class EligibilityResponseTest {
 
         assertThat(dateOfBirthOfChildren).isEmpty();
     }
+
+    @Test
+    void shouldReturnEmptyListForDateOfBirthOfChildrenWhenNullChildren() {
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildren(null);
+
+        List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
+
+        assertThat(dateOfBirthOfChildren).isEmpty();
+    }
 }
