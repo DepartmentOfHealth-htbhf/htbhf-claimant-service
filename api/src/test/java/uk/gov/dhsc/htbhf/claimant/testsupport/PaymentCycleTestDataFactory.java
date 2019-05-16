@@ -21,17 +21,20 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder().build();
     }
 
-    public static PaymentCycle aPaymentCycleWithCycleStartDateAndEntitlement(LocalDate startDate,
-                                                                             PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement) {
+    public static PaymentCycle aPaymentCycleWithCycleStartDateEntitlementAndClaim(LocalDate startDate,
+                                                                                  PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement,
+                                                                                  Claim claim) {
         return aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
                 .voucherEntitlement(paymentCycleVoucherEntitlement)
+                .claim(claim)
                 .build();
     }
 
-    public static PaymentCycle aPaymentCycleWithCycleStartDate(LocalDate startDate) {
+    public static PaymentCycle aPaymentCycleWithCycleStartDateAndClaim(LocalDate startDate, Claim claim) {
         return aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
+                .claim(claim)
                 .build();
     }
 

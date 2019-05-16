@@ -5,26 +5,32 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 
 @Slf4j
 @Component
@@ -40,6 +46,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private MessageContextLoader messageContextLoader;
 
     private PaymentCycleRepository paymentCycleRepository;
+
+    private MessageQueueClient messageQueueClient;
 
     @Override
     public MessageType supportsMessageType() {
@@ -59,16 +67,22 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     public MessageStatus processMessage(Message message) {
 
         DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
-        Claimant claimant = messageContext.getClaim().getClaimant();
+        Claim claim = messageContext.getClaim();
+        Claimant claimant = claim.getClaimant();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
         EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
-        PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
-                currentPaymentCycle,
-                previousPaymentCycle,
-                eligibilityResponse,
-                claimant);
+        PaymentCycleVoucherEntitlement voucherEntitlement = null;
+        if (EligibilityStatus.ELIGIBLE == eligibilityResponse.getEligibilityStatus()) {
+            voucherEntitlement = determineVoucherEntitlement(
+                    currentPaymentCycle,
+                    previousPaymentCycle,
+                    eligibilityResponse,
+                    claimant);
+            MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(currentPaymentCycle);
+            messageQueueClient.sendMessage(messagePayload, MAKE_PAYMENT);
+        }
 
         updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
 

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -12,9 +13,9 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
-import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,15 +25,20 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 @ExtendWith(MockitoExtension.class)
 class MessageContextLoaderTest {
 
-    public static final String CARD_ACCOUNT_ID = "myCardAccountId";
     @Mock
     private ClaimRepository claimRepository;
 
@@ -50,13 +56,13 @@ class MessageContextLoaderTest {
     @Test
     void shouldSuccessfullyLoadPaymentContext() {
         //Given
-        Claim claim = ClaimTestDataFactory.aValidClaim();
+        Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         PaymentCycle paymentCycle = aValidPaymentCycle();
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -81,7 +87,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         given(claimRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -100,7 +106,7 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
         given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = buildPaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -135,7 +141,7 @@ class MessageContextLoaderTest {
     @Test
     void shouldSuccessfullyLoadEntitlementContext() {
         //Given
-        Claim claim = ClaimTestDataFactory.aValidClaim();
+        Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         PaymentCycle previousPaymentCycle = aValidPaymentCycle();
         UUID previousPaymentCycleId = previousPaymentCycle.getId();
@@ -145,7 +151,11 @@ class MessageContextLoaderTest {
         lenient().when(paymentCycleRepository.findById(any()))
                 .thenReturn(Optional.of(currentPaymentCycle))
                 .thenReturn(Optional.of(previousPaymentCycle));
-        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = DetermineEntitlementMessagePayload.builder()
+                .claimId(claimId)
+                .previousPaymentCycleId(previousPaymentCycleId)
+                .currentPaymentCycleId(currentPaymentCycleId)
+                .build();
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -177,7 +187,11 @@ class MessageContextLoaderTest {
         lenient().when(paymentCycleRepository.findById(any()))
                 .thenReturn(Optional.of(currentPaymentCycle))
                 .thenReturn(Optional.of(previousPaymentCycle));
-        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = DetermineEntitlementMessagePayload.builder()
+                .claimId(claimId)
+                .previousPaymentCycleId(previousPaymentCycleId)
+                .currentPaymentCycleId(currentPaymentCycleId)
+                .build();
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -200,7 +214,11 @@ class MessageContextLoaderTest {
         UUID previousPaymentCycleId = UUID.randomUUID();
         UUID currentPaymentCycleId = UUID.randomUUID();
         lenient().when(paymentCycleRepository.findById(any())).thenReturn(Optional.empty());
-        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = DetermineEntitlementMessagePayload.builder()
+                .claimId(claimId)
+                .previousPaymentCycleId(previousPaymentCycleId)
+                .currentPaymentCycleId(currentPaymentCycleId)
+                .build();
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -224,7 +242,11 @@ class MessageContextLoaderTest {
         lenient().when(paymentCycleRepository.findById(any()))
                 .thenReturn(Optional.of(currentPaymentCycle))
                 .thenReturn(Optional.empty());
-        DetermineEntitlementMessagePayload payload = buildEntitlementPayload(claimId, previousPaymentCycleId, currentPaymentCycleId);
+        DetermineEntitlementMessagePayload payload = DetermineEntitlementMessagePayload.builder()
+                .claimId(claimId)
+                .previousPaymentCycleId(previousPaymentCycleId)
+                .currentPaymentCycleId(currentPaymentCycleId)
+                .build();
         given(payloadMapper.getPayload(any(), eq(DetermineEntitlementMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -243,14 +265,13 @@ class MessageContextLoaderTest {
     @Test
     void shouldSuccessfullyLoadMakePaymentMessagePayload() {
         //Given
-        Claim claim = ClaimTestDataFactory.aValidClaim();
+        Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         PaymentCycle paymentCycle = aValidPaymentCycle();
         UUID paymentCycleId = paymentCycle.getId();
-        String cardAccountId = "cardId";
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -260,7 +281,7 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
-        assertThat(context.getCardAccountId()).isEqualTo(cardAccountId);
+        assertThat(context.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
         verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
         verify(claimRepository).findById(claimId);
@@ -273,10 +294,9 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         PaymentCycle paymentCycle = aValidPaymentCycle();
         UUID paymentCycleId = paymentCycle.getId();
-        String cardAccountId = "cardId";
         given(claimRepository.findById(any())).willReturn(Optional.empty());
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -295,9 +315,8 @@ class MessageContextLoaderTest {
         //Given
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
-        String cardAccountId = "cardId";
         given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = buildMakePaymentPayload(claimId, paymentCycleId, cardAccountId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -310,27 +329,26 @@ class MessageContextLoaderTest {
         verify(paymentCycleRepository).findById(paymentCycleId);
     }
 
-    private DetermineEntitlementMessagePayload buildEntitlementPayload(UUID claimId, UUID previousPaymentCycleId, UUID currentPaymentCycleId) {
-        return DetermineEntitlementMessagePayload.builder()
-                .claimId(claimId)
-                .currentPaymentCycleId(currentPaymentCycleId)
-                .previousPaymentCycleId(previousPaymentCycleId)
-                .build();
+    @Test
+    void shouldSuccessfullyLoadNewCardContext() {
+        //Given
+        Claim claim = aValidClaim();
+        UUID claimId = claim.getId();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
+        NewCardRequestMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement);
+        given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(CREATE_NEW_CARD);
+
+        //When
+        NewCardMessageContext context = loader.loadNewCardContext(message);
+
+        //Then
+        assertThat(context).isNotNull();
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycleVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
+        verify(claimRepository).findById(claimId);
     }
 
-    private MakePaymentMessagePayload buildMakePaymentPayload(UUID claimId, UUID paymentCycleId, String cardAccountId) {
-        return MakePaymentMessagePayload.builder()
-                .claimId(claimId)
-                .cardAccountId(cardAccountId)
-                .paymentCycleId(paymentCycleId)
-                .build();
-    }
-
-    private MakePaymentMessagePayload buildPaymentPayload(UUID claimId, UUID paymentCycleId) {
-        return MakePaymentMessagePayload.builder()
-                .claimId(claimId)
-                .paymentCycleId(paymentCycleId)
-                .cardAccountId(CARD_ACCOUNT_ID)
-                .build();
-    }
 }

@@ -23,8 +23,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.NewCardRequestMessagePayloadTestDataFactory.PAYLOAD_JSON;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.NewCardRequestMessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.NEW_CARD_PAYLOAD_JSON;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
 
 @SpringBootTest
 @Transactional
@@ -44,7 +44,7 @@ class MessageQueueDAOTest {
     void sendNewCardRequestMessage() throws JsonProcessingException {
         //Given
         NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
-        given(objectMapper.writeValueAsString(any(NewCardRequestMessagePayload.class))).willReturn(PAYLOAD_JSON);
+        given(objectMapper.writeValueAsString(any(NewCardRequestMessagePayload.class))).willReturn(NEW_CARD_PAYLOAD_JSON);
         //When
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
 
@@ -54,7 +54,7 @@ class MessageQueueDAOTest {
         verify(messageRepository).save(messageArgumentCaptor.capture());
         assertThat(messageArgumentCaptor.getAllValues()).hasSize(1);
         Message actualMessage = messageArgumentCaptor.getValue();
-        assertThat(actualMessage.getMessagePayload()).isEqualTo(PAYLOAD_JSON);
+        assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
         assertThat(actualMessage.getMessageTimestamp()).isNotNull();
         assertThat(TestTransaction.isActive()).isTrue();
