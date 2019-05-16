@@ -7,10 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
-import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
@@ -24,27 +22,25 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L27">@Slf4j</span>
+<span class="fc" id="L25">@Slf4j</span>
 public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
     private MessageRepository messageRepository;
-    private PayloadMapper payloadMapper;
     private MessageContextLoader messageContextLoader;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L38">        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);</span>
-<span class="fc" id="L39">        MakePaymentMessageContext messageContext = messageContextLoader.loadContext(payload);</span>
-<span class="fc" id="L40">        paymentService.makePayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
-<span class="fc" id="L41">        messageRepository.delete(message);</span>
-<span class="fc" id="L42">        return COMPLETED;</span>
+<span class="fc" id="L35">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L36">        paymentService.makePayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
+<span class="fc" id="L37">        messageRepository.delete(message);</span>
+<span class="fc" id="L38">        return COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L47">        return MAKE_PAYMENT;</span>
+<span class="fc" id="L43">        return MAKE_PAYMENT;</span>
     }
 
 }

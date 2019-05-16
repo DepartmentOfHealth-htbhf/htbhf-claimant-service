@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
+import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -16,69 +19,92 @@ import java.util.UUID;
 
 @Component
 @AllArgsConstructor
-<span class="fc" id="L19">@Slf4j</span>
+<span class="fc" id="L22">@Slf4j</span>
 public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
 
     private PaymentCycleRepository paymentCycleRepository;
 
+    private PayloadMapper payloadMapper;
+
     /**
      * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
      *
-     * @param payload The payload containing the object ids
-     * @return A wrapper object with the inflated objects
+     * @param message The message containing the payload to inflate
+     * @return A wrapper object with the inflated objects from the message
      */
-    public DetermineEntitlementMessageContext loadContext(DetermineEntitlementMessagePayload payload) {
+    public DetermineEntitlementMessageContext loadDetermineEntitlementContext(Message message) {
 
-<span class="fc" id="L34">        PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), &quot;current payment cycle&quot;);</span>
-<span class="fc" id="L35">        PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), &quot;previous payment cycle&quot;);</span>
-<span class="fc" id="L36">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L39">        DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);</span>
 
-<span class="fc" id="L38">        return DetermineEntitlementMessageContext.builder()</span>
-<span class="fc" id="L39">                .currentPaymentCycle(currentPaymentCycle)</span>
-<span class="fc" id="L40">                .previousPaymentCycle(previousPaymentCycle)</span>
-<span class="fc" id="L41">                .claim(claim)</span>
-<span class="fc" id="L42">                .build();</span>
+<span class="fc" id="L41">        PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), &quot;current payment cycle&quot;);</span>
+<span class="fc" id="L42">        PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), &quot;previous payment cycle&quot;);</span>
+<span class="fc" id="L43">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+
+<span class="fc" id="L45">        return DetermineEntitlementMessageContext.builder()</span>
+<span class="fc" id="L46">                .currentPaymentCycle(currentPaymentCycle)</span>
+<span class="fc" id="L47">                .previousPaymentCycle(previousPaymentCycle)</span>
+<span class="fc" id="L48">                .claim(claim)</span>
+<span class="fc" id="L49">                .build();</span>
     }
 
     /**
      * Method used to inflate the contents of the objects identified by ids in the MAKE_PAYMENT message payload.
      *
-     * @param payload The payload containing the object ids
+     * @param message The message containing the payload to inflate
      * @return A wrapper object with the inflated objects
      */
-    public MakePaymentMessageContext loadContext(MakePaymentMessagePayload payload) {
-<span class="fc" id="L52">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), &quot;payment cycle&quot;);</span>
-<span class="fc" id="L53">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+    public MakePaymentMessageContext loadMakePaymentContext(Message message) {
 
-<span class="fc" id="L55">        return MakePaymentMessageContext.builder()</span>
-<span class="fc" id="L56">                .cardAccountId(payload.getCardAccountId())</span>
-<span class="fc" id="L57">                .claim(claim)</span>
-<span class="fc" id="L58">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L59">                .build();</span>
+<span class="fc" id="L60">        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);</span>
+
+<span class="fc" id="L62">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), &quot;payment cycle&quot;);</span>
+<span class="fc" id="L63">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+
+<span class="fc" id="L65">        return MakePaymentMessageContext.builder()</span>
+<span class="fc" id="L66">                .cardAccountId(payload.getCardAccountId())</span>
+<span class="fc" id="L67">                .claim(claim)</span>
+<span class="fc" id="L68">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L69">                .build();</span>
+    }
+
+    /**
+     * Method used to inflate the contents of a NEW_CARD message, which is currently just the claim.
+     *
+     * @param message The message to inflate.
+     * @return A wrapper object with the inflated objects
+     */
+    public NewCardMessageContext loadNewCardContext(Message message) {
+<span class="nc" id="L79">        NewCardRequestMessagePayload payload = payloadMapper.getPayload(message, NewCardRequestMessagePayload.class);</span>
+
+<span class="nc" id="L81">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="nc" id="L82">        return NewCardMessageContext.builder()</span>
+<span class="nc" id="L83">                .claim(claim)</span>
+<span class="nc" id="L84">                .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())</span>
+<span class="nc" id="L85">                .build();</span>
     }
 
     private Claim getAndCheckClaim(UUID claimId) {
-<span class="fc" id="L63">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
-<span class="nc" id="L65">            logAndThrowException(&quot;claim&quot;, claimId);</span>
+<span class="fc" id="L89">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
+<span class="nc" id="L91">            logAndThrowException(&quot;claim&quot;, claimId);</span>
         }
-<span class="fc" id="L67">        return claim.get();</span>
+<span class="fc" id="L93">        return claim.get();</span>
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {
-<span class="fc" id="L71">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
-<span class="nc" id="L73">            logAndThrowException(cycleName, paymentCycleId);</span>
+<span class="fc" id="L97">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
+<span class="nc" id="L99">            logAndThrowException(cycleName, paymentCycleId);</span>
         }
-<span class="fc" id="L75">        return paymentCycle.get();</span>
+<span class="fc" id="L101">        return paymentCycle.get();</span>
     }
 
     private void logAndThrowException(String fieldName, UUID uuid) {
-<span class="fc" id="L79">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
-<span class="fc" id="L80">        log.error(errorMessage);</span>
-<span class="fc" id="L81">        throw new MessageProcessingException(errorMessage);</span>
+<span class="fc" id="L105">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
+<span class="fc" id="L106">        log.error(errorMessage);</span>
+<span class="fc" id="L107">        throw new MessageProcessingException(errorMessage);</span>
     }
 
 }
