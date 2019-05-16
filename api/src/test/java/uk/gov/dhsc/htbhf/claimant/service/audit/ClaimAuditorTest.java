@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
@@ -43,7 +44,6 @@ class ClaimAuditorTest {
         UUID claimId = claim.getId();
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
-        assertThat(eventArgumentCaptor.getAllValues()).hasSize(1);
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CLAIM);
         assertThat(actualEvent.getTimestamp()).isNotNull();
@@ -76,7 +76,6 @@ class ClaimAuditorTest {
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
-        assertThat(eventArgumentCaptor.getAllValues()).hasSize(1);
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CARD);
         assertThat(actualEvent.getTimestamp()).isNotNull();
@@ -105,5 +104,31 @@ class ClaimAuditorTest {
 
         //Then
         verifyZeroInteractions(eventLogger);
+    }
+
+    @Test
+    void shouldLogEventForMakePayment() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        String reference = "myPaymentReference";
+
+        //When
+        claimAuditor.auditMakePayment(claimId, paymentId, reference);
+
+        //Then
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(MAKE_PAYMENT);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata())
+                .isNotNull()
+                .hasSize(3)
+                .containsExactly(
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
+                        entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), paymentId),
+                        entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), reference));
+
     }
 }

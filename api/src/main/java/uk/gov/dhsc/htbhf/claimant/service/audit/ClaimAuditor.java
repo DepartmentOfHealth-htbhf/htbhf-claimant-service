@@ -48,4 +48,13 @@ public class ClaimAuditor {
                 .build();
         eventLogger.logEvent(newCardEvent);
     }
+
+    public void auditMakePayment(UUID claimId, UUID paymentId, String paymentReference) {
+        MakePaymentEvent event = MakePaymentEvent.builder()
+                .claimId(claimId)
+                .paymentId(paymentId)
+                .reference(paymentReference)
+                .build();
+        eventLogger.logEvent(event);
+    }
 }

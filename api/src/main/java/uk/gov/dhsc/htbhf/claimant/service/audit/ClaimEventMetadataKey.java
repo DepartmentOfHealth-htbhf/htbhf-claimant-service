@@ -8,7 +8,9 @@ public enum ClaimEventMetadataKey {
     CLAIM_ID("claimId"),
     CLAIM_STATUS("claimStatus"),
     ELIGIBILITY_STATUS("eligibilityStatus"),
-    CARD_ACCOUNT_ID("cardAccountId");
+    CARD_ACCOUNT_ID("cardAccountId"),
+    PAYMENT_ID("paymentId"),
+    PAYMENT_REFERENCE("paymentReference");
 
     private String key;
 
