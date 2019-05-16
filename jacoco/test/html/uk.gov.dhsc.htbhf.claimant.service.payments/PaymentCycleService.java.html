@@ -2,11 +2,14 @@
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
+
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
 public class PaymentCycleService {
@@ -15,10 +18,10 @@ public class PaymentCycleService {
     private final Integer cycleDurationInDays;
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
-<span class="fc" id="L18">                               @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays) {</span>
-<span class="fc" id="L19">        this.paymentCycleRepository = paymentCycleRepository;</span>
-<span class="fc" id="L20">        this.cycleDurationInDays = cycleDurationInDays;</span>
-<span class="fc" id="L21">    }</span>
+<span class="fc" id="L21">                               @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays) {</span>
+<span class="fc" id="L22">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L23">        this.cycleDurationInDays = cycleDurationInDays;</span>
+<span class="fc" id="L24">    }</span>
 
     /**
      * Creates a new payment cycle for the given claim and cycle start date, saving it in the database.
@@ -28,13 +31,34 @@ public class PaymentCycleService {
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
-<span class="fc" id="L31">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L32">                .claim(claim)</span>
-<span class="fc" id="L33">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L34">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
-<span class="fc" id="L35">                .build();</span>
-<span class="fc" id="L36">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L37">        return paymentCycle;</span>
+<span class="fc" id="L34">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L35">                .claim(claim)</span>
+<span class="fc" id="L36">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L37">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L38">                .build();</span>
+<span class="fc" id="L39">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L40">        return paymentCycle;</span>
+    }
+
+    /**
+     * Creates a new payment cycle, saving it in the database.
+     * The cycle end date is set to the start date plus the payment cycle duration time.
+     * EligibilityStatus is set to ELIGIBLE.
+     * @param claim claim to create a payment cycle for
+     * @param cycleStartDate the start date of the new payment cycle
+     * @param voucherEntitlement the vouchers the claimant is entitled to during this cycle
+     * @return the new payment cycle.
+     */
+    public PaymentCycle createAndSavePaymentCycleForEligibleClaim(Claim claim, LocalDate cycleStartDate, PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc" id="L53">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L54">                .claim(claim)</span>
+<span class="fc" id="L55">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L56">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L57">                .voucherEntitlement(voucherEntitlement)</span>
+<span class="fc" id="L58">                .eligibilityStatus(ELIGIBLE)</span>
+<span class="fc" id="L59">                .build();</span>
+<span class="fc" id="L60">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L61">        return paymentCycle;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -3,44 +3,72 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
 
+/**
+ * Responsible for processing CREATE_NEW_CARD messages by:
+ * Creating a new card,
+ * Creating a PaymentCycle for the claim,
+ * Sending a MAKE_FIRST_PAYMENT message.
+ */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L35">@Slf4j</span>
 public class NewCardMessageProcessor implements MessageTypeProcessor {
 
     private NewCardService newCardService;
-
     private MessageRepository messageRepository;
-
     private MessageContextLoader messageContextLoader;
+    private PaymentCycleService paymentCycleService;
+    private MessageQueueClient messageQueueClient;
+
+    @Override
+    public MessageType supportsMessageType() {
+<span class="fc" id="L46">        return CREATE_NEW_CARD;</span>
+    }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L34">        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);</span>
-<span class="fc" id="L35">        newCardService.createNewCard(context.getClaim());</span>
-<span class="fc" id="L36">        messageRepository.delete(message);</span>
-<span class="fc" id="L37">        return COMPLETED;</span>
+<span class="fc" id="L52">        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);</span>
+<span class="fc" id="L53">        newCardService.createNewCard(context.getClaim());</span>
+<span class="fc" id="L54">        PaymentCycle paymentCycle = createAndSavePaymentCycle(context);</span>
+<span class="fc" id="L55">        sendMakeFirstPaymentMessage(paymentCycle);</span>
+<span class="fc" id="L56">        messageRepository.delete(message);</span>
+<span class="fc" id="L57">        return COMPLETED;</span>
     }
 
-    @Override
-    public MessageType supportsMessageType() {
-<span class="fc" id="L42">        return CREATE_NEW_CARD;</span>
+    private PaymentCycle createAndSavePaymentCycle(NewCardMessageContext context) {
+<span class="fc" id="L61">        Claim claim = context.getClaim();</span>
+<span class="fc" id="L62">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(</span>
+                claim,
+<span class="fc" id="L64">                claim.getClaimStatusTimestamp().toLocalDate(),</span>
+<span class="fc" id="L65">                context.getPaymentCycleVoucherEntitlement());</span>
     }
+
+    private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
+<span class="fc" id="L69">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L70">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L71">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

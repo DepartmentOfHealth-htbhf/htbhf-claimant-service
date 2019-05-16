@@ -10,31 +10,28 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L17">@Slf4j</span>
+<span class="fc" id="L16">@Slf4j</span>
 public class NewCardService {
 
     private CardClient cardClient;
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
     private ClaimAuditor claimAuditor;
-    private PaymentCycleService paymentCycleService;
 
     @Transactional
     public void createNewCard(Claim claim) {
-<span class="fc" id="L28">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
-<span class="fc" id="L29">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L30">        saveClaimWithCardId(claim, cardResponse);</span>
-<span class="fc" id="L31">        claimAuditor.auditNewCard(claim.getId(), cardResponse);</span>
-<span class="fc" id="L32">        paymentCycleService.createAndSavePaymentCycle(claim, claim.getClaimStatusTimestamp().toLocalDate());</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L26">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L27">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L28">        saveClaimWithCardId(claim, cardResponse);</span>
+<span class="fc" id="L29">        claimAuditor.auditNewCard(claim.getId(), cardResponse);</span>
+<span class="fc" id="L30">    }</span>
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {
-<span class="fc" id="L36">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
-<span class="fc" id="L37">        claimRepository.save(claim);</span>
-<span class="fc" id="L38">    }</span>
+<span class="fc" id="L33">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
+<span class="fc" id="L34">        claimRepository.save(claim);</span>
+<span class="fc" id="L35">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
