@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
@@ -34,21 +33,37 @@ public class PaymentService {
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
-    public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-        Claim claim = paymentCycle.getClaim();
-        Integer amountToPay = paymentCycle.getTotalEntitlementAmountInPence();
-        // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
-        // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
-        Payment payment = Payment.builder()
-                .cardAccountId(cardAccountId)
-                .claim(claim)
-                .paymentAmountInPence(amountToPay)
-                .paymentCycle(paymentCycle)
-                .build();
+    public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
+        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
         DepositFundsResponse response = depositFundsToCard(payment);
         updateAndSavePayment(payment, response.getReferenceId());
-        claimAuditor.auditMakePayment(claim.getId(), payment.getId(), response.getReferenceId());
+        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
         return payment;
+    }
+
+    public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
+        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle);
+        // TODO: HTBHF-1267: If payment amount < minimum payment amount then don't make a payment (might need a new payment status)
+        Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);
+        DepositFundsResponse response = depositFundsToCard(payment);
+        updateAndSavePayment(payment, response.getReferenceId());
+        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
+        return payment;
+    }
+
+    private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
+        return Payment.builder()
+                    .cardAccountId(cardAccountId)
+                    .claim(paymentCycle.getClaim())
+                    .paymentAmountInPence(amountToPay)
+                    .paymentCycle(paymentCycle)
+                    .build();
+    }
+
+    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle) {
+        // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
+        // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
+        return paymentCycle.getTotalEntitlementAmountInPence();
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
