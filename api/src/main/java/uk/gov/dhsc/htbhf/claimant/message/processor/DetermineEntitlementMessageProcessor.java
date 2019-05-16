@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -15,7 +14,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
@@ -67,23 +65,21 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     public MessageStatus processMessage(Message message) {
 
         DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
-        Claim claim = messageContext.getClaim();
-        Claimant claimant = claim.getClaimant();
+        Claimant claimant = messageContext.getClaim().getClaimant();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
         EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
-        PaymentCycleVoucherEntitlement voucherEntitlement = null;
+
         if (EligibilityStatus.ELIGIBLE == eligibilityResponse.getEligibilityStatus()) {
-            voucherEntitlement = determineVoucherEntitlement(
-                    currentPaymentCycle,
-                    previousPaymentCycle,
-                    eligibilityResponse,
-                    claimant);
-            MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(currentPaymentCycle);
-            messageQueueClient.sendMessage(messagePayload, MAKE_PAYMENT);
+            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
+        PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
+                currentPaymentCycle,
+                previousPaymentCycle,
+                eligibilityResponse,
+                claimant);
         updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
 
         messageRepository.delete(message);
@@ -95,13 +91,16 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                                                                        EligibilityResponse eligibilityResponse,
                                                                        Claimant claimant) {
 
-        Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
-        List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
-        return cycleEntitlementCalculator.calculateEntitlement(
-                expectedDeliveryDate,
-                dateOfBirthOfChildren,
-                currentPaymentCycle.getCycleStartDate(),
-                previousPaymentCycle.getVoucherEntitlement());
+        if (EligibilityStatus.ELIGIBLE == eligibilityResponse.getEligibilityStatus()) {
+            Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
+            List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
+            return cycleEntitlementCalculator.calculateEntitlement(
+                    expectedDeliveryDate,
+                    dateOfBirthOfChildren,
+                    currentPaymentCycle.getCycleStartDate(),
+                    previousPaymentCycle.getVoucherEntitlement());
+        }
+        return null;
     }
 
     private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
