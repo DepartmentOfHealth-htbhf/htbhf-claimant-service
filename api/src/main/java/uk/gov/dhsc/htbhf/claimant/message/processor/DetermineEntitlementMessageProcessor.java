@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
@@ -23,8 +24,11 @@ import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
 @Component
@@ -40,6 +44,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private MessageContextLoader messageContextLoader;
 
     private PaymentCycleRepository paymentCycleRepository;
+
+    private MessageQueueClient messageQueueClient;
 
     @Override
     public MessageType supportsMessageType() {
@@ -64,12 +70,16 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
         EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
+
+        if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {
+            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
+        }
+
         PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
                 currentPaymentCycle,
                 previousPaymentCycle,
                 eligibilityResponse,
                 claimant);
-
         updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
 
         messageRepository.delete(message);
@@ -80,6 +90,10 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                                                                        PaymentCycle previousPaymentCycle,
                                                                        EligibilityResponse eligibilityResponse,
                                                                        Claimant claimant) {
+
+        if (eligibilityResponse.getEligibilityStatus() != ELIGIBLE) {
+            return null;
+        }
 
         Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
         List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
