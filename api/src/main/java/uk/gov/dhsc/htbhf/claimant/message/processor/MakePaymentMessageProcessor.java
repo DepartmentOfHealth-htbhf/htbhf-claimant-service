@@ -19,6 +19,9 @@ import javax.transaction.Transactional;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 
+/**
+ * Processes MAKE_PAYMENT messages by calling the PaymentService.
+ */
 @Component
 @AllArgsConstructor
 @Slf4j

@@ -39,16 +39,16 @@ public class PaymentService {
         Integer amountToPay = paymentCycle.getTotalEntitlementAmountInPence();
         // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
         // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
-        Payment paymentRecord = Payment.builder()
+        Payment payment = Payment.builder()
                 .cardAccountId(cardAccountId)
                 .claim(claim)
                 .paymentAmountInPence(amountToPay)
                 .paymentCycle(paymentCycle)
                 .build();
-        DepositFundsResponse response = depositFundsToCard(paymentRecord);
-        updateAndSavePayment(paymentRecord, response);
-        claimAuditor.auditMakePayment(claim.getId(), paymentRecord.getId(), response.getReferenceId());
-        return paymentRecord;
+        DepositFundsResponse response = depositFundsToCard(payment);
+        updateAndSavePayment(payment, response);
+        claimAuditor.auditMakePayment(claim.getId(), payment.getId(), response.getReferenceId());
+        return payment;
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {

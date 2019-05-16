@@ -65,7 +65,7 @@ class PaymentServiceTest {
 
         Payment result = paymentService.makePayment(paymentCycle, cardAccountId);
 
-        assertPayment(result, paymentCycle, cardAccountId);
+        assertSuccessfulPayment(result, paymentCycle, cardAccountId);
         verify(paymentRepository).save(result);
         verify(claimAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
@@ -81,7 +81,7 @@ class PaymentServiceTest {
         assertThat(messagePayload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
     }
 
-    private void assertPayment(Payment result, PaymentCycle paymentCycle, String cardAccountId) {
+    private void assertSuccessfulPayment(Payment result, PaymentCycle paymentCycle, String cardAccountId) {
         assertThat(result).isNotNull();
         assertThat(result.getClaim()).isEqualTo(paymentCycle.getClaim());
         assertThat(result.getCardAccountId()).isEqualTo(cardAccountId);
