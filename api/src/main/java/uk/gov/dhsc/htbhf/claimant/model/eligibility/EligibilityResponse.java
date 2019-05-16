@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 @Data
@@ -37,6 +38,10 @@ public class EligibilityResponse {
 
     @JsonIgnore
     public List<LocalDate> getDateOfBirthOfChildren() {
+        if (children == null) {
+            return emptyList();
+        }
+
         return children.stream()
                 .map(ChildDTO::getDateOfBirth)
                 .collect(toList());
