@@ -18,7 +18,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,6 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMake
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
 @Component
@@ -71,7 +71,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
         EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
 
-        if (EligibilityStatus.ELIGIBLE == eligibilityResponse.getEligibilityStatus()) {
+        if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
@@ -91,16 +91,17 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                                                                        EligibilityResponse eligibilityResponse,
                                                                        Claimant claimant) {
 
-        if (EligibilityStatus.ELIGIBLE == eligibilityResponse.getEligibilityStatus()) {
-            Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
-            List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
-            return cycleEntitlementCalculator.calculateEntitlement(
-                    expectedDeliveryDate,
-                    dateOfBirthOfChildren,
-                    currentPaymentCycle.getCycleStartDate(),
-                    previousPaymentCycle.getVoucherEntitlement());
+        if (eligibilityResponse.getEligibilityStatus() != ELIGIBLE) {
+            return null;
         }
-        return null;
+
+        Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
+        List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
+        return cycleEntitlementCalculator.calculateEntitlement(
+                expectedDeliveryDate,
+                dateOfBirthOfChildren,
+                currentPaymentCycle.getCycleStartDate(),
+                previousPaymentCycle.getVoucherEntitlement());
     }
 
     private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
