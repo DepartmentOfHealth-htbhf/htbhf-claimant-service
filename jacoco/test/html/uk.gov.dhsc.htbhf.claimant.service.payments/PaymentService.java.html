@@ -14,7 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class PaymentService {
     private MessageQueueClient messageQueueClient;
     private CardClient cardClient;
     private PaymentRepository paymentRepository;
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
 <span class="fc" id="L32">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
@@ -37,7 +37,7 @@ public class PaymentService {
 <span class="fc" id="L37">        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());</span>
 <span class="fc" id="L38">        DepositFundsResponse response = depositFundsToCard(payment);</span>
 <span class="fc" id="L39">        updateAndSavePayment(payment, response.getReferenceId());</span>
-<span class="fc" id="L40">        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
+<span class="fc" id="L40">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
 <span class="fc" id="L41">        return payment;</span>
     }
 
@@ -47,7 +47,7 @@ public class PaymentService {
 <span class="fc" id="L47">        Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);</span>
 <span class="fc" id="L48">        DepositFundsResponse response = depositFundsToCard(payment);</span>
 <span class="fc" id="L49">        updateAndSavePayment(payment, response.getReferenceId());</span>
-<span class="fc" id="L50">        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
+<span class="fc" id="L50">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
 <span class="fc" id="L51">        return payment;</span>
     }
 

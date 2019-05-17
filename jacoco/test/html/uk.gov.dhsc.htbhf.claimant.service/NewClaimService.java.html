@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public class NewClaimService {
     private final ClaimRepository claimRepository;
     private final EligibilityService eligibilityService;
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
-    private final ClaimAuditor claimAuditor;
+    private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
 <span class="fc" id="L41">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
@@ -67,7 +67,7 @@ public class NewClaimService {
 <span class="fc" id="L67">        Claim claim = buildClaim(claimant, eligibilityResponse);</span>
 <span class="fc" id="L68">        claimRepository.save(claim);</span>
 <span class="fc" id="L69">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L70">        claimAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L70">        eventAuditor.auditNewClaim(claim);</span>
 <span class="fc" id="L71">        return claim;</span>
     }
 
