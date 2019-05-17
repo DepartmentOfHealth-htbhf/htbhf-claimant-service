@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.repository.ClosingPaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
@@ -17,6 +18,7 @@ import java.util.List;
  * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
  */
 @Slf4j
+@Component
 public class PaymentCycleScheduler {
 
     private final PaymentCycleRepository paymentCycleRepository;
