@@ -39,7 +39,7 @@ class EligibilityServiceTest {
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(true);
         Claimant claimant = aValidClaimant();
 
-        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
+        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForNewClaimant(claimant);
 
         assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(DUPLICATE);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
@@ -54,7 +54,7 @@ class EligibilityServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatus(any())).willReturn(ELIGIBLE);
 
-        EligibilityResponse result = eligibilityService.determineEligibility(claimant);
+        EligibilityResponse result = eligibilityService.determineEligibilityForNewClaimant(claimant);
 
         assertThat(result).isEqualTo(eligibilityResponse);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());

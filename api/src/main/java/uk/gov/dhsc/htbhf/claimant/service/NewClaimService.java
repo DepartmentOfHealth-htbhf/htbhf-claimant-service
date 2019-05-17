@@ -49,7 +49,7 @@ public class NewClaimService {
 
     public ClaimResult createClaim(Claimant claimant) {
         try {
-            EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
+            EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForNewClaimant(claimant);
             Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 PaymentCycleVoucherEntitlement voucherEntitlement = getEntitlement(claim, eligibilityResponse);
