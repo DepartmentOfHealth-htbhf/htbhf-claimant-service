@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,8 +27,6 @@ class MakePaymentMessageProcessorTest {
 
     @Mock
     private PaymentService paymentService;
-    @Mock
-    private MessageRepository messageRepository;
     @Mock
     private MessageContextLoader messageContextLoader;
 
@@ -49,7 +46,6 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePayment(paymentCycle, claim.getCardAccountId());
-        verify(messageRepository).delete(message);
     }
 
 }

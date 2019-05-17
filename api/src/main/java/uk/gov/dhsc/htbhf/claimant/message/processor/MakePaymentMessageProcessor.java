@@ -9,7 +9,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import javax.transaction.Transactional;
@@ -26,7 +25,6 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
-    private MessageRepository messageRepository;
     private MessageContextLoader messageContextLoader;
 
     @Override
@@ -34,7 +32,6 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
     public MessageStatus processMessage(Message message) {
         MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
         paymentService.makePayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());
-        messageRepository.delete(message);
         return COMPLETED;
     }
 

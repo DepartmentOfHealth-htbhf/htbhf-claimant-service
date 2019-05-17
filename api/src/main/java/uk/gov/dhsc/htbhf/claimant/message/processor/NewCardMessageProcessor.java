@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -36,7 +35,6 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
 public class NewCardMessageProcessor implements MessageTypeProcessor {
 
     private NewCardService newCardService;
-    private MessageRepository messageRepository;
     private MessageContextLoader messageContextLoader;
     private PaymentCycleService paymentCycleService;
     private MessageQueueClient messageQueueClient;
@@ -53,7 +51,6 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
         newCardService.createNewCard(context.getClaim());
         PaymentCycle paymentCycle = createAndSavePaymentCycle(context);
         sendMakeFirstPaymentMessage(paymentCycle);
-        messageRepository.delete(message);
         return COMPLETED;
     }
 

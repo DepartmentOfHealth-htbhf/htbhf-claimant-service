@@ -47,7 +47,6 @@ public class NewClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public ClaimResult createClaim(Claimant claimant) {
         try {
             EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
