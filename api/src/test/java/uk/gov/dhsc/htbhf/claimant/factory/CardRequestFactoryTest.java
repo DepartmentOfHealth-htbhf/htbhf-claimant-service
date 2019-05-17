@@ -39,7 +39,7 @@ class CardRequestFactoryTest {
         assertThat(cardRequest.getClaimId()).isEqualTo(claim.getId().toString());
         assertThat(cardRequest.getDateOfBirth()).isEqualTo(claim.getClaimant().getDateOfBirth());
         assertThat(cardRequest.getAddress()).isEqualTo(aValidAddressDTO());
-        verify(addressConverter).convert(claim.getClaimant().getCardDeliveryAddress());
+        verify(addressConverter).convert(claim.getClaimant().getAddress());
     }
 
     @Test

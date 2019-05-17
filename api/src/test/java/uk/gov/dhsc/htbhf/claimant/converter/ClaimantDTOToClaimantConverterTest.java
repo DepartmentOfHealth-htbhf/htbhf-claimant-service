@@ -30,7 +30,7 @@ class ClaimantDTOToClaimantConverterTest {
     void shouldConvertClaimDTOToEquivalentClaimObject() {
         // Given
         ClaimantDTO claimantDTO = aValidClaimantDTOWithNoNullFields();
-        when(addressConverter.convert(claimantDTO.getCardDeliveryAddress())).thenReturn(ADDRESS);
+        when(addressConverter.convert(claimantDTO.getAddress())).thenReturn(ADDRESS);
 
         // When
         Claimant result = converter.convert(claimantDTO);
@@ -43,8 +43,8 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getNino()).isEqualTo(claimantDTO.getNino());
         assertThat(result.getDateOfBirth()).isEqualTo(claimantDTO.getDateOfBirth());
         assertThat(result.getExpectedDeliveryDate()).isEqualTo(claimantDTO.getExpectedDeliveryDate());
-        assertThat(result.getCardDeliveryAddress()).isEqualTo(ADDRESS);
-        verify(addressConverter).convert(claimantDTO.getCardDeliveryAddress());
+        assertThat(result.getAddress()).isEqualTo(ADDRESS);
+        verify(addressConverter).convert(claimantDTO.getAddress());
     }
 
     @Test

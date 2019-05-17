@@ -19,7 +19,7 @@ public class ClaimantServiceAssertionUtils {
         assertThat(persistedClaim.getLastName()).isEqualTo(claimant.getLastName());
         assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimant.getDateOfBirth());
         assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimant.getExpectedDeliveryDate());
-        assertAddressEqual(persistedClaim.getCardDeliveryAddress(), claimant.getCardDeliveryAddress());
+        assertAddressEqual(persistedClaim.getAddress(), claimant.getAddress());
     }
 
     private static void assertAddressEqual(Address actual, AddressDTO expected) {

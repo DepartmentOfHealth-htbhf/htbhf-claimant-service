@@ -31,7 +31,7 @@ public final class ClaimantTestDataFactory {
     }
 
     public static Claimant aClaimantWithCardDeliveryAddress(Address address) {
-        return aValidClaimantBuilder().cardDeliveryAddress(address).build();
+        return aValidClaimantBuilder().address(address).build();
     }
 
     public static Claimant aClaimantWithFirstName(String firstName) {
@@ -64,7 +64,7 @@ public final class ClaimantTestDataFactory {
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
-                .cardDeliveryAddress(aValidAddress());
+                .address(aValidAddress());
     }
 
     public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {
