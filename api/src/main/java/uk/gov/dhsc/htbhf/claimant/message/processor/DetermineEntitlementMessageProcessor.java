@@ -15,8 +15,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,7 +40,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageContextLoader messageContextLoader;
 
-    private PaymentCycleRepository paymentCycleRepository;
+    private PaymentCycleService paymentCycleService;
 
     private MessageQueueClient messageQueueClient;
 
@@ -79,7 +79,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle,
                 eligibilityResponse,
                 claimant);
-        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
+        paymentCycleService.updateAndSavePaymentCycle(currentPaymentCycle, eligibilityResponse.getEligibilityStatus(), voucherEntitlement);
 
         return COMPLETED;
     }
@@ -102,13 +102,4 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle.getVoucherEntitlement());
     }
 
-    private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityResponse eligibilityResponse,
-                                                  PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement) {
-
-        currentPaymentCycle.setVoucherEntitlement(paymentCycleVoucherEntitlement);
-        currentPaymentCycle.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());
-
-        paymentCycleRepository.save(currentPaymentCycle);
-    }
 }

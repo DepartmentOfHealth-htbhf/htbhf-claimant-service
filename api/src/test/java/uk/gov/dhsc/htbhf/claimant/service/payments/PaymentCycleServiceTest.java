@@ -17,7 +17,9 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleServiceTest {
@@ -54,7 +56,27 @@ class PaymentCycleServiceTest {
 
         verifyPaymentCycleSavedCorrectly(today, claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
-        assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(result.getEligibilityStatus()).isEqualTo(ELIGIBLE);
+        assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
+        assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
+    }
+
+    @Test
+    void shouldUpdatePaymentCycleWithEligibilityStatusAndEntitlement() {
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .voucherEntitlement(null)
+                .totalVouchers(null)
+                .totalEntitlementAmountInPence(null)
+                .build();
+        PaymentCycleVoucherEntitlement entitlement = aValidPaymentCycleVoucherEntitlement();
+        EligibilityStatus eligibilityStatus = ELIGIBLE;
+
+        paymentCycleService.updateAndSavePaymentCycle(paymentCycle, eligibilityStatus, entitlement);
+
+        verify(paymentCycleRepository).save(paymentCycle);
+        assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(eligibilityStatus);
+        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
+        assertThat(paymentCycle.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
     }
 
     private void verifyPaymentCycleSavedCorrectly(LocalDate today, Claim claim, PaymentCycle result) {
