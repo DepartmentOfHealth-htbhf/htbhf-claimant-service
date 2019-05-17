@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @Configuration
 @EnableScheduling
 @EnableSchedulerLock(defaultLockAtMostFor = "PT60M")
-@ConditionalOnProperty(name = "enable-scheduler") // annotation has no affect if the property isn't set
+@ConditionalOnProperty(name = "enable-scheduler")
 public class SchedulerConfig {
 
     @Bean
