@@ -99,7 +99,7 @@ class DetermineEntitlementMessageProcessorTest {
 
         //Eligibility
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForExistingClaimant(any())).willReturn(eligibilityResponse);
 
         //Current payment cycle voucher entitlement mocking
         PaymentCycleVoucherEntitlement currentPaymentCycleVoucherEntitlement = aValidPaymentCycleVoucherEntitlement();
@@ -113,7 +113,7 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(messageStatus).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibility(context.getClaim().getClaimant());
+        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant());
 
         List<LocalDate> dateOfBirthOfChildren = ImmutableList.of(MAGGIE_DOB, LISA_DOB);
         verify(cycleEntitlementCalculator).calculateEntitlement(
@@ -135,7 +135,7 @@ class DetermineEntitlementMessageProcessorTest {
 
         //Eligibility
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(INELIGIBLE);
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForExistingClaimant(any())).willReturn(eligibilityResponse);
 
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -146,7 +146,7 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(messageStatus).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibility(context.getClaim().getClaimant());
+        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant());
 
         verifyPaymentCycleUpdatedSuccessfully(context.getCurrentPaymentCycle().getId(), null, INELIGIBLE);
         verifyZeroInteractions(cycleEntitlementCalculator, messageQueueDAO);

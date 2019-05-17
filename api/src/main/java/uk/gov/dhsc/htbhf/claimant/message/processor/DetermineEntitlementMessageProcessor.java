@@ -66,11 +66,14 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
-        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibility(claimant);
+        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForExistingClaimant(claimant);
 
         if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
+
+        //TODO MRS 2019-05-17: Next PR - add event for change of status from ELIGIBLE
+        //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
 
         PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
                 currentPaymentCycle,
