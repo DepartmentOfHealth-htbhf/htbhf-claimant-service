@@ -17,7 +17,7 @@ public class ClaimantToPersonDTOConverter implements Converter<Claimant, PersonD
                 .lastName(claimant.getLastName())
                 .dateOfBirth(claimant.getDateOfBirth())
                 .nino(claimant.getNino())
-                .address(convertAddress(claimant.getCardDeliveryAddress()))
+                .address(convertAddress(claimant.getAddress()))
                 .build();
     }
 

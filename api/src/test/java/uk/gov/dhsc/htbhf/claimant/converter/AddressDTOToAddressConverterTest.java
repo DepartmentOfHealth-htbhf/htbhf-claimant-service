@@ -14,7 +14,7 @@ class AddressDTOToAddressConverterTest {
     @Test
     void shouldConvertAddressDTOToEquivalentAddressObject() {
         // Given
-        var addressDTO = aValidClaimDTO().getClaimant().getCardDeliveryAddress();
+        var addressDTO = aValidClaimDTO().getClaimant().getAddress();
 
         // When
         Address result = converter.convert(addressDTO);
