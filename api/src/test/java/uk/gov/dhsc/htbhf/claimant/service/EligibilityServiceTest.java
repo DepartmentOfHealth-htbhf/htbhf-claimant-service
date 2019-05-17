@@ -62,4 +62,17 @@ class EligibilityServiceTest {
         verify(eligibilityStatusCalculator).determineEligibilityStatus(eligibilityResponse);
     }
 
+    @Test
+    void shouldCheckEligibilityServiceForExistingClaimant() {
+        Claimant claimant = aValidClaimant();
+        EligibilityResponse eligibilityResponse = anEligibilityResponse();
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+
+        EligibilityResponse result = eligibilityService.determineEligibilityForExistingClaimant(claimant);
+
+        assertThat(result).isEqualTo(eligibilityResponse);
+        verify(client).checkEligibility(claimant);
+        verifyZeroInteractions(eligibilityStatusCalculator, claimRepository);
+    }
+
 }

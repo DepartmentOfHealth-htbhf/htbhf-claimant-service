@@ -18,10 +18,11 @@ public class EligibilityService {
     private final ClaimRepository claimRepository;
 
     /**
-     * Determines the eligibility for a given status. If the claimant's nino is not found in the database,
+     * Determines the eligibility for a given claimant. If the claimant's NINO is not found in the database,
      * the external eligibility service is called.
+     *
      * @param claimant the claimant to check the eligibility for
-     * @return an eligibility response for the claimant
+     * @return the eligibility response for the claimant
      */
     public EligibilityResponse determineEligibility(Claimant claimant) {
         if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
@@ -32,5 +33,16 @@ public class EligibilityService {
         return eligibilityResponse.toBuilder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
+    }
+
+    /**
+     * Determines the eligibility for the given existing claimant. No check is made on the NINO as they already exist in the
+     * database. The eligibility status is simply checked by calling the external service.
+     *
+     * @param claimant the claimant to check the eligibility for
+     * @return an eligibility response for the claimant
+     */
+    public EligibilityResponse determineEligibilityForExistingClaimant(Claimant claimant) {
+        return client.checkEligibility(claimant);
     }
 }
