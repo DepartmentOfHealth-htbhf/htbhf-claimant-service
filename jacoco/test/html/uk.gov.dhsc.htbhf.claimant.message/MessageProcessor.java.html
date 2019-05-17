@@ -55,7 +55,7 @@ public class MessageProcessor {
 <span class="fc" id="L55">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageType);</span>
 <span class="fc" id="L56">        MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);</span>
 <span class="fc" id="L57">        List&lt;MessageStatus&gt; statuses = messages.stream()</span>
-<span class="fc" id="L58">                .map(messageTypeProcessor::processMessage)</span>
+<span class="fc" id="L58">                .map(message -&gt; processMessage(message, messageTypeProcessor))</span>
 <span class="fc" id="L59">                .collect(Collectors.toList());</span>
 
 <span class="fc" id="L61">        logResults(statuses, messageTypeProcessor);</span>
@@ -70,20 +70,37 @@ public class MessageProcessor {
 <span class="fc" id="L70">        return messageTypeProcessor;</span>
     }
 
-    private void logResults(List&lt;MessageStatus&gt; statuses, MessageTypeProcessor messageTypeProcessor) {
-<span class="fc" id="L74">        Map&lt;MessageStatus, Long&gt; statusesCountMap = statuses.stream()</span>
-<span class="fc" id="L75">                .peek(messageStatus -&gt; logNullMessageStatus(messageTypeProcessor, messageStatus))</span>
-<span class="fc" id="L76">                .filter(Objects::nonNull)</span>
-<span class="fc" id="L77">                .collect(groupingBy(identity(), counting()));</span>
+    private MessageStatus processMessage(Message message, MessageTypeProcessor messageTypeProcessor) {
+        try {
+<span class="fc" id="L75">            MessageStatus status = messageTypeProcessor.processMessage(message);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">            if (status == MessageStatus.COMPLETED) {</span>
+<span class="fc" id="L77">                messageRepository.delete(message);</span>
+            }
+            // TODO: HTBHF-1285: handle other message statuses
+<span class="fc" id="L80">            return status;</span>
+<span class="fc" id="L81">        } catch (RuntimeException e) {</span>
+            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail
+            //                  from java common and include it in error handling
+<span class="fc" id="L84">            log.error(&quot;Unable to process message with id {}&quot;, message.getId(), e);</span>
+            // TODO: HTBHF-1285: increment delivery count and message timestamp
+<span class="fc" id="L86">            return MessageStatus.ERROR;</span>
+        }
+    }
 
-<span class="fc" id="L79">        statusesCountMap.forEach((messageStatus, count) -&gt; log.info(&quot;Processed {} message(s) with status {}&quot;, count, messageStatus.name()));</span>
-<span class="fc" id="L80">    }</span>
+    private void logResults(List&lt;MessageStatus&gt; statuses, MessageTypeProcessor messageTypeProcessor) {
+<span class="fc" id="L91">        Map&lt;MessageStatus, Long&gt; statusesCountMap = statuses.stream()</span>
+<span class="fc" id="L92">                .peek(messageStatus -&gt; logNullMessageStatus(messageTypeProcessor, messageStatus))</span>
+<span class="fc" id="L93">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L94">                .collect(groupingBy(identity(), counting()));</span>
+
+<span class="fc" id="L96">        statusesCountMap.forEach((messageStatus, count) -&gt; log.info(&quot;Processed {} message(s) with status {}&quot;, count, messageStatus.name()));</span>
+<span class="fc" id="L97">    }</span>
 
     private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
-<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (messageStatus == null) {</span>
-<span class="fc" id="L84">            log.error(&quot;Received null message status from MessageTypeProcessor: {}&quot;, messageTypeProcessor.getClass().getCanonicalName());</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (messageStatus == null) {</span>
+<span class="fc" id="L101">            log.error(&quot;Received null message status from MessageTypeProcessor: {}&quot;, messageTypeProcessor.getClass().getCanonicalName());</span>
         }
-<span class="fc" id="L86">    }</span>
+<span class="fc" id="L103">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

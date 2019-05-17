@@ -9,7 +9,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import javax.transaction.Transactional;
@@ -22,25 +21,23 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L25">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 public class MakeFirstPaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
-    private MessageRepository messageRepository;
     private MessageContextLoader messageContextLoader;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L35">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L36">        paymentService.makeFirstPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
-<span class="fc" id="L37">        messageRepository.delete(message);</span>
-<span class="fc" id="L38">        return COMPLETED;</span>
+<span class="fc" id="L33">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L34">        paymentService.makeFirstPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
+<span class="fc" id="L35">        return COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L43">        return MAKE_FIRST_PAYMENT;</span>
+<span class="fc" id="L40">        return MAKE_FIRST_PAYMENT;</span>
     }
 
 }

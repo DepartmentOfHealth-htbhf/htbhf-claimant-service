@@ -45,8 +45,17 @@ public class PaymentCycleScheduler {
 <span class="fc" id="L45">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
 
 <span class="fc" id="L47">        log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
-<span class="fc" id="L48">        cycles.forEach(cycle -&gt; job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1)));</span>
+<span class="fc" id="L48">        cycles.forEach(this::createNewPaymentCycle);</span>
 <span class="fc" id="L49">        log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
 <span class="fc" id="L50">    }</span>
+
+    private void createNewPaymentCycle(ClosingPaymentCycle cycle) {
+        try {
+<span class="fc" id="L54">            job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1));</span>
+<span class="fc" id="L55">        } catch (RuntimeException e) {</span>
+            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail from java common and include it in error handling
+<span class="fc" id="L57">            log.error(&quot;Unable to create new payment cycle for claim {}&quot;, cycle.getClaimId(), e);</span>
+<span class="fc" id="L58">        }</span>
+<span class="fc" id="L59">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
