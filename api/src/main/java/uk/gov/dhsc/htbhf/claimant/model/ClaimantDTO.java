@@ -55,7 +55,7 @@ public class ClaimantDTO {
 
     @NotNull
     @Valid
-    @JsonProperty("cardDeliveryAddress")
-    @ApiModelProperty(notes = "The address to send the card to")
-    private AddressDTO cardDeliveryAddress;
+    @JsonProperty("address")
+    @ApiModelProperty(notes = "The address of the claimant")
+    private AddressDTO address;
 }

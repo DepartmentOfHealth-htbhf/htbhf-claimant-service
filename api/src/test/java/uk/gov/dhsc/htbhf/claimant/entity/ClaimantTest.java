@@ -179,7 +179,7 @@ class ClaimantTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "cardDeliveryAddress");
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "address");
     }
 
 }

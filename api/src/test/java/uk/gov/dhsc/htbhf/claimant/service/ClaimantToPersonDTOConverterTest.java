@@ -27,7 +27,7 @@ class ClaimantToPersonDTOConverterTest {
         assertThat(person.getNino()).isEqualTo(claimant.getNino());
         AddressDTO personAddress = person.getAddress();
         assertThat(personAddress).isNotNull();
-        Address claimantAddress = claimant.getCardDeliveryAddress();
+        Address claimantAddress = claimant.getAddress();
         assertThat(personAddress.getAddressLine1()).isEqualTo(claimantAddress.getAddressLine1());
         assertThat(personAddress.getAddressLine2()).isEqualTo(claimantAddress.getAddressLine2());
         assertThat(personAddress.getTownOrCity()).isEqualTo(claimantAddress.getTownOrCity());

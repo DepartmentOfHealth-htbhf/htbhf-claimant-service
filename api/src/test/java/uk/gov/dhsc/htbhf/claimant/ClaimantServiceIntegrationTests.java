@@ -233,7 +233,7 @@ class ClaimantServiceIntegrationTests {
                         "must not be more than one month in the past or 8 months in the future", "claimant.expectedDeliveryDate"),
                 Arguments.of("expectedDeliveryDate", "1990-12-31",
                         "must not be more than one month in the past or 8 months in the future", "claimant.expectedDeliveryDate"),
-                Arguments.of("cardDeliveryAddress", null, "must not be null", "claimant.cardDeliveryAddress"),
+                Arguments.of("address", null, "must not be null", "claimant.address"),
                 Arguments.of("dateOfBirth", null, "must not be null", "claimant.dateOfBirth")
         );
     }
@@ -243,7 +243,7 @@ class ClaimantServiceIntegrationTests {
     void shouldFailWithAddressValidationError(String fieldName, String value, String expectedErrorMessage, String expectedField) {
         //Given
         ClaimDTO claim = aValidClaimDTO();
-        modifyFieldOnObject(claim.getClaimant().getCardDeliveryAddress(), fieldName, value);
+        modifyFieldOnObject(claim.getClaimant().getAddress(), fieldName, value);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
@@ -253,16 +253,16 @@ class ClaimantServiceIntegrationTests {
     //This is a MethodSource because of the use of LONG_STRING
     private static Stream<Arguments> shouldFailWithAddressValidationErrorArguments() {
         return Stream.of(
-                Arguments.of("addressLine1", null, "must not be null", "claimant.cardDeliveryAddress.addressLine1"),
-                Arguments.of("addressLine1", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.addressLine1"),
-                Arguments.of("addressLine2", LONG_STRING, "size must be between 0 and 500", "claimant.cardDeliveryAddress.addressLine2"),
-                Arguments.of("townOrCity", null, "must not be null", "claimant.cardDeliveryAddress.townOrCity"),
-                Arguments.of("townOrCity", LONG_STRING, "size must be between 1 and 500", "claimant.cardDeliveryAddress.townOrCity"),
-                Arguments.of("postcode", "AA1122BB", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "A", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "11AA21", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", "", "invalid postcode format", "claimant.cardDeliveryAddress.postcode"),
-                Arguments.of("postcode", null, "must not be null", "claimant.cardDeliveryAddress.postcode")
+                Arguments.of("addressLine1", null, "must not be null", "claimant.address.addressLine1"),
+                Arguments.of("addressLine1", LONG_STRING, "size must be between 1 and 500", "claimant.address.addressLine1"),
+                Arguments.of("addressLine2", LONG_STRING, "size must be between 0 and 500", "claimant.address.addressLine2"),
+                Arguments.of("townOrCity", null, "must not be null", "claimant.address.townOrCity"),
+                Arguments.of("townOrCity", LONG_STRING, "size must be between 1 and 500", "claimant.address.townOrCity"),
+                Arguments.of("postcode", "AA1122BB", "invalid postcode format", "claimant.address.postcode"),
+                Arguments.of("postcode", "A", "invalid postcode format", "claimant.address.postcode"),
+                Arguments.of("postcode", "11AA21", "invalid postcode format", "claimant.address.postcode"),
+                Arguments.of("postcode", "", "invalid postcode format", "claimant.address.postcode"),
+                Arguments.of("postcode", null, "must not be null", "claimant.address.postcode")
         );
     }
 

@@ -25,7 +25,7 @@ public class ClaimantDTOToClaimantConverter {
                 .dateOfBirth(claimant.getDateOfBirth())
                 .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
                 .nino(claimant.getNino())
-                .cardDeliveryAddress(addressConverter.convert(claimant.getCardDeliveryAddress()))
+                .address(addressConverter.convert(claimant.getAddress()))
                 .build();
     }
 

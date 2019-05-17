@@ -51,7 +51,7 @@ public class Claimant {
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
-    private Address cardDeliveryAddress;
+    private Address address;
 
     /**
      * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
