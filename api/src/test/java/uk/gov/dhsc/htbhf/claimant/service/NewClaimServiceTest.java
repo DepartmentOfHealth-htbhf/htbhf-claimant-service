@@ -66,7 +66,7 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willReturn(eligibilityResponse);
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
@@ -82,7 +82,7 @@ class NewClaimServiceTest {
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(cycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
         verify(claimRepository).save(result.getClaim());
@@ -102,7 +102,7 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(eligibilityStatus);
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willReturn(eligibilityResponse);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -117,7 +117,7 @@ class NewClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
 
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(actualClaim);
         verify(claimAuditor).auditNewClaim(actualClaim);
         verifyZeroInteractions(messageQueueDAO, cycleEntitlementCalculator);
@@ -128,7 +128,7 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponse();
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willReturn(eligibilityResponse);
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
@@ -141,7 +141,7 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(cycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
         verify(claimAuditor).auditNewClaim(result.getClaim());
@@ -160,7 +160,7 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(eligibilityStatus);
-        given(eligibilityService.determineEligibility(any())).willReturn(eligibilityResponse);
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willReturn(eligibilityResponse);
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var paymentCycleVoucherEntitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
@@ -175,7 +175,7 @@ class NewClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
         verify(claimAuditor).auditNewClaim(result.getClaim());
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verify(cycleEntitlementCalculator).calculateEntitlement(
                     Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
@@ -187,13 +187,13 @@ class NewClaimServiceTest {
     void shouldSaveDuplicateClaimantForMatchingNino() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityService.determineEligibility(any())).willReturn(EligibilityResponse.buildWithStatus(DUPLICATE));
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willReturn(EligibilityResponse.buildWithStatus(DUPLICATE));
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
 
         //then
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(claimAuditor).auditNewClaim(result.getClaim());
         verifyZeroInteractions(messageQueueDAO);
@@ -209,14 +209,14 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         RuntimeException testException = new RuntimeException("Test exception");
-        given(eligibilityService.determineEligibility(any())).willThrow(testException);
+        given(eligibilityService.determineEligibilityForNewClaimant(any())).willThrow(testException);
 
         //when
         RuntimeException thrown = catchThrowableOfType(() -> newClaimService.createClaim(claimant), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);
-        verify(eligibilityService).determineEligibility(claimant);
+        verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(any(Claim.class));
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimAuditor).auditNewClaim(claimArgumentCaptor.capture());
