@@ -14,7 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class PaymentService {
     private MessageQueueClient messageQueueClient;
     private CardClient cardClient;
     private PaymentRepository paymentRepository;
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
         MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
@@ -37,7 +37,7 @@ public class PaymentService {
         Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
         DepositFundsResponse response = depositFundsToCard(payment);
         updateAndSavePayment(payment, response.getReferenceId());
-        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
+        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
         return payment;
     }
 
@@ -47,7 +47,7 @@ public class PaymentService {
         Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);
         DepositFundsResponse response = depositFundsToCard(payment);
         updateAndSavePayment(payment, response.getReferenceId());
-        claimAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
+        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
         return payment;
     }
 

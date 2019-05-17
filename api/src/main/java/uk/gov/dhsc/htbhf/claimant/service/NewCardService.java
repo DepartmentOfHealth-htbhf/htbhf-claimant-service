@@ -9,7 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 @Service
 @AllArgsConstructor
@@ -19,14 +19,14 @@ public class NewCardService {
     private CardClient cardClient;
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     @Transactional
     public void createNewCard(Claim claim) {
         CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
         CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
         saveClaimWithCardId(claim, cardResponse);
-        claimAuditor.auditNewCard(claim.getId(), cardResponse);
+        eventAuditor.auditNewCard(claim.getId(), cardResponse);
     }
 
     private void saveClaimWithCardId(Claim claim, CardResponse cardResponse) {

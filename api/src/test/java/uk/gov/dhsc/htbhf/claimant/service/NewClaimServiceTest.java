@@ -19,7 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -56,7 +56,7 @@ class NewClaimServiceTest {
     CycleEntitlementCalculator cycleEntitlementCalculator;
 
     @Mock
-    ClaimAuditor claimAuditor;
+    EventAuditor eventAuditor;
 
     @Mock
     MessageQueueDAO messageQueueDAO;
@@ -86,7 +86,7 @@ class NewClaimServiceTest {
         verify(cycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
         verify(claimRepository).save(result.getClaim());
-        verify(claimAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
     }
 
@@ -119,7 +119,7 @@ class NewClaimServiceTest {
 
         verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(actualClaim);
-        verify(claimAuditor).auditNewClaim(actualClaim);
+        verify(eventAuditor).auditNewClaim(actualClaim);
         verifyZeroInteractions(messageQueueDAO, cycleEntitlementCalculator);
     }
 
@@ -144,7 +144,7 @@ class NewClaimServiceTest {
         verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(cycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()), eligibilityResponse.getDateOfBirthOfChildren(), LocalDate.now());
-        verify(claimAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, paymentCycleVoucherEntitlement);
     }
 
@@ -174,7 +174,7 @@ class NewClaimServiceTest {
         //then
         verify(claimRepository).save(result.getClaim());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
-        verify(claimAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verify(cycleEntitlementCalculator).calculateEntitlement(
@@ -195,7 +195,7 @@ class NewClaimServiceTest {
         //then
         verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
-        verify(claimAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyZeroInteractions(messageQueueDAO);
     }
 
@@ -219,7 +219,7 @@ class NewClaimServiceTest {
         verify(eligibilityService).determineEligibilityForNewClaimant(claimant);
         verify(claimRepository).save(any(Claim.class));
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
-        verify(claimAuditor).auditNewClaim(claimArgumentCaptor.capture());
+        verify(eventAuditor).auditNewClaim(claimArgumentCaptor.capture());
         assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
         assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
         verifyZeroInteractions(messageQueueDAO);

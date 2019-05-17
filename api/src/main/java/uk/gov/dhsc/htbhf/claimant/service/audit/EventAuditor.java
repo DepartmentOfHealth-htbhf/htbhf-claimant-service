@@ -15,7 +15,7 @@ import java.util.UUID;
 @Component
 @AllArgsConstructor
 @Slf4j
-public class ClaimAuditor {
+public class EventAuditor {
 
     private final EventLogger eventLogger;
 

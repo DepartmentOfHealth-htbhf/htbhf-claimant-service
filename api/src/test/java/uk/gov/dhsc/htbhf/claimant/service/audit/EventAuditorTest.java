@@ -26,20 +26,20 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @ExtendWith(MockitoExtension.class)
-class ClaimAuditorTest {
+class EventAuditorTest {
 
     @Mock
     private EventLogger eventLogger;
 
     @InjectMocks
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     @Test
     void shouldLogEventForValidClaimant() {
         //Given
         Claim claim = aValidClaim();
         //When
-        claimAuditor.auditNewClaim(claim);
+        eventAuditor.auditNewClaim(claim);
         //Then
         UUID claimId = claim.getId();
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -59,7 +59,7 @@ class ClaimAuditorTest {
     @Test
     void shouldNotLogEventForNullClaimant() {
         //When
-        claimAuditor.auditNewClaim(null);
+        eventAuditor.auditNewClaim(null);
         //Then
         verifyZeroInteractions(eventLogger);
     }
@@ -71,7 +71,7 @@ class ClaimAuditorTest {
         CardResponse cardResponse = aCardResponse();
 
         //When
-        claimAuditor.auditNewCard(claimId, cardResponse);
+        eventAuditor.auditNewCard(claimId, cardResponse);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -91,7 +91,7 @@ class ClaimAuditorTest {
     @Test
     void shouldNotLogEventForNullClaimId() {
         //When
-        claimAuditor.auditNewCard(null, aCardResponse());
+        eventAuditor.auditNewCard(null, aCardResponse());
 
         //Then
         verifyZeroInteractions(eventLogger);
@@ -100,7 +100,7 @@ class ClaimAuditorTest {
     @Test
     void shouldNotLogEventForNullCardResponse() {
         //When
-        claimAuditor.auditNewCard(UUID.randomUUID(), null);
+        eventAuditor.auditNewCard(UUID.randomUUID(), null);
 
         //Then
         verifyZeroInteractions(eventLogger);
@@ -114,7 +114,7 @@ class ClaimAuditorTest {
         String reference = "myPaymentReference";
 
         //When
-        claimAuditor.auditMakePayment(claimId, paymentId, reference);
+        eventAuditor.auditMakePayment(claimId, paymentId, reference);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
