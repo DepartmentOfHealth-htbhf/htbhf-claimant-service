@@ -72,7 +72,6 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
-        //TODO MRS 2019-05-17: Next PR - add event for change of status from ELIGIBLE
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
 
         PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(

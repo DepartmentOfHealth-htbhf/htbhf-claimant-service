@@ -11,7 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +34,7 @@ class NewCardServiceTest {
     private ClaimRepository claimRepository;
 
     @Mock
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     @InjectMocks
     private NewCardService newCardService;
@@ -51,7 +51,7 @@ class NewCardServiceTest {
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
-        verify(claimAuditor).auditNewCard(claim.getId(), cardResponse);
+        verify(eventAuditor).auditNewCard(claim.getId(), cardResponse);
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());

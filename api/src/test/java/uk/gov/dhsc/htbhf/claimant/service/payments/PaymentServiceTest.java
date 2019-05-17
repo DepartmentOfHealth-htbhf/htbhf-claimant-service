@@ -16,7 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +40,7 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    private ClaimAuditor claimAuditor;
+    private EventAuditor eventAuditor;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -67,7 +67,7 @@ class PaymentServiceTest {
 
         assertSuccessfulPayment(result, paymentCycle, cardAccountId);
         verify(paymentRepository).save(result);
-        verify(claimAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
+        verify(eventAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(cardAccountId), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
@@ -86,7 +86,7 @@ class PaymentServiceTest {
 
         assertSuccessfulPayment(result, paymentCycle, cardAccountId);
         verify(paymentRepository).save(result);
-        verify(claimAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
+        verify(eventAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(cardAccountId), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();

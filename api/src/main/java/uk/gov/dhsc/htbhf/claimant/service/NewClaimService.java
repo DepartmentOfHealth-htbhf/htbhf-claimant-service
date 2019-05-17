@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public class NewClaimService {
     private final ClaimRepository claimRepository;
     private final EligibilityService eligibilityService;
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
-    private final ClaimAuditor claimAuditor;
+    private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
@@ -67,7 +67,7 @@ public class NewClaimService {
         Claim claim = buildClaim(claimant, eligibilityResponse);
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
-        claimAuditor.auditNewClaim(claim);
+        eventAuditor.auditNewClaim(claim);
         return claim;
     }
 
