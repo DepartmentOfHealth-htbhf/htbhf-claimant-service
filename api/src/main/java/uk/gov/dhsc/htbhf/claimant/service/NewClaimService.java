@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -11,12 +10,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Map;
@@ -25,7 +23,7 @@ import java.util.Optional;
 import static java.util.Collections.min;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement.buildWithStatus;
 
 @Service
 @Slf4j
@@ -34,7 +32,6 @@ public class NewClaimService {
 
     private final ClaimRepository claimRepository;
     private final EligibilityService eligibilityService;
-    private final CycleEntitlementCalculator cycleEntitlementCalculator;
     private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
@@ -49,12 +46,11 @@ public class NewClaimService {
 
     public ClaimResult createClaim(Claimant claimant) {
         try {
-            EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForNewClaimant(claimant);
-            Claim claim = createAndSaveClaim(claimant, eligibilityResponse);
+            EligibilityAndEntitlement eligibility = eligibilityService.determineEligibilityForNewClaimant(claimant);
+            Claim claim = createAndSaveClaim(claimant, eligibility);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                PaymentCycleVoucherEntitlement voucherEntitlement = getEntitlement(claim, eligibilityResponse);
-                sendNewCardMessage(claim, voucherEntitlement);
-                return createResult(claim, voucherEntitlement);
+                sendNewCardMessage(claim, eligibility.getVoucherEntitlement());
+                return createResult(claim, eligibility.getVoucherEntitlement());
             }
             return createResult(claim);
         } catch (RuntimeException e) {
@@ -63,8 +59,8 @@ public class NewClaimService {
         }
     }
 
-    private Claim createAndSaveClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
-        Claim claim = buildClaim(claimant, eligibilityResponse);
+    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlement eligibility) {
+        Claim claim = buildClaim(claimant, eligibility);
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
@@ -76,13 +72,13 @@ public class NewClaimService {
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
-    private Claim buildClaim(Claimant claimant, EligibilityResponse eligibilityResponse) {
-        ClaimStatus claimStatus = STATUS_MAP.get(eligibilityResponse.getEligibilityStatus());
+    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlement eligibility) {
+        ClaimStatus claimStatus = STATUS_MAP.get(eligibility.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
         return Claim.builder()
-                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
-                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
-                .eligibilityStatus(eligibilityResponse.getEligibilityStatus())
+                .dwpHouseholdIdentifier(eligibility.getDwpHouseholdIdentifier())
+                .hmrcHouseholdIdentifier(eligibility.getHmrcHouseholdIdentifier())
+                .eligibilityStatus(eligibility.getEligibilityStatus())
                 .eligibilityStatusTimestamp(currentDateTime)
                 .claimStatus(claimStatus)
                 .claimStatusTimestamp(currentDateTime)
@@ -105,13 +101,6 @@ public class NewClaimService {
                 .claim(claim)
                 .voucherEntitlement(Optional.of(firstVoucherEntitlement))
                 .build();
-    }
-
-    private PaymentCycleVoucherEntitlement getEntitlement(Claim claim, EligibilityResponse eligibilityResponse) {
-        return cycleEntitlementCalculator.calculateEntitlement(
-                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
-                eligibilityResponse.getDateOfBirthOfChildren(),
-                LocalDate.now());
     }
 
 }

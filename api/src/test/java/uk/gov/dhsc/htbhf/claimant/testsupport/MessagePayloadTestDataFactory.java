@@ -6,7 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 public class MessagePayloadTestDataFactory {
@@ -37,7 +37,7 @@ public class MessagePayloadTestDataFactory {
     private static NewCardRequestMessagePayload.NewCardRequestMessagePayloadBuilder defaultNewCardRequestMessagePayloadBuilder() {
         return NewCardRequestMessagePayload.builder()
                 .claimId(CLAIM_ID)
-                .voucherEntitlement(aValidPaymentCycleVoucherEntitlement());
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers());
     }
 
 }

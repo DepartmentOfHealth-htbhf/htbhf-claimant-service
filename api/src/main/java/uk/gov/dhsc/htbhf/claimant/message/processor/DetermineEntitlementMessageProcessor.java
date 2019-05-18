@@ -3,8 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -14,13 +12,10 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
@@ -35,8 +30,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
     private EligibilityService eligibilityService;
-
-    private CycleEntitlementCalculator cycleEntitlementCalculator;
 
     private MessageContextLoader messageContextLoader;
 
@@ -66,48 +59,26 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
-        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForExistingClaimant(claimant);
-
-        if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {
-            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
-        }
+        EligibilityAndEntitlement eligibility = eligibilityService.determineEligibilityForExistingClaimant(
+                claimant,
+                currentPaymentCycle.getCycleStartDate(),
+                previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
+        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibility);
 
-        PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
-                currentPaymentCycle,
-                previousPaymentCycle,
-                eligibilityResponse,
-                claimant);
-        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
+        if (eligibility.getEligibilityStatus() == ELIGIBLE) {
+            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
+        }
 
         return COMPLETED;
     }
 
-    private PaymentCycleVoucherEntitlement determineVoucherEntitlement(PaymentCycle currentPaymentCycle,
-                                                                       PaymentCycle previousPaymentCycle,
-                                                                       EligibilityResponse eligibilityResponse,
-                                                                       Claimant claimant) {
-
-        if (eligibilityResponse.getEligibilityStatus() != ELIGIBLE) {
-            return null;
-        }
-
-        Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
-        List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
-        return cycleEntitlementCalculator.calculateEntitlement(
-                expectedDeliveryDate,
-                dateOfBirthOfChildren,
-                currentPaymentCycle.getCycleStartDate(),
-                previousPaymentCycle.getVoucherEntitlement());
-    }
-
     private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityResponse eligibilityResponse,
-                                                  PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement) {
+                                                  EligibilityAndEntitlement eligibility) {
 
-        currentPaymentCycle.setVoucherEntitlement(paymentCycleVoucherEntitlement);
-        currentPaymentCycle.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());
+        currentPaymentCycle.setVoucherEntitlement(eligibility.getVoucherEntitlement());
+        currentPaymentCycle.setEligibilityStatus(eligibility.getEligibilityStatus());
 
         paymentCycleRepository.save(currentPaymentCycle);
     }

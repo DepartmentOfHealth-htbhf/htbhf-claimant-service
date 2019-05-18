@@ -16,6 +16,16 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
+    public static VoucherEntitlement aVoucherEntitlementWithZeroVouchers() {
+        return VoucherEntitlement.builder()
+                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .vouchersForChildrenUnderOne(0)
+                .vouchersForChildrenBetweenOneAndFour(0)
+                .vouchersForPregnancy(0)
+                .entitlementDate(LocalDate.now())
+                .build();
+    }
+
     public static VoucherEntitlement aVoucherEntitlementWithEntitlementDate(LocalDate entitlementDate) {
         return aVoucherEntitlementBuilder()
                 .entitlementDate(entitlementDate)

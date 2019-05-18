@@ -36,6 +36,7 @@ public class EligibilityClient {
         this.claimantToPersonDTOConverter = claimantToPersonDTOConverter;
     }
 
+    // TODO: HTBHF-1381: include the date of eligibility and pass to the eligibility service
     public EligibilityResponse checkEligibility(Claimant claimant) {
         PersonDTO person = claimantToPersonDTOConverter.convert(claimant);
         try {

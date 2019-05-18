@@ -10,14 +10,14 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 class MessagePayloadFactoryTest {
 
     @Test
     void shouldCreateNewCardMessagePayload() {
         Claim claim = aValidClaim();
-        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         NewCardRequestMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, voucherEntitlement);
 

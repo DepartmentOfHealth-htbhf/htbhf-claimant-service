@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleServiceTest {
@@ -48,7 +48,7 @@ class PaymentCycleServiceTest {
     void shouldCreateNewPaymentCycleForEligibleClaim() {
         LocalDate today = LocalDate.now();
         Claim claim = aValidClaim();
-        PaymentCycleVoucherEntitlement entitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement);
 

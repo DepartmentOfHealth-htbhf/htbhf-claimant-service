@@ -33,7 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFacto
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 @ExtendWith(MockitoExtension.class)
@@ -335,7 +335,7 @@ class MessageContextLoaderTest {
         Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         NewCardRequestMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement);
         given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(CREATE_NEW_CARD);
