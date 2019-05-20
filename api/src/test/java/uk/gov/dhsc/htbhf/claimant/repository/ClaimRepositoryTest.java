@@ -1,6 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.javers.core.Changes;
+import org.javers.core.Javers;
+import org.javers.repository.jql.JqlQuery;
+import org.javers.repository.jql.QueryBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,10 +23,9 @@ import javax.validation.ConstraintViolationException;
 import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithLastName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithTooLongFirstName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -30,6 +33,9 @@ class ClaimRepositoryTest {
 
     @Autowired
     private ClaimRepository claimRepository;
+
+    @Autowired
+    private Javers javers;
 
     @AfterEach
     void afterEach() {
@@ -235,7 +241,7 @@ class ClaimRepositoryTest {
     void shouldReturnNewClaimIds() {
         //Given
         Claim newClaim = aClaimWithClaimStatus(ClaimStatus.NEW);
-        Claim pendingClaim = aClaimWithClaimStatus(ClaimStatus.PENDING);
+        Claim pendingClaim = aClaimWithClaimStatus(PENDING);
         claimRepository.saveAll(Arrays.asList(newClaim, pendingClaim));
 
         //When
@@ -243,5 +249,22 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(result).containsOnly(newClaim.getId());
+    }
+
+    @Test
+    void shouldAuditClaimUpdate() {
+        //Given
+        Claim claim = aClaimWithClaimStatus(ACTIVE);
+        claimRepository.save(claim);
+        claim.setClaimStatus(PENDING);
+        claimRepository.save(claim);
+
+        //When
+        JqlQuery jqlQuery = QueryBuilder.byClass(Claim.class).build();
+        Changes changes = javers.findChanges(jqlQuery);
+
+        //Then
+        assertThat(changes.size()).isEqualTo(1);
+        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'ACTIVE' to 'PENDING' }");
     }
 }
