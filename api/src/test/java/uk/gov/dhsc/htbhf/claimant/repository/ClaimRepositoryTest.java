@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
@@ -266,5 +267,23 @@ class ClaimRepositoryTest {
         //Then
         assertThat(changes.size()).isEqualTo(1);
         assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'ACTIVE' to 'PENDING' }");
+    }
+
+    @Test
+    void shouldAuditAddressUpdate() {
+        //Given
+        Claim claim = aValidClaim();
+        claimRepository.save(claim);
+        Address address = claim.getClaimant().getAddress();
+        address.setAddressLine1("test");
+        claimRepository.save(claim);
+
+        //When
+        JqlQuery jqlQuery = QueryBuilder.byClass(Address.class).build();
+        Changes changes = javers.findChanges(jqlQuery);
+
+        //Then
+        assertThat(changes.size()).isEqualTo(1);
+        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'addressLine1' value changed from 'Flat b' to 'test' }");
     }
 }
