@@ -31,7 +31,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 public class NewClaimService {
 
     private final ClaimRepository claimRepository;
-    private final EligibilityService eligibilityService;
+    private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
@@ -46,7 +46,7 @@ public class NewClaimService {
 
     public ClaimResult createClaim(Claimant claimant) {
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityService.determineEligibilityAndEntitlementForNewClaimant(claimant);
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision.getVoucherEntitlement());

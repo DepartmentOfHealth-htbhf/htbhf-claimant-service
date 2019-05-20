@@ -18,7 +18,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 
 @Service
 @AllArgsConstructor
-public class EligibilityService {
+public class EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
     private final EligibilityStatusCalculator eligibilityStatusCalculator;
@@ -26,15 +26,15 @@ public class EligibilityService {
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
 
     /**
-     * Determines the eligibility for the given new claimant. If the claimant's NINO is not found in the database,
+     * Determines the eligibility and entitlement for the given new claimant. If the claimant's NINO is not found in the database,
      * the external eligibility service is called.
-     * Claimants determined to be eligible must still either be pregnant or have children under 4,
+     * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision determineEligibilityAndEntitlementForNewClaimant(Claimant claimant) {
+    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
         if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
             return buildWithStatus(EligibilityStatus.DUPLICATE);
         }
@@ -47,15 +47,15 @@ public class EligibilityService {
     }
 
     /**
-     * Determines the eligibility for the given existing claimant. No check is made on the NINO as they already exist in the
+     * Determines the eligibility and entitlement for the given existing claimant. No check is made on the NINO as they already exist in the
      * database. The eligibility status is checked by calling the external service.
-     * Claimants determined to be eligible must still either be pregnant or have children under 4,
+     * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision determineEligibilityAndEntitlementForExistingClaimant(
+    public EligibilityAndEntitlementDecision evaluateExistingClaimant(
             Claimant claimant,
             LocalDate cycleStartDate,
             PaymentCycle previousCycle) {

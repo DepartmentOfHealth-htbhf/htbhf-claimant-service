@@ -14,7 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 
 import javax.transaction.Transactional;
 
@@ -29,7 +29,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 @AllArgsConstructor
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
-    private EligibilityService eligibilityService;
+    private EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     private MessageContextLoader messageContextLoader;
 
@@ -59,7 +59,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
-        EligibilityAndEntitlementDecision decision = eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(
                 claimant,
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);

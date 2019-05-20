@@ -33,8 +33,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibilityAndEntitlementDecisionWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibilityAndEntitlementDecisionWithStatusAndEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -49,7 +49,7 @@ class NewClaimServiceTest {
     ClaimRepository claimRepository;
 
     @Mock
-    EligibilityService eligibilityService;
+    EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     @Mock
     EventAuditor eventAuditor;
@@ -64,8 +64,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -77,7 +77,7 @@ class NewClaimServiceTest {
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, entitlement);
@@ -94,8 +94,8 @@ class NewClaimServiceTest {
     void shouldSaveNonExistingIneligibleClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatus(eligibilityStatus);
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatus(eligibilityStatus);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -110,7 +110,7 @@ class NewClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
 
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(actualClaim);
         verify(eventAuditor).auditNewClaim(actualClaim);
         verifyZeroInteractions(messageQueueDAO);
@@ -123,8 +123,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -133,7 +133,7 @@ class NewClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, entitlement);
     }
@@ -152,8 +152,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -162,7 +162,7 @@ class NewClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verifyCreateNewCardMessageSent(result, entitlement);
         }
@@ -172,14 +172,14 @@ class NewClaimServiceTest {
     void shouldSaveDuplicateClaimantForMatchingNino() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any()))
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any()))
                 .willReturn(EligibilityAndEntitlementDecision.buildWithStatus(DUPLICATE));
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
 
         //then
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyZeroInteractions(messageQueueDAO);
@@ -195,14 +195,14 @@ class NewClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         RuntimeException testException = new RuntimeException("Test exception");
-        given(eligibilityService.determineEligibilityAndEntitlementForNewClaimant(any())).willThrow(testException);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willThrow(testException);
 
         //when
         RuntimeException thrown = catchThrowableOfType(() -> newClaimService.createClaim(claimant), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);
-        verify(eligibilityService).determineEligibilityAndEntitlementForNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(any(Claim.class));
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(eventAuditor).auditNewClaim(claimArgumentCaptor.capture());

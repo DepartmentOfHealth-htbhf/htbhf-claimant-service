@@ -15,19 +15,19 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 public class EligibilityAndEntitlementTestDataFactory {
 
-    public static EligibilityAndEntitlementDecision anEligibilityAndEntitlementDecisionWithStatus(EligibilityStatus eligibilityStatus) {
-        return aValidEligibilityAndEntitlementBuilder().eligibilityStatus(eligibilityStatus).build();
+    public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
+        return aValidDecisionBuilder().eligibilityStatus(eligibilityStatus).build();
     }
 
-    public static EligibilityAndEntitlementDecision anEligibilityAndEntitlementDecisionWithStatusAndEntitlement(EligibilityStatus eligibilityStatus,
-                                                                                                                PaymentCycleVoucherEntitlement entitlement) {
-        return aValidEligibilityAndEntitlementBuilder()
+    public static EligibilityAndEntitlementDecision aDecisionWithStatusAndEntitlement(EligibilityStatus eligibilityStatus,
+                                                                                      PaymentCycleVoucherEntitlement entitlement) {
+        return aValidDecisionBuilder()
                 .eligibilityStatus(eligibilityStatus)
                 .voucherEntitlement(entitlement)
                 .build();
     }
 
-    private static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidEligibilityAndEntitlementBuilder() {
+    private static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidDecisionBuilder() {
         List<LocalDate> children = createChildren(NUMBER_OF_CHILDREN_UNDER_ONE, NUMBER_OF_CHILDREN_UNDER_FOUR);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)

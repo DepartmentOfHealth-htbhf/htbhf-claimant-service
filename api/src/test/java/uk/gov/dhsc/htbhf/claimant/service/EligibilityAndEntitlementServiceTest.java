@@ -32,10 +32,10 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityServiceTest {
+class EligibilityAndEntitlementServiceTest {
 
     @InjectMocks
-    EligibilityService eligibilityService;
+    EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     @Mock
     EligibilityClient client;
@@ -54,7 +54,7 @@ class EligibilityServiceTest {
         given(claimRepository.liveClaimExistsForNino(any())).willReturn(true);
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision eligibilityResponse = eligibilityService.determineEligibilityAndEntitlementForNewClaimant(claimant);
+        EligibilityAndEntitlementDecision eligibilityResponse = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
         assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(DUPLICATE);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
@@ -71,7 +71,7 @@ class EligibilityServiceTest {
         given(eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(any())).willReturn(ELIGIBLE);
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityService.determineEligibilityAndEntitlementForNewClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
         assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
@@ -93,7 +93,7 @@ class EligibilityServiceTest {
         given(eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(any())).willReturn(ELIGIBLE);
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityService.determineEligibilityAndEntitlementForNewClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
         assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
@@ -116,7 +116,7 @@ class EligibilityServiceTest {
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(voucherEntitlement);
 
         EligibilityAndEntitlementDecision result =
-                eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(claimant, cycleStartDate, previousCycle);
+                eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
         assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
@@ -139,7 +139,7 @@ class EligibilityServiceTest {
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(voucherEntitlement);
 
         EligibilityAndEntitlementDecision result =
-                eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(claimant, cycleStartDate, previousCycle);
+                eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
         assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
