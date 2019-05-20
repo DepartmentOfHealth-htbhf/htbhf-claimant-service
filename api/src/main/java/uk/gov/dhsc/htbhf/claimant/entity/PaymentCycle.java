@@ -81,4 +81,19 @@ public class PaymentCycle extends BaseEntity {
     public Set<Payment> getPayments() {
         return unmodifiableSet(payments);
     }
+
+    /**
+     * Sets the voucherEntitlement and updates values that depend on it (totalVouchers, totalEntitlementAmountInPence).
+     * @param voucherEntitlement the entitlement to apply.
+     */
+    public void applyVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        this.setVoucherEntitlement(voucherEntitlement);
+        if (voucherEntitlement == null) {
+            this.setTotalEntitlementAmountInPence(null);
+            this.setTotalVouchers(null);
+        } else {
+            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());
+            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());
+        }
+    }
 }
