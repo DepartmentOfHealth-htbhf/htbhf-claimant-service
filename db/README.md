@@ -109,3 +109,19 @@ Set the preferred maintenance window (For production this is currently every Sun
 ```
 cf update-service htbhf-claimant-service-postgres -c '{"preferred_maintenance_window": "Sun:03:00-Sun:03:30"}'
 ```
+
+Claim auditing
+-----------
+All changes to claims are audited using the [javers](https://javers.org/) library. 
+
+* jv_global_id — domain object identifiers,
+* jv_commit — Javers commits metadata,
+* jv_commit_property — commit properties,
+* jv_snapshot — domain object snapshots
+
+Below is an example of how to view changes to claims:
+```
+JqlQuery jqlQuery = QueryBuilder.byClass(Claim.class).build();
+Changes changes = javers.findChanges(jqlQuery);
+System.out.println(javers.getJsonConverter().toJson(changes));
+```
