@@ -5,12 +5,17 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithZeroVouchers;
 
 public class PaymentCycleVoucherEntitlementTestDataFactory {
 
-    public static PaymentCycleVoucherEntitlement aValidPaymentCycleVoucherEntitlement() {
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchers() {
         return buildDefaultPaymentCycleVoucherEntitlement()
                 .build();
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithZeroVouchers() {
+        return aPaymentCycleVoucherEntitlementWithEntitlement(aVoucherEntitlementWithZeroVouchers());
     }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithEntitlement(VoucherEntitlement voucherEntitlement) {

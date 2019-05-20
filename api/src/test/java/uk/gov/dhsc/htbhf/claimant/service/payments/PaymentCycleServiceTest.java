@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +50,7 @@ class PaymentCycleServiceTest {
     void shouldCreateNewPaymentCycleForEligibleClaim() {
         LocalDate today = LocalDate.now();
         Claim claim = aValidClaim();
-        PaymentCycleVoucherEntitlement entitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement);
 
@@ -68,7 +68,7 @@ class PaymentCycleServiceTest {
                 .totalVouchers(null)
                 .totalEntitlementAmountInPence(null)
                 .build();
-        PaymentCycleVoucherEntitlement entitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         EligibilityStatus eligibilityStatus = ELIGIBLE;
 
         paymentCycleService.updateAndSavePaymentCycle(paymentCycle, eligibilityStatus, entitlement);

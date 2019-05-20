@@ -12,7 +12,7 @@ import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 public class PaymentCycleTest extends AbstractValidationTest {
 
@@ -44,7 +44,7 @@ public class PaymentCycleTest extends AbstractValidationTest {
                 .totalEntitlementAmountInPence(null)
                 .totalVouchers(null)
                 .build();
-        PaymentCycleVoucherEntitlement entitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         Assertions.assertThat(entitlement.getTotalVoucherEntitlement()).isGreaterThan(0);
         Assertions.assertThat(entitlement.getTotalVoucherValueInPence()).isGreaterThan(0);
         //When

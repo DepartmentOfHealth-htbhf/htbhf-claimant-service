@@ -1,12 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
-import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -17,13 +15,11 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,16 +30,13 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aDetermineEntitlementMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleStartDateEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithEntitlement;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.LISA_DOB;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -52,9 +45,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 class DetermineEntitlementMessageProcessorTest {
 
     @Mock
-    private EligibilityService eligibilityService;
-    @Mock
-    private CycleEntitlementCalculator cycleEntitlementCalculator;
+    private EligibilityAndEntitlementService eligibilityAndEntitlementService;
     @Mock
     private MessageContextLoader messageContextLoader;
     @Mock
@@ -72,12 +63,10 @@ class DetermineEntitlementMessageProcessorTest {
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        given(eligibilityService.determineEligibilityForExistingClaimant(any())).willReturn(eligibilityResponse);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
 
         //Current payment cycle voucher entitlement mocking
-        PaymentCycleVoucherEntitlement currentPaymentCycleVoucherEntitlement = aValidPaymentCycleVoucherEntitlement();
-        given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(currentPaymentCycleVoucherEntitlement);
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
         //When
@@ -86,16 +75,11 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant());
-
-        List<LocalDate> dateOfBirthOfChildren = ImmutableList.of(MAGGIE_DOB, LISA_DOB);
-        verify(cycleEntitlementCalculator).calculateEntitlement(
-                Optional.of(context.getClaim().getClaimant().getExpectedDeliveryDate()),
-                dateOfBirthOfChildren,
+        verify(eligibilityAndEntitlementService).evaluateExistingClaimant(context.getClaim().getClaimant(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
-                context.getPreviousPaymentCycle().getVoucherEntitlement());
+                context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), ELIGIBLE, currentPaymentCycleVoucherEntitlement);
+        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), ELIGIBLE, decision.getVoucherEntitlement());
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
     }
@@ -107,8 +91,8 @@ class DetermineEntitlementMessageProcessorTest {
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(INELIGIBLE);
-        given(eligibilityService.determineEligibilityForExistingClaimant(any())).willReturn(eligibilityResponse);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
 
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -118,10 +102,12 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant());
+        verify(eligibilityAndEntitlementService).evaluateExistingClaimant(context.getClaim().getClaimant(),
+                context.getCurrentPaymentCycle().getCycleStartDate(),
+                context.getPreviousPaymentCycle());
 
         verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), INELIGIBLE, null);
-        verifyZeroInteractions(cycleEntitlementCalculator, messageQueueDAO);
+        verifyZeroInteractions(messageQueueDAO);
     }
 
     private DetermineEntitlementMessageContext buildMessageContext() {

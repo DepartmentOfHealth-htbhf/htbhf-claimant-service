@@ -29,7 +29,7 @@ import javax.persistence.Query;
 import static java.util.UUID.randomUUID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 /**
  * Creates Claims and PaymentCycle records in the database.
@@ -127,7 +127,7 @@ public class DatabasePopulator {
     }
 
     private void createPaymentCycle(Integer cycleDuration, EligibilityStatus paymentEligibility, Claim claim) {
-        PaymentCycleVoucherEntitlement voucherEntitlement = aValidPaymentCycleVoucherEntitlement();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         LocalDate cycleStart = LocalDate.now().minusDays(ThreadLocalRandom.current().nextInt(cycleDuration));
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)

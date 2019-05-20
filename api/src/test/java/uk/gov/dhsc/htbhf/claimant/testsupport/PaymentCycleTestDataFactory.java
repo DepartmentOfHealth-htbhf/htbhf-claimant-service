@@ -9,7 +9,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 public class PaymentCycleTestDataFactory {
 
@@ -54,7 +54,7 @@ public class PaymentCycleTestDataFactory {
         return PaymentCycle.builder()
                 .claim(aValidClaim())
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .voucherEntitlement(aValidPaymentCycleVoucherEntitlement())
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .totalVouchers(TOTAL_VOUCHERS)
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE);
     }

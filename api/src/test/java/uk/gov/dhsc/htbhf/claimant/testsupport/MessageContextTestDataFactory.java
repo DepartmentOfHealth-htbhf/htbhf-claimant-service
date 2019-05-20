@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aValidPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 public class MessageContextTestDataFactory {
 
@@ -33,7 +33,7 @@ public class MessageContextTestDataFactory {
     public static NewCardMessageContext aValidNewCardMessageContext() {
         return NewCardMessageContext.builder()
                 .claim(aValidClaim())
-                .paymentCycleVoucherEntitlement(aValidPaymentCycleVoucherEntitlement())
+                .paymentCycleVoucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build();
     }
 }
