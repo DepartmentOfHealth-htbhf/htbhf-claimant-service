@@ -35,5 +35,6 @@ public class Message extends BaseEntity {
     private int deliveryCount;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private MessageStatus status;
 }
