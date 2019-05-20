@@ -10,7 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -23,7 +23,7 @@ import java.util.Optional;
 import static java.util.Collections.min;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement.buildWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
 @Slf4j
@@ -46,11 +46,11 @@ public class NewClaimService {
 
     public ClaimResult createClaim(Claimant claimant) {
         try {
-            EligibilityAndEntitlement eligibility = eligibilityService.determineEligibilityForNewClaimant(claimant);
-            Claim claim = createAndSaveClaim(claimant, eligibility);
+            EligibilityAndEntitlementDecision decision = eligibilityService.determineEligibilityAndEntitlementForNewClaimant(claimant);
+            Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                sendNewCardMessage(claim, eligibility.getVoucherEntitlement());
-                return createResult(claim, eligibility.getVoucherEntitlement());
+                sendNewCardMessage(claim, decision.getVoucherEntitlement());
+                return createResult(claim, decision.getVoucherEntitlement());
             }
             return createResult(claim);
         } catch (RuntimeException e) {
@@ -59,8 +59,8 @@ public class NewClaimService {
         }
     }
 
-    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlement eligibility) {
-        Claim claim = buildClaim(claimant, eligibility);
+    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
+        Claim claim = buildClaim(claimant, decision);
         claimRepository.save(claim);
         log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
@@ -72,13 +72,13 @@ public class NewClaimService {
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
-    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlement eligibility) {
-        ClaimStatus claimStatus = STATUS_MAP.get(eligibility.getEligibilityStatus());
+    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
+        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
         return Claim.builder()
-                .dwpHouseholdIdentifier(eligibility.getDwpHouseholdIdentifier())
-                .hmrcHouseholdIdentifier(eligibility.getHmrcHouseholdIdentifier())
-                .eligibilityStatus(eligibility.getEligibilityStatus())
+                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())
+                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())
+                .eligibilityStatus(decision.getEligibilityStatus())
                 .eligibilityStatusTimestamp(currentDateTime)
                 .claimStatus(claimStatus)
                 .claimStatusTimestamp(currentDateTime)

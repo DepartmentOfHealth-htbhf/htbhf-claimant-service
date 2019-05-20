@@ -16,7 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -33,7 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibilityAndEntitlementWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibilityAndEntitlementDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aDetermineEntitlementMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -66,8 +66,8 @@ class DetermineEntitlementMessageProcessorTest {
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
-        EligibilityAndEntitlement eligibility = anEligibilityAndEntitlementWithStatus(ELIGIBLE);
-        given(eligibilityService.determineEligibilityForExistingClaimant(any(), any(), any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatus(ELIGIBLE);
+        given(eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(any(), any(), any())).willReturn(eligibility);
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -78,7 +78,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant(),
+        verify(eligibilityService).determineEligibilityAndEntitlementForExistingClaimant(context.getClaim().getClaimant(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
@@ -94,8 +94,8 @@ class DetermineEntitlementMessageProcessorTest {
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
-        EligibilityAndEntitlement eligibility = anEligibilityAndEntitlementWithStatus(INELIGIBLE);
-        given(eligibilityService.determineEligibilityForExistingClaimant(any(), any(), any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision eligibility = anEligibilityAndEntitlementDecisionWithStatus(INELIGIBLE);
+        given(eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(any(), any(), any())).willReturn(eligibility);
 
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -105,7 +105,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityService).determineEligibilityForExistingClaimant(context.getClaim().getClaimant(),
+        verify(eligibilityService).determineEligibilityAndEntitlementForExistingClaimant(context.getClaim().getClaimant(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 

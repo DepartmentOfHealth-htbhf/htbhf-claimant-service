@@ -6,7 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -14,7 +14,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement.buildWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
 @AllArgsConstructor
@@ -34,7 +34,7 @@ public class EligibilityService {
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlement determineEligibilityForNewClaimant(Claimant claimant) {
+    public EligibilityAndEntitlementDecision determineEligibilityAndEntitlementForNewClaimant(Claimant claimant) {
         if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
             return buildWithStatus(EligibilityStatus.DUPLICATE);
         }
@@ -43,7 +43,7 @@ public class EligibilityService {
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
-        return buildEligibilityAndEntitlement(eligibilityResponse, entitlement);
+        return buildDecision(eligibilityResponse, entitlement);
     }
 
     /**
@@ -55,14 +55,17 @@ public class EligibilityService {
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlement determineEligibilityForExistingClaimant(Claimant claimant, LocalDate cycleStartDate, PaymentCycle previousCycle) {
+    public EligibilityAndEntitlementDecision determineEligibilityAndEntitlementForExistingClaimant(
+            Claimant claimant,
+            LocalDate cycleStartDate,
+            PaymentCycle previousCycle) {
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        return buildEligibilityAndEntitlement(eligibilityResponse, entitlement);
+        return buildDecision(eligibilityResponse, entitlement);
     }
 
     private EligibilityResponse checkEligibilityForNewClaimant(Claimant claimant) {
@@ -73,9 +76,9 @@ public class EligibilityService {
                 .build();
     }
 
-    private EligibilityAndEntitlement buildEligibilityAndEntitlement(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
-        EligibilityStatus eligibilityStatus = decideEligibilityStatus(eligibilityResponse, entitlement);
-        return EligibilityAndEntitlement.builder()
+    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
+        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);
+        return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .voucherEntitlement(entitlement)
                 .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
@@ -84,7 +87,7 @@ public class EligibilityService {
                 .build();
     }
 
-    private EligibilityStatus decideEligibilityStatus(EligibilityResponse response, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response, PaymentCycleVoucherEntitlement voucherEntitlement) {
         if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE && voucherEntitlement.getTotalVoucherEntitlement() == 0) {
             return EligibilityStatus.INELIGIBLE;
         }

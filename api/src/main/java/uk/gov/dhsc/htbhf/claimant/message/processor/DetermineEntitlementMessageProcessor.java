@@ -12,7 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
 
@@ -59,15 +59,15 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
-        EligibilityAndEntitlement eligibility = eligibilityService.determineEligibilityForExistingClaimant(
+        EligibilityAndEntitlementDecision decision = eligibilityService.determineEligibilityAndEntitlementForExistingClaimant(
                 claimant,
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibility);
+        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, decision);
 
-        if (eligibility.getEligibilityStatus() == ELIGIBLE) {
+        if (decision.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
@@ -75,10 +75,10 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     }
 
     private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityAndEntitlement eligibility) {
+                                                  EligibilityAndEntitlementDecision decision) {
 
-        currentPaymentCycle.setVoucherEntitlement(eligibility.getVoucherEntitlement());
-        currentPaymentCycle.setEligibilityStatus(eligibility.getEligibilityStatus());
+        currentPaymentCycle.setVoucherEntitlement(decision.getVoucherEntitlement());
+        currentPaymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
 
         paymentCycleRepository.save(currentPaymentCycle);
     }

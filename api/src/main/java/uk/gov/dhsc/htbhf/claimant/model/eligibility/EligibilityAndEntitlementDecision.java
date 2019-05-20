@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @Builder
 @AllArgsConstructor
-public class EligibilityAndEntitlement {
+public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
     private final String dwpHouseholdIdentifier;
@@ -20,8 +20,8 @@ public class EligibilityAndEntitlement {
     private final List<LocalDate> dateOfBirthOfChildren;
     private final PaymentCycleVoucherEntitlement voucherEntitlement;
 
-    public static EligibilityAndEntitlement buildWithStatus(EligibilityStatus eligibilityStatus) {
-        return EligibilityAndEntitlement.builder()
+    public static EligibilityAndEntitlementDecision buildWithStatus(EligibilityStatus eligibilityStatus) {
+        return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
     }
