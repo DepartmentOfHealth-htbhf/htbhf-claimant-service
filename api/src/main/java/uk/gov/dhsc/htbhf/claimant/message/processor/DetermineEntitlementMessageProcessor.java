@@ -13,8 +13,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
@@ -43,9 +43,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     }
 
     /**
-     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility of the
-     * claimant for the current Payment Cycle, then calculating their entitlement accordingly. The entitlement
-     * and eligibility responses are then persisted to the current Payment Cycle.
+     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility and entitlement of the
+     * claimant for the current Payment Cycle. The entitlement and eligibility are then persisted to the current Payment Cycle.
      *
      * @param message The message to process.
      * @return The message status on completion
@@ -65,7 +64,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-        paymentCycleService.updateAndSaveCurrentPaymentCycle(
+        paymentCycleService.updateAndSavePaymentCycle(
                 currentPaymentCycle, decision.getEligibilityStatus(), decision.getVoucherEntitlement());
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
