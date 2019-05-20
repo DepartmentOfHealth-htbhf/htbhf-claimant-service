@@ -81,5 +81,20 @@ public class PaymentCycle extends BaseEntity {
     public Set&lt;Payment&gt; getPayments() {
 <span class="nc" id="L82">        return unmodifiableSet(payments);</span>
     }
+
+    /**
+     * Sets the voucherEntitlement and updates values that depend on it (totalVouchers, totalEntitlementAmountInPence).
+     * @param voucherEntitlement the entitlement to apply.
+     */
+    public void applyVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc" id="L90">        this.setVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
+<span class="fc" id="L92">            this.setTotalEntitlementAmountInPence(null);</span>
+<span class="fc" id="L93">            this.setTotalVouchers(null);</span>
+        } else {
+<span class="fc" id="L95">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L96">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
+        }
+<span class="fc" id="L98">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

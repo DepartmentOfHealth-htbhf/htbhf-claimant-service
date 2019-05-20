@@ -15,8 +15,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,7 +40,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageContextLoader messageContextLoader;
 
-    private PaymentCycleRepository paymentCycleRepository;
+    private PaymentCycleService paymentCycleService;
 
     private MessageQueueClient messageQueueClient;
 
@@ -79,7 +79,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle,
                 eligibilityResponse,
                 claimant);
-<span class="fc" id="L82">        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);</span>
+<span class="fc" id="L82">        paymentCycleService.updateAndSavePaymentCycle(currentPaymentCycle, eligibilityResponse.getEligibilityStatus(), voucherEntitlement);</span>
 
 <span class="fc" id="L84">        return COMPLETED;</span>
     }
@@ -102,14 +102,5 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 <span class="fc" id="L102">                previousPaymentCycle.getVoucherEntitlement());</span>
     }
 
-    private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityResponse eligibilityResponse,
-                                                  PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement) {
-
-<span class="fc" id="L109">        currentPaymentCycle.setVoucherEntitlement(paymentCycleVoucherEntitlement);</span>
-<span class="fc" id="L110">        currentPaymentCycle.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());</span>
-
-<span class="fc" id="L112">        paymentCycleRepository.save(currentPaymentCycle);</span>
-<span class="fc" id="L113">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
