@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 
 import javax.transaction.Transactional;
@@ -33,7 +33,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageContextLoader messageContextLoader;
 
-    private PaymentCycleRepository paymentCycleRepository;
+    private PaymentCycleService paymentCycleService;
 
     private MessageQueueClient messageQueueClient;
 
@@ -65,21 +65,13 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, decision);
+        paymentCycleService.updateAndSaveCurrentPaymentCycle(
+                currentPaymentCycle, decision.getEligibilityStatus(), decision.getVoucherEntitlement());
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
         return COMPLETED;
-    }
-
-    private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityAndEntitlementDecision decision) {
-
-        currentPaymentCycle.setVoucherEntitlement(decision.getVoucherEntitlement());
-        currentPaymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
-
-        paymentCycleRepository.save(currentPaymentCycle);
     }
 }

@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,12 +16,10 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +49,7 @@ class DetermineEntitlementMessageProcessorTest {
     @Mock
     private MessageContextLoader messageContextLoader;
     @Mock
-    private PaymentCycleRepository paymentCycleRepository;
+    private PaymentCycleService paymentCycleService;
     @Mock
     private MessageQueueDAO messageQueueDAO;
 
@@ -82,7 +79,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleUpdatedSuccessfully(context.getCurrentPaymentCycle().getId(), decision.getVoucherEntitlement(), ELIGIBLE);
+        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), ELIGIBLE, decision.getVoucherEntitlement());
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
     }
@@ -109,7 +106,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleUpdatedSuccessfully(context.getCurrentPaymentCycle().getId(), null, INELIGIBLE);
+        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), INELIGIBLE, null);
         verifyZeroInteractions(messageQueueDAO);
     }
 
@@ -136,15 +133,4 @@ class DetermineEntitlementMessageProcessorTest {
                 claim);
     }
 
-    private void verifyPaymentCycleUpdatedSuccessfully(UUID currentPaymentCycleId,
-                                                       PaymentCycleVoucherEntitlement voucherEntitlement,
-                                                       EligibilityStatus eligibilityStatus) {
-        ArgumentCaptor<PaymentCycle> paymentCycleArgumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
-        verify(paymentCycleRepository).save(paymentCycleArgumentCaptor.capture());
-        PaymentCycle updatedPaymentCycle = paymentCycleArgumentCaptor.getValue();
-        assertThat(updatedPaymentCycle).isNotNull();
-        assertThat(updatedPaymentCycle.getId()).isEqualTo(currentPaymentCycleId);
-        assertThat(updatedPaymentCycle.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
-        assertThat(updatedPaymentCycle.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-    }
 }
