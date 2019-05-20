@@ -3,8 +3,6 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -14,13 +12,10 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
@@ -29,14 +24,12 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEME
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
-<span class="fc" id="L32">@Slf4j</span>
+<span class="fc" id="L27">@Slf4j</span>
 @Component
 @AllArgsConstructor
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
-    private EligibilityService eligibilityService;
-
-    private CycleEntitlementCalculator cycleEntitlementCalculator;
+    private EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     private MessageContextLoader messageContextLoader;
 
@@ -46,13 +39,12 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L49">        return DETERMINE_ENTITLEMENT;</span>
+<span class="fc" id="L42">        return DETERMINE_ENTITLEMENT;</span>
     }
 
     /**
-     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility of the
-     * claimant for the current Payment Cycle, then calculating their entitlement accordingly. The entitlement
-     * and eligibility responses are then persisted to the current Payment Cycle.
+     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility and entitlement of the
+     * claimant for the current Payment Cycle. The entitlement and eligibility are then persisted to the current Payment Cycle.
      *
      * @param message The message to process.
      * @return The message status on completion
@@ -61,46 +53,25 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
 
-<span class="fc" id="L64">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
-<span class="fc" id="L65">        Claimant claimant = messageContext.getClaim().getClaimant();</span>
-<span class="fc" id="L66">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
-<span class="fc" id="L67">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
+<span class="fc" id="L56">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
+<span class="fc" id="L57">        Claimant claimant = messageContext.getClaim().getClaimant();</span>
+<span class="fc" id="L58">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
+<span class="fc" id="L59">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
 
-<span class="fc" id="L69">        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForExistingClaimant(claimant);</span>
-
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {</span>
-<span class="fc" id="L72">            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);</span>
-        }
+<span class="fc" id="L61">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(</span>
+                claimant,
+<span class="fc" id="L63">                currentPaymentCycle.getCycleStartDate(),</span>
+                previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
+<span class="fc" id="L67">        paymentCycleService.updateAndSavePaymentCycle(</span>
+<span class="fc" id="L68">                currentPaymentCycle, decision.getEligibilityStatus(), decision.getVoucherEntitlement());</span>
 
-<span class="fc" id="L77">        PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(</span>
-                currentPaymentCycle,
-                previousPaymentCycle,
-                eligibilityResponse,
-                claimant);
-<span class="fc" id="L82">        paymentCycleService.updateAndSavePaymentCycle(currentPaymentCycle, eligibilityResponse.getEligibilityStatus(), voucherEntitlement);</span>
-
-<span class="fc" id="L84">        return COMPLETED;</span>
-    }
-
-    private PaymentCycleVoucherEntitlement determineVoucherEntitlement(PaymentCycle currentPaymentCycle,
-                                                                       PaymentCycle previousPaymentCycle,
-                                                                       EligibilityResponse eligibilityResponse,
-                                                                       Claimant claimant) {
-
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (eligibilityResponse.getEligibilityStatus() != ELIGIBLE) {</span>
-<span class="fc" id="L93">            return null;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
+<span class="fc" id="L71">            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);</span>
         }
 
-<span class="fc" id="L96">        Optional&lt;LocalDate&gt; expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());</span>
-<span class="fc" id="L97">        List&lt;LocalDate&gt; dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();</span>
-<span class="fc" id="L98">        return cycleEntitlementCalculator.calculateEntitlement(</span>
-                expectedDeliveryDate,
-                dateOfBirthOfChildren,
-<span class="fc" id="L101">                currentPaymentCycle.getCycleStartDate(),</span>
-<span class="fc" id="L102">                previousPaymentCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L74">        return COMPLETED;</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

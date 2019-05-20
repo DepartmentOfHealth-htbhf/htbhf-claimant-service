@@ -19,7 +19,7 @@ public class EligibilityStatusCalculator {
      * @param eligibilityResponse Eligibility response containing household identifiers.
      * @return the eligibility status
      */
-    public EligibilityStatus determineEligibilityStatus(EligibilityResponse eligibilityResponse) {
+    public EligibilityStatus determineEligibilityStatusForNewClaim(EligibilityResponse eligibilityResponse) {
 <span class="fc bfc" id="L23" title="All 2 branches covered.">        return eligibleClaimExistsForHousehold(eligibilityResponse)</span>
 <span class="fc" id="L24">                ? EligibilityStatus.DUPLICATE</span>
 <span class="fc" id="L25">                : eligibilityResponse.getEligibilityStatus();</span>
