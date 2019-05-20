@@ -2,7 +2,6 @@ buildscript {
     ext {
         junitVersion = '5.3.2'
         springFoxVersion = '2.9.2'
-        jacksonVersion = '2.9.8'
         hikariCPVersion = '3.3.1'
         flywayVersion = '5.2.4'
         postgresJdbcVersion = '42.2.5'
@@ -48,7 +47,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
