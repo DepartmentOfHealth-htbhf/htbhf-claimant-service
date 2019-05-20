@@ -53,6 +53,8 @@ public class EligibilityAndEntitlementService {
      * otherwise they will be ineligible.
      *
      * @param claimant the claimant to check the eligibility for
+     * @param cycleStartDate the start date of the payment cycle
+     * @param previousCycle the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateExistingClaimant(
