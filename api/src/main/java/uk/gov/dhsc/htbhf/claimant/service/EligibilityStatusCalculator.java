@@ -19,7 +19,7 @@ public class EligibilityStatusCalculator {
      * @param eligibilityResponse Eligibility response containing household identifiers.
      * @return the eligibility status
      */
-    public EligibilityStatus determineEligibilityStatus(EligibilityResponse eligibilityResponse) {
+    public EligibilityStatus determineEligibilityStatusForNewClaim(EligibilityResponse eligibilityResponse) {
         return eligibleClaimExistsForHousehold(eligibilityResponse)
                 ? EligibilityStatus.DUPLICATE
                 : eligibilityResponse.getEligibilityStatus();

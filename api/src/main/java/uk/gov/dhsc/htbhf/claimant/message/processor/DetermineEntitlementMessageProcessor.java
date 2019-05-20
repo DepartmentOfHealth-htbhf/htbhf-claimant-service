@@ -3,8 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -14,13 +12,10 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityService;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
@@ -34,13 +29,11 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 @AllArgsConstructor
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
-    private EligibilityService eligibilityService;
-
-    private CycleEntitlementCalculator cycleEntitlementCalculator;
+    private EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     private MessageContextLoader messageContextLoader;
 
-    private PaymentCycleRepository paymentCycleRepository;
+    private PaymentCycleService paymentCycleService;
 
     private MessageQueueClient messageQueueClient;
 
@@ -50,9 +43,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     }
 
     /**
-     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility of the
-     * claimant for the current Payment Cycle, then calculating their entitlement accordingly. The entitlement
-     * and eligibility responses are then persisted to the current Payment Cycle.
+     * Processes DETERMINE_ENTITLEMENT messages from the message queue by determining the eligibility and entitlement of the
+     * claimant for the current Payment Cycle. The entitlement and eligibility are then persisted to the current Payment Cycle.
      *
      * @param message The message to process.
      * @return The message status on completion
@@ -66,49 +58,19 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
-        EligibilityResponse eligibilityResponse = eligibilityService.determineEligibilityForExistingClaimant(claimant);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(
+                claimant,
+                currentPaymentCycle.getCycleStartDate(),
+                previousPaymentCycle);
 
-        if (eligibilityResponse.getEligibilityStatus() == ELIGIBLE) {
+        //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
+        paymentCycleService.updateAndSavePaymentCycle(
+                currentPaymentCycle, decision.getEligibilityStatus(), decision.getVoucherEntitlement());
+
+        if (decision.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
-        //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-
-        PaymentCycleVoucherEntitlement voucherEntitlement = determineVoucherEntitlement(
-                currentPaymentCycle,
-                previousPaymentCycle,
-                eligibilityResponse,
-                claimant);
-        updateAndSaveCurrentPaymentCycle(currentPaymentCycle, eligibilityResponse, voucherEntitlement);
-
         return COMPLETED;
-    }
-
-    private PaymentCycleVoucherEntitlement determineVoucherEntitlement(PaymentCycle currentPaymentCycle,
-                                                                       PaymentCycle previousPaymentCycle,
-                                                                       EligibilityResponse eligibilityResponse,
-                                                                       Claimant claimant) {
-
-        if (eligibilityResponse.getEligibilityStatus() != ELIGIBLE) {
-            return null;
-        }
-
-        Optional<LocalDate> expectedDeliveryDate = Optional.ofNullable(claimant.getExpectedDeliveryDate());
-        List<LocalDate> dateOfBirthOfChildren = eligibilityResponse.getDateOfBirthOfChildren();
-        return cycleEntitlementCalculator.calculateEntitlement(
-                expectedDeliveryDate,
-                dateOfBirthOfChildren,
-                currentPaymentCycle.getCycleStartDate(),
-                previousPaymentCycle.getVoucherEntitlement());
-    }
-
-    private void updateAndSaveCurrentPaymentCycle(PaymentCycle currentPaymentCycle,
-                                                  EligibilityResponse eligibilityResponse,
-                                                  PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement) {
-
-        currentPaymentCycle.setVoucherEntitlement(paymentCycleVoucherEntitlement);
-        currentPaymentCycle.setEligibilityStatus(eligibilityResponse.getEligibilityStatus());
-
-        paymentCycleRepository.save(currentPaymentCycle);
     }
 }
