@@ -22,6 +22,7 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
@@ -64,8 +65,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -80,7 +81,7 @@ class NewClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyCreateNewCardMessageSent(result, entitlement);
+        verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -123,8 +124,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -135,7 +136,7 @@ class NewClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyCreateNewCardMessageSent(result, entitlement);
+        verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
     }
 
     /**
@@ -152,8 +153,8 @@ class NewClaimServiceTest {
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
         ClaimResult result = newClaimService.createClaim(claimant);
@@ -164,7 +165,7 @@ class NewClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
-            verifyCreateNewCardMessageSent(result, entitlement);
+            verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
         }
     }
 
@@ -222,10 +223,11 @@ class NewClaimServiceTest {
         assertThat(actualClaim.getClaimant()).isEqualTo(claimant);
     }
 
-    private void verifyCreateNewCardMessageSent(ClaimResult result, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    private void verifyCreateNewCardMessageSent(ClaimResult result, PaymentCycleVoucherEntitlement voucherEntitlement, List<LocalDate> datesOfBirth) {
         NewCardRequestMessagePayload newCardRequestMessagePayload = NewCardRequestMessagePayload.builder()
                 .claimId(result.getClaim().getId())
                 .voucherEntitlement(voucherEntitlement)
+                .datesOfBirthOfChildren(datesOfBirth)
                 .build();
         verify(messageQueueDAO).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
     }

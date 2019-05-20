@@ -4,6 +4,8 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -27,10 +29,13 @@ public class MessagePayloadTestDataFactory {
         return defaultNewCardRequestMessagePayloadBuilder().build();
     }
 
-    public static NewCardRequestMessagePayload aNewCardRequestMessagePayload(UUID claimId, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    public static NewCardRequestMessagePayload aNewCardRequestMessagePayload(UUID claimId,
+                                                                             PaymentCycleVoucherEntitlement voucherEntitlement,
+                                                                             List<LocalDate> datesOfBirth) {
         return defaultNewCardRequestMessagePayloadBuilder()
                 .claimId(claimId)
                 .voucherEntitlement(voucherEntitlement)
+                .datesOfBirthOfChildren(datesOfBirth)
                 .build();
     }
 

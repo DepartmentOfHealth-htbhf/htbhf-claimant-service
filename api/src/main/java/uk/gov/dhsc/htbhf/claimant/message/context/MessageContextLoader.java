@@ -82,6 +82,7 @@ public class MessageContextLoader {
         return NewCardMessageContext.builder()
                 .claim(claim)
                 .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())
+                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .build();
     }
 
