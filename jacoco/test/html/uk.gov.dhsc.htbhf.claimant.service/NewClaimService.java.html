@@ -49,7 +49,7 @@ public class NewClaimService {
 <span class="fc" id="L49">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);</span>
 <span class="fc" id="L50">            Claim claim = createAndSaveClaim(claimant, decision);</span>
 <span class="fc bfc" id="L51" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
-<span class="fc" id="L52">                sendNewCardMessage(claim, decision.getVoucherEntitlement());</span>
+<span class="fc" id="L52">                sendNewCardMessage(claim, decision);</span>
 <span class="fc" id="L53">                return createResult(claim, decision.getVoucherEntitlement());</span>
             }
 <span class="fc" id="L55">            return createResult(claim);</span>
@@ -67,8 +67,8 @@ public class NewClaimService {
 <span class="fc" id="L67">        return claim;</span>
     }
 
-    private void sendNewCardMessage(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L71">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, voucherEntitlement);</span>
+    private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L71">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
 <span class="fc" id="L72">        messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);</span>
 <span class="fc" id="L73">    }</span>
 

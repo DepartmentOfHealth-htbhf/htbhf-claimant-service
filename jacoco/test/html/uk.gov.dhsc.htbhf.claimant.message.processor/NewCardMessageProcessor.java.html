@@ -59,13 +59,14 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L59">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(</span>
                 claim,
 <span class="fc" id="L61">                claim.getClaimStatusTimestamp().toLocalDate(),</span>
-<span class="fc" id="L62">                context.getPaymentCycleVoucherEntitlement());</span>
+<span class="fc" id="L62">                context.getPaymentCycleVoucherEntitlement(),</span>
+<span class="fc" id="L63">                context.getDatesOfBirthOfChildren());</span>
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L66">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L67">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L67">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L68">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L69">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
