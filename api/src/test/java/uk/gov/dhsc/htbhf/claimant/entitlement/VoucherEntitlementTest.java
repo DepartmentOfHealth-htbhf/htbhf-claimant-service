@@ -15,14 +15,14 @@ class VoucherEntitlementTest {
                 .vouchersForPregnancy(2)
                 .vouchersForChildrenUnderOne(4)
                 .vouchersForChildrenBetweenOneAndFour(3)
-                .voucherValueInPence(310)
+                .singleVoucherValueInPence(310)
                 .entitlementDate(entitlementDate)
                 .build();
 
         assertThat(entitlement.getVouchersForPregnancy()).isEqualTo(2);
         assertThat(entitlement.getVouchersForChildrenUnderOne()).isEqualTo(4);
         assertThat(entitlement.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(3);
-        assertThat(entitlement.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(entitlement.getSingleVoucherValueInPence()).isEqualTo(310);
         assertThat(entitlement.getTotalVoucherEntitlement()).isEqualTo(9);
         assertThat(entitlement.getTotalVoucherValueInPence()).isEqualTo(2790);
         assertThat(entitlement.getEntitlementDate()).isEqualTo(entitlementDate);

@@ -40,7 +40,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(4);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @DisplayName("Should calculate the correct entitlement for a cycle when there is a child under one, whose first birthday"
@@ -61,7 +61,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(2);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(3);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @DisplayName("Should calculate the correct entitlement for a cycle when the claimant is pregnant and there is a child between"
@@ -83,7 +83,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(2);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(4);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @DisplayName("Should calculate the correct entitlement for a cycle when there is one child under one whose first birthday is on"
@@ -105,7 +105,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(6);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(4);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @DisplayName("Should calculate the correct entitlement for a cycle when there is one child under one whose first birthday is on"
@@ -128,7 +128,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(6);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(5);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @Test
@@ -151,7 +151,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0); // we've determine that the child is from the pregnancy, so no longer pregnant
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @Test
@@ -176,7 +176,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(16);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0); // we've determine that the children are from the pregnancy, so no longer pregnant
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     @Test
@@ -196,7 +196,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     // Covers the case of an existing claimant becoming pregnant
@@ -217,7 +217,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(4);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(4);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
     }
 
     // the child was born at the end of the previous cycle, therefore no back dated vouchers are expected.
@@ -237,7 +237,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(8);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0); // we've determine that the child is from the pregnancy, so no longer pregnant
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
 
@@ -256,7 +256,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
 
@@ -275,7 +275,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(2);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
 
@@ -294,7 +294,7 @@ class CycleEntitlementCalculatorIntegrationTests {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(0);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(0);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(1);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(310);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(310);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
     }
 }

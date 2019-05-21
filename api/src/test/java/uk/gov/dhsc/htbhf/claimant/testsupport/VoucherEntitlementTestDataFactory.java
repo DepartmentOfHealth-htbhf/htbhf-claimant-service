@@ -18,7 +18,7 @@ public class VoucherEntitlementTestDataFactory {
 
     public static VoucherEntitlement aVoucherEntitlementWithZeroVouchers() {
         return VoucherEntitlement.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .vouchersForChildrenUnderOne(0)
                 .vouchersForChildrenBetweenOneAndFour(0)
                 .vouchersForPregnancy(0)
@@ -34,7 +34,7 @@ public class VoucherEntitlementTestDataFactory {
 
     private static VoucherEntitlement.VoucherEntitlementBuilder aVoucherEntitlementBuilder() {
         return VoucherEntitlement.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .vouchersForChildrenUnderOne(VOUCHERS_FOR_CHILDREN_UNDER_ONE)
                 .vouchersForChildrenBetweenOneAndFour(VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR)
                 .vouchersForPregnancy(VOUCHERS_FOR_PREGNANCY)

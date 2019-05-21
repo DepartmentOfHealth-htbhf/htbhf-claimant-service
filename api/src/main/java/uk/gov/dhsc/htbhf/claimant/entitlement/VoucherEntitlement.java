@@ -16,7 +16,7 @@ public class VoucherEntitlement {
     private int vouchersForChildrenBetweenOneAndFour;
     private int vouchersForPregnancy;
     private int totalVoucherEntitlement;
-    private int voucherValueInPence;
+    private int singleVoucherValueInPence;
     private int totalVoucherValueInPence;
     private LocalDate entitlementDate;
 
@@ -24,15 +24,15 @@ public class VoucherEntitlement {
     public VoucherEntitlement(int vouchersForChildrenUnderOne,
                               int vouchersForChildrenBetweenOneAndFour,
                               int vouchersForPregnancy,
-                              int voucherValueInPence,
+                              int singleVoucherValueInPence,
                               LocalDate entitlementDate) {
         this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;
         this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;
         this.vouchersForPregnancy = vouchersForPregnancy;
-        this.voucherValueInPence = voucherValueInPence;
+        this.singleVoucherValueInPence = singleVoucherValueInPence;
         this.entitlementDate = entitlementDate;
 
         this.totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;
-        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;
+        this.totalVoucherValueInPence = totalVoucherEntitlement * singleVoucherValueInPence;
     }
 }
