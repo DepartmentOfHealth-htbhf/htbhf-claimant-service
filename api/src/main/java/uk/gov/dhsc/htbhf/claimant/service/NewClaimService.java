@@ -49,7 +49,7 @@ public class NewClaimService {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                sendNewCardMessage(claim, decision.getVoucherEntitlement());
+                sendNewCardMessage(claim, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
             }
             return createResult(claim);
@@ -67,8 +67,8 @@ public class NewClaimService {
         return claim;
     }
 
-    private void sendNewCardMessage(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, voucherEntitlement);
+    private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
+        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 

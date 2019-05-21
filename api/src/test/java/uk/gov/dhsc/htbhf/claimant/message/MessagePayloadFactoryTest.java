@@ -7,6 +7,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -18,11 +21,12 @@ class MessagePayloadFactoryTest {
     void shouldCreateNewCardMessagePayload() {
         Claim claim = aValidClaim();
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-
-        NewCardRequestMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, voucherEntitlement);
+        List<LocalDate> datesOfBirth = List.of(LocalDate.now().minusDays(1), LocalDate.now());
+        NewCardRequestMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, voucherEntitlement, datesOfBirth);
 
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirth);
     }
 
     @Test

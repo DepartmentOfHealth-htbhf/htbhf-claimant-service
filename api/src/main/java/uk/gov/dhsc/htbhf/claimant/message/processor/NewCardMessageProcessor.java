@@ -59,7 +59,8 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
         return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(
                 claim,
                 claim.getClaimStatusTimestamp().toLocalDate(),
-                context.getPaymentCycleVoucherEntitlement());
+                context.getPaymentCycleVoucherEntitlement(),
+                context.getDatesOfBirthOfChildren());
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
