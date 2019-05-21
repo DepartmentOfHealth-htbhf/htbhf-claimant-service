@@ -31,13 +31,13 @@ class PaymentCycleVoucherEntitlementTest {
                 .vouchersForChildrenUnderOne(1)
                 .vouchersForChildrenBetweenOneAndFour(2)
                 .vouchersForPregnancy(3)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         VoucherEntitlement voucherEntitlement2 = VoucherEntitlement.builder()
                 .vouchersForChildrenUnderOne(2)
                 .vouchersForChildrenBetweenOneAndFour(3)
                 .vouchersForPregnancy(3)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         List<VoucherEntitlement> voucherEntitlements = asList(voucherEntitlement1, voucherEntitlement2);
 
@@ -46,7 +46,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(3);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(5);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(6);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(14);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(1400);
         assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
@@ -57,11 +57,11 @@ class PaymentCycleVoucherEntitlementTest {
     void shouldCreateTotalValuesFromListOfVoucherEntitlementWithMissingValues() {
         VoucherEntitlement voucherEntitlement1 = VoucherEntitlement.builder()
                 .vouchersForChildrenUnderOne(1)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         VoucherEntitlement voucherEntitlement2 = VoucherEntitlement.builder()
                 .vouchersForChildrenBetweenOneAndFour(1)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         List<VoucherEntitlement> voucherEntitlements = asList(voucherEntitlement1, voucherEntitlement2);
 
@@ -70,7 +70,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForChildrenUnderOne()).isEqualTo(1);
         assertThat(result.getVouchersForChildrenBetweenOneAndFour()).isEqualTo(1);
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(200);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
@@ -83,13 +83,13 @@ class PaymentCycleVoucherEntitlementTest {
                 .vouchersForChildrenUnderOne(1)
                 .vouchersForChildrenBetweenOneAndFour(2)
                 .vouchersForPregnancy(3)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         VoucherEntitlement voucherEntitlement2 = VoucherEntitlement.builder()
                 .vouchersForChildrenUnderOne(2)
                 .vouchersForChildrenBetweenOneAndFour(3)
                 .vouchersForPregnancy(3)
-                .voucherValueInPence(100)
+                .singleVoucherValueInPence(100)
                 .build();
         List<VoucherEntitlement> voucherEntitlements = asList(voucherEntitlement1, voucherEntitlement2);
         int backdatedVouchers = 10;
@@ -101,7 +101,7 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForPregnancy()).isEqualTo(6);
         assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(24);
-        assertThat(result.getVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2400);
         assertThat(result.getBackdatedVouchers()).isEqualTo(backdatedVouchers);
     }

@@ -101,7 +101,7 @@ public class EntitlementCalculator {
                 .vouchersForPregnancy(vouchersForPregnancy)
                 .vouchersForChildrenUnderOne(vouchersForChildrenUnderOne)
                 .vouchersForChildrenBetweenOneAndFour(vouchersForChildrenBetweenOneAndFour)
-                .voucherValueInPence(voucherValueInPence)
+                .singleVoucherValueInPence(voucherValueInPence)
                 .entitlementDate(entitlementDate)
                 .build();
     }
