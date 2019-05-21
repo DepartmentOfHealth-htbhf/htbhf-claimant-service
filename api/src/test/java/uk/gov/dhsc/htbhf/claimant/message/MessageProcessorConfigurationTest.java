@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -25,6 +26,9 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_FIRST_EMAIL;
 
 @SpringJUnitConfig(classes = {MessageProcessorConfigurationTest.TestConfig.class, MessageProcessorConfiguration.class})
+@TestPropertySource(properties = {
+        "message-processor.message-limit=100",
+})
 @ExtendWith(MockitoExtension.class)
 class MessageProcessorConfigurationTest {
 
@@ -58,7 +62,7 @@ class MessageProcessorConfigurationTest {
         MessageProcessorConfiguration configuration = new MessageProcessorConfiguration();
         //When
         BeanCreationException thrown = catchThrowableOfType(
-                () -> configuration.messageProcessor(emptyList(), messageRepository),
+                () -> configuration.messageProcessor(emptyList(), messageRepository, 100),
                 BeanCreationException.class);
         //Then
         assertThat(thrown).hasMessage("Unable to create MessageProcessor, no MessageTypeProcessor instances found");

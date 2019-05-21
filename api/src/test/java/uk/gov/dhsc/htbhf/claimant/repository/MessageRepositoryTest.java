@@ -7,6 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 
@@ -66,7 +68,7 @@ class MessageRepositoryTest {
         messageRepository.save(aValidMessageWithType(differentMessageType));
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessage);
@@ -83,10 +85,27 @@ class MessageRepositoryTest {
         messageRepository.save(newCardMessageOneYearAgo);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD);
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo, newCardMessage);
+    }
+
+    @Test
+    void shouldRetrieveMessagesUsingPageSizeOnly() {
+        // Given
+        Message message1 = aValidMessage();
+        Message message2 = aValidMessage();
+        Message message3 = aValidMessage();
+        messageRepository.save(message1);
+        messageRepository.save(message2);
+        messageRepository.save(message3);
+
+        // When
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD, PageRequest.of(0, 2));
+
+        // Then
+        assertThat(messages).containsExactly(message1, message2);
     }
 
 }
