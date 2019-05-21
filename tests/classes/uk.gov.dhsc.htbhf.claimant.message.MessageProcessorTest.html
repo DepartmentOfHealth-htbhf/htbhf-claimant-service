@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.148s</div>
+<div class="counter">0.162s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,27 +79,27 @@
 </thead>
 <tr>
 <td class="success">shouldCallDummyProcessors()</td>
-<td class="success">0.075s</td>
+<td class="success">0.067s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldContinueToProcessMessagesAfterAnExceptionThrown()</td>
-<td class="success">0.034s</td>
+<td class="success">0.073s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldLogMessageProcessResults()</td>
-<td class="success">0.008s</td>
+<td class="success">0.004s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldLogNullMessageProcessResult()</td>
-<td class="success">0.007s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor()</td>
-<td class="success">0.024s</td>
+<td class="success">0.013s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -107,17 +107,17 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>08:54:47.133 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-08:54:47.146 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-08:54:47.159 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type CREATE_NEW_CARD
-08:54:47.160 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
-08:54:47.168 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_FIRST_EMAIL
-08:54:47.170 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor$MockitoMock$475074509
-08:54:47.174 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 message(s) of type CREATE_NEW_CARD
-08:54:47.182 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 9324a632-66ae-4b1d-8fc7-f7b8689bbb29
+<pre>09:31:41.796 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+09:31:41.805 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+09:31:41.813 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type CREATE_NEW_CARD
+09:31:41.814 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
+09:31:41.818 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_FIRST_EMAIL
+09:31:41.819 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor$MockitoMock$1939482834
+09:31:41.823 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 message(s) of type CREATE_NEW_CARD
+09:31:41.830 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 561a2429-2508-417b-b2ee-bd0be1e2187b
 java.lang.RuntimeException: foo
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:78)
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessages$0(MessageProcessor.java:60)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:83)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessages$0(MessageProcessor.java:65)
 	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
 	at java.base/java.util.AbstractList$RandomAccessSpliterator.forEachRemaining(AbstractList.java:720)
 	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:484)
@@ -125,12 +125,12 @@ java.lang.RuntimeException: foo
 	at java.base/java.util.stream.ReduceOps$ReduceOp.evaluateSequential(ReduceOps.java:913)
 	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
 	at java.base/java.util.stream.ReferencePipeline.collect(ReferencePipeline.java:578)
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessages(MessageProcessor.java:61)
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessagesOfType(MessageProcessor.java:53)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessages(MessageProcessor.java:66)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessagesOfType(MessageProcessor.java:58)
 	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
 	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:658)
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processAllMessages(MessageProcessor.java:43)
-	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessorTest.shouldContinueToProcessMessagesAfterAnExceptionThrown(MessageProcessorTest.java:105)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processAllMessages(MessageProcessor.java:48)
+	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessorTest.shouldContinueToProcessMessagesAfterAnExceptionThrown(MessageProcessorTest.java:110)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -195,10 +195,10 @@ java.lang.RuntimeException: foo
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:55)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-08:54:47.193 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status FAILED
-08:54:47.195 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-08:54:47.195 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
-08:54:47.215 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+09:31:41.871 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status FAILED
+09:31:41.872 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
+09:31:41.872 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+09:31:41.900 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
 </pre>
 </span>
 </div>
@@ -210,7 +210,7 @@ java.lang.RuntimeException: foo
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.0</a> at May 21, 2019, 9:01:03 AM</p>
+<a href="http://www.gradle.org">Gradle 5.0</a> at May 21, 2019, 9:38:04 AM</p>
 </div>
 </div>
 </body>

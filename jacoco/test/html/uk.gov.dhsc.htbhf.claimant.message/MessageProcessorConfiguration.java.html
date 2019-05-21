@@ -2,6 +2,7 @@
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
@@ -13,35 +14,37 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Configuration
-<span class="fc" id="L16">@Slf4j</span>
-<span class="fc" id="L17">public class MessageProcessorConfiguration {</span>
+<span class="fc" id="L17">@Slf4j</span>
+<span class="fc" id="L18">public class MessageProcessorConfiguration {</span>
 
     @Bean
-    public MessageProcessor messageProcessor(List&lt;MessageTypeProcessor&gt; messageProcessors, MessageRepository messageRepository) {
-<span class="fc" id="L21">        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors));</span>
+    public MessageProcessor messageProcessor(List&lt;MessageTypeProcessor&gt; messageProcessors,
+                                             MessageRepository messageRepository,
+                                             @Value(&quot;${message-processor.message-limit}&quot;) int messageProcessingLimit) {
+<span class="fc" id="L24">        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);</span>
     }
 
     private Map&lt;MessageType, MessageTypeProcessor&gt; buildMessageTypeProcessorMap(List&lt;MessageTypeProcessor&gt; messageProcessors) {
-<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messageProcessors)) {</span>
-<span class="fc" id="L26">            log.error(&quot;No MessageTypeProcessors found in application context, we currently have no support for any types of messages&quot;);</span>
-<span class="fc" id="L27">            throw new BeanCreationException(&quot;Unable to create MessageProcessor, no MessageTypeProcessor instances found&quot;);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messageProcessors)) {</span>
+<span class="fc" id="L29">            log.error(&quot;No MessageTypeProcessors found in application context, we currently have no support for any types of messages&quot;);</span>
+<span class="fc" id="L30">            throw new BeanCreationException(&quot;Unable to create MessageProcessor, no MessageTypeProcessor instances found&quot;);</span>
         }
-<span class="fc" id="L29">        Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType = messageProcessors</span>
-<span class="fc" id="L30">                .stream()</span>
-<span class="fc" id="L31">                .collect(Collectors.toMap(MessageTypeProcessor::supportsMessageType, messageTypeProcessor -&gt; messageTypeProcessor));</span>
-<span class="fc" id="L32">        warnForMissingProcessorType(messageProcessorsByType);</span>
-<span class="fc" id="L33">        return messageProcessorsByType;</span>
+<span class="fc" id="L32">        Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType = messageProcessors</span>
+<span class="fc" id="L33">                .stream()</span>
+<span class="fc" id="L34">                .collect(Collectors.toMap(MessageTypeProcessor::supportsMessageType, messageTypeProcessor -&gt; messageTypeProcessor));</span>
+<span class="fc" id="L35">        warnForMissingProcessorType(messageProcessorsByType);</span>
+<span class="fc" id="L36">        return messageProcessorsByType;</span>
     }
 
     //Add a useful message to the logs detailing which messages currently do not have a processor configured in the application context.
     private void warnForMissingProcessorType(Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType) {
-<span class="fc" id="L38">        Stream.of(MessageType.values()).forEach(messageType -&gt; {</span>
-<span class="fc bfc" id="L39" title="All 2 branches covered.">            if (!messageProcessorsByType.containsKey(messageType)) {</span>
-<span class="fc" id="L40">                log.warn(&quot;We currently have no support for messages of type [{}], no MessageTypeProcessor implementation found in context on startup&quot;,</span>
+<span class="fc" id="L41">        Stream.of(MessageType.values()).forEach(messageType -&gt; {</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (!messageProcessorsByType.containsKey(messageType)) {</span>
+<span class="fc" id="L43">                log.warn(&quot;We currently have no support for messages of type [{}], no MessageTypeProcessor implementation found in context on startup&quot;,</span>
                         messageType);
             }
-<span class="fc" id="L43">        });</span>
-<span class="fc" id="L44">    }</span>
+<span class="fc" id="L46">        });</span>
+<span class="fc" id="L47">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
