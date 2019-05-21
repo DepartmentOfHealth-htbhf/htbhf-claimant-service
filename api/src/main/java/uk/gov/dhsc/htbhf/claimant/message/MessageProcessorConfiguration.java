@@ -20,8 +20,9 @@ public class MessageProcessorConfiguration {
     @Bean
     public MessageProcessor messageProcessor(List<MessageTypeProcessor> messageProcessors,
                                              MessageRepository messageRepository,
+                                             MessageStatusProcessor messageStatusProcessor,
                                              @Value("${message-processor.message-limit}") int messageProcessingLimit) {
-        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);
+        return new MessageProcessor(messageStatusProcessor, messageRepository, buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);
     }
 
     private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> messageProcessors) {

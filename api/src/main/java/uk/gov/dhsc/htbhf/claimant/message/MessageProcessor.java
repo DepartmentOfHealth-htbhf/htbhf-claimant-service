@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +31,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 @Slf4j
 public class MessageProcessor {
 
+    private final MessageStatusProcessor messageStatusProcessor;
     private final MessageRepository messageRepository;
     private final Map<MessageType, MessageTypeProcessor> messageProcessorsByType;
 
@@ -71,7 +71,7 @@ public class MessageProcessor {
     private MessageTypeProcessor getMessageTypeProcessor(MessageType messageType, List<Message> messages) {
         MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);
         if (messageTypeProcessor == null) {
-            updateMessagesToErrorAndIncrementCount(messages);
+            messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);
             throw new IllegalArgumentException("No message type processor found in application context for message type: "
                     + messageType + ", there are " + messages.size() + " message(s) in the queue");
         }
@@ -79,35 +79,20 @@ public class MessageProcessor {
     }
 
     private MessageStatus processMessage(Message message, MessageTypeProcessor messageTypeProcessor) {
-        try {
-            MessageStatus status = messageTypeProcessor.processMessage(message);
-            if (status == MessageStatus.COMPLETED) {
-                messageRepository.delete(message);
-            } else {
-                updateMessageWithStatusAndIncrementCount(message, status);
-            }
+        MessageStatus status = process(message, messageTypeProcessor);
+        messageStatusProcessor.processStatusForMessage(message, status);
+        return status;
+    }
 
-            return status;
+    private MessageStatus process(Message message, MessageTypeProcessor messageTypeProcessor) {
+        try {
+            return messageTypeProcessor.processMessage(message);
         } catch (RuntimeException e) {
             // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail
             //                  from java common and include it in error handling
             log.error("Unable to process message with id {}", message.getId(), e);
-            MessageStatus errorStatus = ERROR;
-            updateMessageWithStatusAndIncrementCount(message, errorStatus);
-            return errorStatus;
+            return ERROR;
         }
-    }
-
-    private void updateMessagesToErrorAndIncrementCount(List<Message> messages) {
-        messages.forEach(message -> updateMessageWithStatusAndIncrementCount(message, ERROR));
-    }
-
-    private void updateMessageWithStatusAndIncrementCount(Message message, MessageStatus status) {
-        int updatedDeliveryCount = message.getDeliveryCount() + 1;
-        message.setDeliveryCount(updatedDeliveryCount);
-        message.setMessageTimestamp(LocalDateTime.now());
-        message.setStatus(status);
-        messageRepository.save(message);
     }
 
     private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {

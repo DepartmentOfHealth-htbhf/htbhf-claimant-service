@@ -36,6 +36,8 @@ class MessageProcessorConfigurationTest {
     private MessageProcessor messageProcessor;
     @MockBean
     private MessageRepository messageRepository;
+    @MockBean
+    private MessageStatusProcessor messageStatusProcessor;
 
     @Test
     void shouldBuildMessageTypeProcessorMapPostConstruction() {
@@ -62,7 +64,7 @@ class MessageProcessorConfigurationTest {
         MessageProcessorConfiguration configuration = new MessageProcessorConfiguration();
         //When
         BeanCreationException thrown = catchThrowableOfType(
-                () -> configuration.messageProcessor(emptyList(), messageRepository, 100),
+                () -> configuration.messageProcessor(emptyList(), messageRepository, messageStatusProcessor, 100),
                 BeanCreationException.class);
         //Then
         assertThat(thrown).hasMessage("Unable to create MessageProcessor, no MessageTypeProcessor instances found");
