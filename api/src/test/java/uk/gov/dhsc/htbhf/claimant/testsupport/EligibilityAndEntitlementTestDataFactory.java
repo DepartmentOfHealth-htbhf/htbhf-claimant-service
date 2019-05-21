@@ -27,7 +27,7 @@ public class EligibilityAndEntitlementTestDataFactory {
                 .build();
     }
 
-    private static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidDecisionBuilder() {
+    public static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidDecisionBuilder() {
         List<LocalDate> children = createChildren(NUMBER_OF_CHILDREN_UNDER_ONE, NUMBER_OF_CHILDREN_UNDER_FOUR);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)

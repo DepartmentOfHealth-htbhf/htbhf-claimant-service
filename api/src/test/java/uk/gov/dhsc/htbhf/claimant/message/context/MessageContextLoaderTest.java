@@ -17,6 +17,8 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -336,7 +338,8 @@ class MessageContextLoaderTest {
         UUID claimId = claim.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        NewCardRequestMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement);
+        List<LocalDate> datesOfBirth = List.of(LocalDate.now().minusDays(1), LocalDate.now());
+        NewCardRequestMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement, datesOfBirth);
         given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(CREATE_NEW_CARD);
 
@@ -347,6 +350,7 @@ class MessageContextLoaderTest {
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getPaymentCycleVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirth);
         verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
         verify(claimRepository).findById(claimId);
     }

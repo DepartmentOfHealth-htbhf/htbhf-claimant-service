@@ -5,10 +5,11 @@ import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
@@ -47,17 +48,22 @@ public class PaymentCycleService {
      * The cycle end date is set to the start date plus the payment cycle duration time.
      * EligibilityStatus is set to ELIGIBLE.
      *
-     * @param claim              claim to create a payment cycle for
-     * @param cycleStartDate     the start date of the new payment cycle
-     * @param voucherEntitlement the vouchers the claimant is entitled to during this cycle
+     * @param claim                  claim to create a payment cycle for
+     * @param cycleStartDate         the start date of the new payment cycle
+     * @param voucherEntitlement     the vouchers the claimant is entitled to during this cycle
+     * @param datesOfBirthOfChildren the dates of birth of children present during this cycle
      * @return the new payment cycle.
      */
-    public PaymentCycle createAndSavePaymentCycleForEligibleClaim(Claim claim, LocalDate cycleStartDate, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    public PaymentCycle createAndSavePaymentCycleForEligibleClaim(Claim claim,
+                                                                  LocalDate cycleStartDate,
+                                                                  PaymentCycleVoucherEntitlement voucherEntitlement,
+                                                                  List<LocalDate> datesOfBirthOfChildren) {
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .eligibilityStatus(ELIGIBLE)
+                .childrenDob(datesOfBirthOfChildren)
                 .build();
         paymentCycle.applyVoucherEntitlement(voucherEntitlement);
         paymentCycleRepository.save(paymentCycle);
@@ -67,13 +73,13 @@ public class PaymentCycleService {
     /**
      * Update the PaymentCycle with the eligibility status and voucher entitlement and save to the db.
      *
-     * @param paymentCycle      The payment cycle
-     * @param eligibilityStatus The eligibility status
-     * @param entitlement       The entitlement
+     * @param paymentCycle The payment cycle
+     * @param decision     The decision containing details of the claimants eligibility and entitlement during this payment cycle
      */
-    public void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityStatus eligibilityStatus, PaymentCycleVoucherEntitlement entitlement) {
-        paymentCycle.setEligibilityStatus(eligibilityStatus);
-        paymentCycle.applyVoucherEntitlement(entitlement);
+    public void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
+        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
+        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
         paymentCycleRepository.save(paymentCycle);
     }
 }
