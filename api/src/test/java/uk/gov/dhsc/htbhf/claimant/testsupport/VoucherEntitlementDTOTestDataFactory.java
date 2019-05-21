@@ -8,7 +8,7 @@ public class VoucherEntitlementDTOTestDataFactory {
 
     public static VoucherEntitlementDTO aValidVoucherEntitlementDTO() {
         return VoucherEntitlementDTO.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .vouchersForChildrenUnderOne(VOUCHERS_FOR_CHILDREN_UNDER_ONE)
                 .vouchersForChildrenBetweenOneAndFour(VOUCHERS_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR)
                 .vouchersForPregnancy(VOUCHERS_FOR_PREGNANCY)

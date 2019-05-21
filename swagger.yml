@@ -181,22 +181,36 @@ definitions:
   VoucherEntitlementDTO:
     type: "object"
     properties:
+      singleVoucherValueInPence:
+        type: "integer"
+        format: "int32"
+        example: 310
+        description: "The financial value of a single voucher"
       totalVoucherEntitlement:
         type: "integer"
         format: "int32"
+        example: 4
+        description: "The total number of vouchers the claimant is entitled to"
       totalVoucherValueInPence:
         type: "integer"
         format: "int32"
-      voucherValueInPence:
-        type: "integer"
-        format: "int32"
+        example: 1240
+        description: "The sum total value of all vouchers the claimant is entitled\
+          \ to"
       vouchersForChildrenBetweenOneAndFour:
         type: "integer"
         format: "int32"
+        example: 1
+        description: "The number of vouchers for children between one and 4 years\
+          \ old"
       vouchersForChildrenUnderOne:
         type: "integer"
         format: "int32"
+        example: 2
+        description: "The number of vouchers for children under one year old"
       vouchersForPregnancy:
         type: "integer"
         format: "int32"
+        example: 1
+        description: "The number of vouchers for pregnancy"
     title: "VoucherEntitlementDTO"
