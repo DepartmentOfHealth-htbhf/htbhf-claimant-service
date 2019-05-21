@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 
 @SpringBootTest
@@ -259,14 +260,17 @@ class ClaimRepositoryTest {
         claimRepository.save(claim);
         claim.setClaimStatus(PENDING);
         claimRepository.save(claim);
+        claim.setClaimStatus(PENDING_EXPIRY);
+        claimRepository.save(claim);
 
         //When
-        JqlQuery jqlQuery = QueryBuilder.byClass(Claim.class).build();
+        JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getId(), Claim.class).build();
         Changes changes = javers.findChanges(jqlQuery);
 
         //Then
-        assertThat(changes.size()).isEqualTo(1);
-        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'ACTIVE' to 'PENDING' }");
+        assertThat(changes.size()).isEqualTo(2);
+        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'PENDING' to 'PENDING_EXPIRY' }");
+        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'ACTIVE' to 'PENDING' }");
     }
 
     @Test
@@ -279,7 +283,7 @@ class ClaimRepositoryTest {
         claimRepository.save(claim);
 
         //When
-        JqlQuery jqlQuery = QueryBuilder.byClass(Address.class).build();
+        JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getClaimant().getAddress().getId(), Address.class).build();
         Changes changes = javers.findChanges(jqlQuery);
 
         //Then

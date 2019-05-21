@@ -119,9 +119,31 @@ All changes to claims are audited using the [javers](https://javers.org/) librar
 * jv_commit_property — commit properties,
 * jv_snapshot — domain object snapshots
 
-Below is an example of how to view changes to claims:
+Below is an example of how to view changes to claims (does not include new values being set or child entities):
 ```
+// view all changes to all claims
 JqlQuery jqlQuery = QueryBuilder.byClass(Claim.class).build();
 Changes changes = javers.findChanges(jqlQuery);
 System.out.println(javers.getJsonConverter().toJson(changes));
+
+//view all changes to individual claims
+JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getId(), Claim.class).build();
+Changes changes = javers.findChanges(jqlQuery);
+System.out.println(javers.getJsonConverter().toJson(changes));
+```
+
+To see changes including new values being set use `withNewObjectChanges`
+```
+JqlQuery jqlQuery = QueryBuilder.byClass(Claim.class)
+                    .withNewObjectChanges()
+                    .build();
+Changes changes = javers.findChanges(jqlQuery);
+System.out.println(javers.getJsonConverter().toJson(changes))
+```
+
+Note, child entities are not included in the changes and must be queried directly. For example, if we wanted to see changes to an address of a claim:
+```
+JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getClaimant().getAddress().getId(), Address.class).build();
+Changes changes = javers.findChanges(jqlQuery);
+System.out.println(javers.getJsonConverter().toJson(changes))
 ```
