@@ -56,7 +56,7 @@ class EntitlementCalculatorTest {
                 .vouchersForPregnancy(2)
                 .vouchersForChildrenUnderOne(12)
                 .vouchersForChildrenBetweenOneAndFour(6)
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .entitlementDate(entitlementDate)
                 .build();
         LocalDate dueDate = LocalDate.now();
@@ -75,7 +75,7 @@ class EntitlementCalculatorTest {
         // Given
         LocalDate entitlementDate = LocalDate.now();
         VoucherEntitlement expected = VoucherEntitlement.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .entitlementDate(entitlementDate)
                 .build();
 
@@ -92,7 +92,7 @@ class EntitlementCalculatorTest {
         // Given
         LocalDate entitlementDate = LocalDate.now();
         VoucherEntitlement expected = VoucherEntitlement.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .entitlementDate(entitlementDate)
                 .build();
 
@@ -110,7 +110,7 @@ class EntitlementCalculatorTest {
         LocalDate entitlementDate = LocalDate.now().minusDays(2);
         LocalDate dateOfBirth = entitlementDate.plusDays(1);
         VoucherEntitlement expected = VoucherEntitlement.builder()
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .entitlementDate(entitlementDate)
                 .build();
 
@@ -128,7 +128,7 @@ class EntitlementCalculatorTest {
         LocalDate entitlementDate = LocalDate.now().minusDays(2);
         VoucherEntitlement expected = VoucherEntitlement.builder()
                 .vouchersForChildrenUnderOne(VOUCHERS_FOR_CHILDREN_UNDER_ONE)
-                .voucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .entitlementDate(entitlementDate)
                 .build();
 
