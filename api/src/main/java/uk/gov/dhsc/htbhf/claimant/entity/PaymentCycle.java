@@ -58,7 +58,7 @@ public class PaymentCycle extends BaseEntity {
 
     @Column(name = "children_dob_json")
     @Type(type = "json")
-    private List<LocalDate> childrenDob;
+    private List<LocalDate> childrenDob; // not used in code, but useful for MI and helpdesk
 
     @Column(name = "total_vouchers")
     private Integer totalVouchers;

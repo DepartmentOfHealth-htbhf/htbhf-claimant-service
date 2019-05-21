@@ -79,7 +79,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), ELIGIBLE, decision.getVoucherEntitlement());
+        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), decision);
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
     }
@@ -106,7 +106,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), INELIGIBLE, null);
+        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), decision);
         verifyZeroInteractions(messageQueueDAO);
     }
 
