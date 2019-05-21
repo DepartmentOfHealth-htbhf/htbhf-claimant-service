@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.counting;
@@ -45,20 +44,18 @@ public class MessageProcessor {
             lockAtMostForString = "${message-processor.maximum-lock-time}")
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor")
     public void processAllMessages() {
-        Stream.of(MessageType.values()).forEach(this::processMessagesOfType);
+        for (MessageType messageType: MessageType.values()) {
+            List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
+            processMessagesOfType(messages, messageType);
+        }
     }
 
-    private void processMessagesOfType(MessageType messageType) {
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
+    private void processMessagesOfType(List<Message> messages, MessageType messageType) {
         if (CollectionUtils.isEmpty(messages)) {
             log.debug("No messages found to process for type: [{}]", messageType);
             return;
         }
 
-        processMessages(messages, messageType);
-    }
-
-    private void processMessages(List<Message> messages, MessageType messageType) {
         log.info("Processing {} message(s) of type {}", messages.size(), messageType);
         MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);
         List<MessageStatus> statuses = messages.stream()
@@ -79,12 +76,12 @@ public class MessageProcessor {
     }
 
     private MessageStatus processMessage(Message message, MessageTypeProcessor messageTypeProcessor) {
-        MessageStatus status = process(message, messageTypeProcessor);
+        MessageStatus status = invokeMessageTypeProcessor(message, messageTypeProcessor);
         messageStatusProcessor.processStatusForMessage(message, status);
         return status;
     }
 
-    private MessageStatus process(Message message, MessageTypeProcessor messageTypeProcessor) {
+    private MessageStatus invokeMessageTypeProcessor(Message message, MessageTypeProcessor messageTypeProcessor) {
         try {
             return messageTypeProcessor.processMessage(message);
         } catch (RuntimeException e) {
