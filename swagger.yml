@@ -181,6 +181,11 @@ definitions:
   VoucherEntitlementDTO:
     type: "object"
     properties:
+      singleVoucherValueInPence:
+        type: "integer"
+        format: "int32"
+        example: 310
+        description: "The financial value of a single voucher"
       totalVoucherEntitlement:
         type: "integer"
         format: "int32"
@@ -192,11 +197,6 @@ definitions:
         example: 1240
         description: "The sum total value of all vouchers the claimant is entitled\
           \ to"
-      voucherValueInPence:
-        type: "integer"
-        format: "int32"
-        example: 310
-        description: "The financial value of a single voucher"
       vouchersForChildrenBetweenOneAndFour:
         type: "integer"
         format: "int32"

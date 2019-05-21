@@ -28,12 +28,11 @@ public class VoucherEntitlementDTO {
     @ApiModelProperty(notes = "The total number of vouchers the claimant is entitled to", example = "4")
     private int totalVoucherEntitlement;
 
-    @JsonProperty("voucherValueInPence")
+    @JsonProperty("singleVoucherValueInPence")
     @ApiModelProperty(notes = "The financial value of a single voucher", example = "310")
-    private int voucherValueInPence;
+    private int singleVoucherValueInPence;
 
     @JsonProperty("totalVoucherValueInPence")
     @ApiModelProperty(notes = "The sum total value of all vouchers the claimant is entitled to", example = "1240")
     private int totalVoucherValueInPence;
-
 }
