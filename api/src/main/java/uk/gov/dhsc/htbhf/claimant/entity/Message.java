@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 
 import java.time.LocalDateTime;
@@ -30,4 +31,10 @@ public class Message extends BaseEntity {
     @Column(name = "message_payload")
     private String messagePayload;
 
+    @Column(name = "delivery_count")
+    private int deliveryCount;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private MessageStatus status;
 }

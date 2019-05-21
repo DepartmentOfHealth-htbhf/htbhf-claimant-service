@@ -79,7 +79,7 @@ class NewCardMessageProcessorTest {
         LocalDate cycleStartDate = context.getClaim().getClaimStatusTimestamp().toLocalDate();
         given(messageContextLoader.loadNewCardContext(any())).willReturn(context);
         PaymentCycle paymentCycle = aValidPaymentCycleForContext(context, cycleStartDate);
-        given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any())).willReturn(paymentCycle);
+        given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any(), any())).willReturn(paymentCycle);
         Message message = aValidMessage();
 
         //When
@@ -93,7 +93,8 @@ class NewCardMessageProcessorTest {
         verify(paymentCycleService).createAndSavePaymentCycleForEligibleClaim(
                 context.getClaim(),
                 cycleStartDate,
-                context.getPaymentCycleVoucherEntitlement());
+                context.getPaymentCycleVoucherEntitlement(),
+                context.getDatesOfBirthOfChildren());
         verifyMakeFirstPaymentMessageSent(context.getClaim(), paymentCycle);
     }
 

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,8 +14,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.logging.TestAppender;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -23,13 +26,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTypeAndTimestamp;
 
 @ExtendWith(MockitoExtension.class)
 class MessageProcessorTest {
@@ -83,15 +87,18 @@ class MessageProcessorTest {
 
     @Test
     void shouldContinueToProcessMessagesAfterAnExceptionThrown() {
-        Message cardMessage1 = aValidMessage();
-        Message cardMessage2 = aValidMessage();
-        Message cardMessage3 = aValidMessage();
+        LocalDateTime messageTimestamp1 = LocalDateTime.now().minusHours(1);
+        Message cardMessage1 = aValidMessageWithTimestamp(messageTimestamp1);
+        LocalDateTime messageTimestamp2 = LocalDateTime.now().minusHours(2);
+        Message cardMessage2 = aValidMessageWithTimestamp(messageTimestamp2);
+        LocalDateTime originalTimestamp3 = LocalDateTime.now().minusHours(3);
+        Message cardMessage3 = aValidMessageWithTimestamp(originalTimestamp3);
         given(messageRepository.findAllMessagesByTypeOrderedByDate(any()))
                 .willReturn(List.of(cardMessage1, cardMessage2, cardMessage3))
                 .willReturn(emptyList());
         given(createNewCardDummyMessageTypeProcessor.processMessage(any()))
                 .willThrow(new RuntimeException("foo"))
-                .willReturn(MessageStatus.ERROR)
+                .willReturn(FAILED)
                 .willReturn(MessageStatus.COMPLETED);
 
         //When
@@ -102,12 +109,19 @@ class MessageProcessorTest {
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage2);
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage3);
         verify(messageRepository).delete(cardMessage3);
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository, times(2)).save(captor.capture());
+        List<Message> savedMessages = captor.getAllValues();
+        assertThat(savedMessages).hasSize(2);
+        assertMessageUpdated(savedMessages.get(0), cardMessage1.getId(), messageTimestamp1, ERROR);
+        assertMessageUpdated(savedMessages.get(1), cardMessage2.getId(), messageTimestamp2, FAILED);
         verifyNoMoreInteractions(messageRepository, createNewCardDummyMessageTypeProcessor);
     }
 
     @Test
     void shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor() {
-        Message cardMessage = aValidMessageWithType(MAKE_PAYMENT);
+        LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
+        Message cardMessage = aValidMessageWithTypeAndTimestamp(MAKE_PAYMENT, originalTimestamp);
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT)).thenReturn(singletonList(cardMessage));
@@ -122,6 +136,9 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT);
+        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(captor.capture());
+        assertMessageUpdated(captor.getValue(), cardMessage.getId(), originalTimestamp, ERROR);
         verifyNoMoreInteractions(messageRepository);
     }
 
@@ -161,5 +178,12 @@ class MessageProcessorTest {
         assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"
                 + " uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.ERROR);
+    }
+
+    private void assertMessageUpdated(Message savedMessage, UUID messageId, LocalDateTime originalTimestamp, MessageStatus messageStatus) {
+        assertThat(savedMessage.getDeliveryCount()).isEqualTo(1);
+        assertThat(savedMessage.getId()).isEqualTo(messageId);
+        assertThat(savedMessage.getMessageTimestamp()).isAfter(originalTimestamp);
+        assertThat(savedMessage.getStatus()).isEqualTo(messageStatus);
     }
 }
