@@ -3,6 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.SchedulerLock;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -33,6 +35,9 @@ public class MessageProcessor {
     private final MessageRepository messageRepository;
     private final Map<MessageType, MessageTypeProcessor> messageProcessorsByType;
 
+    @Value("${message-processor.message-limit}")
+    private final int messageProcessingLimit;
+
     @Scheduled(cron = "${message-processor.cron-schedule}")
     @SchedulerLock(
             name = "Process all messages",
@@ -44,7 +49,7 @@ public class MessageProcessor {
     }
 
     private void processMessagesOfType(MessageType messageType) {
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType);
+        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
         if (CollectionUtils.isEmpty(messages)) {
             log.debug("No messages found to process for type: [{}]", messageType);
             return;

@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +19,6 @@ public interface MessageRepository extends CrudRepository<Message, UUID> {
             + "FROM Message m "
             + "where m.messageType = :messageType "
             + "order by m.messageTimestamp")
-    List<Message> findAllMessagesByTypeOrderedByDate(@Param("messageType") MessageType messageType);
+    List<Message> findAllMessagesByTypeOrderedByDate(@Param("messageType") MessageType messageType, Pageable pageable);
 
 }
