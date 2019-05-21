@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
@@ -17,8 +18,10 @@ import java.util.stream.Stream;
 public class MessageProcessorConfiguration {
 
     @Bean
-    public MessageProcessor messageProcessor(List<MessageTypeProcessor> messageProcessors, MessageRepository messageRepository) {
-        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors));
+    public MessageProcessor messageProcessor(List<MessageTypeProcessor> messageProcessors,
+                                             MessageRepository messageRepository,
+                                             @Value("${message-processor.message-limit}") int messageProcessingLimit) {
+        return new MessageProcessor(messageRepository, buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);
     }
 
     private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> messageProcessors) {
