@@ -18,6 +18,10 @@ public class MessageTestDataFactory {
         return buildValidMessageBuilder().messageType(type).build();
     }
 
+    public static Message aValidMessageWithTypeAndTimestamp(MessageType type, LocalDateTime timestamp) {
+        return buildValidMessageBuilder().messageType(type).messageTimestamp(timestamp).build();
+    }
+
     public static Message aValidMessageWithTimestamp(LocalDateTime localDateTime) {
         return buildValidMessageBuilder().messageTimestamp(localDateTime).build();
     }
