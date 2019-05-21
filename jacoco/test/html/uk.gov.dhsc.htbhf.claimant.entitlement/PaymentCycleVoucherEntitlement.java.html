@@ -19,7 +19,7 @@ public class PaymentCycleVoucherEntitlement {
     private int vouchersForChildrenBetweenOneAndFour;
     private int vouchersForPregnancy;
     private int totalVoucherEntitlement;
-    private int voucherValueInPence;
+    private int singleVoucherValueInPence;
     private int totalVoucherValueInPence;
     private int backdatedVouchers;
     private List&lt;VoucherEntitlement&gt; voucherEntitlements;
@@ -52,8 +52,8 @@ public class PaymentCycleVoucherEntitlement {
 <span class="fc" id="L52">        this.vouchersForChildrenBetweenOneAndFour = childrenBetweenOneAndFour;</span>
 <span class="fc" id="L53">        this.vouchersForPregnancy = pregnancy;</span>
 <span class="fc" id="L54">        this.totalVoucherEntitlement = total + backdatedVouchers;</span>
-<span class="fc" id="L55">        this.voucherValueInPence = voucherEntitlements.get(0).getVoucherValueInPence();</span>
-<span class="fc" id="L56">        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;</span>
+<span class="fc" id="L55">        this.singleVoucherValueInPence = voucherEntitlements.get(0).getSingleVoucherValueInPence();</span>
+<span class="fc" id="L56">        this.totalVoucherValueInPence = totalVoucherEntitlement * singleVoucherValueInPence;</span>
 <span class="fc" id="L57">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

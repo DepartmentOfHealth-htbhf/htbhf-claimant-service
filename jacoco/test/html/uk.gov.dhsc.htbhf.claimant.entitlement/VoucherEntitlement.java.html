@@ -16,7 +16,7 @@ public class VoucherEntitlement {
     private int vouchersForChildrenBetweenOneAndFour;
     private int vouchersForPregnancy;
     private int totalVoucherEntitlement;
-    private int voucherValueInPence;
+    private int singleVoucherValueInPence;
     private int totalVoucherValueInPence;
     private LocalDate entitlementDate;
 
@@ -24,16 +24,16 @@ public class VoucherEntitlement {
     public VoucherEntitlement(int vouchersForChildrenUnderOne,
                               int vouchersForChildrenBetweenOneAndFour,
                               int vouchersForPregnancy,
-                              int voucherValueInPence,
+                              int singleVoucherValueInPence,
 <span class="fc" id="L28">                              LocalDate entitlementDate) {</span>
 <span class="fc" id="L29">        this.vouchersForChildrenUnderOne = vouchersForChildrenUnderOne;</span>
 <span class="fc" id="L30">        this.vouchersForChildrenBetweenOneAndFour = vouchersForChildrenBetweenOneAndFour;</span>
 <span class="fc" id="L31">        this.vouchersForPregnancy = vouchersForPregnancy;</span>
-<span class="fc" id="L32">        this.voucherValueInPence = voucherValueInPence;</span>
+<span class="fc" id="L32">        this.singleVoucherValueInPence = singleVoucherValueInPence;</span>
 <span class="fc" id="L33">        this.entitlementDate = entitlementDate;</span>
 
 <span class="fc" id="L35">        this.totalVoucherEntitlement = vouchersForPregnancy + vouchersForChildrenUnderOne + vouchersForChildrenBetweenOneAndFour;</span>
-<span class="fc" id="L36">        this.totalVoucherValueInPence = totalVoucherEntitlement * voucherValueInPence;</span>
+<span class="fc" id="L36">        this.totalVoucherValueInPence = totalVoucherEntitlement * singleVoucherValueInPence;</span>
 <span class="fc" id="L37">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
