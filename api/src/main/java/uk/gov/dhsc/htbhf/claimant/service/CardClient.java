@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.*;
 
 /**
  * Service for interacting with the card services api.
@@ -55,6 +52,18 @@ public class CardClient {
             return response.getBody();
         } catch (RestClientException e) {
             log.error("Exception caught trying to post to {}", uri);
+            throw new CardClientException(e, uri);
+        }
+    }
+
+    public CardBalanceResponse getBalance(String cardAccountId) {
+        String uri = String.format("%s/%s/balance", cardsUri, cardAccountId);
+        try {
+            ResponseEntity<CardBalanceResponse> response = restTemplate.getForEntity(uri, CardBalanceResponse.class);
+            checkResponse(response, HttpStatus.OK);
+            return response.getBody();
+        } catch (RestClientException e) {
+            log.error("Exception caught trying to get the card balance at {}", uri);
             throw new CardClientException(e, uri);
         }
     }
