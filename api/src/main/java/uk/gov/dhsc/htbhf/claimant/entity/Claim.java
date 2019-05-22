@@ -17,7 +17,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
-public class Claim extends BaseEntity {
+public class Claim extends VersionedEntity {
 
     @NotNull
     @Column(name = "claim_status")

@@ -256,10 +256,11 @@ class ClaimRepositoryTest {
     @Test
     void shouldAuditClaimUpdate() {
         //Given
+        // with a versioned entity, the returned object will have an incremented version number, the object passed into save will not
         Claim claim = aClaimWithClaimStatus(ACTIVE);
-        claimRepository.save(claim);
+        claim = claimRepository.save(claim);
         claim.setClaimStatus(PENDING);
-        claimRepository.save(claim);
+        claim = claimRepository.save(claim);
         claim.setClaimStatus(PENDING_EXPIRY);
         claimRepository.save(claim);
 

@@ -3,12 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.UUID;
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 /**
  * Domain object for a Claimant.
@@ -19,12 +15,9 @@ import javax.validation.constraints.Size;
 @Table(name = "claimant")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class Claimant {
-
-    @Id
-    @Getter(AccessLevel.NONE)
-    @Access(AccessType.PROPERTY)
-    private UUID id;
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
+public class Claimant extends VersionedEntity {
 
     @Size(max = 500)
     @Column(name = "first_name")
@@ -52,17 +45,4 @@ public class Claimant {
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address address;
-
-    /**
-     * Adding a custom getter for the id so that we can compare a Claimant object before and after its initial
-     * persistence and they will be the same.
-     *
-     * @return The id for the Claimant.
-     */
-    public UUID getId() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
-        return this.id;
-    }
 }

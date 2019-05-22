@@ -45,6 +45,7 @@ class PaymentRepositoryTest {
     @Test
     void shouldNotSaveAnInvalidPayment() {
         Payment payment = aPaymentWithCardAccountId(null);
+        claimRepository.save(payment.getClaim());
 
         Throwable thrown = catchThrowable(() -> paymentRepository.save(payment));
 
