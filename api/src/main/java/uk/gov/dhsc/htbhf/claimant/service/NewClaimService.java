@@ -16,11 +16,9 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Collections.min;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
@@ -94,8 +92,7 @@ public class NewClaimService {
     }
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        VoucherEntitlement firstVoucherEntitlement
-                = min(voucherEntitlement.getVoucherEntitlements(), Comparator.comparing(VoucherEntitlement::getEntitlementDate));
+        VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();
 
         return ClaimResult.builder()
                 .claim(claim)
