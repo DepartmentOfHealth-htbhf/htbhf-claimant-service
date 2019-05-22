@@ -2,8 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
 
-import java.util.UUID;
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -19,12 +20,9 @@ import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.UK_POST_CODE_REGEX;
 @Table(name = "address")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class Address {
-
-    @Id
-    @Getter(AccessLevel.NONE)
-    @Access(AccessType.PROPERTY)
-    private UUID id;
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
+@ToString(callSuper = true)
+public class Address extends VersionedEntity {
 
     @NotNull
     @Size(min = 1, max = 500)
@@ -44,17 +42,4 @@ public class Address {
     @Pattern(regexp = UK_POST_CODE_REGEX, message = "invalid postcode format")
     @Column(name = "postcode")
     private String postcode;
-
-    /**
-     * Adding a custom getter for the id so that we can compare an Address object before and after its initial
-     * persistence and they will be the same.
-     *
-     * @return The id for the Address.
-     */
-    public UUID getId() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
-        return this.id;
-    }
 }

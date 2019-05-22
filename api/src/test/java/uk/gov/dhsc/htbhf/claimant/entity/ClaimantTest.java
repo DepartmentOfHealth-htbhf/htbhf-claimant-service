@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 
 import java.time.LocalDate;
@@ -93,7 +94,8 @@ class ClaimantTest extends AbstractValidationTest {
         //Given
         UUID id = UUID.randomUUID();
         //When
-        Claimant claimant = Claimant.builder().id(id).build();
+        Claimant claimant = Claimant.builder().build();
+        ReflectionTestUtils.setField(claimant, "id", id);
         //Then
         Assertions.assertThat(id).isEqualTo(claimant.getId());
     }
