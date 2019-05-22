@@ -20,7 +20,7 @@ public class AddressTest extends AbstractValidationTest {
     @ValueSource(strings = {"EC11BB", "W1A0AX", "M11AE", "B338TH", "CR26XH", "DN551PT", "DN55 1PT"})
     void shouldValidateAddressSuccessfully(String postcode) {
         //Given
-        var address = anAddressWithPostcode(postcode);
+        Address address = anAddressWithPostcode(postcode);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -30,7 +30,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldValidateAddressSuccessfullyWithNoAddressLine2() {
         //Given
-        var address = anAddressWithAddressLine2(null);
+        Address address = anAddressWithAddressLine2(null);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -40,7 +40,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNoAddressLine1() {
         //Given
-        var address = anAddressWithAddressLine1(null);
+        Address address = anAddressWithAddressLine1(null);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -50,7 +50,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWhenAddressLine1IsTooLong() {
         //Given
-        var address = anAddressWithAddressLine1(LONG_STRING);
+        Address address = anAddressWithAddressLine1(LONG_STRING);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -60,7 +60,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWhenAddressLine2IsTooLong() {
         //Given
-        var address = anAddressWithAddressLine2(LONG_STRING);
+        Address address = anAddressWithAddressLine2(LONG_STRING);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -70,7 +70,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNoTownOrCity() {
         //Given
-        var address = anAddressWithTownOrCity(null);
+        Address address = anAddressWithTownOrCity(null);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -80,7 +80,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWhenTownOrCityIsTooLong() {
         //Given
-        var address = anAddressWithTownOrCity(LONG_STRING);
+        Address address = anAddressWithTownOrCity(LONG_STRING);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -90,7 +90,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNoPostcode() {
         //Given
-        var address = anAddressWithPostcode(null);
+        Address address = anAddressWithPostcode(null);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -101,7 +101,7 @@ public class AddressTest extends AbstractValidationTest {
     @ValueSource(strings = {"AA1122BB", "A", "11AA21", "", "E!", "EA123"})
     void shouldFailToValidateAddressWithInvalidPostcode(String postcode) {
         //Given
-        var address = anAddressWithPostcode(postcode);
+        Address address = anAddressWithPostcode(postcode);
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
@@ -111,7 +111,7 @@ public class AddressTest extends AbstractValidationTest {
     @Test
     void shouldAlwaysReturnAnIdFromGetId() {
         //Given
-        var address = Address.builder().build();
+        Address address = Address.builder().build();
         //When
         UUID id = address.getId();
         //Then
@@ -123,7 +123,7 @@ public class AddressTest extends AbstractValidationTest {
         //Given
         UUID id = UUID.randomUUID();
         //When
-        var address = Address.builder().build();
+        Address address = Address.builder().build();
         ReflectionTestUtils.setField(address, "id", id);
         //Then
         Assertions.assertThat(id).isEqualTo(address.getId());
