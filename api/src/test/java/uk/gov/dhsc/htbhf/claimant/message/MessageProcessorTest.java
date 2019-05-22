@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +18,6 @@ import uk.gov.dhsc.htbhf.logging.TestAppender;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -28,7 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
@@ -48,6 +50,9 @@ class MessageProcessorTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private MessageStatusProcessor messageStatusProcessor;
+
     @Spy
     private CreateNewCardDummyMessageTypeProcessor createNewCardDummyMessageTypeProcessor = new CreateNewCardDummyMessageTypeProcessor();
 
@@ -59,7 +64,7 @@ class MessageProcessorTest {
         Map<MessageType, MessageTypeProcessor> messageTypeProcessorMap = Map.of(
                 CREATE_NEW_CARD, createNewCardDummyMessageTypeProcessor,
                 SEND_FIRST_EMAIL, sendFirstEmailDummyMessageTypeProcessor);
-        messageProcessor = new MessageProcessor(messageRepository, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
+        messageProcessor = new MessageProcessor(messageStatusProcessor, messageRepository, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
     }
 
     @AfterEach
@@ -86,25 +91,22 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT, PAGEABLE);
-        verify(messageRepository).delete(cardMessage);
-        verifyNoMoreInteractions(messageRepository);
+        verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
+        verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
     }
 
     @Test
     void shouldContinueToProcessMessagesAfterAnExceptionThrown() {
-        LocalDateTime messageTimestamp1 = LocalDateTime.now().minusHours(1);
-        Message cardMessage1 = aValidMessageWithTimestamp(messageTimestamp1);
-        LocalDateTime messageTimestamp2 = LocalDateTime.now().minusHours(2);
-        Message cardMessage2 = aValidMessageWithTimestamp(messageTimestamp2);
-        LocalDateTime originalTimestamp3 = LocalDateTime.now().minusHours(3);
-        Message cardMessage3 = aValidMessageWithTimestamp(originalTimestamp3);
+        Message cardMessage1 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(1));
+        Message cardMessage2 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(2));
+        Message cardMessage3 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(3));
         given(messageRepository.findAllMessagesByTypeOrderedByDate(any(), any()))
                 .willReturn(List.of(cardMessage1, cardMessage2, cardMessage3))
                 .willReturn(emptyList());
         given(createNewCardDummyMessageTypeProcessor.processMessage(any()))
                 .willThrow(new RuntimeException("foo"))
                 .willReturn(FAILED)
-                .willReturn(MessageStatus.COMPLETED);
+                .willReturn(COMPLETED);
 
         //When
         messageProcessor.processAllMessages();
@@ -113,14 +115,10 @@ class MessageProcessorTest {
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage1);
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage2);
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage3);
-        verify(messageRepository).delete(cardMessage3);
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageRepository, times(2)).save(captor.capture());
-        List<Message> savedMessages = captor.getAllValues();
-        assertThat(savedMessages).hasSize(2);
-        assertMessageUpdated(savedMessages.get(0), cardMessage1.getId(), messageTimestamp1, ERROR);
-        assertMessageUpdated(savedMessages.get(1), cardMessage2.getId(), messageTimestamp2, FAILED);
-        verifyNoMoreInteractions(messageRepository, createNewCardDummyMessageTypeProcessor);
+        verify(messageStatusProcessor).processStatusForMessage(cardMessage1, ERROR);
+        verify(messageStatusProcessor).processStatusForMessage(cardMessage2, FAILED);
+        verify(messageStatusProcessor).processStatusForMessage(cardMessage3, COMPLETED);
+        verifyNoMoreInteractions(messageRepository, messageStatusProcessor, createNewCardDummyMessageTypeProcessor);
     }
 
     @Test
@@ -141,10 +139,8 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE);
-        ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
-        verify(messageRepository).save(captor.capture());
-        assertMessageUpdated(captor.getValue(), cardMessage.getId(), originalTimestamp, ERROR);
-        verifyNoMoreInteractions(messageRepository);
+        verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
+        verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
     }
 
     @Test
@@ -185,10 +181,4 @@ class MessageProcessorTest {
         assertThat(events.get(1).getLevel()).isEqualTo(Level.ERROR);
     }
 
-    private void assertMessageUpdated(Message savedMessage, UUID messageId, LocalDateTime originalTimestamp, MessageStatus messageStatus) {
-        assertThat(savedMessage.getDeliveryCount()).isEqualTo(1);
-        assertThat(savedMessage.getId()).isEqualTo(messageId);
-        assertThat(savedMessage.getMessageTimestamp()).isAfter(originalTimestamp);
-        assertThat(savedMessage.getStatus()).isEqualTo(messageStatus);
-    }
 }
