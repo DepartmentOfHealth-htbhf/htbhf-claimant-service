@@ -23,11 +23,7 @@ import static java.util.Collections.unmodifiableSet;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
-public class PaymentCycle extends BaseEntity {
-
-    @Version
-    @Column(name = &quot;version_number&quot;)
-    private Integer versionNumber;
+public class PaymentCycle extends VersionedEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -73,13 +69,13 @@ public class PaymentCycle extends BaseEntity {
     private LocalDateTime cardBalanceTimestamp;
 
     public PaymentCycle addPayment(Payment payment) {
-<span class="fc" id="L76">        this.payments.add(payment);</span>
-<span class="fc" id="L77">        payment.setPaymentCycle(this);</span>
-<span class="fc" id="L78">        return this;</span>
+<span class="fc" id="L72">        this.payments.add(payment);</span>
+<span class="fc" id="L73">        payment.setPaymentCycle(this);</span>
+<span class="fc" id="L74">        return this;</span>
     }
 
     public Set&lt;Payment&gt; getPayments() {
-<span class="nc" id="L82">        return unmodifiableSet(payments);</span>
+<span class="nc" id="L78">        return unmodifiableSet(payments);</span>
     }
 
     /**
@@ -87,14 +83,14 @@ public class PaymentCycle extends BaseEntity {
      * @param voucherEntitlement the entitlement to apply.
      */
     public void applyVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L90">        this.setVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
-<span class="fc" id="L92">            this.setTotalEntitlementAmountInPence(null);</span>
-<span class="fc" id="L93">            this.setTotalVouchers(null);</span>
+<span class="fc" id="L86">        this.setVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
+<span class="fc" id="L88">            this.setTotalEntitlementAmountInPence(null);</span>
+<span class="fc" id="L89">            this.setTotalVouchers(null);</span>
         } else {
-<span class="fc" id="L95">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
-<span class="fc" id="L96">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
+<span class="fc" id="L91">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L92">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
         }
-<span class="fc" id="L98">    }</span>
+<span class="fc" id="L94">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
