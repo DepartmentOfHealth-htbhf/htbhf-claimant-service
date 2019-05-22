@@ -23,11 +23,7 @@ import static java.util.Collections.unmodifiableSet;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
-public class PaymentCycle extends BaseEntity {
-
-    @Version
-    @Column(name = "version_number")
-    private Integer versionNumber;
+public class PaymentCycle extends VersionedEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
