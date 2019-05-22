@@ -1,11 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import static java.util.Comparator.comparing;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -54,5 +56,12 @@ public class PaymentCycleVoucherEntitlement {
         this.totalVoucherEntitlement = total + backdatedVouchers;
         this.singleVoucherValueInPence = voucherEntitlements.get(0).getSingleVoucherValueInPence();
         this.totalVoucherValueInPence = totalVoucherEntitlement * singleVoucherValueInPence;
+    }
+
+    @JsonIgnore
+    public VoucherEntitlement getFirstVoucherEntitlementForCycle() {
+        return voucherEntitlements.stream()
+                .min(comparing(VoucherEntitlement::getEntitlementDate))
+                .get();
     }
 }

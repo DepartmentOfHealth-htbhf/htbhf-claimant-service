@@ -2,12 +2,14 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 
 class PaymentCycleVoucherEntitlementTest {
 
@@ -104,6 +106,26 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2400);
         assertThat(result.getBackdatedVouchers()).isEqualTo(backdatedVouchers);
+    }
+
+    @Test
+    void shouldReturnEarliestVoucherEntitlement() {
+        LocalDate minusOneWeek = LocalDate.now().minusWeeks(1);
+        LocalDate minusTwoWeeks = LocalDate.now().minusWeeks(2);
+        LocalDate minusThreeWeeks = LocalDate.now().minusWeeks(3);
+        LocalDate minusFourWeeks = LocalDate.now().minusWeeks(4);
+        List<VoucherEntitlement> entitlements = List.of(
+                aVoucherEntitlementWithEntitlementDate(minusFourWeeks),
+                aVoucherEntitlementWithEntitlementDate(minusTwoWeeks),
+                aVoucherEntitlementWithEntitlementDate(minusOneWeek),
+                aVoucherEntitlementWithEntitlementDate(minusThreeWeeks)
+        );
+        PaymentCycleVoucherEntitlement entitlement = PaymentCycleVoucherEntitlement.builder()
+                .voucherEntitlements(entitlements)
+                .build();
+
+        LocalDate earliestVoucherEntitlementDate = entitlement.getFirstVoucherEntitlementForCycle().getEntitlementDate();
+        assertThat(earliestVoucherEntitlementDate).isEqualTo(minusFourWeeks);
     }
 
 }
