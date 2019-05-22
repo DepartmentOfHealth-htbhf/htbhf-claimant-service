@@ -1,9 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 
 import java.util.Set;
+import java.util.UUID;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
@@ -68,5 +71,26 @@ class PaymentTest extends AbstractValidationTest {
         Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "paymentStatus");
+    }
+
+    @Test
+    void shouldAlwaysReturnAnIdFromGetId() {
+        //Given
+        Payment payment = Payment.builder().build();
+        //When
+        UUID id = payment.getId();
+        //Then
+        Assertions.assertThat(id).isNotNull();
+    }
+
+    @Test
+    void shouldReturnTheSameIdIfOneIsSet() {
+        //Given
+        UUID id = UUID.randomUUID();
+        //When
+        Payment payment = Payment.builder().build();
+        ReflectionTestUtils.setField(payment, "id", id);
+        //Then
+        Assertions.assertThat(id).isEqualTo(payment.getId());
     }
 }
