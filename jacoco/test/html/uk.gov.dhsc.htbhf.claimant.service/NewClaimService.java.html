@@ -16,17 +16,15 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Collections.min;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
-<span class="fc" id="L29">@Slf4j</span>
+<span class="fc" id="L27">@Slf4j</span>
 @RequiredArgsConstructor
 public class NewClaimService {
 
@@ -35,7 +33,7 @@ public class NewClaimService {
     private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
-<span class="fc" id="L38">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
+<span class="fc" id="L36">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
             EligibilityStatus.PENDING, ClaimStatus.PENDING,
             EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
@@ -46,61 +44,60 @@ public class NewClaimService {
 
     public ClaimResult createClaim(Claimant claimant) {
         try {
-<span class="fc" id="L49">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);</span>
-<span class="fc" id="L50">            Claim claim = createAndSaveClaim(claimant, decision);</span>
-<span class="fc bfc" id="L51" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
-<span class="fc" id="L52">                sendNewCardMessage(claim, decision);</span>
-<span class="fc" id="L53">                return createResult(claim, decision.getVoucherEntitlement());</span>
+<span class="fc" id="L47">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);</span>
+<span class="fc" id="L48">            Claim claim = createAndSaveClaim(claimant, decision);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
+<span class="fc" id="L50">                sendNewCardMessage(claim, decision);</span>
+<span class="fc" id="L51">                return createResult(claim, decision.getVoucherEntitlement());</span>
             }
-<span class="fc" id="L55">            return createResult(claim);</span>
-<span class="fc" id="L56">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L57">            createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));</span>
-<span class="fc" id="L58">            throw e;</span>
+<span class="fc" id="L53">            return createResult(claim);</span>
+<span class="fc" id="L54">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L55">            createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));</span>
+<span class="fc" id="L56">            throw e;</span>
         }
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L63">        Claim claim = buildClaim(claimant, decision);</span>
-<span class="fc" id="L64">        claimRepository.save(claim);</span>
-<span class="fc" id="L65">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L66">        eventAuditor.auditNewClaim(claim);</span>
-<span class="fc" id="L67">        return claim;</span>
+<span class="fc" id="L61">        Claim claim = buildClaim(claimant, decision);</span>
+<span class="fc" id="L62">        claimRepository.save(claim);</span>
+<span class="fc" id="L63">        log.info(&quot;Saved new claimant: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L64">        eventAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L65">        return claim;</span>
     }
 
     private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L71">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
-<span class="fc" id="L72">        messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);</span>
-<span class="fc" id="L73">    }</span>
+<span class="fc" id="L69">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L70">        messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);</span>
+<span class="fc" id="L71">    }</span>
 
     private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L76">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
-<span class="fc" id="L77">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
-<span class="fc" id="L78">        return Claim.builder()</span>
-<span class="fc" id="L79">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L80">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L81">                .eligibilityStatus(decision.getEligibilityStatus())</span>
-<span class="fc" id="L82">                .eligibilityStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L83">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L84">                .claimStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L85">                .claimant(claimant)</span>
-<span class="fc" id="L86">                .build();</span>
+<span class="fc" id="L74">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
+<span class="fc" id="L75">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
+<span class="fc" id="L76">        return Claim.builder()</span>
+<span class="fc" id="L77">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L78">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L79">                .eligibilityStatus(decision.getEligibilityStatus())</span>
+<span class="fc" id="L80">                .eligibilityStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L81">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L82">                .claimStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L83">                .claimant(claimant)</span>
+<span class="fc" id="L84">                .build();</span>
     }
 
     private ClaimResult createResult(Claim claim) {
-<span class="fc" id="L90">        return ClaimResult.builder()</span>
-<span class="fc" id="L91">                .claim(claim)</span>
-<span class="fc" id="L92">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L93">                .build();</span>
+<span class="fc" id="L88">        return ClaimResult.builder()</span>
+<span class="fc" id="L89">                .claim(claim)</span>
+<span class="fc" id="L90">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L91">                .build();</span>
     }
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L97">        VoucherEntitlement firstVoucherEntitlement</span>
-<span class="fc" id="L98">                = min(voucherEntitlement.getVoucherEntitlements(), Comparator.comparing(VoucherEntitlement::getEntitlementDate));</span>
+<span class="fc" id="L95">        VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();</span>
 
-<span class="fc" id="L100">        return ClaimResult.builder()</span>
-<span class="fc" id="L101">                .claim(claim)</span>
-<span class="fc" id="L102">                .voucherEntitlement(Optional.of(firstVoucherEntitlement))</span>
-<span class="fc" id="L103">                .build();</span>
+<span class="fc" id="L97">        return ClaimResult.builder()</span>
+<span class="fc" id="L98">                .claim(claim)</span>
+<span class="fc" id="L99">                .voucherEntitlement(Optional.of(firstVoucherEntitlement))</span>
+<span class="fc" id="L100">                .build();</span>
     }
 
 }
