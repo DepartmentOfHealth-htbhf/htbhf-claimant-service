@@ -20,6 +20,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
+import static uk.gov.dhsc.htbhf.errorhandler.ExceptionDetailGenerator.constructExceptionDetail;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
@@ -85,9 +86,7 @@ public class MessageProcessor {
         try {
             return messageTypeProcessor.processMessage(message);
         } catch (RuntimeException e) {
-            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail
-            //                  from java common and include it in error handling
-            log.error("Unable to process message with id {}", message.getId(), e);
+            log.error("Unable to process message with id {}, exception detail: {}", message.getId(), constructExceptionDetail(e));
             return ERROR;
         }
     }
