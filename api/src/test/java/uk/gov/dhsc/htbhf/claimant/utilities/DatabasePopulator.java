@@ -1,6 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.utilities;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,37 +111,44 @@ public class DatabasePopulator {
         final AtomicInteger countCreated = new AtomicInteger();
         List<Long> durations = new ArrayList<>();
 
-        Integer cycleDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();
-
         CLAIMS_TO_CREATE.entrySet().stream().forEach(entry -> {
             Integer claims = entry.getValue();
             ClaimStatus status = entry.getKey();
-            EligibilityStatus eligibilityStatus = CLAIM_ELIGIBILITY_STATUS.get(status);
-            EligibilityStatus paymentEligibility = PAYMENT_ELIGIBILITY_STATUS.get(status);
             String ninoPrefix = NINO_PREFIX.get(status);
+            NewClaimDetails details = NewClaimDetails.builder()
+                    .status(status)
+                    .ninoPrefix(ninoPrefix)
+                    .eligibilityStatus(CLAIM_ELIGIBILITY_STATUS.get(status))
+                    .paymentEligibility(PAYMENT_ELIGIBILITY_STATUS.get(status))
+                    .cycleDuration(paymentCycleConfig.getEntitlementCalculationDurationInDays())
+                    .build();
             Query query = entityManager.createNativeQuery("select count(*) from claimant where left(nino , 2) = '" + ninoPrefix + "'");
             int ninoStartIndex = ((Number) query.getSingleResult()).intValue() + 10001; // ensure we have a non-zero number in the first 2 digits
             log.error("Creating {} claims in status {}, starting from {}", claims, status, ninoStartIndex);
             List<Callable<Long>> jobs = new ArrayList<>(claims);
             for (int i = 0; i < claims; i++) {
                 Integer ninoNumber = ninoStartIndex + i;
-                Callable<Long> job = () -> {
-                    long start = System.currentTimeMillis();
-                    Claim claim = createClaim(status, eligibilityStatus, ninoPrefix, ninoNumber);
-                    if (paymentEligibility != null) {
-                        createPaymentCycle(cycleDuration, paymentEligibility, claim);
-                    }
-                    if (countCreated.incrementAndGet() % 1000 == 0) {
-                        log.error("Created {} claims so far", countCreated.get());
-                    }
-                    return System.currentTimeMillis() - start;
-                };
+                Callable<Long> job = createNewClaimJob(details, ninoNumber, countCreated);
                 jobs.add(job);
             }
             durations.addAll(invokeAllJobs(jobs));
         });
 
         logDurations(durations);
+    }
+
+    private Callable<Long> createNewClaimJob(NewClaimDetails details, Integer ninoNumber, AtomicInteger countCreated) {
+        return () -> {
+            StopWatch stopWatch = StopWatch.createStarted();
+            Claim claim = createClaim(details.getStatus(), details.getEligibilityStatus(), details.getNinoPrefix(), ninoNumber);
+            if (details.getPaymentEligibility() != null) {
+                createPaymentCycle(details.getCycleDuration(), details.getPaymentEligibility(), claim);
+            }
+            if (countCreated.incrementAndGet() % 1000 == 0) {
+                log.error("Created {} claims so far", countCreated.get());
+            }
+            return stopWatch.getTime();
+        };
     }
 
     private List<Long> invokeAllJobs(List<Callable<Long>> jobs) {
@@ -154,15 +164,35 @@ public class DatabasePopulator {
         return durations;
     }
 
+    /**
+     * This method logs a frequency map of the durations. The output looks like this:
+     * Distribution of time to insert claim
+     * 0-9ms    : 373793
+     * 10-19ms  : 465927
+     * 20-29ms  : 55405
+     * 30-39ms  : 3303
+     * 40-49ms  : 1087
+     * 50-59ms  : 289
+     * 60-69ms  : 87
+     * 70-79ms  : 34
+     * 80-89ms  : 37
+     * 90-99ms  : 25
+     * 100-109ms    : 7
+     * Average time to insert claim: 12ms
+     * @param durations the list of durations of the call to insert a claim
+     */
     private void logDurations(List<Long> durations) {
-        Map<Long, Long> map = new TreeMap<>();
+        // aggregate the durations into buckets of 10ms
+        Map<Long, Long> durationFrequencyMap = new TreeMap<>();
         int bucketSize = 10;
         for (Long duration : durations) {
-            Long bucket = (duration / bucketSize) * bucketSize;
-            map.merge(bucket, 1L, Long::sum);
+            // identify the bucket this call belongs in - round down to nearest 10
+            Long roundedDuration = (duration / bucketSize) * bucketSize;
+            // increment the count of calls in this bucket
+            durationFrequencyMap.merge(roundedDuration, 1L, Long::sum);
         }
         log.error("Distribution of time to insert claim");
-        map.forEach((bucket, count) -> log.error("{}-{}ms\t: {}", bucket, bucket + (bucketSize - 1), count));
+        durationFrequencyMap.forEach((roundedDuration, count) -> log.error("{}-{}ms\t: {}", roundedDuration, roundedDuration + (bucketSize - 1), count));
         log.error("Average time to insert claim: {}ms", durations.stream().mapToLong(Long::longValue).sum() / durations.size());
     }
 
@@ -210,6 +240,16 @@ public class DatabasePopulator {
         format.setMaximumFractionDigits(0);
         format.setMinimumIntegerDigits(6);
         return format;
+    }
+
+    @Data
+    @Builder
+    private static class NewClaimDetails {
+        private ClaimStatus status;
+        private EligibilityStatus eligibilityStatus;
+        private EligibilityStatus paymentEligibility;
+        private String ninoPrefix;
+        private Integer cycleDuration;
     }
 
     @TestConfiguration
