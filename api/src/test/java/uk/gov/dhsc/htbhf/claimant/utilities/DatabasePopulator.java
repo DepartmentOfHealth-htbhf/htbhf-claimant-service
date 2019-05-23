@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleConfig;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -20,8 +22,11 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.TreeMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -34,12 +39,23 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 /**
  * Creates Claims and PaymentCycle records in the database.
  * Designed to be run directly from an IDE, and ignored by gradle
- * To use this you should change the jdbc uri in the test application.yml to point to your local postgres instance (and specify username/password).
+ * To use this you should change the jdbc uri in the test application.yml to point to your local postgres instance (and specify username/password):
+ * spring:
+ * datasource:
+ * url: jdbc:postgresql://localhost/claimant
+ * username: claimant_admin
+ * password: claimant_admin
+ * driver-class-name: org.postgresql.Driver
+ * type: com.zaxxer.hikari.HikariDataSource
+ * hikari:
+ * connectionTimeout: 5000
  */
 @SpringBootTest
 @Slf4j
 @Disabled
 public class DatabasePopulator {
+
+    // See also DatabasePopulatorTestContextConfiguration at the bottom of this class
 
     private static final String NINO_SUFFIX = "A";
 
@@ -84,9 +100,13 @@ public class DatabasePopulator {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private ExecutorService fixedThreadPool;
+
     @Test
     void generateClaimsAndPaymentCycles() {
         final AtomicInteger countCreated = new AtomicInteger();
+        List<Long> durations = new ArrayList<>();
 
         Integer cycleDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();
 
@@ -97,19 +117,53 @@ public class DatabasePopulator {
             EligibilityStatus paymentEligibility = PAYMENT_ELIGIBILITY_STATUS.get(status);
             String ninoPrefix = NINO_PREFIX.get(status);
             Query query = entityManager.createNativeQuery("select count(*) from claimant where left(nino , 2) = '" + ninoPrefix + "'");
-            int ninoStartIndex = ((Number)query.getSingleResult()).intValue() + 1;
+            int ninoStartIndex = ((Number) query.getSingleResult()).intValue() + 10001; // ensure we have a non-zero number in the first 2 digits
             log.error("Creating {} claims in status {}, starting from {}", claims, status, ninoStartIndex);
+            List<Callable<Long>> jobs = new ArrayList<>(claims);
             for (int i = 0; i < claims; i++) {
-                Claim claim = createClaim(status, eligibilityStatus, ninoPrefix, ninoStartIndex + i);
-                if (paymentEligibility != null) {
-                    createPaymentCycle(cycleDuration, paymentEligibility, claim);
-                }
-                if (countCreated.incrementAndGet() % 100 == 0) {
-                    log.error("Created {} claims so far", countCreated.get());
-                }
-
+                Integer ninoNumber = ninoStartIndex + i;
+                Callable<Long> job = () -> {
+                    long start = System.currentTimeMillis();
+                    Claim claim = createClaim(status, eligibilityStatus, ninoPrefix, ninoNumber);
+                    if (paymentEligibility != null) {
+                        createPaymentCycle(cycleDuration, paymentEligibility, claim);
+                    }
+                    if (countCreated.incrementAndGet() % 1000 == 0) {
+                        log.error("Created {} claims so far", countCreated.get());
+                    }
+                    return System.currentTimeMillis() - start;
+                };
+                jobs.add(job);
             }
+            durations.addAll(invokeAllJobs(jobs));
         });
+
+        logDurations(durations);
+    }
+
+    private List<Long> invokeAllJobs(List<Callable<Long>> jobs) {
+        List<Long> durations = new ArrayList<>();
+        try {
+            List<Future<Long>> futures = fixedThreadPool.invokeAll(jobs);
+            for (Future<Long> future : futures) {
+                durations.add(future.get());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return durations;
+    }
+
+    private void logDurations(List<Long> durations) {
+        Map<Long, Long> map = new TreeMap<>();
+        int bucketSize = 10;
+        for (Long duration : durations) {
+            Long bucket = (duration / bucketSize) * bucketSize;
+            map.merge(bucket, 1L, Long::sum);
+        }
+        log.error("Distribution of time to insert claim");
+        map.forEach((bucket, count) -> log.error("{}-{}ms\t: {}", bucket, bucket + (bucketSize - 1), count));
+        log.error("Average time to insert claim: {}ms", durations.stream().mapToLong(Long::longValue).sum() / durations.size());
     }
 
     private Claim createClaim(ClaimStatus status, EligibilityStatus eligibilityStatus, String ninoPrefix, int ninoNumber) {
@@ -157,4 +211,13 @@ public class DatabasePopulator {
         format.setMinimumIntegerDigits(6);
         return format;
     }
+
+    @TestConfiguration
+    static class DatabasePopulatorTestContextConfiguration {
+        @Bean("fixedThreadPool")
+        public ExecutorService fixedThreadPool() {
+            return Executors.newFixedThreadPool(6);
+        }
+    }
+
 }
