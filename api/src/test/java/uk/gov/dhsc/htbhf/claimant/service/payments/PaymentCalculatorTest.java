@@ -8,8 +8,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 
 class PaymentCalculatorTest {
 
-    private int numberOfCalculationPeriods = 4;
-    private PaymentCalculator paymentCalculator = new PaymentCalculator(numberOfCalculationPeriods);
+    private int maximumBalancePeriod = 8;
+    private PaymentCalculator paymentCalculator = new PaymentCalculator(maximumBalancePeriod);
 
     @Test
     void shouldReturnFullPaymentAmountForLowBalance() {
@@ -39,13 +39,39 @@ class PaymentCalculatorTest {
     }
 
     @Test
-    void shouldReturnZeroPaymentAmountForHighBalance() {
+    void shouldReturnNoPaymentAmountForHighBalance() {
         // Given
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers();
         int highBalance = 100000;
 
         // When
         int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(entitlement, highBalance);
+
+        // Then
+        assertThat(paymentAmount).isEqualTo(0);
+    }
+
+    @Test
+    void shouldReturnFullPaymentWhenBalancePlusFullPaymentIsEqualToMaximumCardBalanceThreshold() {
+        // Given
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers();
+        int balance = 4960;
+
+        // When
+        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(entitlement, balance);
+
+        // Then
+        assertThat(paymentAmount).isEqualTo(4960);
+    }
+
+    @Test
+    void shouldReturnNoPaymentWhenCardBalanceIsEqualToMaximumCardBalanceThreshold() {
+        // Given
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers();
+        int balance = 9920;
+
+        // When
+        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(entitlement, balance);
 
         // Then
         assertThat(paymentAmount).isEqualTo(0);
