@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -22,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsRequest;
@@ -119,5 +117,40 @@ class CardClientTest {
         assertThat(exception.getMessage())
                 .isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit");
         verify(restTemplate).postForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit", request, DepositFundsResponse.class);
+    }
+
+    @Test
+    void shouldCallGetBalance() {
+        CardBalanceResponse expectedResponse = aValidCardBalanceResponse();
+        given(restTemplate.getForEntity(anyString(), any())).willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.OK));
+
+        CardBalanceResponse response = cardClient.getBalance(CARD_ACCOUNT_ID);
+
+        assertThat(response).isEqualTo(expectedResponse);
+        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenGetBalanceReturnsUnexpectedResponse() {
+        CardBalanceResponse expectedResponse = aValidCardBalanceResponse();
+        given(restTemplate.getForEntity(anyString(), any())).willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.INTERNAL_SERVER_ERROR));
+
+        CardClientException exception = catchThrowableOfType(() -> cardClient.getBalance(CARD_ACCOUNT_ID), CardClientException.class);
+
+        assertThat(exception).as("Should throw an exception when response status is not OK").isNotNull();
+        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: INTERNAL_SERVER_ERROR");
+        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenGetBalanceThrowsException() {
+        given(restTemplate.getForEntity(anyString(), any())).willThrow(new RestClientException("Test exception"));
+
+        CardClientException exception = catchThrowableOfType(() -> cardClient.getBalance(CARD_ACCOUNT_ID), CardClientException.class);
+
+        assertThat(exception).as("Should throw an exception when rest error occurs").isNotNull();
+        assertThat(exception.getMessage())
+                .isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance");
+        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
     }
 }

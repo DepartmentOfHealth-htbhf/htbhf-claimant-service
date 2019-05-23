@@ -25,4 +25,7 @@ public class TestConstants {
     public static final LocalDate LISA_DOB = LocalDate.now().minusMonths(24);
 
     public static final String CARD_ACCOUNT_ID = "123456789";
+
+    public static final int AVAILABLE_BALANCE_IN_PENCE = 100;
+    public static final int LEDGER_BALANCE_IN_PENCE = 100;
 }
