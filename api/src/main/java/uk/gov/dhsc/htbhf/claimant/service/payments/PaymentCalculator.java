@@ -5,12 +5,10 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
 public class PaymentCalculator {
 
-    private final int numberOfCalculationPeriods;
-    private final int calculationPeriodThreshold;
+    private final int maximumBalancePeriod;
 
-    public PaymentCalculator(@Value("${payment-cycle.number-of-calculation-periods}") int numberOfCalculationPeriods) {
-        this.numberOfCalculationPeriods = numberOfCalculationPeriods;
-        this.calculationPeriodThreshold = numberOfCalculationPeriods * 2;
+    public PaymentCalculator(@Value("${payment-cycle.maximum-balance-period}") int maximumBalancePeriod) {
+        this.maximumBalancePeriod = maximumBalancePeriod;
     }
 
     /**
@@ -24,19 +22,28 @@ public class PaymentCalculator {
      * @return the amount in pence to apply to the next payment request
      */
     public int calculatePaymentAmountCycleInPence(PaymentCycleVoucherEntitlement entitlement, int cardBalanceInPence) {
-        int totalVoucherValueInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();
-        int maxAllowedCardBalanceInPence = totalVoucherValueInPence * calculationPeriodThreshold;
+        int firstWeekEntitlementInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();
+        int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;
 
-        if (cardBalanceInPence >= maxAllowedCardBalanceInPence) {
+        if (isCardBalanceTooHigh(cardBalanceInPence, maximumAllowedCardBalanceInPence)) {
             return 0;
         }
-
-        int partialPaymentThresholdInPence = totalVoucherValueInPence * numberOfCalculationPeriods;
-
-        if (cardBalanceInPence >= partialPaymentThresholdInPence) {
-            return maxAllowedCardBalanceInPence - cardBalanceInPence;
+        int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();
+        if (fullPaymentKeepsBalanceUnderThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {
+            return paymentCycleTotalEntitlementInPence;
         }
+        return calculatePartialPayment(cardBalanceInPence, maximumAllowedCardBalanceInPence);
+    }
 
-        return entitlement.getTotalVoucherValueInPence();
+    private int calculatePartialPayment(int cardBalanceInPence, int maximumAllowedCardBalanceInPence) {
+        return maximumAllowedCardBalanceInPence - cardBalanceInPence;
+    }
+
+    private boolean isCardBalanceTooHigh(int cardBalanceInPence, int maximumAllowedCardBalanceInPence) {
+        return cardBalanceInPence >= maximumAllowedCardBalanceInPence;
+    }
+
+    private boolean fullPaymentKeepsBalanceUnderThreshold(int cardBalanceInPence, int maxAllowedCardBalanceInPence, int paymentCycleTotalEntitlementInPence) {
+        return cardBalanceInPence + paymentCycleTotalEntitlementInPence < maxAllowedCardBalanceInPence;
     }
 }
