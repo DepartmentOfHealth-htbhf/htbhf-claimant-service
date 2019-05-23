@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.payments</a> &gt; <span class="el_source">PaymentCalculator.java</span></div><h1>PaymentCalculator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.payments;
+
+import org.springframework.beans.factory.annotation.Value;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+
+public class PaymentCalculator {
+
+    private final int maximumBalancePeriod;
+
+<span class="fc" id="L10">    public PaymentCalculator(@Value(&quot;${payment-cycle.maximum-balance-period}&quot;) int maximumBalancePeriod) {</span>
+<span class="fc" id="L11">        this.maximumBalancePeriod = maximumBalancePeriod;</span>
+<span class="fc" id="L12">    }</span>
+
+    /**
+     * Calculates the amount to apply to a new payment request.
+     * Returns the full entitlement amount when the full entitlement amount plus the card balance is less than or equal to the maximum card balance.
+     * Returns a partial amount when the full entitlement amount plus the card balance is greater than or equal to the maximum card balance.
+     * Returns zero when the card balance is greater than or equal to the maximum card balance.
+     *
+     * @param entitlement a payment cycle voucher entitlement
+     * @param cardBalanceInPence the card balance in pence
+     * @return the amount in pence to apply to the next payment request
+     */
+    public int calculatePaymentAmountCycleInPence(PaymentCycleVoucherEntitlement entitlement, int cardBalanceInPence) {
+<span class="fc" id="L25">        int firstWeekEntitlementInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();</span>
+<span class="fc" id="L26">        int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;</span>
+
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (isCardBalanceTooHigh(cardBalanceInPence, maximumAllowedCardBalanceInPence)) {</span>
+<span class="fc" id="L29">            return 0;</span>
+        }
+<span class="fc" id="L31">        int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (fullPaymentKeepsBalanceUnderThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {</span>
+<span class="fc" id="L33">            return paymentCycleTotalEntitlementInPence;</span>
+        }
+<span class="fc" id="L35">        return calculatePartialPayment(cardBalanceInPence, maximumAllowedCardBalanceInPence);</span>
+    }
+
+    private int calculatePartialPayment(int cardBalanceInPence, int maximumAllowedCardBalanceInPence) {
+<span class="fc" id="L39">        return maximumAllowedCardBalanceInPence - cardBalanceInPence;</span>
+    }
+
+    private boolean isCardBalanceTooHigh(int cardBalanceInPence, int maximumAllowedCardBalanceInPence) {
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return cardBalanceInPence &gt;= maximumAllowedCardBalanceInPence;</span>
+    }
+
+    private boolean fullPaymentKeepsBalanceUnderThreshold(int cardBalanceInPence, int maxAllowedCardBalanceInPence, int paymentCycleTotalEntitlementInPence) {
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        return cardBalanceInPence + paymentCycleTotalEntitlementInPence &lt; maxAllowedCardBalanceInPence;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
