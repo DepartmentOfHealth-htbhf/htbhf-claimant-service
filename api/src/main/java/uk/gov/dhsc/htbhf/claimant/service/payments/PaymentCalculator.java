@@ -1,8 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.service.payments;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
+@Component
 public class PaymentCalculator {
 
     private final int maximumBalancePeriod;
