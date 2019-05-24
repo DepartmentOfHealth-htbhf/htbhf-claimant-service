@@ -95,7 +95,7 @@ class PaymentServiceTest {
         CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
         given(cardClient.getBalance(any())).willReturn(balanceResponse);
         int paymentAmount = 1240;
-        given(paymentCalculator.calculatePaymentAmountCycleInPence(any(), anyInt())).willReturn(paymentAmount);
+        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
         given(cardClient.depositFundsToCard(any(), any())).willReturn(depositFundsResponse);
 
         Payment result = paymentService.makePayment(paymentCycle, cardAccountId);
@@ -105,7 +105,7 @@ class PaymentServiceTest {
         verify(eventAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
         verify(cardClient).getBalance(cardAccountId);
         verify(paymentCycleService).updateAndSavePaymentCycleWithBalance(paymentCycle, balanceResponse);
-        verify(paymentCalculator).calculatePaymentAmountCycleInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
+        verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(cardAccountId), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
@@ -120,14 +120,14 @@ class PaymentServiceTest {
         CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
         given(cardClient.getBalance(any())).willReturn(balanceResponse);
         int paymentAmount = 0;
-        given(paymentCalculator.calculatePaymentAmountCycleInPence(any(), anyInt())).willReturn(paymentAmount);
+        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
 
         Payment result = paymentService.makePayment(paymentCycle, cardAccountId);
 
         assertThat(result).isNull();
         verify(cardClient).getBalance(cardAccountId);
         verify(paymentCycleService).updateAndSavePaymentCycleWithBalance(paymentCycle, balanceResponse);
-        verify(paymentCalculator).calculatePaymentAmountCycleInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
+        verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyNoMoreInteractions(cardClient);
         verifyZeroInteractions(paymentRepository, eventAuditor);
     }

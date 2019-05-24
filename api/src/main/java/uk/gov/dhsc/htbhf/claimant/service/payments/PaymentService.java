@@ -70,7 +70,7 @@ public class PaymentService {
     private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle, String cardAccountId) {
         CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
         paymentCycleService.updateAndSavePaymentCycleWithBalance(paymentCycle, balance);
-        return paymentCalculator.calculatePaymentAmountCycleInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());
+        return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
