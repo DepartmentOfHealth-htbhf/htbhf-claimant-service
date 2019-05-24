@@ -57,4 +57,11 @@ public class EventAuditor {
                 .build();
         eventLogger.logEvent(event);
     }
+
+    public void auditNoPayment(UUID claimId) {
+        NoPaymentEvent event = NoPaymentEvent.builder()
+                .claimId(claimId)
+                .build();
+        eventLogger.logEvent(event);
+    }
 }

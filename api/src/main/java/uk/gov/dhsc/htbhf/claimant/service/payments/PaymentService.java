@@ -47,7 +47,7 @@ public class PaymentService {
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
         Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle, cardAccountId);
         if (amountToPay == 0) {
-            //TODO HTBHF-1418: Create an event for no payment made due to balance too high.
+            eventAuditor.auditNoPayment(paymentCycle.getClaim().getId());
             log.info("No payment will be made as the existing balance on the card is too high");
             return null;
         }

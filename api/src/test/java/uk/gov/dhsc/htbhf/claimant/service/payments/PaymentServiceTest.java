@@ -129,7 +129,9 @@ class PaymentServiceTest {
         verify(paymentCycleService).updateAndSavePaymentCycleWithBalance(paymentCycle, balanceResponse);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyNoMoreInteractions(cardClient);
-        verifyZeroInteractions(paymentRepository, eventAuditor);
+        verifyZeroInteractions(paymentRepository);
+        verify(eventAuditor).auditNoPayment(paymentCycle.getClaim().getId());
+        verifyNoMoreInteractions(eventAuditor);
     }
 
     private void assertMessagePayload(MakePaymentMessagePayload messagePayload, PaymentCycle paymentCycle) {
