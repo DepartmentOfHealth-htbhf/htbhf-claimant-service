@@ -57,5 +57,14 @@ public class EventAuditor {
 <span class="fc" id="L57">                .build();</span>
 <span class="fc" id="L58">        eventLogger.logEvent(event);</span>
 <span class="fc" id="L59">    }</span>
+
+    public void auditBalanceTooHighForPayment(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
+<span class="fc" id="L62">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
+<span class="fc" id="L63">                .claimId(claimId)</span>
+<span class="fc" id="L64">                .entitlementAmountInPence(entitlementAmountInPence)</span>
+<span class="fc" id="L65">                .balanceOnCard(balanceOnCard)</span>
+<span class="fc" id="L66">                .build();</span>
+<span class="fc" id="L67">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L68">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
