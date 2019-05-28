@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
@@ -20,65 +21,71 @@ import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 public class PaymentService {
 
     private MessageQueueClient messageQueueClient;
     private CardClient cardClient;
     private PaymentRepository paymentRepository;
+    private PaymentCycleService paymentCycleService;
     private EventAuditor eventAuditor;
+    private PaymentCalculator paymentCalculator;
 
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L32">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L33">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L35">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L36">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L37">    }</span>
 
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L37">        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());</span>
-<span class="fc" id="L38">        DepositFundsResponse response = depositFundsToCard(payment);</span>
-<span class="fc" id="L39">        updateAndSavePayment(payment, response.getReferenceId());</span>
-<span class="fc" id="L40">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
-<span class="fc" id="L41">        return payment;</span>
+<span class="fc" id="L40">        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L41">        DepositFundsResponse response = depositFundsToCard(payment);</span>
+<span class="fc" id="L42">        updateAndSavePayment(payment, response.getReferenceId());</span>
+<span class="fc" id="L43">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
+<span class="fc" id="L44">        return payment;</span>
     }
 
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L45">        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle);</span>
-        // TODO: HTBHF-1267: If payment amount &lt; minimum payment amount then don't make a payment (might need a new payment status)
-<span class="fc" id="L47">        Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);</span>
-<span class="fc" id="L48">        DepositFundsResponse response = depositFundsToCard(payment);</span>
-<span class="fc" id="L49">        updateAndSavePayment(payment, response.getReferenceId());</span>
-<span class="fc" id="L50">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
-<span class="fc" id="L51">        return payment;</span>
+<span class="fc" id="L48">        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle, cardAccountId);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (amountToPay == 0) {</span>
+            //TODO HTBHF-1418: Create an event for no payment made due to balance too high.
+<span class="fc" id="L51">            log.info(&quot;No payment will be made as the existing balance on the card is too high&quot;);</span>
+<span class="fc" id="L52">            return null;</span>
+        }
+<span class="fc" id="L54">        Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);</span>
+<span class="fc" id="L55">        DepositFundsResponse response = depositFundsToCard(payment);</span>
+<span class="fc" id="L56">        updateAndSavePayment(payment, response.getReferenceId());</span>
+<span class="fc" id="L57">        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());</span>
+<span class="fc" id="L58">        return payment;</span>
     }
 
     private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
-<span class="fc" id="L55">        return Payment.builder()</span>
-<span class="fc" id="L56">                    .cardAccountId(cardAccountId)</span>
-<span class="fc" id="L57">                    .claim(paymentCycle.getClaim())</span>
-<span class="fc" id="L58">                    .paymentAmountInPence(amountToPay)</span>
-<span class="fc" id="L59">                    .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L60">                    .build();</span>
+<span class="fc" id="L62">        return Payment.builder()</span>
+<span class="fc" id="L63">                .cardAccountId(cardAccountId)</span>
+<span class="fc" id="L64">                .claim(paymentCycle.getClaim())</span>
+<span class="fc" id="L65">                .paymentAmountInPence(amountToPay)</span>
+<span class="fc" id="L66">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L67">                .build();</span>
     }
 
-    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle) {
-        // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
-        // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
-<span class="fc" id="L66">        return paymentCycle.getTotalEntitlementAmountInPence();</span>
+    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle, String cardAccountId) {
+<span class="fc" id="L71">        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);</span>
+<span class="fc" id="L72">        paymentCycleService.updateAndSavePaymentCycleWithBalance(paymentCycle, balance);</span>
+<span class="fc" id="L73">        return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());</span>
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
-<span class="fc" id="L70">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
-<span class="fc" id="L71">                .reference(payment.getId().toString())</span>
-<span class="fc" id="L72">                .amountInPence(payment.getPaymentAmountInPence())</span>
-<span class="fc" id="L73">                .build();</span>
-<span class="fc" id="L74">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
+<span class="fc" id="L77">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
+<span class="fc" id="L78">                .reference(payment.getId().toString())</span>
+<span class="fc" id="L79">                .amountInPence(payment.getPaymentAmountInPence())</span>
+<span class="fc" id="L80">                .build();</span>
+<span class="fc" id="L81">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
     }
 
     private void updateAndSavePayment(Payment payment, String referenceId) {
-<span class="fc" id="L78">        payment.setPaymentReference(referenceId);</span>
-<span class="fc" id="L79">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L80">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
-<span class="fc" id="L81">        paymentRepository.save(payment);</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L85">        payment.setPaymentReference(referenceId);</span>
+<span class="fc" id="L86">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
+<span class="fc" id="L87">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
+<span class="fc" id="L88">        paymentRepository.save(payment);</span>
+<span class="fc" id="L89">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
