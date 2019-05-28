@@ -1,10 +1,15 @@
 package uk.gov.dhsc.htbhf.claimant.utilities;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleConfig;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -20,8 +25,11 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.TreeMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -34,12 +42,23 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 /**
  * Creates Claims and PaymentCycle records in the database.
  * Designed to be run directly from an IDE, and ignored by gradle
- * To use this you should change the jdbc uri in the test application.yml to point to your local postgres instance (and specify username/password).
+ * To use this you should change the jdbc uri in the test application.yml to point to your local postgres instance (and specify username/password):
+ * spring:
+ * datasource:
+ * url: jdbc:postgresql://localhost/claimant
+ * username: claimant_admin
+ * password: claimant_admin
+ * driver-class-name: org.postgresql.Driver
+ * type: com.zaxxer.hikari.HikariDataSource
+ * hikari:
+ * connectionTimeout: 5000
  */
 @SpringBootTest
 @Slf4j
 @Disabled
 public class DatabasePopulator {
+
+    // See also DatabasePopulatorTestContextConfiguration at the bottom of this class
 
     private static final String NINO_SUFFIX = "A";
 
@@ -84,32 +103,97 @@ public class DatabasePopulator {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private ExecutorService fixedThreadPool;
+
     @Test
     void generateClaimsAndPaymentCycles() {
         final AtomicInteger countCreated = new AtomicInteger();
-
-        Integer cycleDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();
+        List<Long> durations = new ArrayList<>();
 
         CLAIMS_TO_CREATE.entrySet().stream().forEach(entry -> {
             Integer claims = entry.getValue();
             ClaimStatus status = entry.getKey();
-            EligibilityStatus eligibilityStatus = CLAIM_ELIGIBILITY_STATUS.get(status);
-            EligibilityStatus paymentEligibility = PAYMENT_ELIGIBILITY_STATUS.get(status);
             String ninoPrefix = NINO_PREFIX.get(status);
+            NewClaimDetails details = NewClaimDetails.builder()
+                    .status(status)
+                    .ninoPrefix(ninoPrefix)
+                    .eligibilityStatus(CLAIM_ELIGIBILITY_STATUS.get(status))
+                    .paymentEligibility(PAYMENT_ELIGIBILITY_STATUS.get(status))
+                    .cycleDuration(paymentCycleConfig.getEntitlementCalculationDurationInDays())
+                    .build();
             Query query = entityManager.createNativeQuery("select count(*) from claimant where left(nino , 2) = '" + ninoPrefix + "'");
-            int ninoStartIndex = ((Number)query.getSingleResult()).intValue() + 1;
+            int ninoStartIndex = ((Number) query.getSingleResult()).intValue() + 10001; // ensure we have a non-zero number in the first 2 digits
             log.error("Creating {} claims in status {}, starting from {}", claims, status, ninoStartIndex);
+            List<Callable<Long>> jobs = new ArrayList<>(claims);
             for (int i = 0; i < claims; i++) {
-                Claim claim = createClaim(status, eligibilityStatus, ninoPrefix, ninoStartIndex + i);
-                if (paymentEligibility != null) {
-                    createPaymentCycle(cycleDuration, paymentEligibility, claim);
-                }
-                if (countCreated.incrementAndGet() % 100 == 0) {
-                    log.error("Created {} claims so far", countCreated.get());
-                }
-
+                Integer ninoNumber = ninoStartIndex + i;
+                Callable<Long> job = createNewClaimJob(details, ninoNumber, countCreated);
+                jobs.add(job);
             }
+            durations.addAll(invokeAllJobs(jobs));
         });
+
+        logDurations(durations);
+    }
+
+    private Callable<Long> createNewClaimJob(NewClaimDetails details, Integer ninoNumber, AtomicInteger countCreated) {
+        return () -> {
+            StopWatch stopWatch = StopWatch.createStarted();
+            Claim claim = createClaim(details.getStatus(), details.getEligibilityStatus(), details.getNinoPrefix(), ninoNumber);
+            if (details.getPaymentEligibility() != null) {
+                createPaymentCycle(details.getCycleDuration(), details.getPaymentEligibility(), claim);
+            }
+            if (countCreated.incrementAndGet() % 1000 == 0) {
+                log.error("Created {} claims so far", countCreated.get());
+            }
+            return stopWatch.getTime();
+        };
+    }
+
+    private List<Long> invokeAllJobs(List<Callable<Long>> jobs) {
+        List<Long> durations = new ArrayList<>();
+        try {
+            List<Future<Long>> futures = fixedThreadPool.invokeAll(jobs);
+            for (Future<Long> future : futures) {
+                durations.add(future.get());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return durations;
+    }
+
+    /**
+     * This method logs a frequency map of the durations. The output looks like this:
+     * Distribution of time to insert claim
+     * 0-9ms    : 373793
+     * 10-19ms  : 465927
+     * 20-29ms  : 55405
+     * 30-39ms  : 3303
+     * 40-49ms  : 1087
+     * 50-59ms  : 289
+     * 60-69ms  : 87
+     * 70-79ms  : 34
+     * 80-89ms  : 37
+     * 90-99ms  : 25
+     * 100-109ms    : 7
+     * Average time to insert claim: 12ms
+     * @param durations the list of durations of the call to insert a claim
+     */
+    private void logDurations(List<Long> durations) {
+        // aggregate the durations into buckets of 10ms
+        Map<Long, Long> durationFrequencyMap = new TreeMap<>();
+        int bucketSize = 10;
+        for (Long duration : durations) {
+            // identify the bucket this call belongs in - round down to nearest 10
+            Long roundedDuration = (duration / bucketSize) * bucketSize;
+            // increment the count of calls in this bucket
+            durationFrequencyMap.merge(roundedDuration, 1L, Long::sum);
+        }
+        log.error("Distribution of time to insert claim");
+        durationFrequencyMap.forEach((roundedDuration, count) -> log.error("{}-{}ms\t: {}", roundedDuration, roundedDuration + (bucketSize - 1), count));
+        log.error("Average time to insert claim: {}ms", durations.stream().mapToLong(Long::longValue).sum() / durations.size());
     }
 
     private Claim createClaim(ClaimStatus status, EligibilityStatus eligibilityStatus, String ninoPrefix, int ninoNumber) {
@@ -157,4 +241,23 @@ public class DatabasePopulator {
         format.setMinimumIntegerDigits(6);
         return format;
     }
+
+    @Data
+    @Builder
+    private static class NewClaimDetails {
+        private ClaimStatus status;
+        private EligibilityStatus eligibilityStatus;
+        private EligibilityStatus paymentEligibility;
+        private String ninoPrefix;
+        private Integer cycleDuration;
+    }
+
+    @TestConfiguration
+    static class DatabasePopulatorTestContextConfiguration {
+        @Bean("fixedThreadPool")
+        public ExecutorService fixedThreadPool() {
+            return Executors.newFixedThreadPool(6);
+        }
+    }
+
 }
