@@ -35,7 +35,8 @@ public class EligibilityAndEntitlementService {
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
-        if (claimRepository.liveClaimExistsForNino(claimant.getNino())) {
+        if (!claimRepository.findLiveClaimsWithNino(claimant.getNino()).isEmpty()) {
+            // TODO: MGS: check eligibility first and replace duplicate status with existing claim id. HTBHF-1192
             return buildWithStatus(EligibilityStatus.DUPLICATE);
         }
         EligibilityResponse eligibilityResponse = checkEligibilityForNewClaimant(claimant);

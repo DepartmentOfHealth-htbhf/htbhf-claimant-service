@@ -16,8 +16,11 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -51,30 +54,30 @@ class EligibilityAndEntitlementServiceTest {
 
     @Test
     void shouldReturnDuplicateResponseWhenLiveClaimAlreadyExists() {
-        given(claimRepository.liveClaimExistsForNino(any())).willReturn(true);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(List.of(UUID.randomUUID()));
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision eligibilityResponse = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
-        assertThat(eligibilityResponse.getEligibilityStatus()).isEqualTo(DUPLICATE);
-        verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
+        assertThat(decision.getEligibilityStatus()).isEqualTo(DUPLICATE);
+        verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verifyZeroInteractions(client, eligibilityStatusCalculator, cycleEntitlementCalculator);
     }
 
     @Test
     void shouldReturnEligibleWhenNotDuplicateAndEligibleWithVouchers() {
-        Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(any())).willReturn(ELIGIBLE);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        Claimant claimant = aValidClaimant();
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
         assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
-        verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
+        verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatusForNewClaim(eligibilityResponse);
         verify(cycleEntitlementCalculator).calculateEntitlement(
@@ -88,7 +91,7 @@ class EligibilityAndEntitlementServiceTest {
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
-        given(claimRepository.liveClaimExistsForNino(any())).willReturn(false);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(any())).willReturn(ELIGIBLE);
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
@@ -96,7 +99,7 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
 
         assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
-        verify(claimRepository).liveClaimExistsForNino(claimant.getNino());
+        verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
         verify(eligibilityStatusCalculator).determineEligibilityStatusForNewClaim(eligibilityResponse);
         verify(cycleEntitlementCalculator).calculateEntitlement(

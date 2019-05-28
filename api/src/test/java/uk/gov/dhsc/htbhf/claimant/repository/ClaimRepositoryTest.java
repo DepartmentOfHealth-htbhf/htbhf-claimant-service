@@ -27,7 +27,11 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithLastName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithTooLongFirstName;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -83,34 +87,34 @@ class ClaimRepositoryTest {
     }
 
     @Test
-    void shouldReturnLiveClaimDoesNotExistWhenNinoDoesNotExist() {
+    void shouldReturnEmptyListWhenNinoDoesNotExist() {
         //Given
-        Claim claim = aValidClaim();
+        String nino = aValidClaimant().getNino();
 
         //When
-        Boolean claimExists = claimRepository.liveClaimExistsForNino(claim.getClaimant().getNino());
+        List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(nino);
 
         //Then
-        assertThat(claimExists).isFalse();
+        assertThat(claimIds).isEmpty();
     }
 
-    @ParameterizedTest(name = "Should return that a live claim does exist when claim exists and claim status is {0}")
+    @ParameterizedTest(name = "Should return id of existing claim with matching NINO when claim status is {0}")
     @ValueSource(strings = {
             "NEW",
             "ACTIVE",
             "PENDING",
             "PENDING_EXPIRY"
     })
-    void shouldReturnLiveClaimDoesExistWhenNinoExists(ClaimStatus claimStatus) {
+    void shouldReturnLiveClaimIdWhenNinoExists(ClaimStatus claimStatus) {
         //Given
         Claim claim = aClaimWithClaimStatus(claimStatus);
         claimRepository.save(claim);
 
         //When
-        Boolean claimExists = claimRepository.liveClaimExistsForNino(claim.getClaimant().getNino());
+        List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(claim.getClaimant().getNino());
 
         //Then
-        assertThat(claimExists).isTrue();
+        assertThat(claimIds).isEqualTo(List.of(claim.getId()));
     }
 
     @ParameterizedTest(name = "Should return that a live claim does not exist when claim exists and claim status is {0}")
@@ -119,16 +123,16 @@ class ClaimRepositoryTest {
             "ERROR",
             "EXPIRED"
     })
-    void shouldReturnLiveClaimDoesNotExistWhenNinoExists(ClaimStatus claimStatus) {
+    void shouldReturnEmptyListWhenNinoExistsOnInactiveClaim(ClaimStatus claimStatus) {
         //Given
         Claim claim = aClaimWithClaimStatus(claimStatus);
         claimRepository.save(claim);
 
         //When
-        Boolean claimExists = claimRepository.liveClaimExistsForNino(claim.getClaimant().getNino());
+        List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(claim.getClaimant().getNino());
 
         //Then
-        assertThat(claimExists).isFalse();
+        assertThat(claimIds).isEmpty();
     }
 
     @Test
