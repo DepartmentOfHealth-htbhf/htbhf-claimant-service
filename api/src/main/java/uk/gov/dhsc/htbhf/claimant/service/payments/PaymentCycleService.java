@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -80,6 +82,18 @@ public class PaymentCycleService {
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
         paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
+        paymentCycleRepository.save(paymentCycle);
+    }
+
+    /**
+     * Update the PaymentCycle with the balance on the card at the time a payment is requested and save to the db.
+     *
+     * @param paymentCycle        The payment cycle
+     * @param cardBalanceResponse The balance on the card
+     */
+    public void updateAndSavePaymentCycleWithBalance(PaymentCycle paymentCycle, CardBalanceResponse cardBalanceResponse) {
+        paymentCycle.setCardBalanceInPence(cardBalanceResponse.getAvailableBalanceInPence());
+        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
         paymentCycleRepository.save(paymentCycle);
     }
 }

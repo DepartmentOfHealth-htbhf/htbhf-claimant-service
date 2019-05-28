@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
@@ -26,7 +27,9 @@ public class PaymentService {
     private MessageQueueClient messageQueueClient;
     private CardClient cardClient;
     private PaymentRepository paymentRepository;
+    private PaymentCycleService paymentCycleService;
     private EventAuditor eventAuditor;
+    private PaymentCalculator paymentCalculator;
 
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
         MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
@@ -42,8 +45,12 @@ public class PaymentService {
     }
 
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle);
-        // TODO: HTBHF-1267: If payment amount < minimum payment amount then don't make a payment (might need a new payment status)
+        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle, cardAccountId);
+        if (amountToPay == 0) {
+            //TODO HTBHF-1418: Create an event for no payment made due to balance too high.
+            log.info("No payment will be made as the existing balance on the card is too high");
+            return null;
+        }
         Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);
         DepositFundsResponse response = depositFundsToCard(payment);
         updateAndSavePayment(payment, response.getReferenceId());
@@ -53,17 +60,17 @@ public class PaymentService {
 
     private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
         return Payment.builder()
-                    .cardAccountId(cardAccountId)
-                    .claim(paymentCycle.getClaim())
-                    .paymentAmountInPence(amountToPay)
-                    .paymentCycle(paymentCycle)
-                    .build();
+                .cardAccountId(cardAccountId)
+                .claim(paymentCycle.getClaim())
+                .paymentAmountInPence(amountToPay)
+                .paymentCycle(paymentCycle)
+                .build();
     }
 
-    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle) {
-        // TODO: HTBHF-1267: Check balance against card provider, update paymentCycle with balance and timestamp
-        // TODO: HTBHF-1267: reduce amount paid if it would put the card over the max allowed balance
-        return paymentCycle.getTotalEntitlementAmountInPence();
+    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle, String cardAccountId) {
+        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
+        paymentCycleService.updateAndSavePaymentCycleWithBalance(paymentCycle, balance);
+        return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {

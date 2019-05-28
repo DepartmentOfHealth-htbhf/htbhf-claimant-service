@@ -20,7 +20,7 @@ class PaymentCalculatorTest {
         int lowBalance = 1;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(ENTITLEMENT, lowBalance);
+        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, lowBalance);
 
         // Then
         assertThat(paymentAmount).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
@@ -32,7 +32,7 @@ class PaymentCalculatorTest {
         int balance = 7500;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(ENTITLEMENT, balance);
+        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
         int partialPayment = MAXIMUM_BALANCE - balance;
@@ -45,7 +45,7 @@ class PaymentCalculatorTest {
         int highBalance = 100000;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(ENTITLEMENT, highBalance);
+        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, highBalance);
 
         // Then
         assertThat(paymentAmount).isEqualTo(0);
@@ -57,7 +57,7 @@ class PaymentCalculatorTest {
         int balance = PAYMENT_CYCLE_ENTITLEMENT_AMOUNT;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(ENTITLEMENT, balance);
+        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
         assertThat(paymentAmount).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
@@ -69,7 +69,7 @@ class PaymentCalculatorTest {
         int balance = MAXIMUM_BALANCE;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentAmountCycleInPence(ENTITLEMENT, balance);
+        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
         assertThat(paymentAmount).isEqualTo(0);

@@ -1,8 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.service.payments;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
+@Component
 public class PaymentCalculator {
 
     private final int maximumBalancePeriod;
@@ -21,7 +23,7 @@ public class PaymentCalculator {
      * @param cardBalanceInPence the card balance in pence
      * @return the amount in pence to apply to the next payment request
      */
-    public int calculatePaymentAmountCycleInPence(PaymentCycleVoucherEntitlement entitlement, int cardBalanceInPence) {
+    public int calculatePaymentCycleAmountInPence(PaymentCycleVoucherEntitlement entitlement, int cardBalanceInPence) {
         int firstWeekEntitlementInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();
         int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;
 
