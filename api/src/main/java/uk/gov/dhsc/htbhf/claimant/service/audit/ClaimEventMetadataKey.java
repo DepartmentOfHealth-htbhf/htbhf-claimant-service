@@ -11,6 +11,7 @@ public enum ClaimEventMetadataKey {
     CARD_ACCOUNT_ID("cardAccountId"),
     PAYMENT_ID("paymentId"),
     PAYMENT_REFERENCE("paymentReference"),
+    PAYMENT_AMOUNT("paymentAmount"),
     ENTITLEMENT_AMOUNT_IN_PENCE("entitlementAmountInPence"),
     BALANCE_ON_CARD("balanceOnCard");
 

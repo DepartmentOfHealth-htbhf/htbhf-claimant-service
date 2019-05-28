@@ -4,7 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 
 import java.util.UUID;
@@ -49,12 +52,13 @@ public class EventAuditor {
         eventLogger.logEvent(newCardEvent);
     }
 
-    public void auditMakePayment(UUID claimId, UUID paymentId, String paymentReference) {
-        //TODO MRS 2019-05-28: Add payment amount and entitlement amount to event
+    public void auditMakePayment(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
         MakePaymentEvent event = MakePaymentEvent.builder()
-                .claimId(claimId)
-                .paymentId(paymentId)
-                .reference(paymentReference)
+                .claimId(paymentCycle.getClaim().getId())
+                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
+                .paymentAmountInPence(payment.getPaymentAmountInPence())
+                .paymentId(payment.getId())
+                .reference(depositFundsResponse.getReferenceId())
                 .build();
         eventLogger.logEvent(event);
     }

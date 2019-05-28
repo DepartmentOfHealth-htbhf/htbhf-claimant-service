@@ -7,8 +7,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.Event;
@@ -25,6 +28,9 @@ import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aValidPayment;
 
 @ExtendWith(MockitoExtension.class)
 class EventAuditorTest {
@@ -110,12 +116,12 @@ class EventAuditorTest {
     @Test
     void shouldLogEventForMakePayment() {
         //Given
-        UUID claimId = UUID.randomUUID();
-        UUID paymentId = UUID.randomUUID();
-        String reference = "myPaymentReference";
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        Payment payment = aValidPayment();
+        DepositFundsResponse depositFundsResponse = aValidDepositFundsResponse();
 
         //When
-        eventAuditor.auditMakePayment(claimId, paymentId, reference);
+        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -125,12 +131,13 @@ class EventAuditorTest {
         assertThat(actualEvent.getTimestamp()).isNotNull();
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
-                .hasSize(3)
+                .hasSize(5)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
-                        entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), paymentId),
-                        entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), reference));
-
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
+                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), paymentCycle.getTotalEntitlementAmountInPence()),
+                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), payment.getPaymentAmountInPence()),
+                        entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), payment.getId()),
+                        entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), depositFundsResponse.getReferenceId()));
     }
 
     @Test
