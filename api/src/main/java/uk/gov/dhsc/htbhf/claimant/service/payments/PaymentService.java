@@ -47,7 +47,10 @@ public class PaymentService {
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
         Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle, cardAccountId);
         if (amountToPay == 0) {
-            eventAuditor.auditNoPayment(paymentCycle.getClaim().getId());
+            eventAuditor.auditBalanceTooHighForPayment(
+                    paymentCycle.getClaim().getId(),
+                    paymentCycle.getTotalEntitlementAmountInPence(),
+                    paymentCycle.getCardBalanceInPence());
             log.info("No payment will be made as the existing balance on the card is too high");
             return null;
         }
@@ -69,7 +72,9 @@ public class PaymentService {
 
     private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle, String cardAccountId) {
         CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
-        paymentCycleService.updateAndSavePaymentCycleWithBalance(paymentCycle, balance);
+        paymentCycle.setCardBalanceInPence(balance.getAvailableBalanceInPence());
+        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
+        paymentCycleService.savePaymentCycle(paymentCycle);
         return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());
     }
 

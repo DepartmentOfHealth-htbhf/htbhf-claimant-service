@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -19,13 +18,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.AVAILABLE_BALANCE_IN_PENCE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,15 +93,12 @@ class PaymentCycleServiceTest {
     }
 
     @Test
-    void shouldUpdateAndSavePaymentCycleWithBalanceAndTimestamp() {
+    void shouldSavePaymentCycle() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
-        CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
 
-        paymentCycleService.updateAndSavePaymentCycleWithBalance(paymentCycle, balanceResponse);
+        paymentCycleService.savePaymentCycle(paymentCycle);
 
         verify(paymentCycleRepository).save(paymentCycle);
-        assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(AVAILABLE_BALANCE_IN_PENCE);
-        assertThat(paymentCycle.getCardBalanceTimestamp()).isNotNull();
     }
 
     private void verifyPaymentCycleSavedCorrectly(LocalDate today, Claim claim, PaymentCycle result) {

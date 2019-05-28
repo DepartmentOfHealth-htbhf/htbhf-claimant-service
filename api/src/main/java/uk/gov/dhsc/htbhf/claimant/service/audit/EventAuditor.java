@@ -58,9 +58,11 @@ public class EventAuditor {
         eventLogger.logEvent(event);
     }
 
-    public void auditNoPayment(UUID claimId) {
-        NoPaymentEvent event = NoPaymentEvent.builder()
+    public void auditBalanceTooHighForPayment(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
+        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()
                 .claimId(claimId)
+                .entitlementAmountInPence(entitlementAmountInPence)
+                .balanceOnCard(balanceOnCard)
                 .build();
         eventLogger.logEvent(event);
     }
