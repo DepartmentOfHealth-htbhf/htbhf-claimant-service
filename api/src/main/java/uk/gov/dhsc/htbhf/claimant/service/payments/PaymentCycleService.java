@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
@@ -68,20 +67,6 @@ public class PaymentCycleService {
         paymentCycle.applyVoucherEntitlement(voucherEntitlement);
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
-    }
-
-    //TODO MRS 2019-05-28: Inline the updates to the PaymentCycle in next PR.
-    /**
-     * Update the PaymentCycle with the eligibility status and voucher entitlement and save to the db.
-     *
-     * @param paymentCycle The payment cycle
-     * @param decision     The decision containing details of the claimants eligibility and entitlement during this payment cycle
-     */
-    public void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
-        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
-        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
-        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
-        paymentCycleRepository.save(paymentCycle);
     }
 
     /**

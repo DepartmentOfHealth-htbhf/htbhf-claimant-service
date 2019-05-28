@@ -64,12 +64,19 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-        paymentCycleService.updateAndSavePaymentCycle(currentPaymentCycle, decision);
+        updateAndSavePaymentCycle(currentPaymentCycle, decision);
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
         }
 
         return COMPLETED;
+    }
+
+    private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
+        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
+        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
+        paymentCycleService.savePaymentCycle(paymentCycle);
     }
 }

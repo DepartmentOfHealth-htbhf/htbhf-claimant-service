@@ -10,6 +10,7 @@ import java.util.List;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.nCopies;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
@@ -33,6 +34,7 @@ public class EligibilityAndEntitlementTestDataFactory {
                 .eligibilityStatus(ELIGIBLE)
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .dateOfBirthOfChildren(children);
     }
 
