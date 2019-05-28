@@ -75,16 +75,16 @@ class PaymentServiceTest {
         DepositFundsResponse depositFundsResponse = DepositFundsResponse.builder().referenceId(CARD_PROVIDER_PAYMENT_REFERENCE).build();
         given(cardClient.depositFundsToCard(any(), any())).willReturn(depositFundsResponse);
 
-        Payment result = paymentService.makeFirstPayment(paymentCycle, CARD_ACCOUNT_ID);
+        Payment paymentResult = paymentService.makeFirstPayment(paymentCycle, CARD_ACCOUNT_ID);
 
-        assertSuccessfulPayment(result, paymentCycle, paymentCycle.getTotalEntitlementAmountInPence());
-        verify(paymentRepository).save(result);
-        verify(eventAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
+        assertSuccessfulPayment(paymentResult, paymentCycle, paymentCycle.getTotalEntitlementAmountInPence());
+        verify(paymentRepository).save(paymentResult);
+        verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
         assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCycle.getTotalEntitlementAmountInPence());
-        assertThat(depositFundsRequest.getReference()).isEqualTo(result.getId().toString());
+        assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
     }
 
     @Test
@@ -97,11 +97,11 @@ class PaymentServiceTest {
         given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
         given(cardClient.depositFundsToCard(any(), any())).willReturn(depositFundsResponse);
 
-        Payment result = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
+        Payment paymentResult = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
 
-        assertSuccessfulPayment(result, paymentCycle, paymentAmount);
-        verify(paymentRepository).save(result);
-        verify(eventAuditor).auditMakePayment(paymentCycle.getClaim().getId(), result.getId(), CARD_PROVIDER_PAYMENT_REFERENCE);
+        assertSuccessfulPayment(paymentResult, paymentCycle, paymentAmount);
+        verify(paymentRepository).save(paymentResult);
+        verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
         verifyPaymentCycleSavedWithBalance(paymentCycle, balanceResponse.getAvailableBalanceInPence());
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
@@ -109,7 +109,7 @@ class PaymentServiceTest {
         verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
         assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentAmount);
-        assertThat(depositFundsRequest.getReference()).isEqualTo(result.getId().toString());
+        assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
     }
 
     @Test
@@ -120,9 +120,9 @@ class PaymentServiceTest {
         int paymentAmount = 0;
         given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
 
-        Payment result = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
+        Payment paymentResult = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
 
-        assertThat(result).isNull();
+        assertThat(paymentResult).isNull();
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
         verifyPaymentCycleSavedWithBalance(paymentCycle, balanceResponse.getAvailableBalanceInPence());
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);

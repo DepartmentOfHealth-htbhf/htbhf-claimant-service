@@ -38,9 +38,9 @@ public class PaymentService {
 
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
         Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
-        DepositFundsResponse response = depositFundsToCard(payment);
-        updateAndSavePayment(payment, response.getReferenceId());
-        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
+        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
+        updateAndSavePayment(payment, depositFundsResponse.getReferenceId());
+        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         return payment;
     }
 
@@ -55,9 +55,9 @@ public class PaymentService {
             return null;
         }
         Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);
-        DepositFundsResponse response = depositFundsToCard(payment);
-        updateAndSavePayment(payment, response.getReferenceId());
-        eventAuditor.auditMakePayment(paymentCycle.getClaim().getId(), payment.getId(), response.getReferenceId());
+        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
+        updateAndSavePayment(payment, depositFundsResponse.getReferenceId());
+        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         return payment;
     }
 
