@@ -12,6 +12,8 @@ import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 import java.time.LocalDate;
 import java.util.List;
 
+import static uk.gov.dhsc.htbhf.errorhandler.ExceptionDetailGenerator.constructExceptionDetail;
+
 /**
  * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
  * for active claims whose current PaymentCycle is due to come to an end.
@@ -55,8 +57,7 @@ public class PaymentCycleScheduler {
         try {
             job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1));
         } catch (RuntimeException e) {
-            // TODO: HTBHF-1285: expose ErrorHandler.constructExceptionDetail from java common and include it in error handling
-            log.error("Unable to create new payment cycle for claim {}", cycle.getClaimId(), e);
+            log.error("Unable to create new payment cycle for claim {}: {}", cycle.getClaimId(), constructExceptionDetail(e), e);
         }
     }
 }
