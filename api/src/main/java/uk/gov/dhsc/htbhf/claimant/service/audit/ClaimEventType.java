@@ -8,5 +8,6 @@ import uk.gov.dhsc.htbhf.logging.EventType;
 public enum ClaimEventType implements EventType {
     NEW_CLAIM,
     NEW_CARD,
-    MAKE_PAYMENT
+    MAKE_PAYMENT,
+    BALANCE_TOO_HIGH_FOR_PAYMENT
 }

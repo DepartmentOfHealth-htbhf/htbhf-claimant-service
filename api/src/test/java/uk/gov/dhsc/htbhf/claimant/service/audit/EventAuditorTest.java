@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
@@ -129,6 +130,32 @@ class EventAuditorTest {
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
                         entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), paymentId),
                         entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), reference));
+
+    }
+
+    @Test
+    void shouldLogEventForBalanceTooHighForPayment() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+        int entitlementAmountInPence = 3450;
+        int balanceOnCard = 9550;
+
+        //When
+        eventAuditor.auditBalanceTooHighForPayment(claimId, entitlementAmountInPence, balanceOnCard);
+
+        //Then
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata())
+                .isNotNull()
+                .hasSize(3)
+                .containsExactly(
+                        entry(ClaimEventMetadataKey.BALANCE_ON_CARD.getKey(), balanceOnCard),
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
+                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence));
 
     }
 }
