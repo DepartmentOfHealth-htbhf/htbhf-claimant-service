@@ -64,7 +64,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
-<span class="fc" id="L67">        paymentCycleService.updateAndSavePaymentCycle(currentPaymentCycle, decision);</span>
+<span class="fc" id="L67">        updateAndSavePaymentCycle(currentPaymentCycle, decision);</span>
 
 <span class="fc bfc" id="L69" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
 <span class="fc" id="L70">            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);</span>
@@ -72,5 +72,12 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
 <span class="fc" id="L73">        return COMPLETED;</span>
     }
+
+    private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L77">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
+<span class="fc" id="L78">        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L79">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
+<span class="fc" id="L80">        paymentCycleService.savePaymentCycle(paymentCycle);</span>
+<span class="fc" id="L81">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

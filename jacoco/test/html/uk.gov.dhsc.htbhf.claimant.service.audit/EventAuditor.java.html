@@ -50,21 +50,22 @@ public class EventAuditor {
 <span class="fc" id="L50">    }</span>
 
     public void auditMakePayment(UUID claimId, UUID paymentId, String paymentReference) {
-<span class="fc" id="L53">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
-<span class="fc" id="L54">                .claimId(claimId)</span>
-<span class="fc" id="L55">                .paymentId(paymentId)</span>
-<span class="fc" id="L56">                .reference(paymentReference)</span>
-<span class="fc" id="L57">                .build();</span>
-<span class="fc" id="L58">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L59">    }</span>
+        //TODO MRS 2019-05-28: Add payment amount and entitlement amount to event
+<span class="fc" id="L54">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
+<span class="fc" id="L55">                .claimId(claimId)</span>
+<span class="fc" id="L56">                .paymentId(paymentId)</span>
+<span class="fc" id="L57">                .reference(paymentReference)</span>
+<span class="fc" id="L58">                .build();</span>
+<span class="fc" id="L59">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L60">    }</span>
 
     public void auditBalanceTooHighForPayment(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
-<span class="fc" id="L62">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
-<span class="fc" id="L63">                .claimId(claimId)</span>
-<span class="fc" id="L64">                .entitlementAmountInPence(entitlementAmountInPence)</span>
-<span class="fc" id="L65">                .balanceOnCard(balanceOnCard)</span>
-<span class="fc" id="L66">                .build();</span>
-<span class="fc" id="L67">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L68">    }</span>
+<span class="fc" id="L63">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
+<span class="fc" id="L64">                .claimId(claimId)</span>
+<span class="fc" id="L65">                .entitlementAmountInPence(entitlementAmountInPence)</span>
+<span class="fc" id="L66">                .balanceOnCard(balanceOnCard)</span>
+<span class="fc" id="L67">                .build();</span>
+<span class="fc" id="L68">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
