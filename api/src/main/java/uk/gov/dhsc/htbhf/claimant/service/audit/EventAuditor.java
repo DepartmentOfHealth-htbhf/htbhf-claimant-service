@@ -50,6 +50,7 @@ public class EventAuditor {
     }
 
     public void auditMakePayment(UUID claimId, UUID paymentId, String paymentReference) {
+        //TODO MRS 2019-05-28: Add payment amount and entitlement amount to event
         MakePaymentEvent event = MakePaymentEvent.builder()
                 .claimId(claimId)
                 .paymentId(paymentId)

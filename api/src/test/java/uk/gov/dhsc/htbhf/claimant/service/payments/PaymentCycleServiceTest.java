@@ -9,9 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,9 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
@@ -65,31 +61,6 @@ class PaymentCycleServiceTest {
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
-    }
-
-    @Test
-    void shouldUpdatePaymentCycleWithEligibilityStatusAndEntitlement() {
-        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
-                .voucherEntitlement(null)
-                .totalVouchers(null)
-                .totalEntitlementAmountInPence(null)
-                .build();
-        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        EligibilityStatus eligibilityStatus = ELIGIBLE;
-        List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
-        EligibilityAndEntitlementDecision decision = aValidDecisionBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .voucherEntitlement(entitlement)
-                .dateOfBirthOfChildren(datesOfBirth)
-                .build();
-
-        paymentCycleService.updateAndSavePaymentCycle(paymentCycle, decision);
-
-        verify(paymentCycleRepository).save(paymentCycle);
-        assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        assertThat(paymentCycle.getChildrenDob()).isEqualTo(datesOfBirth);
-        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
-        assertThat(paymentCycle.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
     }
 
     @Test

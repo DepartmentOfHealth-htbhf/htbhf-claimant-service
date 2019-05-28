@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -79,7 +80,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), decision);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision);
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
     }
@@ -106,8 +107,20 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updateAndSavePaymentCycle(context.getCurrentPaymentCycle(), decision);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision);
         verifyZeroInteractions(messageQueueDAO);
+    }
+
+    private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+        ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
+        verify(paymentCycleService).savePaymentCycle(argumentCaptor.capture());
+        assertThat(argumentCaptor.getAllValues()).hasSize(1);
+        PaymentCycle savedPaymentCycle = argumentCaptor.getValue();
+        assertThat(savedPaymentCycle.getId()).isEqualTo(paymentCycle.getId());
+        assertThat(savedPaymentCycle.getEligibilityStatus()).isEqualTo(decision.getEligibilityStatus());
+        assertThat(savedPaymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
+        assertThat(savedPaymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
+        assertThat(savedPaymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());
     }
 
     private DetermineEntitlementMessageContext buildMessageContext() {
