@@ -68,6 +68,11 @@ public class PaymentCycle extends VersionedEntity {
     @Column(name = "card_balance_timestamp")
     private LocalDateTime cardBalanceTimestamp;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_cycle_status")
+    private PaymentCycleStatus paymentCycleStatus;
+
     public PaymentCycle addPayment(Payment payment) {
         this.payments.add(payment);
         payment.setPaymentCycle(this);

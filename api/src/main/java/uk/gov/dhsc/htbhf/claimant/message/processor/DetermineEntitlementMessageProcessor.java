@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -77,6 +78,9 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
         paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
+        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
+        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
         paymentCycleService.savePaymentCycle(paymentCycle);
     }
+
 }
