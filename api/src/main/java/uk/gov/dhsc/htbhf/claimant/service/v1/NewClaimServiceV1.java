@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -31,7 +30,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 public class NewClaimServiceV1 {
 
     private final ClaimRepository claimRepository;
-    private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
+    private final EligibilityAndEntitlementServiceV1 eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
     private final MessageQueueDAO messageQueueDAO;
 
