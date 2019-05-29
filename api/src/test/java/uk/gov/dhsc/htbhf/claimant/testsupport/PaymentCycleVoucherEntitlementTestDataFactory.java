@@ -7,11 +7,25 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.*;
 
 public class PaymentCycleVoucherEntitlementTestDataFactory {
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
+        return buildDefaultPaymentCycleVoucherEntitlement()
+                .voucherEntitlements(List.of(
+                        aVoucherEntitlementWithPregnancyVouchers(4)
+                ))
+                .build();
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers() {
+        return buildDefaultPaymentCycleVoucherEntitlement()
+                .voucherEntitlements(List.of(
+                        aVoucherEntitlementWithPregnancyVouchers(0)
+                ))
+                .build();
+    }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchers() {
         return buildDefaultPaymentCycleVoucherEntitlement()

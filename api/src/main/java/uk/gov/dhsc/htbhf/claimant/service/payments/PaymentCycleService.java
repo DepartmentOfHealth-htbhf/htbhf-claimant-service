@@ -47,6 +47,7 @@ public class PaymentCycleService {
     /**
      * Creates a new payment cycle, saving it in the database.
      * The cycle end date is set to the start date plus the payment cycle duration time.
+     * The expected due date is set only if the voucher entitlement contains pregnancy vouchers.
      * EligibilityStatus is set to ELIGIBLE.
      *
      * @param claim                  claim to create a payment cycle for
@@ -59,6 +60,10 @@ public class PaymentCycleService {
                                                                   LocalDate cycleStartDate,
                                                                   PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                   List<LocalDate> datesOfBirthOfChildren) {
+        LocalDate expectedDeliveryDate = voucherEntitlement.getVouchersForPregnancy() > 0
+                ? claim.getClaimant().getExpectedDeliveryDate()
+                : null;
+
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
@@ -66,7 +71,9 @@ public class PaymentCycleService {
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .eligibilityStatus(ELIGIBLE)
                 .childrenDob(datesOfBirthOfChildren)
+                .expectedDeliveryDate(expectedDeliveryDate)
                 .build();
+
         paymentCycle.applyVoucherEntitlement(voucherEntitlement);
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;

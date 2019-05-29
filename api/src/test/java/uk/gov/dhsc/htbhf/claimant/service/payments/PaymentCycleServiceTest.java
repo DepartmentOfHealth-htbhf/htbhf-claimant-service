@@ -18,9 +18,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleServiceTest {
@@ -48,11 +50,11 @@ class PaymentCycleServiceTest {
     }
 
     @Test
-    void shouldCreateNewPaymentCycleForEligibleClaim() {
+    void shouldCreateNewPaymentCycleWithExpectedDueDateForEligibleClaimWithPregnancyVouchers() {
         LocalDate today = LocalDate.now();
-        Claim claim = aValidClaim();
+        Claim claim = aClaimWithExpectedDeliveryDate(today);
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
-        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement, datesOfBirth);
 
@@ -61,6 +63,26 @@ class PaymentCycleServiceTest {
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
+        assertThat(result.getExpectedDeliveryDate()).isEqualTo(today);
+        assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
+        assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
+    }
+
+    @Test
+    void shouldCreateNewPaymentCycleWithoutExpectedDueDateForEligibleClaimWithoutPregnancyVouchers() {
+        LocalDate today = LocalDate.now();
+        Claim claim = aClaimWithExpectedDeliveryDate(today);
+        List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
+
+        PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement, datesOfBirth);
+
+        verifyPaymentCycleSavedCorrectly(today, claim, result);
+        assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
+        assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
+        assertThat(result.getExpectedDeliveryDate()).isNull();
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
     }
