@@ -6,9 +6,11 @@ import java.util.UUID;
 /**
  * Exception thrown when multiple (live) claims are found for the same NINO.
  */
-public class MultipleClaimsExistWithSameNinoException extends RuntimeException {
+public class MultipleClaimsWithSameNinoException extends RuntimeException {
 
-    public MultipleClaimsExistWithSameNinoException(List<UUID> claimIds) {
+    private static final long serialVersionUID = 1L;
+
+    public MultipleClaimsWithSameNinoException(List<UUID> claimIds) {
         super("Multiple live claims exist for the same NINO! Claim ids: " + claimIds);
     }
 }

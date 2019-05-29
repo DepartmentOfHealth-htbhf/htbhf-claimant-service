@@ -9,7 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsExistWithSameNinoException;
+import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -82,8 +82,8 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(existingIds);
         Claimant claimant = aValidClaimant();
 
-        MultipleClaimsExistWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementService.evaluateNewClaimant(claimant),
-                MultipleClaimsExistWithSameNinoException.class);
+        MultipleClaimsWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementService.evaluateNewClaimant(claimant),
+                MultipleClaimsWithSameNinoException.class);
 
         assertThat(exception).isNotNull();
         assertThat(exception.getMessage()).contains(existingIds.toString());

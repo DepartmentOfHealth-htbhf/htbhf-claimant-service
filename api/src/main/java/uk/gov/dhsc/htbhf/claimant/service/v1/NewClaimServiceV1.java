@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.service.v1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +12,8 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -26,7 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class NewClaimService {
+public class NewClaimServiceV1 {
 
     private final ClaimRepository claimRepository;
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
@@ -45,9 +47,6 @@ public class NewClaimService {
     public ClaimResult createClaim(Claimant claimant) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
-            if (decision.getExistingClaimId() != null) {
-                decision = decision.toBuilder().eligibilityStatus(EligibilityStatus.DUPLICATE).build();
-            }
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);

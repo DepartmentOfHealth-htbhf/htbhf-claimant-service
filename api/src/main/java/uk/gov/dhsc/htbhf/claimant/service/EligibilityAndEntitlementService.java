@@ -6,7 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsExistWithSameNinoException;
+import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -36,15 +36,15 @@ public class EligibilityAndEntitlementService {
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
+        List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
+        if (liveClaimsWithNino.size() > 1) {
+            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);
+        }
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
-        List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
-        if (liveClaimsWithNino.size() > 1) {
-            throw new MultipleClaimsExistWithSameNinoException(liveClaimsWithNino);
-        }
         if (!liveClaimsWithNino.isEmpty()) {
             return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
         }
