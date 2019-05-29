@@ -28,7 +28,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aFullPaymentCalculation;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aNoPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.AVAILABLE_BALANCE_IN_PENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
@@ -94,22 +98,22 @@ class PaymentServiceTest {
         DepositFundsResponse depositFundsResponse = DepositFundsResponse.builder().referenceId(CARD_PROVIDER_PAYMENT_REFERENCE).build();
         CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
         given(cardClient.getBalance(any())).willReturn(balanceResponse);
-        int paymentAmount = 1240;
-        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
+        PaymentCalculation paymentCalculation = aFullPaymentCalculation();
+        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentCalculation);
         given(cardClient.depositFundsToCard(any(), any())).willReturn(depositFundsResponse);
 
         Payment paymentResult = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
 
-        assertSuccessfulPayment(paymentResult, paymentCycle, paymentAmount);
+        assertSuccessfulPayment(paymentResult, paymentCycle, paymentCalculation.getPaymentAmount());
         verify(paymentRepository).save(paymentResult);
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
-        verifyPaymentCycleSavedWithBalance(paymentCycle, balanceResponse.getAvailableBalanceInPence());
+        verifyPaymentCycleUpdatedAndSaved(paymentCycle, balanceResponse.getAvailableBalanceInPence(), FULL_PAYMENT_MADE);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
-        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentAmount);
+        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCalculation.getPaymentAmount());
         assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
     }
 
@@ -118,14 +122,13 @@ class PaymentServiceTest {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
         given(cardClient.getBalance(any())).willReturn(balanceResponse);
-        int paymentAmount = 0;
-        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentAmount);
+        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(aNoPaymentCalculation());
 
         Payment paymentResult = paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID);
 
         assertThat(paymentResult).isNull();
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
-        verifyPaymentCycleSavedWithBalance(paymentCycle, balanceResponse.getAvailableBalanceInPence());
+        verifyPaymentCycleUpdatedAndSaved(paymentCycle, balanceResponse.getAvailableBalanceInPence(), BALANCE_TOO_HIGH_FOR_PAYMENT);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyNoMoreInteractions(cardClient);
         verifyZeroInteractions(paymentRepository);
@@ -136,7 +139,7 @@ class PaymentServiceTest {
         verifyNoMoreInteractions(eventAuditor);
     }
 
-    private void verifyPaymentCycleSavedWithBalance(PaymentCycle paymentCycle, int expectedBalance) {
+    private void verifyPaymentCycleUpdatedAndSaved(PaymentCycle paymentCycle, int expectedBalance, PaymentCycleStatus paymentCycleStatus) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleService).savePaymentCycle(argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues()).hasSize(1);
@@ -144,7 +147,7 @@ class PaymentServiceTest {
         assertThat(savedPaymentCycle.getId()).isEqualTo(paymentCycle.getId());
         assertThat(savedPaymentCycle.getCardBalanceInPence()).isEqualTo(expectedBalance);
         assertThat(savedPaymentCycle.getCardBalanceTimestamp()).isNotNull();
-        assertThat(savedPaymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.FULL_PAYMENT_MADE);
+        assertThat(savedPaymentCycle.getPaymentCycleStatus()).isEqualTo(paymentCycleStatus);
     }
 
     private void assertMessagePayload(MakePaymentMessagePayload messagePayload, PaymentCycle paymentCycle) {

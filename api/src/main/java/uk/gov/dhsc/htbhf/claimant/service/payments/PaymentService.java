@@ -3,9 +3,9 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -75,10 +75,11 @@ public class PaymentService {
         CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
         paymentCycle.setCardBalanceInPence(balance.getAvailableBalanceInPence());
         paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
-        //TODO MRS 2019-05-29: Calculate status based on payment amount from PaymentCalculator - next PR
-        paymentCycle.setPaymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE);
+        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(voucherEntitlement, balance.getAvailableBalanceInPence());
+        paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());
         paymentCycleService.savePaymentCycle(paymentCycle);
-        return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());
+        return paymentCalculation.getPaymentAmount();
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
