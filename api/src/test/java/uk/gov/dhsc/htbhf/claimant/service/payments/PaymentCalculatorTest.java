@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers;
 
 class PaymentCalculatorTest {
@@ -20,10 +23,11 @@ class PaymentCalculatorTest {
         int lowBalance = 1;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, lowBalance);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, lowBalance);
 
         // Then
-        assertThat(paymentAmount).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
+        assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
+        assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
     }
 
     @Test
@@ -32,11 +36,12 @@ class PaymentCalculatorTest {
         int balance = 7500;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
         int partialPayment = MAXIMUM_BALANCE - balance;
-        assertThat(paymentAmount).isEqualTo(partialPayment);
+        assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(partialPayment);
+        assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(PARTIAL_PAYMENT_MADE);
     }
 
     @Test
@@ -45,10 +50,11 @@ class PaymentCalculatorTest {
         int highBalance = 100000;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, highBalance);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, highBalance);
 
         // Then
-        assertThat(paymentAmount).isEqualTo(0);
+        assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
+        assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
     }
 
     @Test
@@ -57,10 +63,11 @@ class PaymentCalculatorTest {
         int balance = PAYMENT_CYCLE_ENTITLEMENT_AMOUNT;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
-        assertThat(paymentAmount).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
+        assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
+        assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
     }
 
     @Test
@@ -69,9 +76,10 @@ class PaymentCalculatorTest {
         int balance = MAXIMUM_BALANCE;
 
         // When
-        int paymentAmount = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
 
         // Then
-        assertThat(paymentAmount).isEqualTo(0);
+        assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
+        assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
     }
 }
