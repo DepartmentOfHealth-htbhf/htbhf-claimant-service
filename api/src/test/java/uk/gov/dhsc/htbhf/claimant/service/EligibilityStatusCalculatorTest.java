@@ -37,7 +37,7 @@ class EligibilityStatusCalculatorTest {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
 
-        EligibilityStatus status = eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(anEligibilityResponseWithStatus(null));
+        EligibilityStatus status = eligibilityStatusCalculator.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(null));
 
         assertThat(status).isEqualTo(EligibilityStatus.DUPLICATE);
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
@@ -50,7 +50,7 @@ class EligibilityStatusCalculatorTest {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
 
-        EligibilityStatus result = eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(anEligibilityResponseWithStatus(status));
+        EligibilityStatus result = eligibilityStatusCalculator.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(status));
 
         assertThat(result).isEqualTo(status);
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);

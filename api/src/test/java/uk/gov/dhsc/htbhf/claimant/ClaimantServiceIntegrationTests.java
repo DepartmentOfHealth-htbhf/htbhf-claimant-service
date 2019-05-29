@@ -53,7 +53,6 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertCla
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
@@ -139,20 +138,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
     }
 
-    @Test
-    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForNino() {
-        //Given
-        ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aClaimantWithNino(dto.getClaimant().getNino());
-        Claim claim = aValidClaimBuilder().claimant(claimant).build();
-        claimRepository.save(claim);
-
-        //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
-
-        //Then
-        assertDuplicateResponse(response);
-    }
+    // TODO: MGS: add test to confirm existing claim is updated and response includes CLAIM_UPDATED status. HTBHF-1192
 
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
