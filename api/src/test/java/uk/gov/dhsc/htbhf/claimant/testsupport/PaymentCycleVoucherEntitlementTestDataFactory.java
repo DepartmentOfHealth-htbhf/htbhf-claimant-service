@@ -13,7 +13,7 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
         return buildDefaultPaymentCycleVoucherEntitlement()
-                .voucherEntitlements(List.of(
+                .voucherEntitlements(singletonList(
                         aVoucherEntitlementWithPregnancyVouchers(4)
                 ))
                 .build();
@@ -21,7 +21,7 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers() {
         return buildDefaultPaymentCycleVoucherEntitlement()
-                .voucherEntitlements(List.of(
+                .voucherEntitlements(singletonList(
                         aVoucherEntitlementWithPregnancyVouchers(0)
                 ))
                 .build();
