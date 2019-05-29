@@ -40,7 +40,7 @@ public class PaymentCalculator {
             return NO_PAYMENT_CALCULATION;
         }
         int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();
-        if (fullPaymentKeepsBalanceLessThanOrEqualToThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {
+        if (fullPaymentKeepsBalanceWithinThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {
             return PaymentCalculation.builder()
                     .paymentAmount(paymentCycleTotalEntitlementInPence)
                     .paymentCycleStatus(FULL_PAYMENT_MADE)
@@ -56,9 +56,9 @@ public class PaymentCalculator {
         return cardBalanceInPence >= maximumAllowedCardBalanceInPence;
     }
 
-    private boolean fullPaymentKeepsBalanceLessThanOrEqualToThreshold(int cardBalanceInPence,
-                                                                      int maxAllowedCardBalanceInPence,
-                                                                      int paymentCycleTotalEntitlementInPence) {
+    private boolean fullPaymentKeepsBalanceWithinThreshold(int cardBalanceInPence,
+                                                           int maxAllowedCardBalanceInPence,
+                                                           int paymentCycleTotalEntitlementInPence) {
         return cardBalanceInPence + paymentCycleTotalEntitlementInPence <= maxAllowedCardBalanceInPence;
     }
 }
