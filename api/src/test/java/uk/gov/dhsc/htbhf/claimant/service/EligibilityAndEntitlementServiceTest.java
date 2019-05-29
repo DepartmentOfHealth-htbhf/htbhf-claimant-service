@@ -74,10 +74,6 @@ class EligibilityAndEntitlementServiceTest {
 
     @Test
     void shouldThrowExceptionWhenMultipleLiveClaimsExistForNino() {
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
-        given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         List<UUID> existingIds = List.of(UUID.randomUUID(), UUID.randomUUID());
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(existingIds);
         Claimant claimant = aValidClaimant();
