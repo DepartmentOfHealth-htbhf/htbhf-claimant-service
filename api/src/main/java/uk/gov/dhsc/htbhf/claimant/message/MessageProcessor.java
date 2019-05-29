@@ -86,7 +86,7 @@ public class MessageProcessor {
         try {
             return messageTypeProcessor.processMessage(message);
         } catch (RuntimeException e) {
-            log.error("Unable to process message with id {}, exception detail: {}", message.getId(), constructExceptionDetail(e));
+            log.error("Unable to process message with id {}, exception detail: {}", message.getId(), constructExceptionDetail(e), e);
             return ERROR;
         }
     }
