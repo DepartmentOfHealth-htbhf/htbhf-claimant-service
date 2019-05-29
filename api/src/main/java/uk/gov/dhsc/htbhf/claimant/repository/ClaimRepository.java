@@ -18,11 +18,12 @@ import java.util.UUID;
 @JaversSpringDataAuditable
 public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyLoader {
 
-    @Query("SELECT COUNT(claim) "
+    @Query("SELECT claim.id "
             + "FROM Claim claim "
             + "WHERE claim.claimant.nino = :nino "
-            + "AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')")
-    Long countLiveClaimsWithNino(@Param("nino") String nino);
+            + "AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')"
+            + "ORDER BY claim.claimStatusTimestamp DESC")
+    List<UUID> findLiveClaimsWithNino(@Param("nino") String nino);
 
     @Query("SELECT COUNT(claim) "
             + "FROM Claim claim "
@@ -45,9 +46,5 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
         return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;
-    }
-
-    default boolean liveClaimExistsForNino(String nino) {
-        return countLiveClaimsWithNino(nino) != 0;
     }
 }
