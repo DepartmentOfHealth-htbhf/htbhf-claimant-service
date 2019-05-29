@@ -18,11 +18,12 @@ import java.util.UUID;
 @JaversSpringDataAuditable
 public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, ClaimLazyLoader {
 
-    @Query(&quot;SELECT COUNT(claim) &quot;
+    @Query(&quot;SELECT claim.id &quot;
             + &quot;FROM Claim claim &quot;
             + &quot;WHERE claim.claimant.nino = :nino &quot;
-            + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;)
-    Long countLiveClaimsWithNino(@Param(&quot;nino&quot;) String nino);
+            + &quot;AND claim.claimStatus in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY')&quot;
+            + &quot;ORDER BY claim.claimStatusTimestamp DESC&quot;)
+    List&lt;UUID&gt; findLiveClaimsWithNino(@Param(&quot;nino&quot;) String nino);
 
     @Query(&quot;SELECT COUNT(claim) &quot;
             + &quot;FROM Claim claim &quot;
@@ -40,15 +41,11 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
     List&lt;UUID&gt; getNewClaimIds();
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L47" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
-    }
-
-    default boolean liveClaimExistsForNino(String nino) {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        return countLiveClaimsWithNino(nino) != 0;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
