@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=edge"/>
-<title>Test results - PaymentCycleVoucherEntitlementTest</title>
+<title>Test results - PaymentCycleStatusTest</title>
 <link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="../css/style.css" rel="stylesheet" type="text/css"/>
 <script src="../js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">
-<h1>PaymentCycleVoucherEntitlementTest</h1>
+<h1>PaymentCycleStatusTest</h1>
 <div class="breadcrumbs">
 <a href="../index.html">all</a> &gt; 
-<a href="../packages/uk.gov.dhsc.htbhf.claimant.entitlement.html">uk.gov.dhsc.htbhf.claimant.entitlement</a> &gt; PaymentCycleVoucherEntitlementTest</div>
+<a href="../packages/uk.gov.dhsc.htbhf.claimant.entity.html">uk.gov.dhsc.htbhf.claimant.entity</a> &gt; PaymentCycleStatusTest</div>
 <div id="summary">
 <table>
 <tr>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.006s</div>
+<div class="counter">0.005s</div>
 <p>duration</p>
 </div>
 </td>
@@ -70,38 +70,45 @@
 <thead>
 <tr>
 <th>Test</th>
+<th>Method name</th>
 <th>Duration</th>
 <th>Result</th>
 </tr>
 </thead>
 <tr>
-<td class="success">shouldCreateTotalValuesFromListOfVoucherEntitlementWithMissingValues()</td>
+<td class="success">[1] ELIGIBLE, READY_FOR_PAYMENT</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[1]</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldCreateTotalValuesFromListOfVoucherEntitlements()</td>
+<td class="success">[2] INELIGIBLE, INELIGIBLE</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[2]</td>
 <td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldCreateTotalValuesFromListOfVoucherEntitlementsAndNumberOfBackDatedVouchers()</td>
+<td class="success">[3] PENDING, INELIGIBLE</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[3]</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">[4] NO_MATCH, INELIGIBLE</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[4]</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">[5] ERROR, INELIGIBLE</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[5]</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">[6] DUPLICATE, INELIGIBLE</td>
+<td class="success">getStatusForEligibilityDecision(EligibilityStatus, PaymentCycleStatus)[6]</td>
 <td class="success">0s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldReturnEarliestVoucherEntitlement()</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldThrowExceptionWhenListIsEmpty()</td>
-<td class="success">0.002s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldThrowExceptionWhenListIsNull()</td>
-<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 </table>

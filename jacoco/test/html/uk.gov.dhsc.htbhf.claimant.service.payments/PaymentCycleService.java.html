@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import java.time.LocalDate;
 import java.util.List;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
@@ -19,10 +20,10 @@ public class PaymentCycleService {
     private final Integer cycleDurationInDays;
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
-<span class="fc" id="L22">                               @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays) {</span>
-<span class="fc" id="L23">        this.paymentCycleRepository = paymentCycleRepository;</span>
-<span class="fc" id="L24">        this.cycleDurationInDays = cycleDurationInDays;</span>
-<span class="fc" id="L25">    }</span>
+<span class="fc" id="L23">                               @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays) {</span>
+<span class="fc" id="L24">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L25">        this.cycleDurationInDays = cycleDurationInDays;</span>
+<span class="fc" id="L26">    }</span>
 
     /**
      * Creates a new payment cycle for the given claim and cycle start date, saving it in the database.
@@ -33,13 +34,14 @@ public class PaymentCycleService {
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
-<span class="fc" id="L36">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L37">                .claim(claim)</span>
-<span class="fc" id="L38">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L39">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
-<span class="fc" id="L40">                .build();</span>
-<span class="fc" id="L41">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L42">        return paymentCycle;</span>
+<span class="fc" id="L37">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L38">                .claim(claim)</span>
+<span class="fc" id="L39">                .paymentCycleStatus(NEW)</span>
+<span class="fc" id="L40">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L41">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L42">                .build();</span>
+<span class="fc" id="L43">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L44">        return paymentCycle;</span>
     }
 
     /**
@@ -57,16 +59,17 @@ public class PaymentCycleService {
                                                                   LocalDate cycleStartDate,
                                                                   PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                   List&lt;LocalDate&gt; datesOfBirthOfChildren) {
-<span class="fc" id="L60">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L61">                .claim(claim)</span>
-<span class="fc" id="L62">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L63">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
-<span class="fc" id="L64">                .eligibilityStatus(ELIGIBLE)</span>
-<span class="fc" id="L65">                .childrenDob(datesOfBirthOfChildren)</span>
-<span class="fc" id="L66">                .build();</span>
-<span class="fc" id="L67">        paymentCycle.applyVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc" id="L68">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L69">        return paymentCycle;</span>
+<span class="fc" id="L62">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L63">                .claim(claim)</span>
+<span class="fc" id="L64">                .paymentCycleStatus(NEW)</span>
+<span class="fc" id="L65">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L66">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L67">                .eligibilityStatus(ELIGIBLE)</span>
+<span class="fc" id="L68">                .childrenDob(datesOfBirthOfChildren)</span>
+<span class="fc" id="L69">                .build();</span>
+<span class="fc" id="L70">        paymentCycle.applyVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc" id="L71">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L72">        return paymentCycle;</span>
     }
 
     /**
@@ -75,7 +78,7 @@ public class PaymentCycleService {
      * @param paymentCycle The {@link PaymentCycle} to save
      */
     public void savePaymentCycle(PaymentCycle paymentCycle) {
-<span class="fc" id="L78">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L81">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L82">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
