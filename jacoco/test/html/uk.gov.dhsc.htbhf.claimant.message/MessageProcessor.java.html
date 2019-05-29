@@ -86,7 +86,7 @@ public class MessageProcessor {
         try {
 <span class="fc" id="L87">            return messageTypeProcessor.processMessage(message);</span>
 <span class="fc" id="L88">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L89">            log.error(&quot;Unable to process message with id {}, exception detail: {}&quot;, message.getId(), constructExceptionDetail(e));</span>
+<span class="fc" id="L89">            log.error(&quot;Unable to process message with id {}, exception detail: {}&quot;, message.getId(), constructExceptionDetail(e), e);</span>
 <span class="fc" id="L90">            return ERROR;</span>
         }
     }
