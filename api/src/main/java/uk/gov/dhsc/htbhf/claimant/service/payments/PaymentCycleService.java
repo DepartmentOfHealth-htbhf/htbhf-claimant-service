@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import java.time.LocalDate;
 import java.util.List;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
@@ -35,6 +36,7 @@ public class PaymentCycleService {
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
+                .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .build();
@@ -59,6 +61,7 @@ public class PaymentCycleService {
                                                                   List<LocalDate> datesOfBirthOfChildren) {
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
+                .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .eligibilityStatus(ELIGIBLE)

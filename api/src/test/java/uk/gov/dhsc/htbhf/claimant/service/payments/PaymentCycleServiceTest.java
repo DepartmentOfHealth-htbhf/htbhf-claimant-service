@@ -9,7 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleServiceTest {
@@ -57,7 +58,8 @@ class PaymentCycleServiceTest {
 
         verifyPaymentCycleSavedCorrectly(today, claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
-        assertThat(result.getEligibilityStatus()).isEqualTo(ELIGIBLE);
+        assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
@@ -78,6 +80,7 @@ class PaymentCycleServiceTest {
         PaymentCycle paymentCycle = argumentCaptor.getValue();
         assertThat(paymentCycle.getClaim()).isEqualTo(claim);
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today);
+        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH));
         assertThat(result).isEqualTo(paymentCycle);
     }
