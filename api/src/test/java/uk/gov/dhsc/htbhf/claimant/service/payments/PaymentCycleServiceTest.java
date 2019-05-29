@@ -96,6 +96,28 @@ class PaymentCycleServiceTest {
         verify(paymentCycleRepository).save(paymentCycle);
     }
 
+    @Test
+    void shouldGetExpectedDeliveryDateIfPregnancyVouchersExist() {
+        LocalDate expectedDeliveryDate = LocalDate.now();
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
+
+        LocalDate result = paymentCycleService.getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement);
+
+        assertThat(result).isEqualTo(expectedDeliveryDate);
+    }
+
+    @Test
+    void shouldReturnNullForExpectedDeliveryDateIfPregnancyVouchersDoNotExist() {
+        LocalDate expectedDeliveryDate = LocalDate.now().minusMonths(6);
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
+
+        LocalDate result = paymentCycleService.getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement);
+
+        assertThat(result).isNull();
+    }
+
     private void verifyPaymentCycleSavedCorrectly(LocalDate today, Claim claim, PaymentCycle result) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleRepository).save(argumentCaptor.capture());

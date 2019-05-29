@@ -60,10 +60,6 @@ public class PaymentCycleService {
                                                                   LocalDate cycleStartDate,
                                                                   PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                   List<LocalDate> datesOfBirthOfChildren) {
-        LocalDate expectedDeliveryDate = voucherEntitlement.getVouchersForPregnancy() > 0
-                ? claim.getClaimant().getExpectedDeliveryDate()
-                : null;
-
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
@@ -71,7 +67,7 @@ public class PaymentCycleService {
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
                 .eligibilityStatus(ELIGIBLE)
                 .childrenDob(datesOfBirthOfChildren)
-                .expectedDeliveryDate(expectedDeliveryDate)
+                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))
                 .build();
 
         paymentCycle.applyVoucherEntitlement(voucherEntitlement);
@@ -86,5 +82,9 @@ public class PaymentCycleService {
      */
     public void savePaymentCycle(PaymentCycle paymentCycle) {
         paymentCycleRepository.save(paymentCycle);
+    }
+
+    public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return voucherEntitlement.getVouchersForPregnancy() > 0 ? claim.getClaimant().getExpectedDeliveryDate() : null;
     }
 }

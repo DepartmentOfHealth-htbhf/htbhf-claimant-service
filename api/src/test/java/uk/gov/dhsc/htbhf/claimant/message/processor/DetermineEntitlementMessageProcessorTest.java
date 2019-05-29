@@ -60,12 +60,16 @@ class DetermineEntitlementMessageProcessorTest {
     @Test
     void shouldSuccessfullyProcessMessageAndTriggerPaymentForEligibleClaimant() {
         //Given
-        DetermineEntitlementMessageContext context = buildMessageContext();
+        LocalDate expectedDeliveryDate = LocalDate.now();
+        DetermineEntitlementMessageContext context = buildMessageContextWithExpectedDeliveryDate(expectedDeliveryDate);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
+
+        // expected delivery date
+        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(expectedDeliveryDate);
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -80,7 +84,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim(), expectedDeliveryDate);
         MakePaymentMessagePayload expectedPaymentMessagePayload = aMakePaymentPayload(context.getClaim().getId(), context.getCurrentPaymentCycle().getId());
         verify(messageQueueDAO).sendMessage(expectedPaymentMessagePayload, MAKE_PAYMENT);
     }
@@ -88,12 +92,16 @@ class DetermineEntitlementMessageProcessorTest {
     @Test
     void shouldProcessMessageButNotTriggerPaymentForClaimantNoLongerEligible() {
         //Given
-        DetermineEntitlementMessageContext context = buildMessageContext();
+        LocalDate expectedDeliveryDate = LocalDate.now();
+        DetermineEntitlementMessageContext context = buildMessageContextWithExpectedDeliveryDate(expectedDeliveryDate);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
+
+        // expected delivery date
+        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(expectedDeliveryDate);
 
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -107,12 +115,16 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim(), expectedDeliveryDate);
         verifyZeroInteractions(messageQueueDAO);
     }
 
-    private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+    private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle,
+                                                     EligibilityAndEntitlementDecision decision,
+                                                     Claim claim,
+                                                     LocalDate expectedDeliveryDate) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
+        verify(paymentCycleService).getExpectedDeliveryDateIfRelevant(claim, paymentCycle.getVoucherEntitlement());
         verify(paymentCycleService).savePaymentCycle(argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues()).hasSize(1);
         PaymentCycle savedPaymentCycle = argumentCaptor.getValue();
@@ -121,11 +133,11 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(savedPaymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
         assertThat(savedPaymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
         assertThat(savedPaymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());
+        assertThat(savedPaymentCycle.getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
     }
 
-    private DetermineEntitlementMessageContext buildMessageContext() {
+    private DetermineEntitlementMessageContext buildMessageContextWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         //Claim
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(1);
         Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
 
         //Current payment cycle
