@@ -12,6 +12,7 @@ import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -36,6 +37,16 @@ public class PaymentCycleTest extends AbstractValidationTest {
         Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "claim");
+    }
+
+    @Test
+    void shouldFailToValidatePaymentCycleWithNoStatus() {
+        //Given
+        PaymentCycle paymentCycle = aPaymentCycleWithStatus(null);
+        //When
+        Set<ConstraintViolation<PaymentCycle>> violations = validator.validate(paymentCycle);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "paymentCycleStatus");
     }
 
     @Test

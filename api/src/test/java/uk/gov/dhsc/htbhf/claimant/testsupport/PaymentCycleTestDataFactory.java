@@ -4,10 +4,12 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
@@ -50,9 +52,14 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder().claim(claim).build();
     }
 
+    public static PaymentCycle aPaymentCycleWithStatus(PaymentCycleStatus status) {
+        return aValidPaymentCycleBuilder().paymentCycleStatus(status).build();
+    }
+
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
         return PaymentCycle.builder()
                 .claim(aValidClaim())
+                .paymentCycleStatus(NEW)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .totalVouchers(TOTAL_VOUCHERS)

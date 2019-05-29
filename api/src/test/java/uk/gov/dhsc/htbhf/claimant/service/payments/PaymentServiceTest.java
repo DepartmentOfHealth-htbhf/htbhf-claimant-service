@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -143,6 +144,7 @@ class PaymentServiceTest {
         assertThat(savedPaymentCycle.getId()).isEqualTo(paymentCycle.getId());
         assertThat(savedPaymentCycle.getCardBalanceInPence()).isEqualTo(expectedBalance);
         assertThat(savedPaymentCycle.getCardBalanceTimestamp()).isNotNull();
+        assertThat(savedPaymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.FULL_PAYMENT_MADE);
     }
 
     private void assertMessagePayload(MakePaymentMessagePayload messagePayload, PaymentCycle paymentCycle) {
