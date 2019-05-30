@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -15,15 +16,16 @@ import java.util.List;
 public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
+    private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
     private final List&lt;LocalDate&gt; dateOfBirthOfChildren;
     private final PaymentCycleVoucherEntitlement voucherEntitlement;
 
     public static EligibilityAndEntitlementDecision buildWithStatus(EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L24">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L25">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L26">                .build();</span>
+<span class="fc" id="L26">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L27">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L28">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
