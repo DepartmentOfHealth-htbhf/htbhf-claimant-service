@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
@@ -46,16 +45,16 @@ public class PaymentService {
     }
 
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-        Integer amountToPay = checkBalanceAndCalculatePaymentAmount(paymentCycle, cardAccountId);
-        if (amountToPay == 0) {
-            eventAuditor.auditBalanceTooHighForPayment(
-                    paymentCycle.getClaim().getId(),
-                    paymentCycle.getTotalEntitlementAmountInPence(),
-                    paymentCycle.getCardBalanceInPence());
+        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
+        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),
+                balance.getAvailableBalanceInPence());
+        updatePaymentCycle(paymentCycle, paymentCalculation, balance.getAvailableBalanceInPence());
+        if (paymentCalculation.getPaymentAmount() == 0) {
+            eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
             log.info("No payment will be made as the existing balance on the card is too high");
             return null;
         }
-        Payment payment = createPayment(paymentCycle, cardAccountId, amountToPay);
+        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());
         DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
         updateAndSavePayment(payment, depositFundsResponse.getReferenceId());
         eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
@@ -71,15 +70,11 @@ public class PaymentService {
                 .build();
     }
 
-    private Integer checkBalanceAndCalculatePaymentAmount(PaymentCycle paymentCycle, String cardAccountId) {
-        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
-        paymentCycle.setCardBalanceInPence(balance.getAvailableBalanceInPence());
+    private void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, int cardBalanceInPence) {
+        paymentCycle.setCardBalanceInPence(cardBalanceInPence);
         paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
-        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(voucherEntitlement, balance.getAvailableBalanceInPence());
         paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());
         paymentCycleService.savePaymentCycle(paymentCycle);
-        return paymentCalculation.getPaymentAmount();
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {

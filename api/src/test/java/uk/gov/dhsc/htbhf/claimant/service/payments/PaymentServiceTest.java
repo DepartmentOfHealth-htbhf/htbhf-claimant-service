@@ -132,10 +132,7 @@ class PaymentServiceTest {
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyNoMoreInteractions(cardClient);
         verifyZeroInteractions(paymentRepository);
-        verify(eventAuditor).auditBalanceTooHighForPayment(
-                paymentCycle.getClaim().getId(),
-                paymentCycle.getTotalEntitlementAmountInPence(),
-                paymentCycle.getCardBalanceInPence());
+        verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
         verifyNoMoreInteractions(eventAuditor);
     }
 

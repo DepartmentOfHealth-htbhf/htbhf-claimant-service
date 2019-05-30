@@ -29,7 +29,9 @@ import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aValidPayment;
 
 @ExtendWith(MockitoExtension.class)
@@ -143,12 +145,11 @@ class EventAuditorTest {
     @Test
     void shouldLogEventForBalanceTooHighForPayment() {
         //Given
-        UUID claimId = UUID.randomUUID();
-        int entitlementAmountInPence = 3450;
         int balanceOnCard = 9550;
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder().cardBalanceInPence(balanceOnCard).build();
 
         //When
-        eventAuditor.auditBalanceTooHighForPayment(claimId, entitlementAmountInPence, balanceOnCard);
+        eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -161,8 +162,8 @@ class EventAuditorTest {
                 .hasSize(3)
                 .containsExactly(
                         entry(ClaimEventMetadataKey.BALANCE_ON_CARD.getKey(), balanceOnCard),
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
-                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence));
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
+                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE));
 
     }
 }
