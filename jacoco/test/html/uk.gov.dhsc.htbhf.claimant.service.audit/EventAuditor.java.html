@@ -63,11 +63,11 @@ public class EventAuditor {
 <span class="fc" id="L63">        eventLogger.logEvent(event);</span>
 <span class="fc" id="L64">    }</span>
 
-    public void auditBalanceTooHighForPayment(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
+    public void auditBalanceTooHighForPayment(PaymentCycle paymentCycle) {
 <span class="fc" id="L67">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
-<span class="fc" id="L68">                .claimId(claimId)</span>
-<span class="fc" id="L69">                .entitlementAmountInPence(entitlementAmountInPence)</span>
-<span class="fc" id="L70">                .balanceOnCard(balanceOnCard)</span>
+<span class="fc" id="L68">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L69">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L70">                .balanceOnCard(paymentCycle.getCardBalanceInPence())</span>
 <span class="fc" id="L71">                .build();</span>
 <span class="fc" id="L72">        eventLogger.logEvent(event);</span>
 <span class="fc" id="L73">    }</span>
