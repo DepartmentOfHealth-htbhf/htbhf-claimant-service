@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -36,14 +37,29 @@ public class PaymentService {
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
+    /**
+     * Make the first payment onto a new card as a part of a successful application process.
+     *
+     * @param paymentCycle  The new {@link PaymentCycle} associated with the new claim
+     * @param cardAccountId The new card id to make to payment to
+     * @return The {@link Payment} entity relevant to this process.
+     */
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
         Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
         DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
-        updateAndSavePayment(payment, depositFundsResponse.getReferenceId());
+        updatePayment(payment, depositFundsResponse.getReferenceId());
+        updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
         eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         return payment;
     }
 
+    /**
+     * Calculate and (if appropriate) make the required payment for the given {@link PaymentCycle}.
+     *
+     * @param paymentCycle  The {@link PaymentCycle} to make the payment for
+     * @param cardAccountId The card id to make the payment to.
+     * @return The {@link Payment} entity relevant to this process.
+     */
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
         CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),
@@ -56,7 +72,7 @@ public class PaymentService {
         }
         Payment payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());
         DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
-        updateAndSavePayment(payment, depositFundsResponse.getReferenceId());
+        updatePayment(payment, depositFundsResponse.getReferenceId());
         eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         return payment;
     }
@@ -73,7 +89,11 @@ public class PaymentService {
     private void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, int cardBalanceInPence) {
         paymentCycle.setCardBalanceInPence(cardBalanceInPence);
         paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
-        paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());
+        updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus());
+    }
+
+    private void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
+        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
         paymentCycleService.savePaymentCycle(paymentCycle);
     }
 
@@ -85,7 +105,7 @@ public class PaymentService {
         return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);
     }
 
-    private void updateAndSavePayment(Payment payment, String referenceId) {
+    private void updatePayment(Payment payment, String referenceId) {
         payment.setPaymentReference(referenceId);
         payment.setPaymentTimestamp(LocalDateTime.now());
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
