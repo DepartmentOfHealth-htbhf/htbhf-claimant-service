@@ -16,16 +16,19 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+// TODO DW rename to ClaimService
 public class NewClaimService {
 
     private final ClaimRepository claimRepository;
@@ -34,7 +37,7 @@ public class NewClaimService {
     private final MessageQueueDAO messageQueueDAO;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
-            EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
+            ELIGIBLE, ClaimStatus.NEW,
             EligibilityStatus.PENDING, ClaimStatus.PENDING,
             EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
             EligibilityStatus.ERROR, ClaimStatus.ERROR,
@@ -42,9 +45,18 @@ public class NewClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
+    // TODO DW rename to createOrUpdateClaim
     public ClaimResult createClaim(Claimant claimant) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+            if (decision.getExistingClaimId() != null && decision.getEligibilityStatus() == ELIGIBLE) {
+                Optional<Claim> optionalClaim = claimRepository.findById(decision.getExistingClaimId());
+                Claim claim = optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + decision.getExistingClaimId()));
+                List<String> updatedFields = updateClaim(claim, claimant);
+                eventAuditor.auditUpdatedClaim(claim, updatedFields);
+                return createResult(claim, decision.getVoucherEntitlement());
+            }
+
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);
@@ -55,6 +67,16 @@ public class NewClaimService {
             createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
             throw e;
         }
+    }
+
+    private List<String> updateClaim(Claim claim, Claimant claimant) {
+        if (!Objects.equals(claim.getClaimant().getExpectedDeliveryDate(), claimant.getExpectedDeliveryDate())) {
+            claim.getClaimant().setExpectedDeliveryDate(claimant.getExpectedDeliveryDate());
+            claimRepository.save(claim);
+            return singletonList("expectedDeliveryDate");
+        }
+
+        return emptyList();
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {

@@ -24,8 +24,10 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,12 +35,15 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class NewClaimServiceTest {
@@ -170,17 +175,74 @@ class NewClaimServiceTest {
     }
 
     @Test
-    void shouldSaveDuplicateClaimantForMatchingNino() {
+    void shouldUpdateClaimForMatchingNinoWhenEligible() {
         //given
-        Claimant claimant = aValidClaimant();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any()))
-                .willReturn(EligibilityAndEntitlementDecision.buildWithStatus(DUPLICATE));
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        UUID existingClaimId = UUID.randomUUID();
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
 
         //when
-        ClaimResult result = newClaimService.createClaim(claimant);
+        ClaimResult result = newClaimService.createClaim(newClaimant);
 
         //then
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        assertThat(result.getClaim()).isEqualTo(existingClaim);
+        assertThat(result.getClaim().getClaimant()).isEqualTo(existingClaimant);
+        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
+        verify(claimRepository).findById(existingClaimId);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList("expectedDeliveryDate"));
+        verifyZeroInteractions(messageQueueDAO);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenExistingClaimNotFound() {
+        //given
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        UUID existingClaimId = UUID.randomUUID();
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.empty());
+
+        //when
+        IllegalStateException exception = catchThrowableOfType(() -> newClaimService.createClaim(newClaimant), IllegalStateException.class);
+
+        //then
+        assertThat(exception).isNotNull();
+        assertThat(exception.getMessage()).contains(existingClaimId.toString());
+    }
+
+    @Test
+    void shouldSaveNewClaimForMatchingNinoWhenIneligible() {
+        //given
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        UUID existingClaimId = UUID.randomUUID();
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(INELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+
+        //when
+        ClaimResult result = newClaimService.createClaim(newClaimant);
+
+        //then
+        assertThat(result.getClaim()).isNotNull();
+        assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyZeroInteractions(messageQueueDAO);
