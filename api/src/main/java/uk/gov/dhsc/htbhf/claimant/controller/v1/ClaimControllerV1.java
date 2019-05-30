@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.controller;
+package uk.gov.dhsc.htbhf.claimant.controller.v1;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
-import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
+import uk.gov.dhsc.htbhf.claimant.service.v1.NewClaimServiceV1;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.util.Map;
@@ -26,13 +26,13 @@ import javax.validation.Valid;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController()
-@RequestMapping(value = "/v2/claims", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/v1/claims", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Slf4j
 @Api(description = "Endpoints for dealing with claims, e.g. persisting a claim.")
-public class ClaimController {
+public class ClaimControllerV1 {
 
-    private final NewClaimService newClaimService;
+    private final NewClaimServiceV1 newClaimService;
     private final ClaimantDTOToClaimantConverter claimantConverter;
     private final VoucherEntitlementToDTOConverter voucherConverter;
 

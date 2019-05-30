@@ -154,6 +154,8 @@ class ClaimantServiceIntegrationTests {
         assertDuplicateResponse(response);
     }
 
+    // TODO: MGS: add test to confirm existing claim is updated and response includes CLAIM_UPDATED status. HTBHF-1192
+
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
         //Given
