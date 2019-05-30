@@ -32,6 +32,12 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
+    public static VoucherEntitlement aVoucherEntitlementWithPregnancyVouchers(Integer vouchersForPregnancy) {
+        return aVoucherEntitlementBuilder()
+                .vouchersForPregnancy(vouchersForPregnancy)
+                .build();
+    }
+
     private static VoucherEntitlement.VoucherEntitlementBuilder aVoucherEntitlementBuilder() {
         return VoucherEntitlement.builder()
                 .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)

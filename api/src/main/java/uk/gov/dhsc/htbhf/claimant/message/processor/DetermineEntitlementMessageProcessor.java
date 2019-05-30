@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
+import java.time.LocalDate;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
@@ -80,6 +81,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
         PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
+        LocalDate expectedDeliveryDate = paymentCycleService.getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), decision.getVoucherEntitlement());
+        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);
         paymentCycleService.savePaymentCycle(paymentCycle);
     }
 
