@@ -22,7 +22,7 @@ import java.util.UUID;
 public class EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
-    private final EligibilityStatusCalculator eligibilityStatusCalculator;
+    private final DuplicateClaimChecker duplicateClaimChecker;
     private final ClaimRepository claimRepository;
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
 
@@ -48,7 +48,8 @@ public class EligibilityAndEntitlementService {
         if (!liveClaimsWithNino.isEmpty()) {
             return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
         }
-        return buildDecision(checkForDuplicateClaimsFromHousehold(eligibilityResponse), entitlement);
+        EligibilityResponse potentialDuplicateResponse = checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        return buildDecision(potentialDuplicateResponse, entitlement);
     }
 
     /**
@@ -76,7 +77,7 @@ public class EligibilityAndEntitlementService {
     }
 
     private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        EligibilityStatus eligibilityStatus = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(eligibilityResponse);
         return eligibilityResponse.toBuilder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
@@ -100,7 +101,8 @@ public class EligibilityAndEntitlementService {
                 .build();
     }
 
-    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
+                                                         PaymentCycleVoucherEntitlement voucherEntitlement) {
         if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE && voucherEntitlement.getTotalVoucherEntitlement() == 0) {
             return EligibilityStatus.INELIGIBLE;
         }

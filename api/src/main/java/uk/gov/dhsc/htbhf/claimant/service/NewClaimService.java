@@ -45,9 +45,6 @@ public class NewClaimService {
     public ClaimResult createClaim(Claimant claimant) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
-            if (decision.getExistingClaimId() != null) {
-                decision = decision.toBuilder().eligibilityStatus(EligibilityStatus.DUPLICATE).build();
-            }
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);

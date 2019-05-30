@@ -19,10 +19,10 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.DWP_HOUSEHOLD
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityStatusCalculatorTest {
+class DuplicateClaimCheckerTest {
 
     @InjectMocks
-    private EligibilityStatusCalculator eligibilityStatusCalculator;
+    private DuplicateClaimChecker duplicateClaimChecker;
 
     @Mock
     private ClaimRepository claimRepository;
@@ -37,7 +37,7 @@ class EligibilityStatusCalculatorTest {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
 
-        EligibilityStatus status = eligibilityStatusCalculator.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(null));
+        EligibilityStatus status = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(null));
 
         assertThat(status).isEqualTo(EligibilityStatus.DUPLICATE);
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
@@ -50,7 +50,7 @@ class EligibilityStatusCalculatorTest {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
 
-        EligibilityStatus result = eligibilityStatusCalculator.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(status));
+        EligibilityStatus result = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(status));
 
         assertThat(result).isEqualTo(status);
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);

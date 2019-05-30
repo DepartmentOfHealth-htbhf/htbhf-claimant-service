@@ -11,6 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.time.LocalDateTime;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.NEW;
+
 /**
  * Responsible for building and storing the complete {@link Message} entities, which involves building the JSON String
  * from the provided object. The objects representing the payload all implement the
@@ -40,6 +42,7 @@ public class MessageQueueDAO implements MessageQueueClient {
                 .messagePayload(json)
                 .messageType(messageType)
                 .messageTimestamp(LocalDateTime.now())
+                .status(NEW)
                 .build();
     }
 

@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
-public class EligibilityStatusCalculator {
+public class DuplicateClaimChecker {
 
     private final ClaimRepository claimRepository;
 
