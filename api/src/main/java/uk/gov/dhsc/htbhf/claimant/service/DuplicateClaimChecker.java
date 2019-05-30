@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
-public class EligibilityStatusCalculator {
+public class DuplicateClaimChecker {
 
     private final ClaimRepository claimRepository;
 
@@ -19,7 +19,7 @@ public class EligibilityStatusCalculator {
      * @param eligibilityResponse Eligibility response containing household identifiers.
      * @return the eligibility status
      */
-    public EligibilityStatus determineEligibilityStatusForNewClaim(EligibilityResponse eligibilityResponse) {
+    public EligibilityStatus checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
         return eligibleClaimExistsForHousehold(eligibilityResponse)
                 ? EligibilityStatus.DUPLICATE
                 : eligibilityResponse.getEligibilityStatus();

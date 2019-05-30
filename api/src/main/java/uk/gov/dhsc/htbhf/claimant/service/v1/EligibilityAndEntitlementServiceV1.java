@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.service.v1;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -6,23 +6,23 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityClient;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
 @AllArgsConstructor
-public class EligibilityAndEntitlementService {
+public class EligibilityAndEntitlementServiceV1 {
 
     private final EligibilityClient client;
-    private final DuplicateClaimChecker duplicateClaimChecker;
+    private final EligibilityStatusCalculatorV1 eligibilityStatusCalculator;
     private final ClaimRepository claimRepository;
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
 
@@ -36,20 +36,16 @@ public class EligibilityAndEntitlementService {
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
-        List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
-        if (liveClaimsWithNino.size() > 1) {
-            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);
+        if (!claimRepository.findLiveClaimsWithNino(claimant.getNino()).isEmpty()) {
+            // TODO: MGS: check eligibility first and replace duplicate status with existing claim id. HTBHF-1192
+            return buildWithStatus(EligibilityStatus.DUPLICATE);
         }
-        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+        EligibilityResponse eligibilityResponse = checkEligibilityForNewClaimant(claimant);
         PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
-        if (!liveClaimsWithNino.isEmpty()) {
-            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
-        }
-        EligibilityResponse potentialDuplicateResponse = checkForDuplicateClaimsFromHousehold(eligibilityResponse);
-        return buildDecision(potentialDuplicateResponse, entitlement);
+        return buildDecision(eligibilityResponse, entitlement);
     }
 
     /**
@@ -58,9 +54,9 @@ public class EligibilityAndEntitlementService {
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
-     * @param claimant       the claimant to check the eligibility for
+     * @param claimant the claimant to check the eligibility for
      * @param cycleStartDate the start date of the payment cycle
-     * @param previousCycle  the previous payment cycle
+     * @param previousCycle the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateExistingClaimant(
@@ -76,20 +72,15 @@ public class EligibilityAndEntitlementService {
         return buildDecision(eligibilityResponse, entitlement);
     }
 
-    private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+    private EligibilityResponse checkEligibilityForNewClaimant(Claimant claimant) {
+        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+        EligibilityStatus eligibilityStatus = eligibilityStatusCalculator.determineEligibilityStatusForNewClaim(eligibilityResponse);
         return eligibilityResponse.toBuilder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
     }
 
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
-        return buildDecision(eligibilityResponse, entitlement, null);
-    }
-
-    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
-                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                            UUID existingClaimId) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
@@ -97,12 +88,10 @@ public class EligibilityAndEntitlementService {
                 .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
                 .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
                 .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
-                .existingClaimId(existingClaimId)
                 .build();
     }
 
-    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
-                                                         PaymentCycleVoucherEntitlement voucherEntitlement) {
+    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response, PaymentCycleVoucherEntitlement voucherEntitlement) {
         if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE && voucherEntitlement.getTotalVoucherEntitlement() == 0) {
             return EligibilityStatus.INELIGIBLE;
         }
