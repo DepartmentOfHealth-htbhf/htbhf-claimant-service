@@ -9,7 +9,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
+import uk.gov.dhsc.htbhf.claimant.service.v1.NewClaimServiceV1;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -32,7 +32,7 @@ public class ClaimantServiceIntegrationErrorTests {
     TestRestTemplate restTemplate;
 
     @MockBean
-    NewClaimService newClaimService;
+    NewClaimServiceV1 newClaimService;
 
     @Test
     void shouldReturnInternalServiceError() {

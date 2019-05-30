@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -15,6 +16,7 @@ import java.util.List;
 public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
+    private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
     private final List<LocalDate> dateOfBirthOfChildren;
