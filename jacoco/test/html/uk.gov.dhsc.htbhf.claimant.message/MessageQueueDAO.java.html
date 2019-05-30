@@ -11,6 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.time.LocalDateTime;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.NEW;
+
 /**
  * Responsible for building and storing the complete {@link Message} entities, which involves building the JSON String
  * from the provided object. The objects representing the payload all implement the
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
  */
 @Component
 @RequiredArgsConstructor
-<span class="fc" id="L21">@Slf4j</span>
+<span class="fc" id="L23">@Slf4j</span>
 public class MessageQueueDAO implements MessageQueueClient {
 
     private final MessageRepository messageRepository;
@@ -28,19 +30,20 @@ public class MessageQueueDAO implements MessageQueueClient {
     @Override
     public void sendMessage(MessagePayload messagePayload, MessageType messageType) {
         try {
-<span class="fc" id="L31">            messageRepository.save(buildMessage(messagePayload, messageType));</span>
-<span class="fc" id="L32">        } catch (JsonProcessingException e) {</span>
-<span class="fc" id="L33">            throw new MessageProcessingException(&quot;Unable to create JSON payload from object&quot;, e);</span>
-<span class="fc" id="L34">        }</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L33">            messageRepository.save(buildMessage(messagePayload, messageType));</span>
+<span class="fc" id="L34">        } catch (JsonProcessingException e) {</span>
+<span class="fc" id="L35">            throw new MessageProcessingException(&quot;Unable to create JSON payload from object&quot;, e);</span>
+<span class="fc" id="L36">        }</span>
+<span class="fc" id="L37">    }</span>
 
     private Message buildMessage(MessagePayload messagePayload, MessageType messageType) throws JsonProcessingException {
-<span class="fc" id="L38">        String json = objectMapper.writeValueAsString(messagePayload);</span>
-<span class="fc" id="L39">        return Message.builder()</span>
-<span class="fc" id="L40">                .messagePayload(json)</span>
-<span class="fc" id="L41">                .messageType(messageType)</span>
-<span class="fc" id="L42">                .messageTimestamp(LocalDateTime.now())</span>
-<span class="fc" id="L43">                .build();</span>
+<span class="fc" id="L40">        String json = objectMapper.writeValueAsString(messagePayload);</span>
+<span class="fc" id="L41">        return Message.builder()</span>
+<span class="fc" id="L42">                .messagePayload(json)</span>
+<span class="fc" id="L43">                .messageType(messageType)</span>
+<span class="fc" id="L44">                .messageTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L45">                .status(NEW)</span>
+<span class="fc" id="L46">                .build();</span>
     }
 
 }
