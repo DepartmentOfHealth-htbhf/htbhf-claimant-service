@@ -42,7 +42,7 @@ public class EventAuditor {
     }
 
     /**
-     * Audit an updated claim.
+     * Audit that a claim has been updated.
      * @param claim the claim that has been updated
      * @param updatedFields the fields on the claim that have been updated
      */
