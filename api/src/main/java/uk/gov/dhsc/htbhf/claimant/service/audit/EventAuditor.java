@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -38,6 +39,19 @@ public class EventAuditor {
                 .eligibilityStatus(claim.getEligibilityStatus())
                 .build();
         eventLogger.logEvent(newClaimEvent);
+    }
+
+    /**
+     * Audit an updated claim.
+     * @param claim the claim that has been updated
+     * @param updatedFields the fields on the claim that have been updated
+     */
+    public void auditUpdatedClaim(Claim claim, List<String> updatedFields) {
+        UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()
+                .claimId(claim.getId())
+                .updatedFields(updatedFields)
+                .build();
+        eventLogger.logEvent(updatedClaimEvent);
     }
 
     public void auditNewCard(UUID claimId, CardResponse cardResponse) {
