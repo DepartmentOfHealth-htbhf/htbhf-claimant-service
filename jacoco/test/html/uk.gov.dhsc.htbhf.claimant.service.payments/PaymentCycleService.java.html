@@ -47,6 +47,7 @@ public class PaymentCycleService {
     /**
      * Creates a new payment cycle, saving it in the database.
      * The cycle end date is set to the start date plus the payment cycle duration time.
+     * The expected due date is set only if the voucher entitlement contains pregnancy vouchers.
      * EligibilityStatus is set to ELIGIBLE.
      *
      * @param claim                  claim to create a payment cycle for
@@ -59,17 +60,19 @@ public class PaymentCycleService {
                                                                   LocalDate cycleStartDate,
                                                                   PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                   List&lt;LocalDate&gt; datesOfBirthOfChildren) {
-<span class="fc" id="L62">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L63">                .claim(claim)</span>
-<span class="fc" id="L64">                .paymentCycleStatus(NEW)</span>
-<span class="fc" id="L65">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L66">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
-<span class="fc" id="L67">                .eligibilityStatus(ELIGIBLE)</span>
-<span class="fc" id="L68">                .childrenDob(datesOfBirthOfChildren)</span>
-<span class="fc" id="L69">                .build();</span>
-<span class="fc" id="L70">        paymentCycle.applyVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc" id="L71">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L72">        return paymentCycle;</span>
+<span class="fc" id="L63">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L64">                .claim(claim)</span>
+<span class="fc" id="L65">                .paymentCycleStatus(NEW)</span>
+<span class="fc" id="L66">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L67">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L68">                .eligibilityStatus(ELIGIBLE)</span>
+<span class="fc" id="L69">                .childrenDob(datesOfBirthOfChildren)</span>
+<span class="fc" id="L70">                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))</span>
+<span class="fc" id="L71">                .build();</span>
+
+<span class="fc" id="L73">        paymentCycle.applyVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc" id="L74">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L75">        return paymentCycle;</span>
     }
 
     /**
@@ -78,7 +81,11 @@ public class PaymentCycleService {
      * @param paymentCycle The {@link PaymentCycle} to save
      */
     public void savePaymentCycle(PaymentCycle paymentCycle) {
-<span class="fc" id="L81">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L84">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L85">    }</span>
+
+    public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc bfc" id="L88" title="All 2 branches covered.">        return voucherEntitlement.getVouchersForPregnancy() &gt; 0 ? claim.getClaimant().getExpectedDeliveryDate() : null;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
