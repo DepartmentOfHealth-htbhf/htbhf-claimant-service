@@ -90,6 +90,7 @@ class PaymentServiceTest {
         DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
         assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCycle.getTotalEntitlementAmountInPence());
         assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
+        verifyPaymentCycleStatusSaved(paymentCycle, FULL_PAYMENT_MADE);
     }
 
     @Test
@@ -108,7 +109,7 @@ class PaymentServiceTest {
         verify(paymentRepository).save(paymentResult);
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
-        verifyPaymentCycleUpdatedAndSaved(paymentCycle, balanceResponse.getAvailableBalanceInPence(), FULL_PAYMENT_MADE);
+        verifyPaymentCycleStatusAndBalanceUpdated(paymentCycle, balanceResponse.getAvailableBalanceInPence(), FULL_PAYMENT_MADE);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
         verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
@@ -128,7 +129,7 @@ class PaymentServiceTest {
 
         assertThat(paymentResult).isNull();
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
-        verifyPaymentCycleUpdatedAndSaved(paymentCycle, balanceResponse.getAvailableBalanceInPence(), BALANCE_TOO_HIGH_FOR_PAYMENT);
+        verifyPaymentCycleStatusAndBalanceUpdated(paymentCycle, balanceResponse.getAvailableBalanceInPence(), BALANCE_TOO_HIGH_FOR_PAYMENT);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyNoMoreInteractions(cardClient);
         verifyZeroInteractions(paymentRepository);
@@ -136,15 +137,20 @@ class PaymentServiceTest {
         verifyNoMoreInteractions(eventAuditor);
     }
 
-    private void verifyPaymentCycleUpdatedAndSaved(PaymentCycle paymentCycle, int expectedBalance, PaymentCycleStatus paymentCycleStatus) {
+    private void verifyPaymentCycleStatusAndBalanceUpdated(PaymentCycle paymentCycle, int expectedBalance, PaymentCycleStatus paymentCycleStatus) {
+        PaymentCycle savedPaymentCycle = verifyPaymentCycleStatusSaved(paymentCycle, paymentCycleStatus);
+        assertThat(savedPaymentCycle.getCardBalanceInPence()).isEqualTo(expectedBalance);
+        assertThat(savedPaymentCycle.getCardBalanceTimestamp()).isNotNull();
+    }
+
+    private PaymentCycle verifyPaymentCycleStatusSaved(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleService).savePaymentCycle(argumentCaptor.capture());
         assertThat(argumentCaptor.getAllValues()).hasSize(1);
         PaymentCycle savedPaymentCycle = argumentCaptor.getValue();
         assertThat(savedPaymentCycle.getId()).isEqualTo(paymentCycle.getId());
-        assertThat(savedPaymentCycle.getCardBalanceInPence()).isEqualTo(expectedBalance);
-        assertThat(savedPaymentCycle.getCardBalanceTimestamp()).isNotNull();
         assertThat(savedPaymentCycle.getPaymentCycleStatus()).isEqualTo(paymentCycleStatus);
+        return savedPaymentCycle;
     }
 
     private void assertMessagePayload(MakePaymentMessagePayload messagePayload, PaymentCycle paymentCycle) {
