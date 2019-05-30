@@ -57,6 +57,7 @@ class MessageQueueDAOTest {
         assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
         assertThat(actualMessage.getMessageTimestamp()).isNotNull();
+        assertThat(actualMessage.getStatus()).isEqualTo(MessageStatus.NEW);
         assertThat(TestTransaction.isActive()).isTrue();
     }
 
