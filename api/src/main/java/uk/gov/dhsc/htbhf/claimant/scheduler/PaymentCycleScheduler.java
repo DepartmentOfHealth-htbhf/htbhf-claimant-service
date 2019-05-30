@@ -5,6 +5,7 @@ import net.javacrumbs.shedlock.core.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.repository.ClosingPaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
@@ -48,9 +49,13 @@ public class PaymentCycleScheduler {
         log.debug("Querying for active claims with cycles ending on {}", cycleEndDate);
         List<ClosingPaymentCycle> cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);
 
-        log.info("Creating new PaymentCycles for {} claims", cycles.size());
-        cycles.forEach(this::createNewPaymentCycle);
-        log.debug("Finished creating new PaymentCycles for {} claims", cycles.size());
+        if (CollectionUtils.isEmpty(cycles)) {
+            log.info("No new PaymentCycles to create");
+        } else {
+            log.info("Creating new PaymentCycles for {} claims", cycles.size());
+            cycles.forEach(this::createNewPaymentCycle);
+            log.debug("Finished creating new PaymentCycles for {} claims", cycles.size());
+        }
     }
 
     private void createNewPaymentCycle(ClosingPaymentCycle cycle) {
