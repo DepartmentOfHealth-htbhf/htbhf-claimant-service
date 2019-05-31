@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +55,12 @@ public class EventAuditor {
         eventLogger.logEvent(updatedClaimEvent);
     }
 
+    /**
+     * Audit a new card event given a card response.
+     *
+     * @param claimId      The claim id
+     * @param cardResponse The card response which must not be null
+     */
     public void auditNewCard(UUID claimId, CardResponse cardResponse) {
         if (claimId == null || cardResponse == null) {
             log.warn("Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null", claimId, cardResponse);
@@ -84,5 +91,14 @@ public class EventAuditor {
                 .balanceOnCard(paymentCycle.getCardBalanceInPence())
                 .build();
         eventLogger.logEvent(event);
+    }
+
+    /**
+     * Audit a failure event.
+     *
+     * @param failureEvent The event that has failed
+     */
+    public void auditFailedEvent(FailureEvent failureEvent) {
+        eventLogger.logEvent(failureEvent);
     }
 }

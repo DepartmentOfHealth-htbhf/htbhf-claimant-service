@@ -4,6 +4,7 @@ import lombok.Builder;
 import uk.gov.dhsc.htbhf.logging.event.Event;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,9 +19,9 @@ public class NewCardEvent extends Event {
     }
 
     private static Map<String, Object> constructMetaData(UUID claimId, String cardAccountId) {
-        return Map.of(
-                CARD_ACCOUNT_ID.getKey(), cardAccountId,
-                CLAIM_ID.getKey(), claimId
-        );
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(CLAIM_ID.getKey(), claimId);
+        metadata.put(CARD_ACCOUNT_ID.getKey(), cardAccountId);
+        return metadata;
     }
 }

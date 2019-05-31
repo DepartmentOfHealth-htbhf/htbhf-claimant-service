@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +22,10 @@ public class MessageProcessorConfiguration {
     public MessageProcessor messageProcessor(List<MessageTypeProcessor> messageProcessors,
                                              MessageRepository messageRepository,
                                              MessageStatusProcessor messageStatusProcessor,
+                                             EventAuditor eventAuditor,
                                              @Value("${message-processor.message-limit}") int messageProcessingLimit) {
-        return new MessageProcessor(messageStatusProcessor, messageRepository, buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);
+        return new MessageProcessor(messageStatusProcessor, messageRepository, eventAuditor,
+                buildMessageTypeProcessorMap(messageProcessors), messageProcessingLimit);
     }
 
     private Map<MessageType, MessageTypeProcessor> buildMessageTypeProcessorMap(List<MessageTypeProcessor> messageProcessors) {

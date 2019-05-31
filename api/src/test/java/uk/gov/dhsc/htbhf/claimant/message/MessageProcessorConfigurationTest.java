@@ -13,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
 import java.util.Map;
 
@@ -38,6 +39,8 @@ class MessageProcessorConfigurationTest {
     private MessageRepository messageRepository;
     @MockBean
     private MessageStatusProcessor messageStatusProcessor;
+    @MockBean
+    private EventAuditor eventAuditor;
 
     @Test
     void shouldBuildMessageTypeProcessorMapPostConstruction() {
@@ -64,7 +67,7 @@ class MessageProcessorConfigurationTest {
         MessageProcessorConfiguration configuration = new MessageProcessorConfiguration();
         //When
         BeanCreationException thrown = catchThrowableOfType(
-                () -> configuration.messageProcessor(emptyList(), messageRepository, messageStatusProcessor, 100),
+                () -> configuration.messageProcessor(emptyList(), messageRepository, messageStatusProcessor, eventAuditor, 100),
                 BeanCreationException.class);
         //Then
         assertThat(thrown).hasMessage("Unable to create MessageProcessor, no MessageTypeProcessor instances found");
