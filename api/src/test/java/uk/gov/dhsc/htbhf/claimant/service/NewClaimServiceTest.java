@@ -74,7 +74,7 @@ class NewClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
-        ClaimResult result = newClaimService.createClaim(claimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);
 
         //then
         assertThat(result).isNotNull();
@@ -104,7 +104,7 @@ class NewClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
 
         //when
-        ClaimResult result = newClaimService.createClaim(claimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);
 
         //then
         assertThat(result).isNotNull();
@@ -133,7 +133,7 @@ class NewClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
-        ClaimResult result = newClaimService.createClaim(claimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);
 
         //then
         assertThat(result).isNotNull();
@@ -162,7 +162,7 @@ class NewClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
-        ClaimResult result = newClaimService.createClaim(claimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);
 
         //then
         verify(claimRepository).save(result.getClaim());
@@ -190,7 +190,7 @@ class NewClaimServiceTest {
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
 
         //when
-        ClaimResult result = newClaimService.createClaim(newClaimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
         assertThat(result.getClaim()).isEqualTo(existingClaim);
@@ -217,7 +217,7 @@ class NewClaimServiceTest {
         given(claimRepository.findById(any())).willReturn(Optional.empty());
 
         //when
-        IllegalStateException exception = catchThrowableOfType(() -> newClaimService.createClaim(newClaimant), IllegalStateException.class);
+        IllegalStateException exception = catchThrowableOfType(() -> newClaimService.createOrUpdateClaim(newClaimant), IllegalStateException.class);
 
         //then
         assertThat(exception).isNotNull();
@@ -237,7 +237,7 @@ class NewClaimServiceTest {
                 .build());
 
         //when
-        ClaimResult result = newClaimService.createClaim(newClaimant);
+        ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
         assertThat(result.getClaim()).isNotNull();
@@ -261,7 +261,7 @@ class NewClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willThrow(testException);
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> newClaimService.createClaim(claimant), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> newClaimService.createOrUpdateClaim(claimant), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);

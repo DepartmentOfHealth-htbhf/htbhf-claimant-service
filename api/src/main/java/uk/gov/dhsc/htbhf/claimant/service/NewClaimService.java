@@ -37,7 +37,7 @@ public class NewClaimService {
     private final MessageQueueDAO messageQueueDAO;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
-            ELIGIBLE, ClaimStatus.NEW,
+            EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
             EligibilityStatus.PENDING, ClaimStatus.PENDING,
             EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
             EligibilityStatus.ERROR, ClaimStatus.ERROR,
@@ -45,15 +45,11 @@ public class NewClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    // TODO DW rename to createOrUpdateClaim
-    public ClaimResult createClaim(Claimant claimant) {
+    public ClaimResult createOrUpdateClaim(Claimant claimant) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
-            if (decision.getExistingClaimId() != null && decision.getEligibilityStatus() == ELIGIBLE) {
-                Optional<Claim> optionalClaim = claimRepository.findById(decision.getExistingClaimId());
-                Claim claim = optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + decision.getExistingClaimId()));
-                List<String> updatedFields = updateClaim(claim, claimant);
-                eventAuditor.auditUpdatedClaim(claim, updatedFields);
+            if (claimExistsAndIsEligible(decision)) {
+                Claim claim = findAndUpdateClaim(claimant, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
             }
 
@@ -62,11 +58,25 @@ public class NewClaimService {
                 sendNewCardMessage(claim, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
             }
+
             return createResult(claim);
         } catch (RuntimeException e) {
             createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
             throw e;
         }
+    }
+
+    private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
+        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == ELIGIBLE;
+    }
+
+    private Claim findAndUpdateClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
+        Optional<Claim> optionalClaim = claimRepository.findById(decision.getExistingClaimId());
+        Claim claim = optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + decision.getExistingClaimId()));
+        List<String> updatedFields = updateClaim(claim, claimant);
+        log.info("Updated claim: {},  fields updated {}", claim.getId(), updatedFields);
+        eventAuditor.auditUpdatedClaim(claim, updatedFields);
+        return claim;
     }
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {
@@ -82,7 +92,7 @@ public class NewClaimService {
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
         Claim claim = buildClaim(claimant, decision);
         claimRepository.save(claim);
-        log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
+        log.info("Saved new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
         return claim;
     }
