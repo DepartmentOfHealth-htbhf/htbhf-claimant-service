@@ -22,10 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.BALANCE_TOO_HIGH_FOR_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.MAKE_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
@@ -164,6 +161,27 @@ class EventAuditorTest {
                         entry(ClaimEventMetadataKey.BALANCE_ON_CARD.getKey(), balanceOnCard),
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
                         entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE));
+    }
+
+    @Test
+    void shouldLogEventForFailedCardCreation() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+
+        //When
+        eventAuditor.auditCardCreationFailed(claimId);
+
+        //Then
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(CARD_CREATION_FAILED);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata())
+                .isNotNull()
+                .hasSize(1)
+                .containsExactly(
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId));
 
     }
 }

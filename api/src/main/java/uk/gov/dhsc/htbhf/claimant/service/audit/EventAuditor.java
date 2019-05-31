@@ -71,4 +71,16 @@ public class EventAuditor {
                 .build();
         eventLogger.logEvent(event);
     }
+
+    /**
+     * Audit the failure of a card creation process
+     *
+     * @param claimId The claim id requesting a new card
+     */
+    public void auditCardCreationFailed(UUID claimId) {
+        CardCreationFailedEvent event = CardCreationFailedEvent.builder()
+                .claimId(claimId)
+                .build();
+        eventLogger.logEvent(event);
+    }
 }
