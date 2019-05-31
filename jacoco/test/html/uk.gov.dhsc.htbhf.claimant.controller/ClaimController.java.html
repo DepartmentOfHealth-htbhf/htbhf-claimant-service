@@ -52,7 +52,7 @@ public class ClaimController {
     public ResponseEntity&lt;ClaimResultDTO&gt; newClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
 <span class="fc" id="L53">        log.debug(&quot;Received claim&quot;);</span>
 <span class="fc" id="L54">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
-<span class="fc" id="L55">        ClaimResult result = newClaimService.createClaim(claimant);</span>
+<span class="fc" id="L55">        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);</span>
 
 <span class="fc" id="L57">        return createResponse(result);</span>
     }
