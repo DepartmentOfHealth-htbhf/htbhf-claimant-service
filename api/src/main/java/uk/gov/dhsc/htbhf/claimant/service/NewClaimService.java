@@ -16,16 +16,19 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+// TODO DW rename to ClaimService in own PR
 public class NewClaimService {
 
     private final ClaimRepository claimRepository;
@@ -42,14 +45,20 @@ public class NewClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    public ClaimResult createClaim(Claimant claimant) {
+    public ClaimResult createOrUpdateClaim(Claimant claimant) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+            if (claimExistsAndIsEligible(decision)) {
+                Claim claim = findAndUpdateClaim(claimant, decision);
+                return createResult(claim, decision.getVoucherEntitlement());
+            }
+
             Claim claim = createAndSaveClaim(claimant, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
             }
+
             return createResult(claim);
         } catch (RuntimeException e) {
             createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
@@ -57,10 +66,33 @@ public class NewClaimService {
         }
     }
 
+    private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
+        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
+    }
+
+    private Claim findAndUpdateClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
+        Optional<Claim> optionalClaim = claimRepository.findById(decision.getExistingClaimId());
+        Claim claim = optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + decision.getExistingClaimId()));
+        List<String> updatedFields = updateClaim(claim, claimant);
+        log.info("Updated claim: {},  fields updated {}", claim.getId(), updatedFields);
+        eventAuditor.auditUpdatedClaim(claim, updatedFields);
+        return claim;
+    }
+
+    private List<String> updateClaim(Claim claim, Claimant claimant) {
+        if (!Objects.equals(claim.getClaimant().getExpectedDeliveryDate(), claimant.getExpectedDeliveryDate())) {
+            claim.getClaimant().setExpectedDeliveryDate(claimant.getExpectedDeliveryDate());
+            claimRepository.save(claim);
+            return singletonList(EXPECTED_DELIVERY_DATE.getFieldName());
+        }
+
+        return emptyList();
+    }
+
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
         Claim claim = buildClaim(claimant, decision);
         claimRepository.save(claim);
-        log.info("Saved new claimant: {} with status {}", claim.getId(), claim.getEligibilityStatus());
+        log.info("Saved new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
         return claim;
     }
