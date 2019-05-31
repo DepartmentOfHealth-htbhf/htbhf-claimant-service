@@ -22,6 +22,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
@@ -82,7 +83,7 @@ public class NewClaimService {
         if (!Objects.equals(claim.getClaimant().getExpectedDeliveryDate(), claimant.getExpectedDeliveryDate())) {
             claim.getClaimant().setExpectedDeliveryDate(claimant.getExpectedDeliveryDate());
             claimRepository.save(claim);
-            return singletonList("expectedDeliveryDate");
+            return singletonList(EXPECTED_DELIVERY_DATE.getFieldName());
         }
 
         return emptyList();

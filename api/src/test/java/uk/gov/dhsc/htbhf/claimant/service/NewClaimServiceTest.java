@@ -194,7 +194,6 @@ class NewClaimServiceTest {
 
         //then
         assertThat(result.getClaim()).isEqualTo(existingClaim);
-        assertThat(result.getClaim().getClaimant()).isEqualTo(existingClaimant);
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).findById(existingClaimId);
