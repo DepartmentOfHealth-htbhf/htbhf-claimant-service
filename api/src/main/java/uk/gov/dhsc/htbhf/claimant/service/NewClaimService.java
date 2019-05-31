@@ -23,12 +23,11 @@ import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-// TODO DW rename to ClaimService
+// TODO DW rename to ClaimService in own PR
 public class NewClaimService {
 
     private final ClaimRepository claimRepository;
@@ -67,7 +66,7 @@ public class NewClaimService {
     }
 
     private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
-        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == ELIGIBLE;
+        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
     }
 
     private Claim findAndUpdateClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
