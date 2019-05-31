@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
@@ -20,4 +22,10 @@ public class ClaimResultDTO {
 
     @JsonProperty("voucherEntitlement")
     private VoucherEntitlementDTO voucherEntitlement;
+
+    @JsonProperty("claimUpdated")
+    private Boolean claimUpdated;
+
+    @JsonProperty("updatedFields")
+    private List<String> updatedFields;
 }

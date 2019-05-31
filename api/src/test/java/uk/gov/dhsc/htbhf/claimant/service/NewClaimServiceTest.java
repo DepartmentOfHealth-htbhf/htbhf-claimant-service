@@ -35,6 +35,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -175,7 +176,7 @@ class NewClaimServiceTest {
     }
 
     @Test
-    void shouldUpdateClaimForMatchingNinoWhenEligible() {
+    void shouldUpdateClaimAndReturnUpdatedFieldsForMatchingNinoWhenEligible() {
         //given
         Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
@@ -193,6 +194,8 @@ class NewClaimServiceTest {
         ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
@@ -239,6 +242,8 @@ class NewClaimServiceTest {
         ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
+        assertThat(result.getClaimUpdated()).isNull();
+        assertThat(result.getUpdatedFields()).isNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);

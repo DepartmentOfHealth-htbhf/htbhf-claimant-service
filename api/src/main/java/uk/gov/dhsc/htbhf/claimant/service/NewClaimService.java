@@ -20,6 +20,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
@@ -28,6 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings("PMD.TooManyMethods")
 // TODO DW rename to ClaimService in own PR
 public class NewClaimService {
 
@@ -49,8 +51,9 @@ public class NewClaimService {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
             if (claimExistsAndIsEligible(decision)) {
-                Claim claim = findAndUpdateClaim(claimant, decision);
-                return createResult(claim, decision.getVoucherEntitlement());
+                Claim claim = findClaim(decision.getExistingClaimId());
+                List<String> updatedFields = updateClaim(claim, claimant);
+                return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
             }
 
             Claim claim = createAndSaveClaim(claimant, decision);
@@ -70,19 +73,22 @@ public class NewClaimService {
         return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
     }
 
-    private Claim findAndUpdateClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
-        Optional<Claim> optionalClaim = claimRepository.findById(decision.getExistingClaimId());
-        Claim claim = optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + decision.getExistingClaimId()));
-        List<String> updatedFields = updateClaim(claim, claimant);
-        log.info("Updated claim: {},  fields updated {}", claim.getId(), updatedFields);
-        eventAuditor.auditUpdatedClaim(claim, updatedFields);
-        return claim;
+    private Claim findClaim(UUID claimId) {
+        Optional<Claim> optionalClaim = claimRepository.findById(claimId);
+        return optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + claimId));
     }
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {
+        List<String> updatedFields = updateClaimantFields(claim, claimant);
+        claimRepository.save(claim);
+        log.info("Updated claim: {},  fields updated {}", claim.getId(), updatedFields);
+        eventAuditor.auditUpdatedClaim(claim, updatedFields);
+        return updatedFields;
+    }
+
+    private List<String> updateClaimantFields(Claim claim, Claimant claimant) {
         if (!Objects.equals(claim.getClaimant().getExpectedDeliveryDate(), claimant.getExpectedDeliveryDate())) {
             claim.getClaimant().setExpectedDeliveryDate(claimant.getExpectedDeliveryDate());
-            claimRepository.save(claim);
             return singletonList(EXPECTED_DELIVERY_DATE.getFieldName());
         }
 
@@ -124,11 +130,18 @@ public class NewClaimService {
     }
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return createResult(claim, voucherEntitlement, null);
+    }
+
+    private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement, List<String> updatedFields) {
         VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();
+        boolean claimUpdated = !isEmpty(updatedFields);
 
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.of(firstVoucherEntitlement))
+                .updatedFields(updatedFields)
+                .claimUpdated(claimUpdated)
                 .build();
     }
 

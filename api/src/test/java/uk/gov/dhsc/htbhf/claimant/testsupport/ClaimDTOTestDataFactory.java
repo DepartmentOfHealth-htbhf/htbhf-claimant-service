@@ -25,6 +25,14 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+        return ClaimDTO.builder()
+                .claimant(aValidClaimantBuilder()
+                        .expectedDeliveryDate(expectedDeliveryDate)
+                        .build())
+                .build();
+    }
+
     public static ClaimDTO aValidClaimDTOWithNoNullFields() {
         return ClaimDTO.builder()
                 .claimant(aValidClaimantDTOWithNoNullFields())
@@ -37,10 +45,7 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
-    public static ClaimantDTO aValidClaimantDTO() {
-        return aValidClaimantBuilder()
-                .build();
-    }
+
 
     private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()

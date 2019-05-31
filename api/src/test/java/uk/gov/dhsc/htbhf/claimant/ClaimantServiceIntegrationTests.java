@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -49,11 +50,15 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInter
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI_V2;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
@@ -103,6 +108,30 @@ class ClaimantServiceIntegrationTests {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());
     }
 
+    @Test
+    void shouldAcceptAndUpdateAnExistingEligibleClaim() {
+        //Given
+        ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
+        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse);
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(7);
+        ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDate(expectedDeliveryDate);
+        saveActiveClaimWithNinoAndNoExpectedDeliveryDate(claim.getClaimant().getNino());
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntityV2(claim), ClaimResultDTO.class);
+
+        //Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ACTIVE);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
+        assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
+        assertThat(response.getBody().getClaimUpdated()).isTrue();
+        assertThat(response.getBody().getUpdatedFields()).isEqualTo(singletonList("expectedDeliveryDate"));
+        assertClaimUpdatedSuccessfully(expectedDeliveryDate);
+        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
+    }
+
     private void shouldAcceptAndCreateValidClaim(ClaimDTO claim) {
         //Given
         ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
@@ -111,6 +140,7 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
@@ -310,8 +340,16 @@ class ClaimantServiceIntegrationTests {
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);
     }
 
+    private void assertClaimUpdatedSuccessfully(LocalDate expectedDeliveryDate) {
+        Iterable<Claim> claims = claimRepository.findAll();
+        assertThat(claims).hasSize(1);
+        Claim claim = claims.iterator().next();
+        assertThat(claim.getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+    }
+
     private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
@@ -334,10 +372,29 @@ class ClaimantServiceIntegrationTests {
         return dateFields.contains(fieldName);
     }
 
+    //TODO DW HTBHF-1483 remove method
     private RequestEntity buildRequestEntity(Object requestObject) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
     }
 
+    //TODO DW HTBHF-1483 rename to remove version number from name
+    private RequestEntity buildRequestEntityV2(Object requestObject) {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V2);
+    }
+
+    private void saveActiveClaimWithNinoAndNoExpectedDeliveryDate(String nino) {
+        Claimant claimant = aValidClaimantBuilder()
+                .nino(nino)
+                .expectedDeliveryDate(null)
+                .build();
+        Claim claim = aValidClaimBuilder()
+                .claimStatus(ACTIVE)
+                .claimant(claimant)
+                .build();
+        claimRepository.save(claim);
+    }
 }

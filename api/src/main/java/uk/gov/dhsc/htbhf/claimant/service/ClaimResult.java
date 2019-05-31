@@ -5,6 +5,7 @@ import lombok.Data;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
+import java.util.List;
 import java.util.Optional;
 
 @Data
@@ -13,4 +14,6 @@ public class ClaimResult {
 
     private Claim claim;
     private Optional<VoucherEntitlement> voucherEntitlement;
+    private Boolean claimUpdated;
+    private List<String> updatedFields;
 }

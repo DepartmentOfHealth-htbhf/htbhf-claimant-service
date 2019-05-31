@@ -23,6 +23,7 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 import java.util.Map;
 import javax.validation.Valid;
 
+import static java.lang.Boolean.TRUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController()
@@ -59,12 +60,14 @@ public class ClaimController {
 
     private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {
         ClaimStatus claimStatus = result.getClaim().getClaimStatus();
-        HttpStatus statusCode = getHttpStatus(claimStatus);
+        HttpStatus statusCode = getHttpStatus(result);
         VoucherEntitlementDTO entitlement = getEntitlement(result);
         ClaimResultDTO body = ClaimResultDTO.builder()
                 .claimStatus(claimStatus)
                 .eligibilityStatus(result.getClaim().getEligibilityStatus())
                 .voucherEntitlement(entitlement)
+                .claimUpdated(result.getClaimUpdated())
+                .updatedFields(result.getUpdatedFields())
                 .build();
         return new ResponseEntity<>(body, statusCode);
     }
@@ -73,7 +76,11 @@ public class ClaimController {
         return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);
     }
 
-    private HttpStatus getHttpStatus(ClaimStatus claimStatus) {
+    private HttpStatus getHttpStatus(ClaimResult claimResult) {
+        if (TRUE.equals(claimResult.getClaimUpdated())) {
+            return HttpStatus.OK;
+        }
+        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();
         HttpStatus statusCode = statusMap.get(claimStatus);
         if (statusCode == null) {
             log.warn("claim status without HttpStatus: {}", claimStatus);
