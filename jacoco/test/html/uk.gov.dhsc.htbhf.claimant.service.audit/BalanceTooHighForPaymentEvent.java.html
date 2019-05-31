@@ -10,19 +10,21 @@ import java.util.UUID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.BALANCE_ON_CARD;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
 
 public class BalanceTooHighForPaymentEvent extends Event {
 
     @Builder
     public BalanceTooHighForPaymentEvent(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
-<span class="fc" id="L18">        super(ClaimEventType.BALANCE_TOO_HIGH_FOR_PAYMENT, LocalDateTime.now(), constructMetaData(claimId, entitlementAmountInPence, balanceOnCard));</span>
-<span class="fc" id="L19">    }</span>
+<span class="fc" id="L19">        super(ClaimEventType.BALANCE_TOO_HIGH_FOR_PAYMENT, LocalDateTime.now(), constructMetaData(claimId, entitlementAmountInPence, balanceOnCard));</span>
+<span class="fc" id="L20">    }</span>
 
     private static Map&lt;String, Object&gt; constructMetaData(UUID claimId, int entitlementAmountInPence, int balanceOnCard) {
-<span class="fc" id="L22">        return Map.of(</span>
-<span class="fc" id="L23">                CLAIM_ID.getKey(), claimId,</span>
-<span class="fc" id="L24">                ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence,</span>
-<span class="fc" id="L25">                BALANCE_ON_CARD.getKey(), balanceOnCard);</span>
+<span class="fc" id="L23">        return Map.of(</span>
+<span class="fc" id="L24">                CLAIM_ID.getKey(), claimId,</span>
+<span class="fc" id="L25">                ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence,</span>
+<span class="fc" id="L26">                PAYMENT_AMOUNT.getKey(), 0,</span>
+<span class="fc" id="L27">                BALANCE_ON_CARD.getKey(), balanceOnCard);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
