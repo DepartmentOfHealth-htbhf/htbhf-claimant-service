@@ -45,7 +45,7 @@ public class MessageProcessor {
             lockAtMostForString = "${message-processor.maximum-lock-time}")
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor")
     public void processAllMessages() {
-        for (MessageType messageType: MessageType.values()) {
+        for (MessageType messageType : MessageType.values()) {
             List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
             processMessagesOfType(messages, messageType);
         }
