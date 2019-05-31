@@ -16,16 +16,14 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.Event;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.BALANCE_TOO_HIGH_FOR_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.MAKE_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.NEW_CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
@@ -71,6 +69,28 @@ class EventAuditorTest {
         eventAuditor.auditNewClaim(null);
         //Then
         verifyZeroInteractions(eventLogger);
+    }
+
+    @Test
+    void shouldLogUpdateClaimEvent() {
+        //Given
+        Claim claim = aValidClaim();
+        List<String> updatedFields = List.of("expectedDeliveryDate", "lastName", "address");
+        //When
+        eventAuditor.auditUpdatedClaim(claim, updatedFields);
+        //Then
+        UUID claimId = claim.getId();
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(UPDATED_CLAIM);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata())
+                .isNotNull()
+                .hasSize(2)
+                .containsExactly(
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
+                        entry(ClaimEventMetadataKey.UPDATED_FIELDS.getKey(), updatedFields));
     }
 
     @Test

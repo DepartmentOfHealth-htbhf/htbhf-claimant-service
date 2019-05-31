@@ -13,7 +13,8 @@ public enum ClaimEventMetadataKey {
     PAYMENT_REFERENCE("paymentReference"),
     PAYMENT_AMOUNT("paymentAmount"),
     ENTITLEMENT_AMOUNT_IN_PENCE("entitlementAmountInPence"),
-    BALANCE_ON_CARD("balanceOnCard");
+    BALANCE_ON_CARD("balanceOnCard"),
+    UPDATED_FIELDS("updatedFields");
 
     private String key;
 
