@@ -72,7 +72,7 @@ class EventAuditorTest {
     }
 
     @Test
-    void shouldLogUpdateClaimEvent() {
+    void shouldLogUpdatedClaimEvent() {
         //Given
         Claim claim = aValidClaim();
         List<String> updatedFields = List.of("expectedDeliveryDate", "lastName", "address");
