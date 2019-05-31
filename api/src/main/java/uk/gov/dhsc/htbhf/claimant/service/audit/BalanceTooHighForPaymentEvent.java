@@ -10,6 +10,7 @@ import java.util.UUID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.BALANCE_ON_CARD;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
 
 public class BalanceTooHighForPaymentEvent extends Event {
 
@@ -22,6 +23,7 @@ public class BalanceTooHighForPaymentEvent extends Event {
         return Map.of(
                 CLAIM_ID.getKey(), claimId,
                 ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence,
+                PAYMENT_AMOUNT.getKey(), 0,
                 BALANCE_ON_CARD.getKey(), balanceOnCard);
     }
 }

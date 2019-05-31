@@ -179,11 +179,12 @@ class EventAuditorTest {
         assertThat(actualEvent.getTimestamp()).isNotNull();
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
-                .hasSize(3)
+                .hasSize(4)
                 .containsExactly(
                         entry(ClaimEventMetadataKey.BALANCE_ON_CARD.getKey(), balanceOnCard),
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
-                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE));
+                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE),
+                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), 0));
 
     }
 }
