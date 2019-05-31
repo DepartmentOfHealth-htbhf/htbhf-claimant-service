@@ -13,7 +13,7 @@ import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 import java.time.LocalDate;
 import java.util.List;
 
-import static uk.gov.dhsc.htbhf.errorhandler.ExceptionDetailGenerator.constructExceptionDetail;
+import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
 
 /**
  * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
