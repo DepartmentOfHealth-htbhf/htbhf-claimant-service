@@ -20,7 +20,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
-import static uk.gov.dhsc.htbhf.errorhandler.ExceptionDetailGenerator.constructExceptionDetail;
+import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
 
 /**
  * Component that is triggered on a schedule and is responsible for finding all the messages that need to be
@@ -45,7 +45,7 @@ public class MessageProcessor {
             lockAtMostForString = "${message-processor.maximum-lock-time}")
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor")
     public void processAllMessages() {
-        for (MessageType messageType: MessageType.values()) {
+        for (MessageType messageType : MessageType.values()) {
             List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
             processMessagesOfType(messages, messageType);
         }
