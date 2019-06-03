@@ -13,7 +13,9 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -62,9 +64,25 @@ public class ClaimService {
 
             return createResult(claim);
         } catch (RuntimeException e) {
-            createAndSaveClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
+            handleFailedClaim(claimant, e);
             throw e;
         }
+    }
+
+    private void handleFailedClaim(Claimant claimant, RuntimeException e) {
+        Claim claim = buildClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
+        NewClaimEvent newClaimEvent = NewClaimEvent.builder()
+                .claimId(claim.getId())
+                .claimStatus(claim.getClaimStatus())
+                .eligibilityStatus(claim.getEligibilityStatus())
+                .build();
+        FailureEvent failureEvent = FailureEvent.builder()
+                .failureDescription("Unable to create (or update) claim")
+                .failedEvent(newClaimEvent)
+                .exception(e)
+                .build();
+        eventAuditor.auditFailedEvent(failureEvent);
+        claimRepository.save(claim);
     }
 
     private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {

@@ -18,8 +18,11 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -255,6 +258,13 @@ class ClaimServiceTest {
         //then
         assertThat(exception).isNotNull();
         assertThat(exception.getMessage()).contains(existingClaimId.toString());
+        ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(claimArgumentCaptor.capture());
+        assertClaimCorrectForAudit(claimArgumentCaptor, newClaimant);
+        ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
+        verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
+        assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
     }
 
     @Test
@@ -301,12 +311,13 @@ class ClaimServiceTest {
         //then
         assertThat(thrown).isEqualTo(testException);
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
-        verify(claimRepository).save(any(Claim.class));
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
-        verify(eventAuditor).auditNewClaim(claimArgumentCaptor.capture());
-        assertThat(claimArgumentCaptor.getAllValues()).hasSize(1);
+        verify(claimRepository).save(claimArgumentCaptor.capture());
         assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
-        verifyZeroInteractions(messageQueueDAO);
+        ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
+        verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
+        assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
