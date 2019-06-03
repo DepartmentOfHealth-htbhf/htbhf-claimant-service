@@ -20,7 +20,7 @@ import static java.util.Collections.unmodifiableSet;
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
 public class PaymentCycle extends VersionedEntity {
