@@ -14,22 +14,22 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.springframework.http.HttpStatus.OK;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
@@ -111,6 +111,27 @@ class ClaimControllerTest {
     }
 
     @Test
+    void shouldReturnOkStatusAndUpdatedFieldsWhenClaimHasBeenUpdated() {
+        // Given
+        ClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimant();
+        String updatedField = EXPECTED_DELIVERY_DATE.getFieldName();
+        ClaimResult claimResult = anUpdatedClaimResult(updatedField);
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(newClaimService.createOrUpdateClaim(any())).willReturn(claimResult);
+
+        // When
+        ResponseEntity<ClaimResultDTO> response = controller.newClaim(dto);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getClaimUpdated()).isTrue();
+        assertThat(response.getBody().getUpdatedFields()).isEqualTo(singletonList(updatedField));
+    }
+
+    @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
         given(newClaimService.createOrUpdateClaim(any())).willReturn(aClaimResult(ClaimStatus.NEW, Optional.empty()));
@@ -138,6 +159,15 @@ class ClaimControllerTest {
         return ClaimResult.builder()
                 .claim(aClaimWithClaimStatus(claimStatus))
                 .voucherEntitlement(voucherEntitlement)
+                .build();
+    }
+
+    private ClaimResult anUpdatedClaimResult(String updatedField) {
+        return ClaimResult.builder()
+                .claim(aClaimWithClaimStatus(ClaimStatus.ACTIVE))
+                .claimUpdated(true)
+                .updatedFields(singletonList(updatedField))
+                .voucherEntitlement(Optional.empty())
                 .build();
     }
 }

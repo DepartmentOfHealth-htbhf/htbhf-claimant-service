@@ -11,7 +11,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class ClaimantServiceAssertionUtils {
 
+    //TODO DW HTBHF-1483 remove v1 endpoint, rename v2 to remove version from name.
     public static final URI CLAIMANT_ENDPOINT_URI = URI.create("/v1/claims");
+    public static final URI CLAIMANT_ENDPOINT_URI_V2 = URI.create("/v2/claims");
 
     public static void assertClaimantMatchesClaimantDTO(ClaimantDTO claimant, Claimant persistedClaim) {
         assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
