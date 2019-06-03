@@ -32,6 +32,11 @@ public class PaymentService {
     private EventAuditor eventAuditor;
     private PaymentCalculator paymentCalculator;
 
+    /**
+     * Build and send a MAKE_PAYMENT message for the given {@link PaymentCycle}.
+     *
+     * @param paymentCycle The payment cycle to make a payment for.
+     */
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
         MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
