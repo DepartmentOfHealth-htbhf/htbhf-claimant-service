@@ -27,29 +27,40 @@ public class NewCardService {
 
     /**
      * Creates a new card for the given claim. If successful, the card account id is saved to the claim and the claim status is set to ACTIVE.
+     * &lt;p&gt;
+     * Note that the PMD warning is suppressed so that we can use the value of CardResponse in the construction
+     * of the failed new card event if it has been set.
+     * &lt;/p&gt;
      *
      * @param claim the claim to create a new card for.
      */
+    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
     @Transactional
     public void createNewCard(Claim claim) {
+<span class="fc" id="L40">        CardResponse cardResponse = null;</span>
         try {
-<span class="fc" id="L36">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
-<span class="fc" id="L37">            CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L38">            updateAndSaveClaim(claim, cardResponse);</span>
-<span class="fc" id="L39">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
-<span class="fc" id="L40">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L41">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
-<span class="fc" id="L42">            NewCardEvent failedEvent = NewCardEvent.builder()</span>
-<span class="fc" id="L43">                    .claimId(claim.getId())</span>
-<span class="fc" id="L44">                    .build();</span>
-<span class="fc" id="L45">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
-<span class="fc" id="L46">        }</span>
-<span class="fc" id="L47">    }</span>
+<span class="fc" id="L42">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L43">            cardResponse = cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L44">            updateAndSaveClaim(claim, cardResponse);</span>
+<span class="fc" id="L45">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
+<span class="fc" id="L46">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L47">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
+<span class="fc" id="L48">            throw new EventFailedException(buildFailedNewCardEvent(claim, cardResponse), e, failureMessage);</span>
+<span class="fc" id="L49">        }</span>
+<span class="fc" id="L50">    }</span>
+
+    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
+    private NewCardEvent buildFailedNewCardEvent(Claim claim, CardResponse cardResponse) {
+<span class="fc" id="L54">        return NewCardEvent.builder()</span>
+<span class="fc" id="L55">                .claimId(claim.getId())</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                .cardAccountId((cardResponse == null) ? null : cardResponse.getCardAccountId())</span>
+<span class="fc" id="L57">                .build();</span>
+    }
 
     private void updateAndSaveClaim(Claim claim, CardResponse cardResponse) {
-<span class="fc" id="L50">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
-<span class="fc" id="L51">        claim.setClaimStatus(ACTIVE);</span>
-<span class="fc" id="L52">        claimRepository.save(claim);</span>
-<span class="fc" id="L53">    }</span>
+<span class="fc" id="L61">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
+<span class="fc" id="L62">        claim.setClaimStatus(ACTIVE);</span>
+<span class="fc" id="L63">        claimRepository.save(claim);</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

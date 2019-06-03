@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -17,12 +18,13 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
 
 import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L25">@Slf4j</span>
+<span class="fc" id="L27">@Slf4j</span>
 public class PaymentService {
 
     private MessageQueueClient messageQueueClient;
@@ -32,84 +34,128 @@ public class PaymentService {
     private EventAuditor eventAuditor;
     private PaymentCalculator paymentCalculator;
 
+    /**
+     * Build and send a MAKE_PAYMENT message for the given {@link PaymentCycle}.
+     *
+     * @param paymentCycle The payment cycle to make a payment for.
+     */
     public void createMakePaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L36">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L37">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L38">    }</span>
+<span class="fc" id="L43">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L44">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L45">    }</span>
 
     /**
      * Make the first payment onto a new card as a part of a successful application process.
+     * &lt;p&gt;
+     * Note that the PMD warning is suppressed so that we can use the values of Payment and
+     * DepositFundsResponse in the construction of the failed payment event if they have been set.
+     * &lt;/p&gt;
      *
      * @param paymentCycle  The new {@link PaymentCycle} associated with the new claim
      * @param cardAccountId The new card id to make to payment to
      * @return The {@link Payment} entity relevant to this process.
      */
+    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L48">        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());</span>
-<span class="fc" id="L49">        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);</span>
-<span class="fc" id="L50">        updatePayment(payment, depositFundsResponse.getReferenceId());</span>
-<span class="fc" id="L51">        updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);</span>
-<span class="fc" id="L52">        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
-<span class="fc" id="L53">        return payment;</span>
+<span class="fc" id="L60">        Payment payment = null;</span>
+<span class="fc" id="L61">        DepositFundsResponse depositFundsResponse = null;</span>
+        try {
+<span class="fc" id="L63">            payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L64">            depositFundsResponse = depositFundsToCard(payment);</span>
+<span class="fc" id="L65">            updatePayment(payment, depositFundsResponse.getReferenceId());</span>
+<span class="fc" id="L66">            updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);</span>
+<span class="fc" id="L67">            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
+<span class="fc" id="L68">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L69">            String failureMessage = String.format(&quot;First payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s&quot;,</span>
+<span class="fc" id="L70">                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());</span>
+<span class="fc" id="L71">            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle, payment, depositFundsResponse);</span>
+<span class="fc" id="L72">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
+<span class="fc" id="L73">        }</span>
+<span class="fc" id="L74">        return payment;</span>
     }
 
     /**
      * Calculate and (if appropriate) make the required payment for the given {@link PaymentCycle}.
+     * &lt;p&gt;
+     * Note that the PMD warning is suppressed so that we can use the values of Payment and
+     * DepositFundsResponse in the construction of the failed payment event if they have been set.
+     * &lt;/p&gt;
      *
      * @param paymentCycle  The {@link PaymentCycle} to make the payment for
      * @param cardAccountId The card id to make the payment to.
      * @return The {@link Payment} entity relevant to this process.
      */
+    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L64">        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);</span>
-<span class="fc" id="L65">        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),</span>
-<span class="fc" id="L66">                balance.getAvailableBalanceInPence());</span>
-<span class="fc" id="L67">        updatePaymentCycle(paymentCycle, paymentCalculation, balance.getAvailableBalanceInPence());</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (paymentCalculation.getPaymentAmount() == 0) {</span>
-<span class="fc" id="L69">            eventAuditor.auditBalanceTooHighForPayment(paymentCycle);</span>
-<span class="fc" id="L70">            log.info(&quot;No payment will be made as the existing balance on the card is too high&quot;);</span>
-<span class="fc" id="L71">            return null;</span>
-        }
-<span class="fc" id="L73">        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());</span>
-<span class="fc" id="L74">        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);</span>
-<span class="fc" id="L75">        updatePayment(payment, depositFundsResponse.getReferenceId());</span>
-<span class="fc" id="L76">        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
-<span class="fc" id="L77">        return payment;</span>
+<span class="fc" id="L90">        Payment payment = null;</span>
+<span class="fc" id="L91">        DepositFundsResponse depositFundsResponse = null;</span>
+        try {
+<span class="fc" id="L93">            CardBalanceResponse balance = cardClient.getBalance(cardAccountId);</span>
+<span class="fc" id="L94">            PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),</span>
+<span class="fc" id="L95">                    balance.getAvailableBalanceInPence());</span>
+<span class="fc" id="L96">            updatePaymentCycle(paymentCycle, paymentCalculation, balance.getAvailableBalanceInPence());</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">            if (paymentCalculation.getPaymentAmount() == 0) {</span>
+<span class="fc" id="L98">                eventAuditor.auditBalanceTooHighForPayment(paymentCycle);</span>
+<span class="fc" id="L99">                log.info(&quot;No payment will be made as the existing balance on the card is too high&quot;);</span>
+<span class="fc" id="L100">                return null;</span>
+            }
+<span class="fc" id="L102">            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());</span>
+<span class="fc" id="L103">            depositFundsResponse = depositFundsToCard(payment);</span>
+<span class="fc" id="L104">            updatePayment(payment, depositFundsResponse.getReferenceId());</span>
+<span class="fc" id="L105">            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
+<span class="fc" id="L106">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L107">            String failureMessage = String.format(&quot;Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s&quot;,</span>
+<span class="fc" id="L108">                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());</span>
+<span class="fc" id="L109">            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle, payment, depositFundsResponse);</span>
+<span class="fc" id="L110">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
+<span class="fc" id="L111">        }</span>
+<span class="fc" id="L112">        return payment;</span>
+    }
+
+    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
+    private MakePaymentEvent buildFailedMakePaymentEvent(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
+<span class="fc" id="L117">        return MakePaymentEvent.builder()</span>
+<span class="fc" id="L118">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L119">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">                .paymentAmountInPence((payment == null) ? null : payment.getPaymentAmountInPence())</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">                .paymentId((payment == null) ? null : payment.getId())</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">                .reference((depositFundsResponse == null) ? null : depositFundsResponse.getReferenceId())</span>
+<span class="fc" id="L123">                .build();</span>
     }
 
     private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
-<span class="fc" id="L81">        return Payment.builder()</span>
-<span class="fc" id="L82">                .cardAccountId(cardAccountId)</span>
-<span class="fc" id="L83">                .claim(paymentCycle.getClaim())</span>
-<span class="fc" id="L84">                .paymentAmountInPence(amountToPay)</span>
-<span class="fc" id="L85">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L86">                .build();</span>
+<span class="fc" id="L127">        return Payment.builder()</span>
+<span class="fc" id="L128">                .cardAccountId(cardAccountId)</span>
+<span class="fc" id="L129">                .claim(paymentCycle.getClaim())</span>
+<span class="fc" id="L130">                .paymentAmountInPence(amountToPay)</span>
+<span class="fc" id="L131">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L132">                .build();</span>
     }
 
     private void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, int cardBalanceInPence) {
-<span class="fc" id="L90">        paymentCycle.setCardBalanceInPence(cardBalanceInPence);</span>
-<span class="fc" id="L91">        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L92">        updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus());</span>
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L136">        paymentCycle.setCardBalanceInPence(cardBalanceInPence);</span>
+<span class="fc" id="L137">        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());</span>
+<span class="fc" id="L138">        updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus());</span>
+<span class="fc" id="L139">    }</span>
 
     private void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
-<span class="fc" id="L96">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
-<span class="fc" id="L97">        paymentCycleService.savePaymentCycle(paymentCycle);</span>
-<span class="fc" id="L98">    }</span>
+<span class="fc" id="L142">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
+<span class="fc" id="L143">        paymentCycleService.savePaymentCycle(paymentCycle);</span>
+<span class="fc" id="L144">    }</span>
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
-<span class="fc" id="L101">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
-<span class="fc" id="L102">                .reference(payment.getId().toString())</span>
-<span class="fc" id="L103">                .amountInPence(payment.getPaymentAmountInPence())</span>
-<span class="fc" id="L104">                .build();</span>
-<span class="fc" id="L105">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
+<span class="fc" id="L147">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
+<span class="fc" id="L148">                .reference(payment.getId().toString())</span>
+<span class="fc" id="L149">                .amountInPence(payment.getPaymentAmountInPence())</span>
+<span class="fc" id="L150">                .build();</span>
+<span class="fc" id="L151">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
     }
 
     private void updatePayment(Payment payment, String referenceId) {
-<span class="fc" id="L109">        payment.setPaymentReference(referenceId);</span>
-<span class="fc" id="L110">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L111">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
-<span class="fc" id="L112">        paymentRepository.save(payment);</span>
-<span class="fc" id="L113">    }</span>
+<span class="fc" id="L155">        payment.setPaymentReference(referenceId);</span>
+<span class="fc" id="L156">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
+<span class="fc" id="L157">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
+<span class="fc" id="L158">        paymentRepository.save(payment);</span>
+<span class="fc" id="L159">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

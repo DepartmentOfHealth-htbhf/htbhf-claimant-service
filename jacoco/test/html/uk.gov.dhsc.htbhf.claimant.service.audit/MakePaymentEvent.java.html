@@ -4,6 +4,7 @@ import lombok.Builder;
 import uk.gov.dhsc.htbhf.logging.event.Event;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,24 +18,24 @@ import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAY
 public class MakePaymentEvent extends Event {
 
     @Builder
-    public MakePaymentEvent(UUID claimId, UUID paymentId, String reference, int paymentAmountInPence, int entitlementAmountInPence) {
-<span class="fc" id="L21">        super(ClaimEventType.MAKE_PAYMENT,</span>
-<span class="fc" id="L22">                LocalDateTime.now(),</span>
-<span class="fc" id="L23">                constructMetaData(claimId, paymentId, reference, paymentAmountInPence, entitlementAmountInPence));</span>
-<span class="fc" id="L24">    }</span>
+    public MakePaymentEvent(UUID claimId, UUID paymentId, String reference, Integer paymentAmountInPence, Integer entitlementAmountInPence) {
+<span class="fc" id="L22">        super(ClaimEventType.MAKE_PAYMENT,</span>
+<span class="fc" id="L23">                LocalDateTime.now(),</span>
+<span class="fc" id="L24">                constructMetaData(claimId, paymentId, reference, paymentAmountInPence, entitlementAmountInPence));</span>
+<span class="fc" id="L25">    }</span>
 
     private static Map&lt;String, Object&gt; constructMetaData(UUID claimId,
                                                          UUID paymentId,
                                                          String reference,
-                                                         int paymentAmountInPence,
-                                                         int entitlementAmountInPence) {
-<span class="fc" id="L31">        return Map.of(</span>
-<span class="fc" id="L32">                CLAIM_ID.getKey(), claimId,</span>
-<span class="fc" id="L33">                ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence,</span>
-<span class="fc" id="L34">                PAYMENT_AMOUNT.getKey(), paymentAmountInPence,</span>
-<span class="fc" id="L35">                PAYMENT_ID.getKey(), paymentId,</span>
-<span class="fc" id="L36">                PAYMENT_REFERENCE.getKey(), reference</span>
-        );
+                                                         Integer paymentAmountInPence,
+                                                         Integer entitlementAmountInPence) {
+<span class="fc" id="L32">        Map&lt;String, Object&gt; metadata = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L33">        metadata.put(CLAIM_ID.getKey(), claimId);</span>
+<span class="fc" id="L34">        metadata.put(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence);</span>
+<span class="fc" id="L35">        metadata.put(PAYMENT_AMOUNT.getKey(), paymentAmountInPence);</span>
+<span class="fc" id="L36">        metadata.put(PAYMENT_ID.getKey(), paymentId);</span>
+<span class="fc" id="L37">        metadata.put(PAYMENT_REFERENCE.getKey(), reference);</span>
+<span class="fc" id="L38">        return metadata;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
