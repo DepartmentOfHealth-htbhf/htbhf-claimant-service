@@ -5,17 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.NewCardEvent;
 
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L18">@Slf4j</span>
+<span class="fc" id="L20">@Slf4j</span>
 public class NewCardService {
 
     private CardClient cardClient;
@@ -25,20 +27,29 @@ public class NewCardService {
 
     /**
      * Creates a new card for the given claim. If successful, the card account id is saved to the claim and the claim status is set to ACTIVE.
+     *
      * @param claim the claim to create a new card for.
      */
     @Transactional
     public void createNewCard(Claim claim) {
-<span class="fc" id="L32">        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
-<span class="fc" id="L33">        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L34">        updateAndSaveClaim(claim, cardResponse);</span>
-<span class="fc" id="L35">        eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
-<span class="fc" id="L36">    }</span>
+        try {
+<span class="fc" id="L36">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L37">            CardResponse cardResponse = cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L38">            updateAndSaveClaim(claim, cardResponse);</span>
+<span class="fc" id="L39">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
+<span class="fc" id="L40">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L41">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
+<span class="fc" id="L42">            NewCardEvent failedEvent = NewCardEvent.builder()</span>
+<span class="fc" id="L43">                    .claimId(claim.getId())</span>
+<span class="fc" id="L44">                    .build();</span>
+<span class="fc" id="L45">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
+<span class="fc" id="L46">        }</span>
+<span class="fc" id="L47">    }</span>
 
     private void updateAndSaveClaim(Claim claim, CardResponse cardResponse) {
-<span class="fc" id="L39">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
-<span class="fc" id="L40">        claim.setClaimStatus(ACTIVE);</span>
-<span class="fc" id="L41">        claimRepository.save(claim);</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L50">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
+<span class="fc" id="L51">        claim.setClaimStatus(ACTIVE);</span>
+<span class="fc" id="L52">        claimRepository.save(claim);</span>
+<span class="fc" id="L53">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

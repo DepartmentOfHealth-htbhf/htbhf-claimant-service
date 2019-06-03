@@ -8,7 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 
 import java.util.List;
@@ -28,11 +30,12 @@ import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExcept
  * the message stored in the database.
  */
 @RequiredArgsConstructor
-<span class="fc" id="L31">@Slf4j</span>
+<span class="fc" id="L33">@Slf4j</span>
 public class MessageProcessor {
 
     private final MessageStatusProcessor messageStatusProcessor;
     private final MessageRepository messageRepository;
+    private final EventAuditor eventAuditor;
     private final Map&lt;MessageType, MessageTypeProcessor&gt; messageProcessorsByType;
 
     @Value(&quot;${message-processor.message-limit}&quot;)
@@ -45,66 +48,70 @@ public class MessageProcessor {
             lockAtMostForString = &quot;${message-processor.maximum-lock-time}&quot;)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor&quot;)
     public void processAllMessages() {
-<span class="fc bfc" id="L48" title="All 2 branches covered.">        for (MessageType messageType : MessageType.values()) {</span>
-<span class="fc" id="L49">            List&lt;Message&gt; messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));</span>
-<span class="fc" id="L50">            processMessagesOfType(messages, messageType);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        for (MessageType messageType : MessageType.values()) {</span>
+<span class="fc" id="L52">            List&lt;Message&gt; messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));</span>
+<span class="fc" id="L53">            processMessagesOfType(messages, messageType);</span>
         }
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L55">    }</span>
 
     private void processMessagesOfType(List&lt;Message&gt; messages, MessageType messageType) {
-<span class="fc bfc" id="L55" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messages)) {</span>
-<span class="fc" id="L56">            log.debug(&quot;No messages found to process for type: [{}]&quot;, messageType);</span>
-<span class="fc" id="L57">            return;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messages)) {</span>
+<span class="fc" id="L59">            log.debug(&quot;No messages found to process for type: [{}]&quot;, messageType);</span>
+<span class="fc" id="L60">            return;</span>
         }
 
-<span class="fc" id="L60">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageType);</span>
-<span class="fc" id="L61">        MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);</span>
-<span class="fc" id="L62">        List&lt;MessageStatus&gt; statuses = messages.stream()</span>
-<span class="fc" id="L63">                .map(message -&gt; processMessage(message, messageTypeProcessor))</span>
-<span class="fc" id="L64">                .collect(Collectors.toList());</span>
+<span class="fc" id="L63">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageType);</span>
+<span class="fc" id="L64">        MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);</span>
+<span class="fc" id="L65">        List&lt;MessageStatus&gt; statuses = messages.stream()</span>
+<span class="fc" id="L66">                .map(message -&gt; processMessage(message, messageTypeProcessor))</span>
+<span class="fc" id="L67">                .collect(Collectors.toList());</span>
 
-<span class="fc" id="L66">        logResults(statuses, messageTypeProcessor);</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L69">        logResults(statuses, messageTypeProcessor);</span>
+<span class="fc" id="L70">    }</span>
 
     private MessageTypeProcessor getMessageTypeProcessor(MessageType messageType, List&lt;Message&gt; messages) {
-<span class="fc" id="L70">        MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (messageTypeProcessor == null) {</span>
-<span class="fc" id="L72">            messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);</span>
-<span class="fc" id="L73">            throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
-<span class="fc" id="L74">                    + messageType + &quot;, there are &quot; + messages.size() + &quot; message(s) in the queue&quot;);</span>
+<span class="fc" id="L73">        MessageTypeProcessor messageTypeProcessor = messageProcessorsByType.get(messageType);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (messageTypeProcessor == null) {</span>
+<span class="fc" id="L75">            messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);</span>
+<span class="fc" id="L76">            throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
+<span class="fc" id="L77">                    + messageType + &quot;, there are &quot; + messages.size() + &quot; message(s) in the queue&quot;);</span>
         }
-<span class="fc" id="L76">        return messageTypeProcessor;</span>
+<span class="fc" id="L79">        return messageTypeProcessor;</span>
     }
 
     private MessageStatus processMessage(Message message, MessageTypeProcessor messageTypeProcessor) {
-<span class="fc" id="L80">        MessageStatus status = invokeMessageTypeProcessor(message, messageTypeProcessor);</span>
-<span class="fc" id="L81">        messageStatusProcessor.processStatusForMessage(message, status);</span>
-<span class="fc" id="L82">        return status;</span>
+<span class="fc" id="L83">        MessageStatus status = invokeMessageTypeProcessor(message, messageTypeProcessor);</span>
+<span class="fc" id="L84">        messageStatusProcessor.processStatusForMessage(message, status);</span>
+<span class="fc" id="L85">        return status;</span>
     }
 
     private MessageStatus invokeMessageTypeProcessor(Message message, MessageTypeProcessor messageTypeProcessor) {
         try {
-<span class="fc" id="L87">            return messageTypeProcessor.processMessage(message);</span>
-<span class="fc" id="L88">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L89">            log.error(&quot;Unable to process message with id {}, exception detail: {}&quot;, message.getId(), constructExceptionDetail(e), e);</span>
-<span class="fc" id="L90">            return ERROR;</span>
+<span class="fc" id="L90">            return messageTypeProcessor.processMessage(message);</span>
+<span class="fc" id="L91">        } catch (EventFailedException efe) {</span>
+<span class="fc" id="L92">            log.error(&quot;Failure event caught for message with id {}, exception detail: {}&quot;, message.getId(), constructExceptionDetail(efe), efe);</span>
+<span class="fc" id="L93">            eventAuditor.auditFailedEvent(efe.getFailureEvent());</span>
+<span class="fc" id="L94">            return ERROR;</span>
+<span class="fc" id="L95">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L96">            log.error(&quot;Unable to process message with id {}, exception detail: {}&quot;, message.getId(), constructExceptionDetail(e), e);</span>
+<span class="fc" id="L97">            return ERROR;</span>
         }
     }
 
     private void logResults(List&lt;MessageStatus&gt; statuses, MessageTypeProcessor messageTypeProcessor) {
-<span class="fc" id="L95">        Map&lt;MessageStatus, Long&gt; statusesCountMap = statuses.stream()</span>
-<span class="fc" id="L96">                .peek(messageStatus -&gt; logNullMessageStatus(messageTypeProcessor, messageStatus))</span>
-<span class="fc" id="L97">                .filter(Objects::nonNull)</span>
-<span class="fc" id="L98">                .collect(groupingBy(identity(), counting()));</span>
+<span class="fc" id="L102">        Map&lt;MessageStatus, Long&gt; statusesCountMap = statuses.stream()</span>
+<span class="fc" id="L103">                .peek(messageStatus -&gt; logNullMessageStatus(messageTypeProcessor, messageStatus))</span>
+<span class="fc" id="L104">                .filter(Objects::nonNull)</span>
+<span class="fc" id="L105">                .collect(groupingBy(identity(), counting()));</span>
 
-<span class="fc" id="L100">        statusesCountMap.forEach((messageStatus, count) -&gt; log.info(&quot;Processed {} message(s) with status {}&quot;, count, messageStatus.name()));</span>
-<span class="fc" id="L101">    }</span>
+<span class="fc" id="L107">        statusesCountMap.forEach((messageStatus, count) -&gt; log.info(&quot;Processed {} message(s) with status {}&quot;, count, messageStatus.name()));</span>
+<span class="fc" id="L108">    }</span>
 
     private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
-<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (messageStatus == null) {</span>
-<span class="fc" id="L105">            log.error(&quot;Received null message status from MessageTypeProcessor: {}&quot;, messageTypeProcessor.getClass().getCanonicalName());</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (messageStatus == null) {</span>
+<span class="fc" id="L112">            log.error(&quot;Received null message status from MessageTypeProcessor: {}&quot;, messageTypeProcessor.getClass().getCanonicalName());</span>
         }
-<span class="fc" id="L107">    }</span>
+<span class="fc" id="L114">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
