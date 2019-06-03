@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
@@ -36,11 +38,14 @@ public class EligibilityAndEntitlementService {
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
+        log.debug("Looking for live claims for the given NINO");
         List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
         if (liveClaimsWithNino.size() > 1) {
             throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);
         }
+        log.debug("Checking eligibility");
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
+        log.debug("Calculating entitlement");
         PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
