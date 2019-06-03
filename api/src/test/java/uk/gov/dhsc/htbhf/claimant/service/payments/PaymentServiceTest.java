@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
@@ -18,9 +19,15 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
+import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -30,12 +37,16 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aFullPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aNoPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.AVAILABLE_BALANCE_IN_PENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.EXCEPTION_DETAIL_KEY;
+import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.FAILED_EVENT_KEY;
+import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.FAILURE_DESCRIPTION_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -85,12 +96,25 @@ class PaymentServiceTest {
         assertSuccessfulPayment(paymentResult, paymentCycle, paymentCycle.getTotalEntitlementAmountInPence());
         verify(paymentRepository).save(paymentResult);
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
-        ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
-        verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
-        DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
-        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCycle.getTotalEntitlementAmountInPence());
-        assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
+        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCycle.getTotalEntitlementAmountInPence(), paymentResult.getId().toString());
         verifyPaymentCycleStatusSaved(paymentCycle, FULL_PAYMENT_MADE);
+    }
+
+    @Test
+    void shouldAuditFailedPaymentWhenFirstPaymentFails() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        RuntimeException testException = new RuntimeException("test exception");
+        given(cardClient.depositFundsToCard(any(), any())).willThrow(testException);
+
+        EventFailedException exception = catchThrowableOfType(() -> paymentService.makeFirstPayment(paymentCycle, CARD_ACCOUNT_ID), EventFailedException.class);
+
+        String expectedFailureMessage = String.format("First payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
+                CARD_ACCOUNT_ID, paymentCycle.getClaim().getId(), paymentCycle.getId(), "test exception");
+        verifyEventFailExceptionAndEventAreCorrect(paymentCycle, testException, exception,
+                expectedFailureMessage, paymentCycle.getTotalEntitlementAmountInPence());
+
+        verifyZeroInteractions(paymentRepository, paymentCycleService, eventAuditor);
+        verifyDepositFundsRequestCorrectWithAnyReference(paymentCycle.getTotalEntitlementAmountInPence());
     }
 
     @Test
@@ -111,11 +135,31 @@ class PaymentServiceTest {
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
         verifyPaymentCycleStatusAndBalanceUpdated(paymentCycle, balanceResponse.getAvailableBalanceInPence(), FULL_PAYMENT_MADE);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
-        ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
-        verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
-        DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
-        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(paymentCalculation.getPaymentAmount());
-        assertThat(depositFundsRequest.getReference()).isEqualTo(paymentResult.getId().toString());
+        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCalculation.getPaymentAmount(), paymentResult.getId().toString());
+    }
+
+    @Test
+    void shouldAuditFailedPaymentWhenPaymentFails() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        CardBalanceResponse balanceResponse = aValidCardBalanceResponse();
+        given(cardClient.getBalance(any())).willReturn(balanceResponse);
+        PaymentCalculation paymentCalculation = aFullPaymentCalculation();
+        given(paymentCalculator.calculatePaymentCycleAmountInPence(any(), anyInt())).willReturn(paymentCalculation);
+        RuntimeException testException = new RuntimeException("test exception");
+        given(cardClient.depositFundsToCard(any(), any())).willThrow(testException);
+
+        EventFailedException exception = catchThrowableOfType(() -> paymentService.makePayment(paymentCycle, CARD_ACCOUNT_ID), EventFailedException.class);
+
+        String expectedFailureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
+                CARD_ACCOUNT_ID, paymentCycle.getClaim().getId(), paymentCycle.getId(), "test exception");
+        verifyEventFailExceptionAndEventAreCorrect(paymentCycle, testException, exception, expectedFailureMessage, paymentCalculation.getPaymentAmount());
+
+        verify(cardClient).getBalance(CARD_ACCOUNT_ID);
+        verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
+        //This may be called, but the transaction will be rolled back, so it wont be actually be updated
+        verifyPaymentCycleStatusAndBalanceUpdated(paymentCycle, balanceResponse.getAvailableBalanceInPence(), FULL_PAYMENT_MADE);
+        verifyZeroInteractions(paymentRepository, eventAuditor);
+        verifyDepositFundsRequestCorrectWithAnyReference(paymentCalculation.getPaymentAmount());
     }
 
     @Test
@@ -131,10 +175,50 @@ class PaymentServiceTest {
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
         verifyPaymentCycleStatusAndBalanceUpdated(paymentCycle, balanceResponse.getAvailableBalanceInPence(), BALANCE_TOO_HIGH_FOR_PAYMENT);
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
-        verifyNoMoreInteractions(cardClient);
-        verifyZeroInteractions(paymentRepository);
         verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
-        verifyNoMoreInteractions(eventAuditor);
+        verifyZeroInteractions(paymentRepository);
+        verifyNoMoreInteractions(cardClient, eventAuditor);
+    }
+
+    private void verifyEventFailExceptionAndEventAreCorrect(PaymentCycle paymentCycle,
+                                                            RuntimeException testException,
+                                                            EventFailedException exception,
+                                                            String expectedFailureMessage,
+                                                            Integer totalEntitlementAmountInPence) {
+        assertThat(exception).hasMessage(expectedFailureMessage);
+        assertThat(exception).hasCause(testException);
+        FailureEvent failureEvent = exception.getFailureEvent();
+        assertThat(failureEvent.getEventType()).isEqualTo(CommonEventType.FAILURE);
+        assertThat(failureEvent.getTimestamp()).isNotNull();
+        Map<String, Object> metadata = failureEvent.getEventMetadata();
+        assertThat(metadata.get(CLAIM_ID.getKey())).isEqualTo(paymentCycle.getClaim().getId());
+        assertThat(metadata.get(ENTITLEMENT_AMOUNT_IN_PENCE.getKey())).isEqualTo(paymentCycle.getTotalEntitlementAmountInPence());
+        assertThat(metadata.get(PAYMENT_AMOUNT.getKey())).isEqualTo(totalEntitlementAmountInPence);
+        assertThat(metadata.get(PAYMENT_ID.getKey())).isNotNull();
+        assertThat(metadata.get(PAYMENT_REFERENCE.getKey())).isNull();
+        assertThat(metadata.get(FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.MAKE_PAYMENT);
+        assertThat(metadata.get(FAILURE_DESCRIPTION_KEY)).isEqualTo(expectedFailureMessage);
+        String actualExceptionDetail = (String) metadata.get(EXCEPTION_DETAIL_KEY);
+        assertThat(actualExceptionDetail).startsWith("test exception");
+        assertThat(actualExceptionDetail).contains("PaymentService.depositFundsToCard");
+    }
+
+    private void verifyDepositFundsRequestCorrectWithSpecificReference(int expectedEntitlementAmount, String expectedPaymentReference) {
+        DepositFundsRequest depositFundsRequest = verifyDepositFundsRequestCorrect(expectedEntitlementAmount);
+        assertThat(depositFundsRequest.getReference()).isEqualTo(expectedPaymentReference);
+    }
+
+    private void verifyDepositFundsRequestCorrectWithAnyReference(int expectedEntitlementAmount) {
+        DepositFundsRequest depositFundsRequest = verifyDepositFundsRequestCorrect(expectedEntitlementAmount);
+        assertThat(depositFundsRequest.getReference()).isNotNull();
+    }
+
+    private DepositFundsRequest verifyDepositFundsRequestCorrect(int expectedEntitlementAmount) {
+        ArgumentCaptor<DepositFundsRequest> argumentCaptor = ArgumentCaptor.forClass(DepositFundsRequest.class);
+        verify(cardClient).depositFundsToCard(eq(CARD_ACCOUNT_ID), argumentCaptor.capture());
+        DepositFundsRequest depositFundsRequest = argumentCaptor.getValue();
+        assertThat(depositFundsRequest.getAmountInPence()).isEqualTo(expectedEntitlementAmount);
+        return depositFundsRequest;
     }
 
     private void verifyPaymentCycleStatusAndBalanceUpdated(PaymentCycle paymentCycle, int expectedBalance, PaymentCycleStatus paymentCycleStatus) {

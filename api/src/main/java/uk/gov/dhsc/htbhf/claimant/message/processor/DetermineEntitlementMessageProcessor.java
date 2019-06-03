@@ -7,7 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
@@ -16,14 +15,13 @@ import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import java.time.LocalDate;
 import javax.transaction.Transactional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
@@ -37,7 +35,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private PaymentCycleService paymentCycleService;
 
-    private MessageQueueClient messageQueueClient;
+    private PaymentService paymentService;
 
     @Override
     public MessageType supportsMessageType() {
@@ -69,7 +67,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         updateAndSavePaymentCycle(currentPaymentCycle, decision);
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
-            messageQueueClient.sendMessage(buildMakePaymentMessagePayload(currentPaymentCycle), MAKE_PAYMENT);
+            paymentService.createMakePaymentMessage(currentPaymentCycle);
         }
 
         return COMPLETED;
