@@ -27,6 +27,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.NEW;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
@@ -89,7 +90,7 @@ class NewCardServiceTest {
         assertThat(claim.getClaimStatus()).isEqualTo(NEW);
         assertThat(claim.getCardAccountId()).isNull();
 
-        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.createNewCard");
+        verifyEventFailExceptionAndEventAreCorrectWithoutCardId(claim, testException, exception);
         verify(cardRequestFactory).createCardRequest(claim);
     }
 
@@ -112,15 +113,25 @@ class NewCardServiceTest {
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
 
-        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.updateAndSaveClaim");
+        verifyEventFailExceptionAndEventAreCorrectWithCardId(claim, testException, exception, cardResponse.getCardAccountId());
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
     }
 
-    private void verifyEventFailExceptionAndEventAreCorrect(Claim claim,
-                                                            RuntimeException testException,
-                                                            EventFailedException exception,
-                                                            String stackLocation) {
+    private void verifyEventFailExceptionAndEventAreCorrectWithCardId(Claim claim,
+                                                                      RuntimeException testException,
+                                                                      EventFailedException exception,
+                                                                      String cardAccountId) {
+        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.updateAndSaveClaim", cardAccountId);
+    }
+
+    private void verifyEventFailExceptionAndEventAreCorrectWithoutCardId(Claim claim,
+                                                                         RuntimeException testException,
+                                                                         EventFailedException exception) {
+        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.createNewCard", null);
+    }
+
+    private void verifyEventFailExceptionAndEventAreCorrect(Claim claim, RuntimeException testException, EventFailedException exception, String stackLocation, String cardAccountId) {
         String expectedFailureMessage = String.format("Card creation failed for claim %s, exception is: test exception", claim.getId());
         assertThat(exception).hasMessage(expectedFailureMessage);
         assertThat(exception).hasCause(testException);
@@ -130,6 +141,7 @@ class NewCardServiceTest {
         Map<String, Object> metadata = failureEvent.getEventMetadata();
         assertThat(metadata.get(CLAIM_ID.getKey())).isEqualTo(claim.getId());
         assertThat(metadata.get(FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CARD);
+        assertThat(metadata.get(CARD_ACCOUNT_ID.getKey())).isEqualTo(cardAccountId);
         assertThat(metadata.get(FAILURE_DESCRIPTION_KEY)).isEqualTo(expectedFailureMessage);
         String actualExceptionDetail = (String) metadata.get(EXCEPTION_DETAIL_KEY);
         assertThat(actualExceptionDetail).startsWith("test exception");
