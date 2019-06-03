@@ -30,8 +30,8 @@ public interface MessageTypeProcessor {
      * @param message      The message that has failed
      * @param failureEvent The details of the failed event.
      */
-    @SuppressWarnings("PMD.UncommentedEmptyMethodBody")
     default void processFailedMessage(Message message, FailureEvent failureEvent) {
+        // No action required
     }
 
 }
