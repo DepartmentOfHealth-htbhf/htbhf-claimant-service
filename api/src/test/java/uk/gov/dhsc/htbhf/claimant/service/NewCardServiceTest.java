@@ -131,7 +131,11 @@ class NewCardServiceTest {
         verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.createNewCard", null);
     }
 
-    private void verifyEventFailExceptionAndEventAreCorrect(Claim claim, RuntimeException testException, EventFailedException exception, String stackLocation, String cardAccountId) {
+    private void verifyEventFailExceptionAndEventAreCorrect(Claim claim,
+                                                            RuntimeException testException,
+                                                            EventFailedException exception,
+                                                            String stackLocation,
+                                                            String cardAccountId) {
         String expectedFailureMessage = String.format("Card creation failed for claim %s, exception is: test exception", claim.getId());
         assertThat(exception).hasMessage(expectedFailureMessage);
         assertThat(exception).hasCause(testException);
