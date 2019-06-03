@@ -140,6 +140,8 @@ definitions:
         - "PENDING_EXPIRY"
         - "EXPIRED"
         - "ERROR"
+      claimUpdated:
+        type: "boolean"
       eligibilityStatus:
         type: "string"
         enum:
@@ -149,6 +151,10 @@ definitions:
         - "NO_MATCH"
         - "ERROR"
         - "DUPLICATE"
+      updatedFields:
+        type: "array"
+        items:
+          type: "string"
       voucherEntitlement:
         $ref: "#/definitions/VoucherEntitlementDTO"
     title: "ClaimResultDTO"

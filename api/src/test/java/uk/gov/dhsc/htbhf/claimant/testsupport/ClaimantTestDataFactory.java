@@ -58,7 +58,7 @@ public final class ClaimantTestDataFactory {
         return aClaimantWithFirstName(LONG_NAME);
     }
 
-    private static Claimant.ClaimantBuilder aValidClaimantBuilder() {
+    public static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)

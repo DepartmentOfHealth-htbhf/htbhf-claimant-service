@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -35,6 +36,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -175,7 +177,7 @@ class NewClaimServiceTest {
     }
 
     @Test
-    void shouldUpdateClaimForMatchingNinoWhenEligible() {
+    void shouldUpdateClaimAndReturnUpdatedFieldsForMatchingNinoWhenEligible() {
         //given
         Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
@@ -193,12 +195,44 @@ class NewClaimServiceTest {
         ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).findById(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList("expectedDeliveryDate"));
+        verifyZeroInteractions(messageQueueDAO);
+    }
+
+    @Test
+    void shouldUpdateClaimAndReturnClaimUpdatedForMatchingNinoWhenEligibleAndNoFieldsHaveChanged() {
+        //given
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        UUID existingClaimId = UUID.randomUUID();
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+
+        //when
+        ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
+
+        //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEmpty();
+        assertThat(result.getClaim()).isEqualTo(existingClaim);
+        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
+        verify(claimRepository).findById(existingClaimId);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
         verifyZeroInteractions(messageQueueDAO);
     }
 
@@ -239,6 +273,8 @@ class NewClaimServiceTest {
         ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
 
         //then
+        assertThat(result.getClaimUpdated()).isNull();
+        assertThat(result.getUpdatedFields()).isNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
