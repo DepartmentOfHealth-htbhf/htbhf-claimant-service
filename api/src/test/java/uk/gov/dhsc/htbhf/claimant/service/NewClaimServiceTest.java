@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -202,6 +203,36 @@ class NewClaimServiceTest {
         verify(claimRepository).findById(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList("expectedDeliveryDate"));
+        verifyZeroInteractions(messageQueueDAO);
+    }
+
+    @Test
+    void shouldUpdateClaimAndReturnClaimUpdatedForMatchingNinoWhenEligibleAndNoFieldsHaveChanged() {
+        //given
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        UUID existingClaimId = UUID.randomUUID();
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+
+        //when
+        ClaimResult result = newClaimService.createOrUpdateClaim(newClaimant);
+
+        //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEmpty();
+        assertThat(result.getClaim()).isEqualTo(existingClaim);
+        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
+        verify(claimRepository).findById(existingClaimId);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
         verifyZeroInteractions(messageQueueDAO);
     }
 

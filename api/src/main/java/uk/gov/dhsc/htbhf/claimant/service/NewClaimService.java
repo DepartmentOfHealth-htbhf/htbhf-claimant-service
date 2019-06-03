@@ -20,7 +20,6 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
@@ -135,7 +134,7 @@ public class NewClaimService {
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement, List<String> updatedFields) {
         VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();
-        boolean claimUpdated = !isEmpty(updatedFields);
+        boolean claimUpdated = updatedFields != null;
 
         return ClaimResult.builder()
                 .claim(claim)
