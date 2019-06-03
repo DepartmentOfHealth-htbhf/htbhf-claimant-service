@@ -145,6 +145,7 @@ class MessageProcessorTest {
 
         //Then
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
+        verify(createNewCardDummyMessageTypeProcessor).processFailedMessage(cardMessage, eventFailedException.getFailureEvent());
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, ERROR);
         verify(eventAuditor).auditFailedEvent(eventFailedException.getFailureEvent());
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor, createNewCardDummyMessageTypeProcessor, eventAuditor);
