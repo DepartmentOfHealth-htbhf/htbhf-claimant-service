@@ -5,17 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
@@ -23,7 +17,7 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 import java.util.Map;
 import javax.validation.Valid;
 
-import static java.lang.Boolean.TRUE;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController()
@@ -77,7 +71,7 @@ public class ClaimController {
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-        if (TRUE.equals(claimResult.getClaimUpdated())) {
+        if (isTrue(claimResult.getClaimUpdated())) {
             return HttpStatus.OK;
         }
         ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();

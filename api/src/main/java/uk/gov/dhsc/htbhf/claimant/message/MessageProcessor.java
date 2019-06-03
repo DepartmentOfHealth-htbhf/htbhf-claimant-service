@@ -8,7 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 
 import java.util.List;
@@ -33,6 +35,7 @@ public class MessageProcessor {
 
     private final MessageStatusProcessor messageStatusProcessor;
     private final MessageRepository messageRepository;
+    private final EventAuditor eventAuditor;
     private final Map<MessageType, MessageTypeProcessor> messageProcessorsByType;
 
     @Value("${message-processor.message-limit}")
@@ -85,6 +88,10 @@ public class MessageProcessor {
     private MessageStatus invokeMessageTypeProcessor(Message message, MessageTypeProcessor messageTypeProcessor) {
         try {
             return messageTypeProcessor.processMessage(message);
+        } catch (EventFailedException efe) {
+            log.error("Failure event caught for message with id {}, exception detail: {}", message.getId(), constructExceptionDetail(efe), efe);
+            eventAuditor.auditFailedEvent(efe.getFailureEvent());
+            return ERROR;
         } catch (RuntimeException e) {
             log.error("Unable to process message with id {}, exception detail: {}", message.getId(), constructExceptionDetail(e), e);
             return ERROR;

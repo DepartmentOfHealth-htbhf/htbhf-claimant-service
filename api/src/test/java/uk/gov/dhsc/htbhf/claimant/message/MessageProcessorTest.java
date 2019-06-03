@@ -12,12 +12,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.NewCardEvent;
 import uk.gov.dhsc.htbhf.logging.TestAppender;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -26,10 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
@@ -53,6 +54,9 @@ class MessageProcessorTest {
     @Mock
     private MessageStatusProcessor messageStatusProcessor;
 
+    @Mock
+    private EventAuditor eventAuditor;
+
     @Spy
     private CreateNewCardDummyMessageTypeProcessor createNewCardDummyMessageTypeProcessor = new CreateNewCardDummyMessageTypeProcessor();
 
@@ -64,7 +68,7 @@ class MessageProcessorTest {
         Map<MessageType, MessageTypeProcessor> messageTypeProcessorMap = Map.of(
                 CREATE_NEW_CARD, createNewCardDummyMessageTypeProcessor,
                 SEND_FIRST_EMAIL, sendFirstEmailDummyMessageTypeProcessor);
-        messageProcessor = new MessageProcessor(messageStatusProcessor, messageRepository, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
+        messageProcessor = new MessageProcessor(messageStatusProcessor, messageRepository, eventAuditor, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
     }
 
     @AfterEach
@@ -93,6 +97,7 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT, PAGEABLE);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
+        verifyZeroInteractions(eventAuditor);
     }
 
     @Test
@@ -119,6 +124,30 @@ class MessageProcessorTest {
         verify(messageStatusProcessor).processStatusForMessage(cardMessage2, FAILED);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage3, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor, createNewCardDummyMessageTypeProcessor);
+        verifyZeroInteractions(eventAuditor);
+    }
+
+    @Test
+    void shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown() {
+        //Given
+        Message cardMessage = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(1));
+        given(messageRepository.findAllMessagesByTypeOrderedByDate(any(), any()))
+                .willReturn(List.of(cardMessage))
+                .willReturn(emptyList());
+        UUID claimId = UUID.randomUUID();
+        NewCardEvent event = NewCardEvent.builder().claimId(claimId).build();
+        String failureMessage = "Something went badly wrong";
+        EventFailedException eventFailedException = new EventFailedException(event, new RuntimeException("test exception"), failureMessage);
+        given(createNewCardDummyMessageTypeProcessor.processMessage(any())).willThrow(eventFailedException);
+
+        //When
+        messageProcessor.processAllMessages();
+
+        //Then
+        verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
+        verify(messageStatusProcessor).processStatusForMessage(cardMessage, ERROR);
+        verify(eventAuditor).auditFailedEvent(eventFailedException.getFailureEvent());
+        verifyNoMoreInteractions(messageRepository, messageStatusProcessor, createNewCardDummyMessageTypeProcessor, eventAuditor);
     }
 
     @Test
@@ -141,6 +170,7 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE);
         verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
+        verifyZeroInteractions(eventAuditor);
     }
 
     @Test
