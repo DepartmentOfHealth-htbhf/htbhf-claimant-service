@@ -15,44 +15,7 @@ basePath: "/"
 tags:
 - name: "claim-controller"
   description: "Endpoints for dealing with claims, e.g. persisting a claim."
-- name: "claim-controller-v-1"
-  description: "Endpoints for dealing with claims, e.g. persisting a claim."
 paths:
-  /v1/claims:
-    post:
-      tags:
-      - "claim-controller-v-1"
-      summary: "Persist a new claim."
-      operationId: "newClaimUsingPOST_1"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "claimDTO"
-        description: "The claim to persist"
-        required: false
-        schema:
-          $ref: "#/definitions/ClaimDTO"
-      responses:
-        200:
-          description: "OK"
-          schema:
-            $ref: "#/definitions/ClaimResultDTO"
-        201:
-          description: "Created"
-        400:
-          description: "Bad request"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        401:
-          description: "Unauthorized"
-        403:
-          description: "Forbidden"
-        404:
-          description: "Not Found"
-      deprecated: false
   /v2/claims:
     post:
       tags:

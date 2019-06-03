@@ -21,7 +21,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -48,7 +50,6 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInter
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI_V2;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
@@ -56,7 +57,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
@@ -117,7 +117,7 @@ class ClaimantServiceIntegrationTests {
         saveActiveClaimWithNinoAndNoExpectedDeliveryDate(claim.getClaimant().getNino());
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntityV2(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -167,23 +167,6 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
     }
-
-    @Test
-    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForNino() {
-        //Given
-        ClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aClaimantWithNino(dto.getClaimant().getNino());
-        Claim claim = aValidClaimBuilder().claimant(claimant).build();
-        claimRepository.save(claim);
-
-        //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
-
-        //Then
-        assertDuplicateResponse(response);
-    }
-
-    // TODO: MGS: add test to confirm existing claim is updated and response includes CLAIM_UPDATED status. HTBHF-1192
 
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
@@ -371,18 +354,10 @@ class ClaimantServiceIntegrationTests {
         return dateFields.contains(fieldName);
     }
 
-    //TODO DW HTBHF-1483 remove method
     private RequestEntity buildRequestEntity(Object requestObject) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
-    }
-
-    //TODO DW HTBHF-1483 rename to remove version number from name
-    private RequestEntity buildRequestEntityV2(Object requestObject) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V2);
     }
 
     private void saveActiveClaimWithNinoAndNoExpectedDeliveryDate(String nino) {
