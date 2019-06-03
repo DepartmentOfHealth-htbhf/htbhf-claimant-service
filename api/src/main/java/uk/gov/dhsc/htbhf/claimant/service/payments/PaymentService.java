@@ -60,6 +60,7 @@ public class PaymentService {
                     .paymentCycle(paymentCycle)
                     .paymentReference(paymentReference)
                     .paymentStatus(PaymentStatus.FAILURE)
+                    .paymentTimestamp(LocalDateTime.now())
                     .build();
 
             paymentRepository.save(failedPayment);

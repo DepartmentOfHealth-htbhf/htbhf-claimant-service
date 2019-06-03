@@ -238,6 +238,7 @@ class PaymentServiceTest {
         assertThat(actualPayment.getClaim()).isEqualTo(paymentCycle.getClaim());
         assertThat(actualPayment.getPaymentCycle()).isEqualTo(paymentCycle);
         assertThat(actualPayment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILURE);
+        assertThat(actualPayment.getPaymentTimestamp()).isNotNull();
         assertThat(actualPayment.getId()).isNotNull();
         return actualPayment;
     }
