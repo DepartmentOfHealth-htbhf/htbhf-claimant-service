@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -17,6 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
 
 import java.time.LocalDateTime;
 
@@ -44,42 +46,81 @@ public class PaymentService {
 
     /**
      * Make the first payment onto a new card as a part of a successful application process.
+     * <p>
+     * Note that the PMD warning is suppressed so that we can use the values of Payment and
+     * DepositFundsResponse in the construction of the failed payment event if they have been set.
+     * </p>
      *
      * @param paymentCycle  The new {@link PaymentCycle} associated with the new claim
      * @param cardAccountId The new card id to make to payment to
      * @return The {@link Payment} entity relevant to this process.
      */
+    @SuppressWarnings("PMD.NullAssignment")
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
-        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
-        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
-        updatePayment(payment, depositFundsResponse.getReferenceId());
-        updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
-        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
+        Payment payment = null;
+        DepositFundsResponse depositFundsResponse = null;
+        try {
+            payment = createPayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
+            depositFundsResponse = depositFundsToCard(payment);
+            updatePayment(payment, depositFundsResponse.getReferenceId());
+            updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
+            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
+        } catch (RuntimeException e) {
+            String failureMessage = String.format("First payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
+                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
+            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle, payment, depositFundsResponse);
+            throw new EventFailedException(failedEvent, e, failureMessage);
+        }
         return payment;
     }
 
     /**
      * Calculate and (if appropriate) make the required payment for the given {@link PaymentCycle}.
+     * <p>
+     * Note that the PMD warning is suppressed so that we can use the values of Payment and
+     * DepositFundsResponse in the construction of the failed payment event if they have been set.
+     * </p>
      *
      * @param paymentCycle  The {@link PaymentCycle} to make the payment for
      * @param cardAccountId The card id to make the payment to.
      * @return The {@link Payment} entity relevant to this process.
      */
+    @SuppressWarnings("PMD.NullAssignment")
     public Payment makePayment(PaymentCycle paymentCycle, String cardAccountId) {
-        CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
-        PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),
-                balance.getAvailableBalanceInPence());
-        updatePaymentCycle(paymentCycle, paymentCalculation, balance.getAvailableBalanceInPence());
-        if (paymentCalculation.getPaymentAmount() == 0) {
-            eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
-            log.info("No payment will be made as the existing balance on the card is too high");
-            return null;
+        Payment payment = null;
+        DepositFundsResponse depositFundsResponse = null;
+        try {
+            CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
+            PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),
+                    balance.getAvailableBalanceInPence());
+            updatePaymentCycle(paymentCycle, paymentCalculation, balance.getAvailableBalanceInPence());
+            if (paymentCalculation.getPaymentAmount() == 0) {
+                eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
+                log.info("No payment will be made as the existing balance on the card is too high");
+                return null;
+            }
+            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());
+            depositFundsResponse = depositFundsToCard(payment);
+            updatePayment(payment, depositFundsResponse.getReferenceId());
+            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
+        } catch (RuntimeException e) {
+            String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
+                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
+            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle, payment, depositFundsResponse);
+            throw new EventFailedException(failedEvent, e, failureMessage);
         }
-        Payment payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());
-        DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
-        updatePayment(payment, depositFundsResponse.getReferenceId());
-        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         return payment;
+    }
+
+    @SuppressWarnings("PMD.NullAssignment")
+    private MakePaymentEvent buildFailedMakePaymentEvent(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
+        return MakePaymentEvent.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
+                .paymentAmountInPence((payment == null) ? null : payment.getPaymentAmountInPence())
+                .paymentId((payment == null) ? null : payment.getId())
+                .reference((depositFundsResponse == null) ? null : depositFundsResponse.getReferenceId())
+                .build();
     }
 
     private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
