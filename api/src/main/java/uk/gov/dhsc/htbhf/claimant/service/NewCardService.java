@@ -27,23 +27,34 @@ public class NewCardService {
 
     /**
      * Creates a new card for the given claim. If successful, the card account id is saved to the claim and the claim status is set to ACTIVE.
+     * <p>
+     * Note that the PMD warning is suppressed so that we can use the value of CardResponse in the construction
+     * of the failed new card event if it has been set.
+     * </p>
      *
      * @param claim the claim to create a new card for.
      */
+    @SuppressWarnings("PMD.NullAssignment")
     @Transactional
     public void createNewCard(Claim claim) {
+        CardResponse cardResponse = null;
         try {
             CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
-            CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
+            cardResponse = cardClient.requestNewCard(cardRequest);
             updateAndSaveClaim(claim, cardResponse);
             eventAuditor.auditNewCard(claim.getId(), cardResponse);
         } catch (RuntimeException e) {
             String failureMessage = String.format("Card creation failed for claim %s, exception is: %s", claim.getId(), e.getMessage());
-            NewCardEvent failedEvent = NewCardEvent.builder()
-                    .claimId(claim.getId())
-                    .build();
-            throw new EventFailedException(failedEvent, e, failureMessage);
+            throw new EventFailedException(buildFailedNewCardEvent(claim, cardResponse), e, failureMessage);
         }
+    }
+
+    @SuppressWarnings("PMD.NullAssignment")
+    private NewCardEvent buildFailedNewCardEvent(Claim claim, CardResponse cardResponse) {
+        return NewCardEvent.builder()
+                .claimId(claim.getId())
+                .cardAccountId((cardResponse == null) ? null : cardResponse.getCardAccountId())
+                .build();
     }
 
     private void updateAndSaveClaim(Claim claim, CardResponse cardResponse) {

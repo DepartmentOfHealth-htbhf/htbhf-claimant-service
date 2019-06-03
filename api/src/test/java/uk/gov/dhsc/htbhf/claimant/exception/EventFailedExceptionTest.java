@@ -21,11 +21,14 @@ class EventFailedExceptionTest {
         UUID claimId = UUID.randomUUID();
         NewCardEvent event = NewCardEvent.builder().claimId(claimId).build();
         String failureMessage = "Something went badly wrong";
+        RuntimeException testException = new RuntimeException("test exception");
 
         //When
-        EventFailedException exception = new EventFailedException(event, new RuntimeException("test exception"), failureMessage);
+        EventFailedException exception = new EventFailedException(event, testException, failureMessage);
 
         //Then
+        assertThat(exception).hasMessage(failureMessage);
+        assertThat(exception).hasCause(testException);
         FailureEvent failureEvent = exception.getFailureEvent();
         assertThat(failureEvent.getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(failureEvent.getTimestamp()).isEqualTo(event.getTimestamp());
