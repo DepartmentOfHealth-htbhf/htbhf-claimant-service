@@ -128,7 +128,7 @@ class MessageProcessorTest {
     }
 
     @Test
-    void shouldAuditFailedEventWHenAnEventFailedExceptionIsThrown() {
+    void shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown() {
         //Given
         Message cardMessage = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(1));
         given(messageRepository.findAllMessagesByTypeOrderedByDate(any(), any()))
