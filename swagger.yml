@@ -95,6 +95,7 @@ definitions:
     properties:
       claimStatus:
         type: "string"
+        description: "The status of the claim"
         enum:
         - "REJECTED"
         - "NEW"
@@ -105,8 +106,11 @@ definitions:
         - "ERROR"
       claimUpdated:
         type: "boolean"
+        description: "True if an existing, active, claim was updated. May be null\
+          \ if no existing claim was found."
       eligibilityStatus:
         type: "string"
+        description: "The eligibility status of the claim"
         enum:
         - "ELIGIBLE"
         - "INELIGIBLE"
@@ -116,9 +120,12 @@ definitions:
         - "DUPLICATE"
       updatedFields:
         type: "array"
+        description: "List of fields that were updated in the existing claim. May\
+          \ be null if no existing claim was found."
         items:
           type: "string"
       voucherEntitlement:
+        description: "Details of the vouchers that the claimant is entitled to"
         $ref: "#/definitions/VoucherEntitlementDTO"
     title: "ClaimResultDTO"
   ClaimantDTO:
