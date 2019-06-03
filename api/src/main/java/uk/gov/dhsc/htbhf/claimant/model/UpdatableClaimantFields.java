@@ -4,104 +4,87 @@ import lombok.Getter;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * Enumeration of all the fields on a Claimant that may be updated by the claimant.
  */
+@Getter
 public enum UpdatableClaimantFields {
 
-    EXPECTED_DELIVERY_DATE("expectedDeliveryDate"),
-    ADDRESS("address") {
-
+    EXPECTED_DELIVERY_DATE("expectedDeliveryDate") {
         @Override
-        boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) throws InvocationTargetException, IllegalAccessException {
-            return hasAddressChanged(originalClaimant, newClaimant);
+        Object getValue(Claimant claimant) {
+            return claimant.getExpectedDeliveryDate();
         }
 
         @Override
-        void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
-            updateAddress(originalClaimant, newClaimant);
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setExpectedDeliveryDate(newClaimant.getExpectedDeliveryDate());
+        }
+    },
+    ADDRESS("address") {
+        @Override
+        public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
+            Address originalAddress = originalClaimant.getAddress();
+            Address newAddress = newClaimant.getAddress();
+            if (originalAddress == null && newAddress == null) {
+                return false;
+            }
+            if (originalAddress == null || newAddress == null) {
+                return true;
+            }
+            return !getAddressString(originalAddress).equals(getAddressString(newAddress));
+        }
+
+        private String getAddressString(Address address) {
+            return address.getAddressLine1() + ":" + address.getAddressLine2() + ":" + address.getTownOrCity() + ":" + address.getPostcode();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            Address originalAddress = originalClaimant.getAddress();
+            Address newAddress = newClaimant.getAddress();
+            if (originalAddress == null || newAddress == null) {
+                originalClaimant.setAddress(newAddress);
+            } else {
+                originalAddress.setAddressLine1(newAddress.getAddressLine1());
+                originalAddress.setAddressLine2(newAddress.getAddressLine2());
+                originalAddress.setTownOrCity(newAddress.getTownOrCity());
+                originalAddress.setPostcode(newAddress.getPostcode());
+            }
+        }
+
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getAddress();
         }
     };
 
-    @Getter
     private final String fieldName;
-    private final Method setter;
-    private final Method getter;
 
-    /**
-     * Constructor that accepts the field name and uses it to obtain the getter and setter methods.
-     * @param fieldName the name of the field.
-     */
     UpdatableClaimantFields(String fieldName) {
         this.fieldName = fieldName;
-        Map<String, Method> methodMap = Arrays.stream(Claimant.class.getDeclaredMethods()).collect(Collectors.toMap(
-                method -> method.getName().toLowerCase(Locale.getDefault()),
-                method -> method
-        ));
-        this.setter = methodMap.get("set" + fieldName.toLowerCase(Locale.getDefault()));
-        this.getter = methodMap.get("get" + fieldName.toLowerCase(Locale.getDefault()));
     }
 
     /**
-     * Updates the field in the originalObject if the newObject has a value that differs.
-     * @param originalObject the object to update.
-     * @param newObject the object with the value to update to.
-     * @return The name of the field if updated, empty otherwise.
+     * Checks whether the value of the relevant field differs between the two objects.
+     * @param originalClaimant the original claimant.
+     * @param newClaimant the new claimant.
+     * @return true if the new claimant has a different value to the original.
      */
-    public Optional<String> updateOriginalIfDifferent(Claimant originalObject, Claimant newObject) {
-        try {
-            if (valueIsDifferent(originalObject, newObject)) {
-                updateOriginal(originalObject, newObject);
-                return Optional.of(getFieldName());
-            }
-        } catch (InvocationTargetException | IllegalAccessException | RuntimeException e) {
-            throw new IllegalStateException("Cannot update field " + getFieldName(), e);
-        }
-        return Optional.empty();
-    }
-
-    boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) throws InvocationTargetException, IllegalAccessException {
-        Object originalValue = getter.invoke(originalClaimant);
-        Object newValue = getter.invoke(newClaimant);
+    public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
+        Object originalValue = getValue(originalClaimant);
+        Object newValue = getValue(newClaimant);
         return !Objects.equals(originalValue, newValue);
     }
 
-    void updateOriginal(Claimant originalClaimant, Claimant newClaimant) throws InvocationTargetException, IllegalAccessException {
-        Object newValue = getter.invoke(newClaimant);
-        setter.invoke(originalClaimant, newValue);
-    }
+    /**
+     * Updates the field value of the original to be the same as the new claimant.
+     * @param originalClaimant the original claimant.
+     * @param newClaimant the new claimant.
+     */
+    public abstract void updateOriginal(Claimant originalClaimant, Claimant newClaimant);
 
-    private static boolean hasAddressChanged(Claimant originalClaimant, Claimant newClaimant) throws InvocationTargetException, IllegalAccessException {
-        Address originalAddress = originalClaimant.getAddress();
-        Address newAddress = newClaimant.getAddress();
-        if (originalAddress == null && newAddress == null) {
-            return false;
-        }
-        if (originalAddress == null || newAddress == null) {
-            return true;
-        }
-        return !getAddressString(originalAddress).equals(getAddressString(newAddress));
-    }
-
-    private static String getAddressString(Address address) {
-        return address.getAddressLine1() + ":" + address.getAddressLine2() + ":" + address.getTownOrCity() + ":" + address.getPostcode();
-    }
-
-    private static void updateAddress(Claimant originalClaimant, Claimant newClaimant) {
-        Address originalAddress = originalClaimant.getAddress();
-        Address newAddress = newClaimant.getAddress();
-        if (originalAddress == null || newAddress == null) {
-            originalClaimant.setAddress(newAddress);
-        } else {
-            originalAddress.setAddressLine1(newAddress.getAddressLine1());
-            originalAddress.setAddressLine2(newAddress.getAddressLine2());
-            originalAddress.setTownOrCity(newAddress.getTownOrCity());
-            originalAddress.setPostcode(newAddress.getPostcode());
-        }
-    }
+    abstract Object getValue(Claimant claimant);
 }

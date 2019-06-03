@@ -23,7 +23,6 @@ import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -103,11 +102,14 @@ public class ClaimService {
 
     private List<String> updateClaimantFields(Claim claim, Claimant claimant) {
         Claimant originalClaimant = claim.getClaimant();
-        return Arrays.stream(UpdatableClaimantFields.values())
-                .map(field -> field.updateOriginalIfDifferent(originalClaimant, claimant))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(toList());
+        List<String> updatedFields = new ArrayList<>();
+        for (UpdatableClaimantFields field : UpdatableClaimantFields.values()) {
+            if (field.valueIsDifferent(originalClaimant, claimant)) {
+                field.updateOriginal(originalClaimant, claimant);
+                updatedFields.add(field.getFieldName());
+            }
+        }
+        return updatedFields;
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
