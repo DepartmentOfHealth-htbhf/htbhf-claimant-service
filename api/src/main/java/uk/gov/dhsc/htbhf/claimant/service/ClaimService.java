@@ -29,8 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Slf4j
 @RequiredArgsConstructor
 @SuppressWarnings("PMD.TooManyMethods")
-// TODO DW rename to ClaimService in own PR
-public class NewClaimService {
+public class ClaimService {
 
     private final ClaimRepository claimRepository;
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
@@ -48,7 +47,7 @@ public class NewClaimService {
 
     public ClaimResult createOrUpdateClaim(Claimant claimant) {
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimant);
             if (claimExistsAndIsEligible(decision)) {
                 Claim claim = findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimant);

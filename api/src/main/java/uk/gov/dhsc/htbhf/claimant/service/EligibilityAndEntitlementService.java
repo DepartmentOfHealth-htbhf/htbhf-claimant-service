@@ -29,7 +29,7 @@ public class EligibilityAndEntitlementService {
     private final CycleEntitlementCalculator cycleEntitlementCalculator;
 
     /**
-     * Determines the eligibility and entitlement for the given new claimant. If the claimant's NINO is not found in the database,
+     * Determines the eligibility and entitlement for the given claimant. If the claimant's NINO is not found in the database,
      * the external eligibility service is called.
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
@@ -37,7 +37,7 @@ public class EligibilityAndEntitlementService {
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
+    public EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
         if (liveClaimsWithNino.size() > 1) {
