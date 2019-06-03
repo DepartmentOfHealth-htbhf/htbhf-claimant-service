@@ -21,10 +21,12 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -39,6 +41,7 @@ import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_H
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.FailureEventTestDataFactory.aFailureEventWithEvent;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aFullPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aNoPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -178,6 +181,66 @@ class PaymentServiceTest {
         verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
         verifyZeroInteractions(paymentRepository);
         verifyNoMoreInteractions(cardClient, eventAuditor);
+    }
+
+    @Test
+    void shouldSaveFailedPayment() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        int amountToPay = 1240;
+        String paymentReference = "paymentRef1";
+        MakePaymentEvent event = MakePaymentEvent.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
+                .paymentAmountInPence(amountToPay)
+                .paymentId(UUID.randomUUID())
+                .reference(paymentReference)
+                .build();
+
+        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, aFailureEventWithEvent(event));
+
+        verifyFailedPaymentSavedWithAllData(paymentCycle, amountToPay, paymentReference);
+    }
+
+    @Test
+    void shouldSaveFailedPaymentWithNoAmountOrReferenceOnEvent() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        MakePaymentEvent event = MakePaymentEvent.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
+                .paymentAmountInPence(null)
+                .paymentId(null)
+                .reference(null)
+                .build();
+
+        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, aFailureEventWithEvent(event));
+
+        verifyFailedPaymentSavedWithNoOptionalData(paymentCycle);
+    }
+
+    private void verifyFailedPaymentSavedWithNoOptionalData(PaymentCycle paymentCycle) {
+        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
+        assertThat(actualPayment.getPaymentAmountInPence()).isNull();
+        assertThat(actualPayment.getPaymentReference()).isNull();
+    }
+
+    private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentReference) {
+        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
+        assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
+        assertThat(actualPayment.getPaymentReference()).isEqualTo(paymentReference);
+    }
+
+    private Payment verifyFailedPaymentSavedCorrectly(PaymentCycle paymentCycle) {
+        ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentRepository).save(captor.capture());
+        assertThat(captor.getAllValues()).hasSize(1);
+        Payment actualPayment = captor.getValue();
+        assertThat(actualPayment.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
+        assertThat(actualPayment.getClaim()).isEqualTo(paymentCycle.getClaim());
+        assertThat(actualPayment.getPaymentCycle()).isEqualTo(paymentCycle);
+        assertThat(actualPayment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILURE);
+        assertThat(actualPayment.getPaymentTimestamp()).isNotNull();
+        assertThat(actualPayment.getId()).isNotNull();
+        return actualPayment;
     }
 
     private void verifyEventFailExceptionAndEventAreCorrect(PaymentCycle paymentCycle,

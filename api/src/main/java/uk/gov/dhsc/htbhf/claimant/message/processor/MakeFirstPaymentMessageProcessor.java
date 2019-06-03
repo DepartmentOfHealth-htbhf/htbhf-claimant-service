@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import javax.transaction.Transactional;
 
@@ -40,4 +41,10 @@ public class MakeFirstPaymentMessageProcessor implements MessageTypeProcessor {
         return MAKE_FIRST_PAYMENT;
     }
 
+    @Override
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void processFailedMessage(Message message, FailureEvent failureEvent) {
+        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
+        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);
+    }
 }
