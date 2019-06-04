@@ -12,7 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
@@ -103,7 +103,7 @@ public class ClaimService {
     private List<String> updateClaimantFields(Claim claim, Claimant claimant) {
         Claimant originalClaimant = claim.getClaimant();
         List<String> updatedFields = new ArrayList<>();
-        for (UpdatableClaimantFields field : UpdatableClaimantFields.values()) {
+        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
             if (field.valueIsDifferent(originalClaimant, claimant)) {
                 field.updateOriginal(originalClaimant, claimant);
                 updatedFields.add(field.getFieldName());

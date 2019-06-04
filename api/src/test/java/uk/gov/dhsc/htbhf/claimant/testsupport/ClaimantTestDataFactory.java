@@ -16,7 +16,7 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_NINO = "EB123456C";
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
-    private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
+    private static final LocalDate VALID_DOB = TestConstants.JAMES_DATE_OF_BIRTH;
     private static final String VALID_PHONE_NUMBER = "+447700900128";
 
     public static Claimant aValidClaimant() {

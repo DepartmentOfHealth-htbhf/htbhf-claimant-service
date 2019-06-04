@@ -10,8 +10,41 @@ import java.util.Objects;
  * Enumeration of all the fields on a Claimant that may be updated by the claimant.
  */
 @Getter
-public enum UpdatableClaimantFields {
+public enum UpdatableClaimantField {
 
+    FIRST_NAME("firstName") {
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getFirstName();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setFirstName(newClaimant.getFirstName());
+        }
+    },
+    LAST_NAME("lastName") {
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getLastName();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setLastName(newClaimant.getLastName());
+        }
+    },
+    DATE_OF_BIRTH("dateOfBirth") {
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getDateOfBirth();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setDateOfBirth(newClaimant.getDateOfBirth());
+        }
+    },
     EXPECTED_DELIVERY_DATE("expectedDeliveryDate") {
         @Override
         Object getValue(Claimant claimant) {
@@ -63,14 +96,15 @@ public enum UpdatableClaimantFields {
 
     private final String fieldName;
 
-    UpdatableClaimantFields(String fieldName) {
+    UpdatableClaimantField(String fieldName) {
         this.fieldName = fieldName;
     }
 
     /**
      * Checks whether the value of the relevant field differs between the two objects.
+     *
      * @param originalClaimant the original claimant.
-     * @param newClaimant the new claimant.
+     * @param newClaimant      the new claimant.
      * @return true if the new claimant has a different value to the original.
      */
     public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
@@ -81,8 +115,9 @@ public enum UpdatableClaimantFields {
 
     /**
      * Updates the field value of the original to be the same as the new claimant.
+     *
      * @param originalClaimant the original claimant.
-     * @param newClaimant the new claimant.
+     * @param newClaimant      the new claimant.
      */
     public abstract void updateOriginal(Claimant originalClaimant, Claimant newClaimant);
 

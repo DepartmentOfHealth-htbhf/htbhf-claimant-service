@@ -24,7 +24,7 @@ public class AddressTestDataFactory {
         return aValidAddressBuilder().postcode(postcode).build();
     }
 
-    private static Address.AddressBuilder aValidAddressBuilder() {
+    public static Address.AddressBuilder aValidAddressBuilder() {
         return Address.builder()
                 .addressLine1("Flat b")
                 .addressLine2("123 Fake street")
