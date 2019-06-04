@@ -19,8 +19,14 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
+import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
 
 @Service
 @AllArgsConstructor
@@ -33,6 +39,36 @@ public class PaymentService {
     private PaymentCycleService paymentCycleService;
     private EventAuditor eventAuditor;
     private PaymentCalculator paymentCalculator;
+
+    /**
+     * Method used to store a failed payment to the database with the status of FAILURE. Will attempt to
+     * retrieve the payment amount and reference from the failure event if available.
+     *
+     * @param paymentCycle  The payment cycle for the payment
+     * @param cardAccountId The card account id
+     * @param failureEvent  The failure event.
+     */
+    public void saveFailedPayment(PaymentCycle paymentCycle, String cardAccountId, FailureEvent failureEvent) {
+        try {
+            Map<String, Object> eventMetadata = failureEvent.getEventMetadata();
+            Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());
+            String paymentReference = (String) eventMetadata.get(PAYMENT_REFERENCE.getKey());
+            Payment failedPayment = Payment.builder()
+                    .cardAccountId(cardAccountId)
+                    .claim(paymentCycle.getClaim())
+                    .paymentAmountInPence(amountToPayInPence)
+                    .paymentCycle(paymentCycle)
+                    .paymentReference(paymentReference)
+                    .paymentStatus(PaymentStatus.FAILURE)
+                    .paymentTimestamp(LocalDateTime.now())
+                    .build();
+
+            paymentRepository.save(failedPayment);
+        } catch (Exception e) {
+            log.error("Unexpected exception caught saving a failed payment for paymentCycle: {}, cardAccountId: {}, failureEvent: {}, exception detail: {}",
+                    paymentCycle.getId(), cardAccountId, failureEvent, constructExceptionDetail(e), e);
+        }
+    }
 
     /**
      * Build and send a MAKE_PAYMENT message for the given {@link PaymentCycle}.
