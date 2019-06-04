@@ -11,7 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
-import uk.gov.dhsc.htbhf.claimant.service.NewClaimService;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Api(description = "Endpoints for dealing with claims, e.g. persisting a claim.")
 public class ClaimController {
 
-    private final NewClaimService newClaimService;
+    private final ClaimService claimService;
     private final ClaimantDTOToClaimantConverter claimantConverter;
     private final VoucherEntitlementToDTOConverter voucherConverter;
 
@@ -42,12 +42,12 @@ public class ClaimController {
     );
 
     @PostMapping
-    @ApiOperation("Persist a new claim.")
+    @ApiOperation("Create or update a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResultDTO> newClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
+    public ResponseEntity<ClaimResultDTO> createOrUpdateClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
-        ClaimResult result = newClaimService.createOrUpdateClaim(claimant);
+        ClaimResult result = claimService.createOrUpdateClaim(claimant);
 
         return createResponse(result);
     }

@@ -63,7 +63,7 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(List.of(existingClaimId));
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimant);
 
         assertThat(decision.getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(decision.getExistingClaimId()).isEqualTo(existingClaimId);
@@ -78,7 +78,7 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(existingIds);
         Claimant claimant = aValidClaimant();
 
-        MultipleClaimsWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementService.evaluateNewClaimant(claimant),
+        MultipleClaimsWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementService.evaluateClaimant(claimant),
                 MultipleClaimsWithSameNinoException.class);
 
         assertThat(exception).isNotNull();
@@ -95,7 +95,7 @@ class EligibilityAndEntitlementServiceTest {
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
 
         assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -117,7 +117,7 @@ class EligibilityAndEntitlementServiceTest {
         given(duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(any())).willReturn(ELIGIBLE);
         given(cycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
 
         assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
