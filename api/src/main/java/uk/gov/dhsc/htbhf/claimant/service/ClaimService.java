@@ -71,11 +71,7 @@ public class ClaimService {
 
     private void handleFailedClaim(Claimant claimant, RuntimeException e) {
         Claim claim = buildClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
-        NewClaimEvent newClaimEvent = NewClaimEvent.builder()
-                .claimId(claim.getId())
-                .claimStatus(claim.getClaimStatus())
-                .eligibilityStatus(claim.getEligibilityStatus())
-                .build();
+        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
         FailureEvent failureEvent = FailureEvent.builder()
                 .failureDescription("Unable to create (or update) claim")
                 .failedEvent(newClaimEvent)

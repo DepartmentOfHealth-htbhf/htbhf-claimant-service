@@ -28,10 +28,10 @@ public class ClaimResultDTO {
     private VoucherEntitlementDTO voucherEntitlement;
 
     @JsonProperty("claimUpdated")
-    @ApiModelProperty(notes = "True if an existing, active, claim was updated. May be null if no existing claim was found.")
+    @ApiModelProperty(notes = "True if an existing, active, claim was updated. May be null if a new claim is created.")
     private Boolean claimUpdated;
 
     @JsonProperty("updatedFields")
-    @ApiModelProperty(notes = "List of fields that were updated in the existing claim. May be null if no existing claim was found.")
+    @ApiModelProperty(notes = "List of fields that were updated in the existing claim. May be null if a new claim is created.")
     private List<String> updatedFields;
 }
