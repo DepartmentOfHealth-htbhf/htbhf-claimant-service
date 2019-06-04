@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
@@ -15,6 +16,8 @@ import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
 
+import java.time.Clock;
+
 /**
  * The starting point for spring boot, this class enables SpringFox for documenting the api using swagger
  * and defines a number of beans.
@@ -24,7 +27,7 @@ import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
 @EnableSwagger2
 @Configuration
 @Import({CommonRestConfiguration.class, LoggingConfiguration.class, MessageProcessorConfiguration.class})
-<span class="fc" id="L27">public class ClaimantServiceApplication {</span>
+<span class="fc" id="L30">public class ClaimantServiceApplication {</span>
 
     @Value(&quot;${app.version:}&quot;) // use APP_VERSION env variable if available, otherwise give no version info
     private String appVersion;
@@ -38,19 +41,24 @@ import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
     @Autowired
     private EventLogger eventLogger;
 
+    @Bean
+    public Clock clock() {
+<span class="fc" id="L46">        return Clock.systemDefaultZone();</span>
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void logAfterStartup() {
-<span class="fc" id="L43">        eventLogger.logEvent(ApplicationStartedEvent.builder()</span>
-<span class="fc" id="L44">                .applicationId(applicationId)</span>
-<span class="fc" id="L45">                .applicationVersion(appVersion)</span>
-<span class="fc" id="L46">                .instanceIndex(instanceIndex)</span>
-<span class="fc" id="L47">                .build()</span>
+<span class="fc" id="L51">        eventLogger.logEvent(ApplicationStartedEvent.builder()</span>
+<span class="fc" id="L52">                .applicationId(applicationId)</span>
+<span class="fc" id="L53">                .applicationVersion(appVersion)</span>
+<span class="fc" id="L54">                .instanceIndex(instanceIndex)</span>
+<span class="fc" id="L55">                .build()</span>
         );
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L57">    }</span>
 
     public static void main(String[] args) {
-<span class="nc" id="L52">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
-<span class="nc" id="L53">    }</span>
+<span class="nc" id="L60">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
+<span class="nc" id="L61">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

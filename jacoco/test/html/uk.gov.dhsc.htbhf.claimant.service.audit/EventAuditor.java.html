@@ -34,13 +34,9 @@ public class EventAuditor {
 <span class="fc" id="L34">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
 <span class="fc" id="L35">            return;</span>
         }
-<span class="fc" id="L37">        NewClaimEvent newClaimEvent = NewClaimEvent.builder()</span>
-<span class="fc" id="L38">                .claimId(claim.getId())</span>
-<span class="fc" id="L39">                .claimStatus(claim.getClaimStatus())</span>
-<span class="fc" id="L40">                .eligibilityStatus(claim.getEligibilityStatus())</span>
-<span class="fc" id="L41">                .build();</span>
-<span class="fc" id="L42">        eventLogger.logEvent(newClaimEvent);</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L37">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L38">        eventLogger.logEvent(newClaimEvent);</span>
+<span class="fc" id="L39">    }</span>
 
     /**
      * Audit that a claim has been updated.
@@ -48,12 +44,12 @@ public class EventAuditor {
      * @param updatedFields the fields on the claim that have been updated
      */
     public void auditUpdatedClaim(Claim claim, List&lt;String&gt; updatedFields) {
-<span class="fc" id="L51">        UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()</span>
-<span class="fc" id="L52">                .claimId(claim.getId())</span>
-<span class="fc" id="L53">                .updatedFields(updatedFields)</span>
-<span class="fc" id="L54">                .build();</span>
-<span class="fc" id="L55">        eventLogger.logEvent(updatedClaimEvent);</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L47">        UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()</span>
+<span class="fc" id="L48">                .claimId(claim.getId())</span>
+<span class="fc" id="L49">                .updatedFields(updatedFields)</span>
+<span class="fc" id="L50">                .build();</span>
+<span class="fc" id="L51">        eventLogger.logEvent(updatedClaimEvent);</span>
+<span class="fc" id="L52">    }</span>
 
     /**
      * Audit a new card event given a card response.
@@ -62,36 +58,36 @@ public class EventAuditor {
      * @param cardResponse The card response which must not be null
      */
     public void auditNewCard(UUID claimId, CardResponse cardResponse) {
-<span class="fc bfc" id="L65" title="All 4 branches covered.">        if (claimId == null || cardResponse == null) {</span>
-<span class="fc" id="L66">            log.warn(&quot;Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null&quot;, claimId, cardResponse);</span>
-<span class="fc" id="L67">            return;</span>
+<span class="fc bfc" id="L61" title="All 4 branches covered.">        if (claimId == null || cardResponse == null) {</span>
+<span class="fc" id="L62">            log.warn(&quot;Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null&quot;, claimId, cardResponse);</span>
+<span class="fc" id="L63">            return;</span>
         }
-<span class="fc" id="L69">        NewCardEvent newCardEvent = NewCardEvent.builder()</span>
-<span class="fc" id="L70">                .claimId(claimId)</span>
-<span class="fc" id="L71">                .cardAccountId(cardResponse.getCardAccountId())</span>
-<span class="fc" id="L72">                .build();</span>
-<span class="fc" id="L73">        eventLogger.logEvent(newCardEvent);</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L65">        NewCardEvent newCardEvent = NewCardEvent.builder()</span>
+<span class="fc" id="L66">                .claimId(claimId)</span>
+<span class="fc" id="L67">                .cardAccountId(cardResponse.getCardAccountId())</span>
+<span class="fc" id="L68">                .build();</span>
+<span class="fc" id="L69">        eventLogger.logEvent(newCardEvent);</span>
+<span class="fc" id="L70">    }</span>
 
     public void auditMakePayment(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
-<span class="fc" id="L77">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
-<span class="fc" id="L78">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L79">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
-<span class="fc" id="L80">                .paymentAmountInPence(payment.getPaymentAmountInPence())</span>
-<span class="fc" id="L81">                .paymentId(payment.getId())</span>
-<span class="fc" id="L82">                .reference(depositFundsResponse.getReferenceId())</span>
-<span class="fc" id="L83">                .build();</span>
-<span class="fc" id="L84">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L73">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
+<span class="fc" id="L74">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L75">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L76">                .paymentAmountInPence(payment.getPaymentAmountInPence())</span>
+<span class="fc" id="L77">                .paymentId(payment.getId())</span>
+<span class="fc" id="L78">                .reference(depositFundsResponse.getReferenceId())</span>
+<span class="fc" id="L79">                .build();</span>
+<span class="fc" id="L80">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L81">    }</span>
 
     public void auditBalanceTooHighForPayment(PaymentCycle paymentCycle) {
-<span class="fc" id="L88">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
-<span class="fc" id="L89">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L90">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
-<span class="fc" id="L91">                .balanceOnCard(paymentCycle.getCardBalanceInPence())</span>
-<span class="fc" id="L92">                .build();</span>
-<span class="fc" id="L93">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L94">    }</span>
+<span class="fc" id="L84">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
+<span class="fc" id="L85">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L86">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L87">                .balanceOnCard(paymentCycle.getCardBalanceInPence())</span>
+<span class="fc" id="L88">                .build();</span>
+<span class="fc" id="L89">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L90">    }</span>
 
     /**
      * Audit a failure event.
@@ -99,7 +95,7 @@ public class EventAuditor {
      * @param failureEvent The event that has failed
      */
     public void auditFailedEvent(FailureEvent failureEvent) {
-<span class="nc" id="L102">        eventLogger.logEvent(failureEvent);</span>
-<span class="nc" id="L103">    }</span>
+<span class="fc" id="L98">        eventLogger.logEvent(failureEvent);</span>
+<span class="fc" id="L99">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
