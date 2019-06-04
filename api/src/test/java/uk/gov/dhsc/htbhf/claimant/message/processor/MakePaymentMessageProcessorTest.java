@@ -12,11 +12,13 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.mock;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -46,6 +48,21 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePayment(paymentCycle, claim.getCardAccountId());
+    }
+
+    @Test
+    void shouldProcessFailedMessage() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        Claim claim = paymentCycle.getClaim();
+        MakePaymentMessageContext messageContext = aValidMakePaymentMessageContext(paymentCycle, claim);
+        given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
+        Message message = mock(Message.class);
+        FailureEvent failureEvent = mock(FailureEvent.class);
+
+        processor.processFailedMessage(message, failureEvent);
+
+        verify(messageContextLoader).loadMakePaymentContext(message);
+        verify(paymentService).saveFailedPayment(paymentCycle, claim.getCardAccountId(), failureEvent);
     }
 
 }
