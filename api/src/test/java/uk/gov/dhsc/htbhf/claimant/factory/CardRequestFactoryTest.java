@@ -1,10 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.factory;
 
-import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.converter.AddressToAddressDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
@@ -17,14 +17,13 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
-@SpringBootTest
-@AutoConfigureEmbeddedDatabase
+@ExtendWith(MockitoExtension.class)
 class CardRequestFactoryTest {
 
-    @MockBean
+    @Mock
     private AddressToAddressDTOConverter addressConverter;
 
-    @Autowired
+    @InjectMocks
     private CardRequestFactory cardRequestFactory;
 
     @Test

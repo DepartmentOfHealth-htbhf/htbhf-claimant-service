@@ -13,12 +13,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
@@ -36,16 +34,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
@@ -62,7 +56,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -70,11 +63,12 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
+@AutoConfigureWireMock(port = 8100)
 class ClaimantServiceIntegrationTests {
 
     // Create a string 501 characters long
     private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
-    private static final String ELIGIBILITY_SERVICE_URL = "http://localhost:8100/v1/eligibility";
+    private static final String ELIGIBILITY_SERVICE_URL = "/v1/eligibility";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -88,9 +82,6 @@ class ClaimantServiceIntegrationTests {
     @Autowired
     MessageRepository messageRepository;
 
-    @MockBean
-    RestTemplate restTemplateWithIdHeaders;
-
     @AfterEach
     void deleteAllClaimsAndMessages() {
         claimRepository.deleteAll();
@@ -98,20 +89,20 @@ class ClaimantServiceIntegrationTests {
     }
 
     @Test
-    void shouldAcceptAndCreateANewValidClaimWithNoNullFields() {
+    void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         shouldAcceptAndCreateValidClaim(aValidClaimDTOWithNoNullFields());
     }
 
     @Test
-    void shouldAcceptAndCreateANewValidClaimWithNullFields() {
+    void shouldAcceptAndCreateANewValidClaimWithNullFields() throws JsonProcessingException {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());
     }
 
     @Test
-    void shouldAcceptAndUpdateAnExistingEligibleClaim() {
+    void shouldAcceptAndUpdateAnExistingEligibleClaim() throws JsonProcessingException {
         //Given
-        ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
-        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse);
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(7);
         ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDate(expectedDeliveryDate);
         saveActiveClaimWithNinoAndNoExpectedDeliveryDate(claim.getClaimant().getNino());
@@ -120,7 +111,7 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ACTIVE);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
@@ -128,13 +119,13 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getClaimUpdated()).isTrue();
         assertThat(response.getBody().getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
         assertClaimUpdatedSuccessfully(expectedDeliveryDate);
-        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
+        verifyPostToEligibilityService();
     }
 
-    private void shouldAcceptAndCreateValidClaim(ClaimDTO claim) {
+    private void shouldAcceptAndCreateValidClaim(ClaimDTO claim) throws JsonProcessingException {
         //Given
-        ResponseEntity<EligibilityResponse> eligibilityResponse = new ResponseEntity<>(anEligibilityResponseWithStatus(ELIGIBLE), HttpStatus.OK);
-        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponse);
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
         //Then
@@ -144,20 +135,18 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
         assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
-        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @Test
     void shouldFailWhenEligibilityServiceCallThrowsException() {
         //Given
         ClaimDTO claim = aValidClaimDTO();
-        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willThrow(new RestClientException("Test exception"));
+        stubEligibilityServiceWithInternalServiceError();
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertInternalServerErrorResponse(response);
         assertClaimPersistedSuccessfully(claim, ERROR, null, null);
-        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @Test
@@ -169,7 +158,7 @@ class ClaimantServiceIntegrationTests {
     }
 
     @Test
-    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() {
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() throws JsonProcessingException {
         //Given
         String householdIdentifier = "dwpHousehold1";
         ClaimDTO dto = aValidClaimDTO();
@@ -181,19 +170,17 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithDwpHouseholdIdentifier(householdIdentifier);
-        ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
-        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
-        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @Test
-    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() {
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() throws JsonProcessingException {
         //Given
         String householdIdentifier = "hmrcHousehold1";
         ClaimDTO dto = aValidClaimDTO();
@@ -205,15 +192,13 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithHmrcHouseholdIdentifier(householdIdentifier);
-        ResponseEntity<EligibilityResponse> eligibilityResponseEntity = new ResponseEntity<>(eligibilityResponse, HttpStatus.OK);
-        given(restTemplateWithIdHeaders.postForEntity(anyString(), any(), eq(EligibilityResponse.class))).willReturn(eligibilityResponseEntity);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
-        verify(restTemplateWithIdHeaders).postForEntity(ELIGIBILITY_SERVICE_URL, aValidPerson(), EligibilityResponse.class);
     }
 
     @ParameterizedTest(name = "Field {0} with invalid value {1} on a claim returns the correct error response")
@@ -330,7 +315,7 @@ class ClaimantServiceIntegrationTests {
     }
 
     private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
@@ -370,5 +355,18 @@ class ClaimantServiceIntegrationTests {
                 .claimant(claimant)
                 .build();
         claimRepository.save(claim);
+    }
+
+    private void stubEligibilityServiceWithSuccessfulResponse(EligibilityResponse eligibilityResponse) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(eligibilityResponse);
+        stubFor(post(urlEqualTo(ELIGIBILITY_SERVICE_URL)).willReturn(okJson(json)));
+    }
+
+    private void stubEligibilityServiceWithInternalServiceError() {
+        stubFor(post(urlEqualTo(ELIGIBILITY_SERVICE_URL)).willReturn(responseDefinition().withStatus(INTERNAL_SERVER_ERROR.value())));
+    }
+
+    private void verifyPostToEligibilityService() {
+        verify(exactly(1), postRequestedFor(urlEqualTo(ELIGIBILITY_SERVICE_URL)));
     }
 }

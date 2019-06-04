@@ -1,24 +1,28 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import uk.gov.dhsc.htbhf.claimant.exception.CardClientException;
-import uk.gov.dhsc.htbhf.claimant.model.card.*;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
@@ -27,130 +31,179 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
+@AutoConfigureWireMock(port = 8140)
 class CardClientTest {
 
-    @MockBean
-    private RestTemplate restTemplate;
+    private static final String CARD_ACCOUNT_ID = "myCardId";
+    private static final String CARDS_URL = "/v1/cards";
+    private static final String DEPOSIT_FUNDS_URL = CARDS_URL + "/" + CARD_ACCOUNT_ID + "/deposit";
+    private static final String GET_BALANCE_URL = CARDS_URL + "/" + CARD_ACCOUNT_ID + "/balance";
 
     @Value("${card.services-base-uri}")
     private String baseUri;
 
     @Autowired
     private CardClient cardClient;
-    public static final String CARD_ACCOUNT_ID = "myCardId";
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @AfterEach
+    @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
+    void tearDown() {
+        WireMock.reset();
+    }
 
     @Test
-    void shouldCallCardServiceForNewCard() {
+    void shouldCallCardServiceForNewCard() throws JsonProcessingException {
         CardResponse cardResponse = aCardResponse();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willReturn(new ResponseEntity<>(cardResponse, HttpStatus.CREATED));
+        stubNewCardEndpointWithSuccessfulResponse(cardResponse);
         CardRequest cardRequest = aValidCardRequest();
 
         CardResponse response = cardClient.requestNewCard(cardRequest);
 
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards", cardRequest, CardResponse.class);
+        verifyPostToNewCardEndpoint();
         assertThat(response.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
     }
 
     @Test
     void shouldThrowExceptionWhenCardServiceReturnsUnexpectedStatusCodeForNewCard() {
         CardRequest cardRequest = aValidCardRequest();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        // return non-error status code to prevent rest template throwing an exception
+        stubNewCardEndpointWithStatus(NO_CONTENT.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.requestNewCard(cardRequest), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when response status is not CREATED").isNotNull();
-        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: INTERNAL_SERVER_ERROR");
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards", cardRequest, CardResponse.class);
+        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: NO_CONTENT");
+        verifyPostToNewCardEndpoint();
     }
 
     @Test
-    void shouldThrowAnExceptionWhenNewCardReturnsError() {
+    void shouldThrowExceptionWhenNewCardServiceThrowsException() {
         CardRequest cardRequest = aValidCardRequest();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willThrow(new RestClientException("Test exception"));
+        // returning a 500 error will throw an exception in the rest template
+        stubNewCardEndpointWithStatus(INTERNAL_SERVER_ERROR.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.requestNewCard(cardRequest), CardClientException.class);
 
-        assertThat(exception).as("Should throw an Exception when post call returns error").isNotNull();
-        assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards");
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards", cardRequest, CardResponse.class);
+        assertThat(exception).as("Should throw an exception when rest error occurs").isNotNull();
+        assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call card service at: " + baseUri + CARDS_URL);
+        verifyPostToNewCardEndpoint();
     }
 
     @Test
-    void shouldCallDepositFunds() {
+    void shouldCallDepositFunds() throws JsonProcessingException {
         DepositFundsRequest request = aValidDepositFundsRequest();
         DepositFundsResponse expectedResponse = aValidDepositFundsResponse();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.OK));
+        stubDepositFundsEndpointWithSuccessfulResponse(expectedResponse);
 
         DepositFundsResponse response = cardClient.depositFundsToCard(CARD_ACCOUNT_ID, request);
 
         assertThat(response).isEqualTo(expectedResponse);
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit", request, DepositFundsResponse.class);
+        verifyPostToDepositFundsEndpoint();
     }
 
     @Test
     void shouldThrowExceptionWhenDepositFundsReturnsUnexpectedResponse() {
         DepositFundsRequest request = aValidDepositFundsRequest();
-        DepositFundsResponse expectedResponse = aValidDepositFundsResponse();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.BAD_REQUEST));
+        // return non-error status code to prevent rest template throwing an exception
+        stubDepositFundsEndpointWithStatus(NO_CONTENT.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.depositFundsToCard(CARD_ACCOUNT_ID, request), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when response status is not OK").isNotNull();
-        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: BAD_REQUEST");
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit", request, DepositFundsResponse.class);
+        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: NO_CONTENT");
+        verifyPostToDepositFundsEndpoint();
     }
 
     @Test
     void shouldThrowExceptionWhenDepositFundsThrowsException() {
         DepositFundsRequest request = aValidDepositFundsRequest();
-        given(restTemplate.postForEntity(anyString(), any(), any()))
-                .willThrow(new RestClientException("Test exception"));
+        // returning a 500 error will throw an exception in the rest template
+        stubDepositFundsEndpointWithStatus(INTERNAL_SERVER_ERROR.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.depositFundsToCard(CARD_ACCOUNT_ID, request), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when rest error occurs").isNotNull();
-        assertThat(exception.getMessage())
-                .isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit");
-        verify(restTemplate).postForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/deposit", request, DepositFundsResponse.class);
+        assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call card service at: " + baseUri + DEPOSIT_FUNDS_URL);
+        verifyPostToDepositFundsEndpoint();
     }
 
     @Test
-    void shouldCallGetBalance() {
+    void shouldCallGetBalance() throws JsonProcessingException {
         CardBalanceResponse expectedResponse = aValidCardBalanceResponse();
-        given(restTemplate.getForEntity(anyString(), any())).willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.OK));
+        stubGetBalanceEndpointWithSuccessfulResponse(expectedResponse);
 
         CardBalanceResponse response = cardClient.getBalance(CARD_ACCOUNT_ID);
 
         assertThat(response).isEqualTo(expectedResponse);
-        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
+        verifyGetToGetBalanceEndpoint();
     }
 
     @Test
     void shouldThrowExceptionWhenGetBalanceReturnsUnexpectedResponse() {
-        CardBalanceResponse expectedResponse = aValidCardBalanceResponse();
-        given(restTemplate.getForEntity(anyString(), any())).willReturn(new ResponseEntity<>(expectedResponse, HttpStatus.INTERNAL_SERVER_ERROR));
+        // return non-error status code to prevent rest template throwing an exception
+        stubGetBalanceEndpointWithStatus(NO_CONTENT.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.getBalance(CARD_ACCOUNT_ID), CardClientException.class);
 
         assertThat(exception).as("Should throw an exception when response status is not OK").isNotNull();
-        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: INTERNAL_SERVER_ERROR");
-        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
+        assertThat(exception.getMessage()).isEqualTo("Response code from card service was not as expected, received: NO_CONTENT");
+        verifyGetToGetBalanceEndpoint();
     }
 
     @Test
     void shouldThrowExceptionWhenGetBalanceThrowsException() {
-        given(restTemplate.getForEntity(anyString(), any())).willThrow(new RestClientException("Test exception"));
+        // returning a 500 error will throw an exception in the rest template
+        stubGetBalanceEndpointWithStatus(INTERNAL_SERVER_ERROR.value());
 
         CardClientException exception = catchThrowableOfType(() -> cardClient.getBalance(CARD_ACCOUNT_ID), CardClientException.class);
 
-        assertThat(exception).as("Should throw an exception when rest error occurs").isNotNull();
-        assertThat(exception.getMessage())
-                .isEqualTo("Exception caught trying to call card service at: " + baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance");
-        verify(restTemplate).getForEntity(baseUri + "/v1/cards/" + CARD_ACCOUNT_ID + "/balance", CardBalanceResponse.class);
+        assertThat(exception).as("Should throw an exception when response status is not OK").isNotNull();
+        assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call card service at: " + baseUri + GET_BALANCE_URL);
+        verifyGetToGetBalanceEndpoint();
+    }
+
+    private void stubNewCardEndpointWithSuccessfulResponse(CardResponse cardResponse) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(cardResponse);
+        stubFor(post(urlEqualTo(CARDS_URL)).willReturn(aResponse()
+                .withStatus(CREATED.value())
+                .withHeader("Content-Type", "application/json")
+                .withBody(json)));
+    }
+
+    private void stubNewCardEndpointWithStatus(int status) {
+        stubFor(post(urlEqualTo(CARDS_URL)).willReturn(aResponse().withStatus(status)));
+    }
+
+    private void stubDepositFundsEndpointWithSuccessfulResponse(DepositFundsResponse depositFundsResponse) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(depositFundsResponse);
+        stubFor(post(urlEqualTo(DEPOSIT_FUNDS_URL)).willReturn(okJson(json)));
+    }
+
+    private void stubDepositFundsEndpointWithStatus(int status) {
+        stubFor(post(urlEqualTo(DEPOSIT_FUNDS_URL)).willReturn(aResponse().withStatus(status)));
+    }
+
+    private void stubGetBalanceEndpointWithSuccessfulResponse(CardBalanceResponse cardBalanceResponse) throws JsonProcessingException {
+        String json = objectMapper.writeValueAsString(cardBalanceResponse);
+        stubFor(get(urlEqualTo(GET_BALANCE_URL)).willReturn(okJson(json)));
+    }
+
+    private void stubGetBalanceEndpointWithStatus(int status) {
+        stubFor(get(urlEqualTo(GET_BALANCE_URL)).willReturn(aResponse().withStatus(status)));
+    }
+
+    private void verifyPostToNewCardEndpoint() {
+        verify(exactly(1), postRequestedFor(urlEqualTo(CARDS_URL)));
+    }
+
+    private void verifyPostToDepositFundsEndpoint() {
+        verify(exactly(1), postRequestedFor(urlEqualTo(DEPOSIT_FUNDS_URL)));
+    }
+
+    private void verifyGetToGetBalanceEndpoint() {
+        verify(exactly(1), getRequestedFor(urlEqualTo(GET_BALANCE_URL)));
     }
 }

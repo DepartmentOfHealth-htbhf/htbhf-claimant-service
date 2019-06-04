@@ -1,21 +1,23 @@
 package uk.gov.dhsc.htbhf.claimant;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
@@ -26,23 +28,26 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
-public class ClaimantServiceIntegrationErrorTests {
+@AutoConfigureWireMock(port = 8100)
+class ClaimantServiceIntegrationErrorTests {
 
     @Autowired
     TestRestTemplate restTemplate;
 
-    @MockBean
-    ClaimService claimService;
+    @AfterEach
+    @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
+    void tearDown() {
+        WireMock.reset();
+    }
 
     @Test
     void shouldReturnInternalServiceError() {
         ClaimDTO claim = aValidClaimDTO();
 
-        doThrow(new RuntimeException()).when(claimService).createOrUpdateClaim(any(Claimant.class));
+        stubFor(post(urlEqualTo("/v1/eligibility")).willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR.value())));
         ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI, claim, ErrorResponse.class);
 
         assertInternalServerErrorResponse(response);
-        verify(claimService).createOrUpdateClaim(any(Claimant.class));
     }
 
 }
