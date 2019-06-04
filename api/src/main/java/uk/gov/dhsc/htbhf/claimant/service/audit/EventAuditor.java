@@ -34,11 +34,7 @@ public class EventAuditor {
             log.warn("Unable to audit null Claim");
             return;
         }
-        NewClaimEvent newClaimEvent = NewClaimEvent.builder()
-                .claimId(claim.getId())
-                .claimStatus(claim.getClaimStatus())
-                .eligibilityStatus(claim.getEligibilityStatus())
-                .build();
+        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
         eventLogger.logEvent(newClaimEvent);
     }
 

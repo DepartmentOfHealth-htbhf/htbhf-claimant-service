@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.service.audit;
 
 import lombok.Builder;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.Event;
@@ -14,6 +15,10 @@ import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLA
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ELIGIBILITY_STATUS;
 
 public class NewClaimEvent extends Event {
+
+    public NewClaimEvent(Claim claim) {
+        this(claim.getId(), claim.getClaimStatus(), claim.getEligibilityStatus());
+    }
 
     @Builder
     public NewClaimEvent(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {

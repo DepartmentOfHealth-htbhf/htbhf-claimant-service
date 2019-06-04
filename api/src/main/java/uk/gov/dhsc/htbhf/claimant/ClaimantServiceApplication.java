@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
@@ -14,6 +15,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageProcessorConfiguration;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
+
+import java.time.Clock;
 
 /**
  * The starting point for spring boot, this class enables SpringFox for documenting the api using swagger
@@ -37,6 +40,11 @@ public class ClaimantServiceApplication {
 
     @Autowired
     private EventLogger eventLogger;
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
+    }
 
     @EventListener(ApplicationReadyEvent.class)
     public void logAfterStartup() {
