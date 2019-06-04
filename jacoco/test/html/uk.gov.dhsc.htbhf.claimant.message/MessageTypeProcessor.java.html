@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageTypeProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message</a> &gt; <span class="el_source">MessageTypeProcessor.java</span></div><h1>MessageTypeProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message;
+
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+
+/**
+ * Interface to be used by an processor for a single type of message.
+ */
+public interface MessageTypeProcessor {
+
+    /**
+     * To be implemented by each processor to process a single message.
+     *
+     * @param message The message to process.
+     * @return The status of the message after processing
+     */
+    MessageStatus processMessage(Message message);
+
+    /**
+     * The enum representing the type of message this processor supports.
+     *
+     * @return The {@link MessageType}
+     */
+    MessageType supportsMessageType();
+
+    /**
+     * Can be implemented by a MessageTypeProcessor to define custom functionality that needs to be performed
+     * when the processing of a message has failed. Default functionality as defined here is to do nothing.
+     *
+     * @param message      The message that has failed
+     * @param failureEvent The details of the failed event.
+     */
+    default void processFailedMessage(Message message, FailureEvent failureEvent) {
+        // No action required
+<span class="fc" id="L35">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

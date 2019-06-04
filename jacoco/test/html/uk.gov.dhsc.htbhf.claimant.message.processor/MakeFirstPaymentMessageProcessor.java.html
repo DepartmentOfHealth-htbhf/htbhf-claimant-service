@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import javax.transaction.Transactional;
 
@@ -21,7 +22,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L24">@Slf4j</span>
+<span class="fc" id="L25">@Slf4j</span>
 public class MakeFirstPaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
@@ -30,15 +31,21 @@ public class MakeFirstPaymentMessageProcessor implements MessageTypeProcessor {
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L33">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L34">        paymentService.makeFirstPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
-<span class="fc" id="L35">        return COMPLETED;</span>
+<span class="fc" id="L34">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L35">        paymentService.makeFirstPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
+<span class="fc" id="L36">        return COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L40">        return MAKE_FIRST_PAYMENT;</span>
+<span class="fc" id="L41">        return MAKE_FIRST_PAYMENT;</span>
     }
 
+    @Override
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public void processFailedMessage(Message message, FailureEvent failureEvent) {
+<span class="fc" id="L47">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L48">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
+<span class="fc" id="L49">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
