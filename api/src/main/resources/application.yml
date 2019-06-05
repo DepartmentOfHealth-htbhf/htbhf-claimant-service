@@ -39,7 +39,6 @@ logging:
   level:
     ROOT: ${vcap.services.variable-service.credentials.claimant-root-loglevel:info}
     uk.gov.dhsc: ${vcap.services.variable-service.credentials.claimant-app-loglevel:debug}
-    com.zaxxer.hikari: debug
 
 javers:
   commitIdGenerator: random
@@ -90,4 +89,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus
+        include: health, info, metrics, prometheus, env
