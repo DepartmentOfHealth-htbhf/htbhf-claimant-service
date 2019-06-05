@@ -12,9 +12,6 @@ applications:
     APP_VERSION: ((app-version))
     ELIGIBILITY_URI: http://htbhf-eligibility-service((space-suffix)).apps.internal:8080
     CARD_SERVICES_URI: http://htbhf-card-services-api((space-suffix)).apps.internal:8080
-    # disable auto reconfiguration which causes our datasource properties to be ignored.
-    # see https://stackoverflow.com/questions/39436194/how-to-disable-the-download-of-the-auto-reconfiguration-1-10-0-release-jar-when
-    JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
   services:
     - htbhf-claimant-service-postgres
     - logit-ssl-drain
