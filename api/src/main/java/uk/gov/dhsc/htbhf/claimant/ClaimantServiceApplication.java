@@ -12,6 +12,7 @@ import org.springframework.context.event.EventListener;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.dhsc.htbhf.CommonRestConfiguration;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessorConfiguration;
+import uk.gov.dhsc.htbhf.database.CloudDBConfiguration;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
