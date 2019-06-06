@@ -12,6 +12,7 @@ import org.springframework.context.event.EventListener;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import uk.gov.dhsc.htbhf.CommonRestConfiguration;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessorConfiguration;
+import uk.gov.dhsc.htbhf.database.CloudDBConfiguration;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.LoggingConfiguration;
 import uk.gov.dhsc.htbhf.logging.event.ApplicationStartedEvent;
@@ -27,7 +28,7 @@ import java.time.Clock;
 @EnableSwagger2
 @Configuration
 @Import({CommonRestConfiguration.class, LoggingConfiguration.class, MessageProcessorConfiguration.class, CloudDBConfiguration.class})
-<span class="fc" id="L30">public class ClaimantServiceApplication {</span>
+<span class="fc" id="L31">public class ClaimantServiceApplication {</span>
 
     @Value(&quot;${app.version:}&quot;) // use APP_VERSION env variable if available, otherwise give no version info
     private String appVersion;
@@ -43,22 +44,22 @@ import java.time.Clock;
 
     @Bean
     public Clock clock() {
-<span class="fc" id="L46">        return Clock.systemDefaultZone();</span>
+<span class="fc" id="L47">        return Clock.systemDefaultZone();</span>
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void logAfterStartup() {
-<span class="fc" id="L51">        eventLogger.logEvent(ApplicationStartedEvent.builder()</span>
-<span class="fc" id="L52">                .applicationId(applicationId)</span>
-<span class="fc" id="L53">                .applicationVersion(appVersion)</span>
-<span class="fc" id="L54">                .instanceIndex(instanceIndex)</span>
-<span class="fc" id="L55">                .build()</span>
+<span class="fc" id="L52">        eventLogger.logEvent(ApplicationStartedEvent.builder()</span>
+<span class="fc" id="L53">                .applicationId(applicationId)</span>
+<span class="fc" id="L54">                .applicationVersion(appVersion)</span>
+<span class="fc" id="L55">                .instanceIndex(instanceIndex)</span>
+<span class="fc" id="L56">                .build()</span>
         );
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L58">    }</span>
 
     public static void main(String[] args) {
-<span class="nc" id="L60">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
-<span class="nc" id="L61">    }</span>
+<span class="nc" id="L61">        SpringApplication.run(ClaimantServiceApplication.class, args);</span>
+<span class="nc" id="L62">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
