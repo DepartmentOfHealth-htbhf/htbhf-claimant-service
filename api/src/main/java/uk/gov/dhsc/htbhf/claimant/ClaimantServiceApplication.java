@@ -26,7 +26,7 @@ import java.time.Clock;
 @SpringBootApplication
 @EnableSwagger2
 @Configuration
-@Import({CommonRestConfiguration.class, LoggingConfiguration.class, MessageProcessorConfiguration.class})
+@Import({CommonRestConfiguration.class, LoggingConfiguration.class, MessageProcessorConfiguration.class, CloudDBConfiguration.class})
 public class ClaimantServiceApplication {
 
     @Value("${app.version:}") // use APP_VERSION env variable if available, otherwise give no version info
