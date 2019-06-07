@@ -1,10 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -43,6 +45,13 @@ public class Claim extends VersionedEntity {
 
     @Column(name = "card_account_id")
     private String cardAccountId;
+
+    @Column(name = "device_fingerprint_json")
+    @Type(type = "json")
+    private Map<String, Object> deviceFingerprint;
+
+    @Column(name = "device_fingerprint_hash")
+    private String deviceFingerprintHash;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)

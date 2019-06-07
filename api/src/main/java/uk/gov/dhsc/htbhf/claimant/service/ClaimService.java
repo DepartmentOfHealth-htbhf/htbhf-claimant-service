@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
@@ -22,6 +23,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
@@ -47,7 +49,7 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    public ClaimResult createOrUpdateClaim(Claimant claimant) {
+    public ClaimResult createOrUpdateClaim(Claimant claimant, Map<String, Object> deviceFingerprint) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimant);
             if (claimExistsAndIsEligible(decision)) {
@@ -56,7 +58,7 @@ public class ClaimService {
                 return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
             }
 
-            Claim claim = createAndSaveClaim(claimant, decision);
+            Claim claim = createAndSaveClaim(claimant, decision, deviceFingerprint);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
@@ -64,13 +66,14 @@ public class ClaimService {
 
             return createResult(claim);
         } catch (RuntimeException e) {
-            handleFailedClaim(claimant, e);
+            handleFailedClaim(claimant, deviceFingerprint, e);
             throw e;
         }
     }
 
-    private void handleFailedClaim(Claimant claimant, RuntimeException e) {
-        Claim claim = buildClaim(claimant, buildWithStatus(EligibilityStatus.ERROR));
+    private void handleFailedClaim(Claimant claimant, Map<String, Object> deviceFingerprint, RuntimeException e) {
+        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
+        Claim claim = buildClaim(claimant, decision, deviceFingerprint);
         NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
         FailureEvent failureEvent = FailureEvent.builder()
                 .failureDescription("Unable to create (or update) claim")
@@ -107,8 +110,8 @@ public class ClaimService {
         return emptyList();
     }
 
-    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
-        Claim claim = buildClaim(claimant, decision);
+    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
+        Claim claim = buildClaim(claimant, decision, deviceFingerprint);
         claimRepository.save(claim);
         log.info("Saved new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
@@ -120,9 +123,10 @@ public class ClaimService {
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
-    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision) {
+    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
         ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
+        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());
         return Claim.builder()
                 .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())
                 .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())
@@ -131,6 +135,8 @@ public class ClaimService {
                 .claimStatus(claimStatus)
                 .claimStatusTimestamp(currentDateTime)
                 .claimant(claimant)
+                .deviceFingerprint(deviceFingerprint)
+                .deviceFingerprintHash(fingerprintHash)
                 .build();
     }
 
