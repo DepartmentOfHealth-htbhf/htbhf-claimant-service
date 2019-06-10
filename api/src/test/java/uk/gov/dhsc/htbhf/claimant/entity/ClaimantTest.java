@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -184,4 +185,15 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("must not be null", "address");
     }
 
+    // TODO DW enable test once phone number is added to the api HTBHF-1528
+    @Disabled
+    @Test
+    void shouldFailToValidateClaimantWithoutPhoneNumber() {
+        //Given
+        Claimant claimant = aClaimantWithPhoneNumber(null);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "phoneNumber");
+    }
 }

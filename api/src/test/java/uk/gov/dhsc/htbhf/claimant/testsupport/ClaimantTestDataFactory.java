@@ -17,6 +17,7 @@ public final class ClaimantTestDataFactory {
     private static final String VALID_FIRST_NAME = "James";
     private static final String VALID_LAST_NAME = "Smith";
     private static final LocalDate VALID_DOB = LocalDate.parse("1987-12-30");
+    private static final String VALID_PHONE_NUMBER = "+447700900128";
 
     public static Claimant aValidClaimant() {
         return aValidClaimantBuilder().build();
@@ -58,12 +59,19 @@ public final class ClaimantTestDataFactory {
         return aClaimantWithFirstName(LONG_NAME);
     }
 
+    public static Claimant aClaimantWithPhoneNumber(String phoneNumber) {
+        return aValidClaimantBuilder()
+                .phoneNumber(phoneNumber)
+                .build();
+    }
+
     public static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
+                .phoneNumber(VALID_PHONE_NUMBER)
                 .address(aValidAddress());
     }
 
@@ -72,6 +80,7 @@ public final class ClaimantTestDataFactory {
                 .firstName("Jane")
                 .lastName("Smith")
                 .nino("BE654321B")
-                .dateOfBirth(LocalDate.parse("1990-11-20"));
+                .dateOfBirth(LocalDate.parse("1990-11-20"))
+                .phoneNumber(VALID_PHONE_NUMBER);
     }
 }
