@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -123,6 +124,7 @@ public class ClaimService {
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
+    @SuppressFBWarnings("SECMD5") // ignore spotbugs warning about md5 as we're not using it for encryption
     private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
         ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
