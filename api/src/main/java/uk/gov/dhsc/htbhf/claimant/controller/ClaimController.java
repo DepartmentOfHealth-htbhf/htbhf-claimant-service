@@ -5,11 +5,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
@@ -47,7 +53,7 @@ public class ClaimController {
     public ResponseEntity<ClaimResultDTO> createOrUpdateClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
-        ClaimResult result = claimService.createOrUpdateClaim(claimant);
+        ClaimResult result = claimService.createOrUpdateClaim(claimant, claimDTO.getDeviceFingerprint());
 
         return createResponse(result);
     }

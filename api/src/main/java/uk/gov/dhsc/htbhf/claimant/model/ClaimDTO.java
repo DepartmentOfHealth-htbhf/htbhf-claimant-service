@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -22,4 +23,9 @@ public class ClaimDTO {
     @NotNull
     @ApiModelProperty(notes = "The person making the claim")
     private ClaimantDTO claimant;
+
+    @JsonProperty("deviceFingerprint")
+    @ApiModelProperty(notes = "The fingerprint of the device used to make the claim, as best it can be identified. Probably a collection of header values.")
+    private Map<String, Object> deviceFingerprint;
+
 }
