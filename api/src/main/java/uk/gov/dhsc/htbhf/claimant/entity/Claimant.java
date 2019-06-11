@@ -45,4 +45,7 @@ public class Claimant extends VersionedEntity {
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     private Address address;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
 }
