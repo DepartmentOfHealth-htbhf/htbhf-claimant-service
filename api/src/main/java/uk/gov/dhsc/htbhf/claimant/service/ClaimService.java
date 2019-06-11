@@ -124,7 +124,8 @@ public class ClaimService {
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
     }
 
-    @SuppressFBWarnings("SECMD5") // ignore spotbugs warning about md5 as we're not using it for encryption
+    @SuppressFBWarnings(value = "SECMD5",
+            justification = "Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption")
     private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
         ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
