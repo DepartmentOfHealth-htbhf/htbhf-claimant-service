@@ -25,6 +25,7 @@ public class ClaimantDTOToClaimantConverter {
                 .dateOfBirth(claimant.getDateOfBirth())
                 .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
                 .nino(claimant.getNino())
+                .phoneNumber(claimant.getPhoneNumber())
                 .address(addressConverter.convert(claimant.getAddress()))
                 .build();
     }

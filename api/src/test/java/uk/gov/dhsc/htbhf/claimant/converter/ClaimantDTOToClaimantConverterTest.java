@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimantDTOToClaimantConverterTest {
@@ -44,6 +44,7 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getDateOfBirth()).isEqualTo(claimantDTO.getDateOfBirth());
         assertThat(result.getExpectedDeliveryDate()).isEqualTo(claimantDTO.getExpectedDeliveryDate());
         assertThat(result.getAddress()).isEqualTo(ADDRESS);
+        assertThat(result.getPhoneNumber()).isEqualTo(claimantDTO.getPhoneNumber());
         verify(addressConverter).convert(claimantDTO.getAddress());
     }
 

@@ -1,24 +1,15 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.time.LocalDate;
 import java.util.Map;
 
-import static java.time.LocalDate.now;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 
 public final class ClaimDTOTestDataFactory {
-
-    private static final String VALID_NINO = "EB123456C";
-    private static final String VALID_FIRST_NAME = "James";
-    private static final String VALID_LAST_NAME = "Smith";
-    private static final LocalDate VALID_DOB = LocalDate.parse("1985-12-31");
-    public static final String VALID_ADDRESS_LINE_1 = "Flat b";
-    public static final String VALID_ADDRESS_LINE_2 = "123 Fake street";
-    public static final String VALID_TOWN_OR_CITY = "Springfield";
-    public static final String VALID_POSTCODE = "AA1 1AA";
 
     public static final Map<String, Object> DEVICE_FINGERPRINT = Map.of(
             "user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36",
@@ -48,35 +39,14 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimDTO aClaimDTOWithClaimant(ClaimantDTO claimant) {
+        return aClaimDTOBuilder()
+                .claimant(claimant)
+                .build();
+    }
+
     private static ClaimDTO.ClaimDTOBuilder aClaimDTOBuilder() {
         return ClaimDTO.builder()
                 .deviceFingerprint(DEVICE_FINGERPRINT);
     }
-
-    public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
-        return aValidClaimantBuilder()
-                .expectedDeliveryDate(now().plusMonths(4))
-                .build();
-    }
-
-
-
-    private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
-        return ClaimantDTO.builder()
-                .firstName(VALID_FIRST_NAME)
-                .lastName(VALID_LAST_NAME)
-                .nino(VALID_NINO)
-                .dateOfBirth(VALID_DOB)
-                .address(aValidAddressBuilder().build())
-                .expectedDeliveryDate(now().plusMonths(1));
-    }
-
-    private static AddressDTO.AddressDTOBuilder aValidAddressBuilder() {
-        return AddressDTO.builder()
-                .addressLine1(VALID_ADDRESS_LINE_1)
-                .addressLine2(VALID_ADDRESS_LINE_2)
-                .townOrCity(VALID_TOWN_OR_CITY)
-                .postcode(VALID_POSTCODE);
-    }
-
 }

@@ -167,6 +167,11 @@ definitions:
         example: "QQ123456C"
         description: "National Insurance number"
         pattern: "[a-zA-Z]{2}\\d{6}[a-dA-D]"
+      phoneNumber:
+        type: "string"
+        description: "The claimant's uk phone number. Must be in +44 format, e.g.\
+          \ +447123456789"
+        pattern: "^\\+44\\d{9,10}$"
     title: "ClaimantDTO"
     description: "A claimant for help to buy healthy foods."
   ErrorResponse:
