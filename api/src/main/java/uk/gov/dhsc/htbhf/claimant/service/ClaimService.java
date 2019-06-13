@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
@@ -22,12 +23,9 @@ import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantFields.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
@@ -103,12 +101,15 @@ public class ClaimService {
     }
 
     private List<String> updateClaimantFields(Claim claim, Claimant claimant) {
-        if (!Objects.equals(claim.getClaimant().getExpectedDeliveryDate(), claimant.getExpectedDeliveryDate())) {
-            claim.getClaimant().setExpectedDeliveryDate(claimant.getExpectedDeliveryDate());
-            return singletonList(EXPECTED_DELIVERY_DATE.getFieldName());
+        Claimant originalClaimant = claim.getClaimant();
+        List<String> updatedFields = new ArrayList<>();
+        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
+            if (field.valueIsDifferent(originalClaimant, claimant)) {
+                field.updateOriginal(originalClaimant, claimant);
+                updatedFields.add(field.getFieldName());
+            }
         }
-
-        return emptyList();
+        return updatedFields;
     }
 
     private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
