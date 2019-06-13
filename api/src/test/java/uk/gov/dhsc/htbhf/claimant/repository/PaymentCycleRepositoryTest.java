@@ -15,6 +15,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import javax.validation.ConstraintViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -178,6 +179,31 @@ class PaymentCycleRepositoryTest {
 
         Iterator<PaymentCycle> paymentCycleIterator = allPaymentCycles.iterator();
         assertThat(paymentCycleIterator.hasNext()).isFalse();
+    }
+
+    @Test
+    void shouldFindLatestCycleForClaim() {
+        Claim claim = createAndSaveClaim();
+        Claim otherClaim = createAndSaveClaim();
+        createAndSavePaymentCycleEnding(LocalDate.now().minusDays(28), claim);
+        createAndSavePaymentCycleEnding(LocalDate.now().plusDays(28), otherClaim);
+        PaymentCycle expectedCycle = createAndSavePaymentCycleEnding(LocalDate.now(), claim);
+
+        Optional<PaymentCycle> result = paymentCycleRepository.findCurrentCycleForClaim(claim);
+
+        assertThat(result).isNotNull();
+        assertThat(result).isNotEmpty();
+        assertThat(result.get()).isEqualTo(expectedCycle);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenNoCyclesExistForClaim() {
+        Claim claim = createAndSaveClaim();
+
+        Optional<PaymentCycle> result = paymentCycleRepository.findCurrentCycleForClaim(claim);
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     private Claim createAndSaveClaim() {
