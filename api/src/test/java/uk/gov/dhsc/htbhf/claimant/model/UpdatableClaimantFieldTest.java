@@ -1,6 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
@@ -13,37 +15,34 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
 
 class UpdatableClaimantFieldTest {
 
-    @Test
-    void shouldReportFieldsHaveDifferentValues() {
+    @ParameterizedTest
+    @EnumSource(UpdatableClaimantField.class)
+    void shouldReportFieldsHaveDifferentValues(UpdatableClaimantField field) {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
 
-        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
-            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
-        }
+        assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
     }
 
-    @Test
-    void shouldReportFieldsDoNotHaveDifferentValues() {
+    @ParameterizedTest
+    @EnumSource(UpdatableClaimantField.class)
+    void shouldReportFieldsDoNotHaveDifferentValues(UpdatableClaimantField field) {
         LocalDate expectedDeliveryDate = LocalDate.now();
         Claimant originalClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
-        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
-            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        }
+        assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
     }
 
-    @Test
-    void shouldReportNullFieldsDoNotHaveDifferentValues() {
+    @ParameterizedTest
+    @EnumSource(UpdatableClaimantField.class)
+    void shouldReportNullFieldsDoNotHaveDifferentValues(UpdatableClaimantField field) {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = Claimant.builder().build();
         assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
-        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
-            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        }
+        assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
     }
 
     @Test
