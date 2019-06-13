@@ -207,7 +207,7 @@ class ClaimantTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("invalid uk phone number, must be in +447123456789 format", "phoneNumber");
+        assertThat(violations).hasSingleConstraintViolation("invalid UK phone number, must be in +447123456789 format", "phoneNumber");
     }
 
     @ParameterizedTest

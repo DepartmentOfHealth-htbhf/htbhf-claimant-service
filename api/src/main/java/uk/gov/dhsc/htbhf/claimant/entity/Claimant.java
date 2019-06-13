@@ -47,7 +47,7 @@ public class Claimant extends VersionedEntity {
     private Address address;
 
     @NotNull
-    @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid uk phone number, must be in +447123456789 format")
+    @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +447123456789 format")
     @Column(name = "phone_number")
     private String phoneNumber;
 }
