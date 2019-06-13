@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -22,6 +23,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -49,10 +51,12 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
@@ -294,6 +298,23 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant", "must not be null");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "+4477009005",
+            "+447700900516987679",
+            "abcdef",
+            "07123456789" // not in +44 format
+    })
+    void shouldFailWithInvalidPhoneNumber(String phoneNumber) {
+        // Given
+        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(phoneNumber);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        //Then
+        assertValidationErrorInResponse(response, "claimant.phoneNumber", "invalid UK phone number, must be in +44 format, e.g. +447123456789");
     }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,

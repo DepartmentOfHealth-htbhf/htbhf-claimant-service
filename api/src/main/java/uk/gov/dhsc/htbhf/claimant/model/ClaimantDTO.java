@@ -58,4 +58,10 @@ public class ClaimantDTO {
     @JsonProperty("address")
     @ApiModelProperty(notes = "The address of the claimant")
     private AddressDTO address;
+
+    @NotNull
+    @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +44 format, e.g. +447123456789")
+    @JsonProperty("phoneNumber")
+    @ApiModelProperty(notes = "The claimant's UK phone number. Must be in +44 format, e.g. +447123456789")
+    private String phoneNumber;
 }

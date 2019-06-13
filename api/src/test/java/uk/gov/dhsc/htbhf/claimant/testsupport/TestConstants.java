@@ -4,6 +4,16 @@ import java.time.LocalDate;
 
 public class TestConstants {
 
+    public static final String VALID_NINO = "EB123456C";
+    public static final String VALID_FIRST_NAME = "James";
+    public static final String VALID_LAST_NAME = "Smith";
+    public static final LocalDate VALID_DOB = LocalDate.parse("1985-12-31");
+    public static final String VALID_ADDRESS_LINE_1 = "Flat b";
+    public static final String VALID_ADDRESS_LINE_2 = "123 Fake street";
+    public static final String VALID_TOWN_OR_CITY = "Springfield";
+    public static final String VALID_POSTCODE = "AA1 1AA";
+    public static final String VALID_PHONE_NUMBER = "+447123456789";
+
     public static final String DWP_HOUSEHOLD_IDENTIFIER = "dwpHousehold1";
     public static final String HMRC_HOUSEHOLD_IDENTIFIER = "hmrcHousehold1";
 

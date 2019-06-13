@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -185,8 +184,6 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("must not be null", "address");
     }
 
-    // TODO DW enable test once phone number is added to the api HTBHF-1528
-    @Disabled
     @Test
     void shouldFailToValidateClaimantWithoutPhoneNumber() {
         //Given
@@ -195,5 +192,35 @@ class ClaimantTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "phoneNumber");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "+4471234567891",
+            "+44712345",
+            "07123456789",
+            "00447123456789"
+    })
+    void shouldFailToValidateClaimantWithPhoneNumberInWrongFormat(String phoneNumber) {
+        //Given
+        Claimant claimant = aClaimantWithPhoneNumber(phoneNumber);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("invalid UK phone number, must be in +447123456789 format", "phoneNumber");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "+447123456789",
+            "+44212345678", // non mobile numbers can be 9 digits after +44
+    })
+    void shouldValidateClaimantWithPhoneNumberInCorrectFormat(String phoneNumber) {
+        //Given
+        Claimant claimant = aClaimantWithPhoneNumber(phoneNumber);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
     }
 }
