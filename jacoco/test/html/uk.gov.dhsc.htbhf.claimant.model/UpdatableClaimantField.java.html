@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UpdatableClaimantField.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.model</a> &gt; <span class="el_source">UpdatableClaimantField.java</span></div><h1>UpdatableClaimantField.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.model;
+
+import lombok.Getter;
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+
+import java.util.Objects;
+
+/**
+ * Enumeration of all the fields on a Claimant that may be updated by the claimant.
+ */
+<span class="fc" id="L12">@Getter</span>
+public enum UpdatableClaimantField {
+
+<span class="fc" id="L15">    FIRST_NAME(&quot;firstName&quot;) {</span>
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="fc" id="L18">            return claimant.getFirstName();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L23">            originalClaimant.setFirstName(newClaimant.getFirstName());</span>
+<span class="fc" id="L24">        }</span>
+    },
+<span class="fc" id="L26">    LAST_NAME(&quot;lastName&quot;) {</span>
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="fc" id="L29">            return claimant.getLastName();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L34">            originalClaimant.setLastName(newClaimant.getLastName());</span>
+<span class="fc" id="L35">        }</span>
+    },
+<span class="fc" id="L37">    DATE_OF_BIRTH(&quot;dateOfBirth&quot;) {</span>
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="fc" id="L40">            return claimant.getDateOfBirth();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L45">            originalClaimant.setDateOfBirth(newClaimant.getDateOfBirth());</span>
+<span class="fc" id="L46">        }</span>
+    },
+<span class="fc" id="L48">    EXPECTED_DELIVERY_DATE(&quot;expectedDeliveryDate&quot;) {</span>
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="fc" id="L51">            return claimant.getExpectedDeliveryDate();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L56">            originalClaimant.setExpectedDeliveryDate(newClaimant.getExpectedDeliveryDate());</span>
+<span class="fc" id="L57">        }</span>
+    },
+<span class="fc" id="L59">    PHONE_NUMBER(&quot;phoneNumber&quot;) {</span>
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="fc" id="L62">            return claimant.getPhoneNumber();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L67">            originalClaimant.setPhoneNumber(newClaimant.getPhoneNumber());</span>
+<span class="fc" id="L68">        }</span>
+    },
+<span class="fc" id="L70">    ADDRESS(&quot;address&quot;) {</span>
+        @Override
+        public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L73">            Address originalAddress = originalClaimant.getAddress();</span>
+<span class="fc" id="L74">            Address newAddress = newClaimant.getAddress();</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">            if (originalAddress == null &amp;&amp; newAddress == null) {</span>
+<span class="fc" id="L76">                return false;</span>
+            }
+<span class="pc bpc" id="L78" title="1 of 4 branches missed.">            if (originalAddress == null || newAddress == null) {</span>
+<span class="fc" id="L79">                return true;</span>
+            }
+<span class="fc bfc" id="L81" title="All 2 branches covered.">            return !getAddressString(originalAddress).equals(getAddressString(newAddress));</span>
+        }
+
+        private String getAddressString(Address address) {
+<span class="fc" id="L85">            return address.getAddressLine1() + &quot;:&quot; + address.getAddressLine2() + &quot;:&quot; + address.getTownOrCity() + &quot;:&quot; + address.getPostcode();</span>
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L90">            Address originalAddress = originalClaimant.getAddress();</span>
+<span class="fc" id="L91">            Address newAddress = newClaimant.getAddress();</span>
+<span class="pc bpc" id="L92" title="2 of 4 branches missed.">            if (originalAddress == null || newAddress == null) {</span>
+<span class="nc" id="L93">                originalClaimant.setAddress(newAddress);</span>
+            } else {
+<span class="fc" id="L95">                originalAddress.setAddressLine1(newAddress.getAddressLine1());</span>
+<span class="fc" id="L96">                originalAddress.setAddressLine2(newAddress.getAddressLine2());</span>
+<span class="fc" id="L97">                originalAddress.setTownOrCity(newAddress.getTownOrCity());</span>
+<span class="fc" id="L98">                originalAddress.setPostcode(newAddress.getPostcode());</span>
+            }
+<span class="fc" id="L100">        }</span>
+
+        @Override
+        Object getValue(Claimant claimant) {
+<span class="nc" id="L104">            return claimant.getAddress();</span>
+        }
+    };
+
+    private final String fieldName;
+
+<span class="fc" id="L110">    UpdatableClaimantField(String fieldName) {</span>
+<span class="fc" id="L111">        this.fieldName = fieldName;</span>
+<span class="fc" id="L112">    }</span>
+
+    /**
+     * Checks whether the value of the relevant field differs between the two objects.
+     *
+     * @param originalClaimant the original claimant.
+     * @param newClaimant      the new claimant.
+     * @return true if the new claimant has a different value to the original.
+     */
+    public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
+<span class="fc" id="L122">        Object originalValue = getValue(originalClaimant);</span>
+<span class="fc" id="L123">        Object newValue = getValue(newClaimant);</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        return !Objects.equals(originalValue, newValue);</span>
+    }
+
+    /**
+     * Updates the field value of the original to be the same as the new claimant.
+     *
+     * @param originalClaimant the original claimant.
+     * @param newClaimant      the new claimant.
+     */
+    public abstract void updateOriginal(Claimant originalClaimant, Claimant newClaimant);
+
+    abstract Object getValue(Claimant claimant);
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
