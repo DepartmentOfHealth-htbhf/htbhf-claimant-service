@@ -56,6 +56,17 @@ public enum UpdatableClaimantField {
             originalClaimant.setExpectedDeliveryDate(newClaimant.getExpectedDeliveryDate());
         }
     },
+    PHONE_NUMBER("phoneNumber") {
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getPhoneNumber();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setPhoneNumber(newClaimant.getPhoneNumber());
+        }
+    },
     ADDRESS("address") {
         @Override
         public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {

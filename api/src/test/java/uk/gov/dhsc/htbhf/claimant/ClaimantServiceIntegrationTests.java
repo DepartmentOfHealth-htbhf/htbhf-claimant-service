@@ -36,10 +36,12 @@ import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
@@ -117,7 +119,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
         assertThat(response.getBody().getClaimUpdated()).isTrue();
-        assertThat(response.getBody().getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
+        assertThat(response.getBody().getUpdatedFields()).contains(EXPECTED_DELIVERY_DATE.getFieldName());
         assertClaimUpdatedSuccessfully(expectedDeliveryDate);
         verifyPostToEligibilityService();
     }

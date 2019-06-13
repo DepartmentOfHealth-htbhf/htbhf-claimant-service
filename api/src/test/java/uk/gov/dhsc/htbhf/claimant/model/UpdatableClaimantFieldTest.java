@@ -18,11 +18,9 @@ class UpdatableClaimantFieldTest {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
 
-        assertThat(UpdatableClaimantField.FIRST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
-        assertThat(UpdatableClaimantField.LAST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
-        assertThat(UpdatableClaimantField.DATE_OF_BIRTH.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
-        assertThat(UpdatableClaimantField.EXPECTED_DELIVERY_DATE.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
-        assertThat(UpdatableClaimantField.ADDRESS.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
+        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
+            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
+        }
     }
 
     @Test
@@ -30,24 +28,22 @@ class UpdatableClaimantFieldTest {
         LocalDate expectedDeliveryDate = LocalDate.now();
         Claimant originalClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
-        assertThat(UpdatableClaimantField.FIRST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.LAST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.DATE_OF_BIRTH.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.EXPECTED_DELIVERY_DATE.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.ADDRESS.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
+        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
+            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
+        }
     }
 
     @Test
     void shouldReportNullFieldsDoNotHaveDifferentValues() {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = Claimant.builder().build();
+        assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
-        assertThat(UpdatableClaimantField.FIRST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.LAST_NAME.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.DATE_OF_BIRTH.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.EXPECTED_DELIVERY_DATE.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
-        assertThat(UpdatableClaimantField.ADDRESS.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
+        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
+            assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
+        }
     }
 
     @Test
@@ -58,6 +54,7 @@ class UpdatableClaimantFieldTest {
         UpdatableClaimantField.FIRST_NAME.updateOriginal(originalClaimant, newClaimant);
 
         assertThat(originalClaimant.getFirstName()).isEqualTo(newClaimant.getFirstName());
+        assertThat(originalClaimant).isNotEqualTo(newClaimant);
     }
 
     @Test
@@ -84,10 +81,22 @@ class UpdatableClaimantFieldTest {
     void shouldUpdateExpectedDeliveryDate() {
         Claimant originalClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now().minusDays(1));
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
+        assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
         UpdatableClaimantField.EXPECTED_DELIVERY_DATE.updateOriginal(originalClaimant, newClaimant);
 
         assertThat(originalClaimant.getExpectedDeliveryDate()).isEqualTo(newClaimant.getExpectedDeliveryDate());
+    }
+
+    @Test
+    void shouldUpdatePhoneNUmber() {
+        Claimant originalClaimant = aValidClaimant();
+        Claimant newClaimant = aClaimantWithPhoneNumber("+44987654321");
+        assertThat(newClaimant).isNotEqualTo(originalClaimant);
+
+        UpdatableClaimantField.PHONE_NUMBER.updateOriginal(originalClaimant, newClaimant);
+
+        assertThat(originalClaimant.getPhoneNumber()).isEqualTo(newClaimant.getPhoneNumber());
     }
 
     @Test
