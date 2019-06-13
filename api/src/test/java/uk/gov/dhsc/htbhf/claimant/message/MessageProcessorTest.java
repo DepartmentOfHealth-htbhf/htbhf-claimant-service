@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -81,20 +82,16 @@ class MessageProcessorTest {
     @Test
     void shouldCallDummyProcessors() {
         Message cardMessage = aValidMessage();
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(any(), eq(PAGEABLE))).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE)).thenReturn(singletonList(cardMessage));
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE)).thenReturn(emptyList());
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE)).thenReturn(emptyList());
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT, PAGEABLE)).thenReturn(emptyList());
         //When
         messageProcessor.processAllMessages();
         //Then
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
         verify(sendFirstEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
-        verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE);
-        verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE);
-        verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE);
-        verify(messageRepository).findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE);
-        verify(messageRepository).findAllMessagesByTypeOrderedByDate(DETERMINE_ENTITLEMENT, PAGEABLE);
+        Stream.of(MessageType.values()).forEach(
+                messageType -> verify(messageRepository).findAllMessagesByTypeOrderedByDate(messageType, PAGEABLE)
+        );
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
         verifyZeroInteractions(eventAuditor);

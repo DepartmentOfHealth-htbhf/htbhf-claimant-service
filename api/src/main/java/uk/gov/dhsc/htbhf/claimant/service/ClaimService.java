@@ -9,7 +9,8 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
@@ -25,7 +26,9 @@ import java.util.*;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
@@ -37,7 +40,7 @@ public class ClaimService {
     private final ClaimRepository claimRepository;
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
-    private final MessageQueueDAO messageQueueDAO;
+    private final MessageQueueClient messageQueueClient;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -54,6 +57,7 @@ public class ClaimService {
             if (claimExistsAndIsEligible(decision)) {
                 Claim claim = findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimant);
+                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
             }
 
@@ -67,6 +71,14 @@ public class ClaimService {
         } catch (RuntimeException e) {
             handleFailedClaim(claimant, deviceFingerprint, e);
             throw e;
+        }
+    }
+
+    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<String> updatedFields) {
+        if (claim.getClaimant().getExpectedDeliveryDate() != null
+                && updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {
+            AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claim.getId()).build();
+            messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);
         }
     }
 
@@ -122,7 +134,7 @@ public class ClaimService {
 
     private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
         NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());
-        messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
+        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);
     }
 
     @SuppressFBWarnings(value = "SECMD5",

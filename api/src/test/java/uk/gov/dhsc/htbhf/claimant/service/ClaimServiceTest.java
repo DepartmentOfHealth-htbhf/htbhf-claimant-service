@@ -14,7 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -41,11 +42,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndEntitlement;
@@ -70,7 +74,7 @@ class ClaimServiceTest {
     EventAuditor eventAuditor;
 
     @Mock
-    MessageQueueDAO messageQueueDAO;
+    MessageQueueClient messageQueueClient;
 
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(deviceFingerprint.toString());
@@ -135,7 +139,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(claimRepository).save(actualClaim);
         verify(eventAuditor).auditNewClaim(actualClaim);
-        verifyZeroInteractions(messageQueueDAO);
+        verifyZeroInteractions(messageQueueClient);
     }
 
     @Test
@@ -193,11 +197,10 @@ class ClaimServiceTest {
     @Test
     void shouldUpdateClaimAndReturnUpdatedFieldsForMatchingNinoWhenEligible() {
         //given
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claimant existingClaimant = aClaimantWithLastName("Old name");
+        Claimant newClaimant = aClaimantWithLastName("New name");
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
-        UUID existingClaimId = UUID.randomUUID();
+        UUID existingClaimId = existingClaim.getId();
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .existingClaimId(existingClaimId)
@@ -210,14 +213,14 @@ class ClaimServiceTest {
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
+        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(LAST_NAME.getFieldName()));
         assertThat(result.getClaim()).isEqualTo(existingClaim);
-        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        assertThat(result.getClaim().getClaimant().getLastName()).isEqualTo(newClaimant.getLastName());
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).findById(existingClaimId);
         verify(claimRepository).save(result.getClaim());
-        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList("expectedDeliveryDate"));
-        verifyZeroInteractions(messageQueueDAO);
+        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
+        verifyZeroInteractions(messageQueueClient);
     }
 
     @Test
@@ -247,7 +250,68 @@ class ClaimServiceTest {
         verify(claimRepository).findById(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
-        verifyZeroInteractions(messageQueueDAO);
+        verifyZeroInteractions(messageQueueClient);
+    }
+
+    @Test
+    void shouldSendAdditionalPregnancyPaymentMessageWhenDueDateProvided() {
+        //given
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        shouldSendAdditionalPregnancyPaymentMessage(existingClaimant, newClaimant);
+    }
+
+    @Test
+    void shouldSendAdditionalPregnancyPaymentMessageWhenExistingDueDateUpdated() {
+        //given
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(1);
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        shouldSendAdditionalPregnancyPaymentMessage(existingClaimant, newClaimant);
+    }
+
+    private void shouldSendAdditionalPregnancyPaymentMessage(Claimant existingClaimant, Claimant newClaimant) {
+        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        UUID existingClaimId = existingClaim.getId();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+
+        //when
+        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+
+        //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
+        AdditionalPregnancyPaymentMessagePayload expectedPayload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(existingClaimId).build();
+        verify(messageQueueClient).sendMessage(expectedPayload, ADDITIONAL_PREGNANCY_PAYMENT);
+    }
+
+    @Test
+    void shouldNotSendAdditionalPregnancyPaymentMessageWhenDueDateSetToNull() {
+        //given
+        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
+        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(null);
+        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        UUID existingClaimId = existingClaim.getId();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(ELIGIBLE)
+                .existingClaimId(existingClaimId)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+
+        //when
+        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+
+        //then
+        assertThat(result.getClaimUpdated()).isTrue();
+        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
+        verifyZeroInteractions(messageQueueClient);
     }
 
     @Test
@@ -368,7 +432,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyZeroInteractions(messageQueueDAO);
+        verifyZeroInteractions(messageQueueClient);
     }
 
     /**
@@ -417,6 +481,6 @@ class ClaimServiceTest {
                 .voucherEntitlement(voucherEntitlement)
                 .datesOfBirthOfChildren(datesOfBirth)
                 .build();
-        verify(messageQueueDAO).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
+        verify(messageQueueClient).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
     }
 }
