@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">15</div>
+<div class="counter">17</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.393s</div>
+<div class="counter">2.424s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,93 +79,105 @@
 </tr>
 </thead>
 <tr>
+<td class="success">shouldFindLatestCycleForClaim()</td>
+<td class="success">shouldFindLatestCycleForClaim()</td>
+<td class="success">0.193s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">shouldIdentifyClaimOnceForLatestCycleOnly()</td>
 <td class="success">shouldIdentifyClaimOnceForLatestCycleOnly()</td>
-<td class="success">0.161s</td>
+<td class="success">0.150s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldIdentifyClaimWithLatestCycleEndingToday()</td>
 <td class="success">shouldIdentifyClaimWithLatestCycleEndingToday()</td>
-<td class="success">0.149s</td>
+<td class="success">0.125s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldIdentifyClaimWithLatestCycleEndingYesterday()</td>
 <td class="success">shouldIdentifyClaimWithLatestCycleEndingYesterday()</td>
-<td class="success">0.166s</td>
+<td class="success">0.120s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[1] ACTIVE</td>
 <td class="success">shouldIdentifyPaymentCyclesForActiveClaims(ClaimStatus)[1]</td>
-<td class="success">0.114s</td>
+<td class="success">0.124s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[2] PENDING_EXPIRY</td>
 <td class="success">shouldIdentifyPaymentCyclesForActiveClaims(ClaimStatus)[2]</td>
-<td class="success">0.117s</td>
+<td class="success">0.113s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldNotIdentifyClaimWithLatestCycleEndingInFuture()</td>
 <td class="success">shouldNotIdentifyClaimWithLatestCycleEndingInFuture()</td>
-<td class="success">0.141s</td>
+<td class="success">0.116s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[1] REJECTED</td>
 <td class="success">shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus)[1]</td>
-<td class="success">0.438s</td>
+<td class="success">0.412s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[2] PENDING</td>
 <td class="success">shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus)[2]</td>
-<td class="success">0.143s</td>
+<td class="success">0.112s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[3] NEW</td>
 <td class="success">shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus)[3]</td>
-<td class="success">0.165s</td>
+<td class="success">0.108s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[4] EXPIRED</td>
 <td class="success">shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus)[4]</td>
-<td class="success">0.137s</td>
+<td class="success">0.153s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[5] ERROR</td>
 <td class="success">shouldNotIdentifyPaymentCyclesForInactiveOrNewClaims(ClaimStatus)[5]</td>
-<td class="success">0.135s</td>
+<td class="success">0.133s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldNotSaveAnInvalidPaymentCycle()</td>
 <td class="success">shouldNotSaveAnInvalidPaymentCycle()</td>
-<td class="success">0.051s</td>
+<td class="success">0.045s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldRetrieveNoPaymentCycles()</td>
 <td class="success">shouldRetrieveNoPaymentCycles()</td>
-<td class="success">0.051s</td>
+<td class="success">0.041s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldReturnAllClaimsWithPaymentCycleEndingTodayOrEarlier()</td>
 <td class="success">shouldReturnAllClaimsWithPaymentCycleEndingTodayOrEarlier()</td>
-<td class="success">0.295s</td>
+<td class="success">0.269s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldReturnEmptyWhenNoCyclesExistForClaim()</td>
+<td class="success">shouldReturnEmptyWhenNoCyclesExistForClaim()</td>
+<td class="success">0.090s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSaveNewPaymentCycle()</td>
 <td class="success">shouldSaveNewPaymentCycle()</td>
-<td class="success">0.130s</td>
+<td class="success">0.120s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -173,7 +185,7 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>14:17:27.061 [Test worker] ERROR o.h.i.ExceptionMapperStandardImpl - HHH000346: Error during managed flush [Validation failed for classes [uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle] during persist time for groups [javax.validation.groups.Default, ]
+<pre>08:20:09.380 [Test worker] ERROR o.h.i.ExceptionMapperStandardImpl - HHH000346: Error during managed flush [Validation failed for classes [uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle] during persist time for groups [javax.validation.groups.Default, ]
 List of constraint violations:[
 	ConstraintViolationImpl{interpolatedMessage='must not be null', propertyPath=claim, rootBeanClass=class uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle, messageTemplate='{javax.validation.constraints.NotNull.message}'}
 ]]
@@ -188,7 +200,7 @@ List of constraint violations:[
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.4.1</a> at Jun 13, 2019, 2:25:40 PM</p>
+<a href="http://www.gradle.org">Gradle 5.4.1</a> at Jun 14, 2019, 8:26:27 AM</p>
 </div>
 </div>
 </body>

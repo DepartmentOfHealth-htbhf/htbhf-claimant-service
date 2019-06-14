@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentCycleRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.repository</a> &gt; <span class="el_source">PaymentCycleRepository.java</span></div><h1>PaymentCycleRepository.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.repository;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * JPA repository for {@link PaymentCycle}s.
+ */
+public interface PaymentCycleRepository extends CrudRepository&lt;PaymentCycle, UUID&gt; {
+
+    /**
+     * Looks for all active (ACTIVE, PENDING_EXPIRY) claims whose latest PaymentCycle has an end date on or before cycleEndDate.
+     * @param cycleEndDate the date by which the cycle should end.
+     * @return a List of {@link ClosingPaymentCycle}s containing the claim id and cycle end date.
+     */
+    @Query(nativeQuery = true, value =
+            &quot;SELECT Cast(claim_id as varchar) as claimIdString, Cast(cycle_id as varchar) as cycleIdString, cycle_end_date as cycleEndDateTimestamp FROM &quot;
+                    + &quot;(SELECT DISTINCT ON (c.id) c.id as claim_id, p.cycle_end_date, p.id as cycle_id &quot;
+                    + &quot;FROM  claim c inner join payment_cycle p  on p.claim_id = c.id &quot;
+                    + &quot;WHERE c.claim_status in ('ACTIVE', 'PENDING_EXPIRY') &quot;
+                    + &quot;ORDER BY c.id, p.cycle_end_date DESC NULLS LAST &quot;
+                    + &quot;) AS latest_payment &quot;
+                    + &quot;WHERE cycle_end_date &lt;= ?1&quot;)
+    List&lt;ClosingPaymentCycle&gt; findActiveClaimsWithCycleEndingOnOrBefore(LocalDate cycleEndDate);
+
+    /**
+     * Returns the current PaymentCycle (the one with the latest cycleEndDate) for the given claim.
+     * This auto-implemented method has an unhelpful name and returns a list - use {@link #findCurrentCycleForClaim(Claim)} instead.
+     * @param claim the claim to get a PaymentCycle for.
+     * @return List containing the desired PaymentCycle. Empty if the given claim has no payment cycles.
+     */
+    List&lt;PaymentCycle&gt; findFirstByClaimOrderByCycleEndDateDesc(Claim claim);
+
+    /**
+     * Returns the current PaymentCycle (the one with the latest cycleEndDate) for the given claim.
+     * @param claim the claim to get a PaymentCycle for.
+     * @return Optional containing the desired PaymentCycle. Empty if the given claim has no payment cycles.
+     */
+    default Optional&lt;PaymentCycle&gt; findCurrentCycleForClaim(Claim claim) {
+<span class="fc" id="L47">        List&lt;PaymentCycle&gt; cycles = findFirstByClaimOrderByCycleEndDateDesc(claim);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (cycles.isEmpty()) {</span>
+<span class="fc" id="L49">            return Optional.empty();</span>
+        }
+<span class="fc" id="L51">        return Optional.of(cycles.get(0));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
