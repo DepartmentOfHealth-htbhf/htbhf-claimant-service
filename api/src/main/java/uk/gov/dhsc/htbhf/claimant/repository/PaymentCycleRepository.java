@@ -2,10 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -25,6 +27,27 @@ public interface PaymentCycleRepository extends CrudRepository<PaymentCycle, UUI
                     + "WHERE c.claim_status in ('ACTIVE', 'PENDING_EXPIRY') "
                     + "ORDER BY c.id, p.cycle_end_date DESC NULLS LAST "
                     + ") AS latest_payment "
-                    + "WHERE cycle_end_date <= ?1")    List<ClosingPaymentCycle> findActiveClaimsWithCycleEndingOnOrBefore(LocalDate cycleEndDate);
+                    + "WHERE cycle_end_date <= ?1")
+    List<ClosingPaymentCycle> findActiveClaimsWithCycleEndingOnOrBefore(LocalDate cycleEndDate);
 
+    /**
+     * Returns the current PaymentCycle (the one with the latest cycleEndDate) for the given claim.
+     * This auto-implemented method has an unhelpful name and returns a list - use {@link #findCurrentCycleForClaim(Claim)} instead.
+     * @param claim the claim to get a PaymentCycle for.
+     * @return List containing the desired PaymentCycle. Empty if the given claim has no payment cycles.
+     */
+    List<PaymentCycle> findFirstByClaimOrderByCycleEndDateDesc(Claim claim);
+
+    /**
+     * Returns the current PaymentCycle (the one with the latest cycleEndDate) for the given claim.
+     * @param claim the claim to get a PaymentCycle for.
+     * @return Optional containing the desired PaymentCycle. Empty if the given claim has no payment cycles.
+     */
+    default Optional<PaymentCycle> findCurrentCycleForClaim(Claim claim) {
+        List<PaymentCycle> cycles = findFirstByClaimOrderByCycleEndDateDesc(claim);
+        if (cycles.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(cycles.get(0));
+    }
 }
