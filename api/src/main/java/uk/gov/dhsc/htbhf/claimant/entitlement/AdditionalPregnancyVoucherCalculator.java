@@ -40,17 +40,20 @@ public class AdditionalPregnancyVoucherCalculator {
     public int getAdditionalPregnancyVouchers(LocalDate expectedDueDate,
                                               PaymentCycle paymentCycle,
                                               LocalDate claimUpdatedDate) {
-        if (!claimUpdatedDate.isAfter(paymentCycle.getCycleStartDate())) {
-            // if the update happened on the same day as the payment cycle start date,
-            // then no need for additional vouchers as the payment cycle will now include pregnancy vouchers.
+        if (claimUpdatedDate.isBefore(paymentCycle.getCycleStartDate()) || paymentCycle.getVoucherEntitlement() == null) {
+            // if the update happened before the cycle start date or the payment cycle entitlement has not been calculated,
+            // return no vouchers as the pregnancy vouchers will be calculated during the regular payment cycle.
             return 0;
         }
 
         List<LocalDate> entitlementDates = getEntitlementDates(paymentCycle, claimUpdatedDate);
-        return entitlementDates.stream()
-                .map(entitlementDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDueDate, entitlementDate))
-                .mapToInt(isEntitled -> isEntitled ? vouchersPerPregnancy : 0)
-                .sum();
+        int totalVouchers = 0;
+        for (LocalDate entitlementDate : entitlementDates) {
+            if (pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDueDate, entitlementDate)) {
+                totalVouchers += vouchersPerPregnancy;
+            }
+        }
+        return totalVouchers;
     }
 
     private List<LocalDate> getEntitlementDates(PaymentCycle paymentCycle, LocalDate claimUpdatedDate) {

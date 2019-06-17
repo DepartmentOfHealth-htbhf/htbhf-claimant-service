@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -19,7 +20,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class AdditionalPregnancyVoucherCalculatorTest {
@@ -45,7 +48,7 @@ class AdditionalPregnancyVoucherCalculatorTest {
     @ParameterizedTest
     @CsvSource({
             "-5, 0", // no vouchers if the claim updated date is before the payment cycle start date
-            "0, 0",  // if on the same day as the payment cycle then no need for additional vouchers as the payment cycle will now include pregnancy vouchers.
+            "0, 4",  // vouchers for all four weeks if on the start of the cycle (providing payment cycle has not been calculated)
             "1, 3",  // week one, get vouchers for week two, three and four
             "8, 2",  // week two, get vouchers for week three and four
             "15, 1", // week three, get vouchers for week four
@@ -65,6 +68,24 @@ class AdditionalPregnancyVoucherCalculatorTest {
         ArgumentCaptor<LocalDate> argumentCaptor = ArgumentCaptor.forClass(LocalDate.class);
         verify(pregnancyEntitlementCalculator, times(expectedNumberOfVouchers)).isEntitledToVoucher(eq(expectedDueDate), argumentCaptor.capture());
         List<LocalDate> entitlementDates = argumentCaptor.getAllValues();
-        assertThat(entitlementDates).hasSize(expectedNumberOfVouchers);
+        assertThat(entitlementDates).hasSize(expectedNumberOfVouchers / VOUCHERS_PER_PREGNANCY);
+    }
+
+    @Test
+    void shouldReturnZeroVouchersWhenVoucherEntitlementHasNotBeenCalculated() {
+        LocalDate expectedDueDate = LocalDate.now().plusMonths(6);
+        LocalDate paymentCycleStartDate = LocalDate.now();
+        LocalDate paymentCycleEndDate = paymentCycleStartDate.plusDays(NUMBER_OF_CALCULATION_PERIODS * ENTITLEMENT_CALCULATION_DURATION);
+        LocalDate claimUpdatedDate = LocalDate.now();
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .cycleStartDate(paymentCycleStartDate)
+                .cycleEndDate(paymentCycleEndDate)
+                .voucherEntitlement(null)
+                .build();
+
+        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate);
+
+        assertThat(result).isEqualTo(0);
+        verifyZeroInteractions(pregnancyEntitlementCalculator);
     }
 }

@@ -363,7 +363,7 @@ class MessageContextLoaderTest {
         PaymentCycle latestPaymentCycle = aPaymentCycleWithClaim(claim);
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findCurrentCycleForClaim(any())).willReturn(Optional.of(latestPaymentCycle));
-        var payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claimId).build();
+        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claimId).build();
         given(payloadMapper.getPayload(any(), eq(AdditionalPregnancyPaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(ADDITIONAL_PREGNANCY_PAYMENT);
 
