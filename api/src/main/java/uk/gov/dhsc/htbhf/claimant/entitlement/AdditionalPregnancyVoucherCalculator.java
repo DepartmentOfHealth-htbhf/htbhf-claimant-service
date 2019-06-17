@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -14,15 +15,13 @@ import java.util.List;
 public class AdditionalPregnancyVoucherCalculator {
 
     private final Integer entitlementCalculationDurationInDays;
-    private final Integer numberOfCalculationPeriods;
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
     private final int vouchersPerPregnancy;
 
-    public AdditionalPregnancyVoucherCalculator(PaymentCycleConfig paymentCycleConfig,
-                                                PregnancyEntitlementCalculator pregnancyEntitlementCalculator,
-                                                @Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy) {
+    public AdditionalPregnancyVoucherCalculator(@Value("${entitlement.number-of-vouchers-per-pregnancy}") int vouchersPerPregnancy,
+                                                PaymentCycleConfig paymentCycleConfig,
+                                                PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {
         this.entitlementCalculationDurationInDays = paymentCycleConfig.getEntitlementCalculationDurationInDays();
-        this.numberOfCalculationPeriods = paymentCycleConfig.getNumberOfCalculationPeriods();
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
         this.vouchersPerPregnancy = vouchersPerPregnancy;
     }
@@ -33,39 +32,32 @@ public class AdditionalPregnancyVoucherCalculator {
      * e.g if the claim was updated mid way through week two of the cycle, the user will get pregnancy vouchers for week 3 and 4 (given a four week cycle).
      * if the claim was updated during week four of the cycle, no additional vouchers will be returned.
      *
-     * @param expectedDueDate       the expected due date of the claimant
-     * @param paymentCycleStartDate the start date for the current payment cycle
-     * @param claimUpdatedDate      the date that the claim was updated with the new expected due date
+     * @param expectedDueDate  the expected due date of the claimant
+     * @param paymentCycle     the current payment cycle
+     * @param claimUpdatedDate the date that the claim was updated with the new expected due date
      * @return the number of additional pregnancy vouchers the claimant is entitled to
      */
     public int getAdditionalPregnancyVouchers(LocalDate expectedDueDate,
-                                              LocalDate paymentCycleStartDate,
+                                              PaymentCycle paymentCycle,
                                               LocalDate claimUpdatedDate) {
-        if (claimUpdatedDate.isBefore(paymentCycleStartDate)) {
-            throw new IllegalArgumentException("Claim updated date " + claimUpdatedDate
-                    + " can not be before the payment cycle start date " + paymentCycleStartDate);
-        }
-        if (claimUpdatedDate.isEqual(paymentCycleStartDate)) {
+        if (!claimUpdatedDate.isAfter(paymentCycle.getCycleStartDate())) {
             // if the update happened on the same day as the payment cycle start date,
             // then no need for additional vouchers as the payment cycle will now include pregnancy vouchers.
             return 0;
         }
 
-        List<LocalDate> entitlementDates = getEntitlementDates(paymentCycleStartDate, claimUpdatedDate);
-        long pregnancyVouchers = entitlementDates.stream()
+        List<LocalDate> entitlementDates = getEntitlementDates(paymentCycle, claimUpdatedDate);
+        return entitlementDates.stream()
                 .map(entitlementDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDueDate, entitlementDate))
                 .mapToInt(isEntitled -> isEntitled ? vouchersPerPregnancy : 0)
                 .sum();
-
-        return Math.toIntExact(pregnancyVouchers);
     }
 
-    private List<LocalDate> getEntitlementDates(LocalDate paymentCycleStartDate, LocalDate claimUpdatedDate) {
-        LocalDate rollingEntitlementDate = getFirstEntitlementDateOnOrAfterClaimUpdatedDate(paymentCycleStartDate, claimUpdatedDate);
-        LocalDate cycleEndDate = paymentCycleStartDate.plusDays(entitlementCalculationDurationInDays * numberOfCalculationPeriods);
+    private List<LocalDate> getEntitlementDates(PaymentCycle paymentCycle, LocalDate claimUpdatedDate) {
+        LocalDate rollingEntitlementDate = getFirstEntitlementDateOnOrAfterClaimUpdatedDate(paymentCycle.getCycleStartDate(), claimUpdatedDate);
 
         List<LocalDate> entitlementDates = new ArrayList<>();
-        while (rollingEntitlementDate.isBefore(cycleEndDate)) {
+        while (rollingEntitlementDate.isBefore(paymentCycle.getCycleEndDate())) {
             entitlementDates.add(rollingEntitlementDate);
             rollingEntitlementDate = rollingEntitlementDate.plusDays(entitlementCalculationDurationInDays);
         }

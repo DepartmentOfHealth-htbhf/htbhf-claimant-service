@@ -10,7 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -24,12 +23,10 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANC
 public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypeProcessor {
 
     private MessageContextLoader messageContextLoader;
-    private PaymentService paymentService;
 
     /**
      * Processes ADDITIONAL_PREGNANCY_PAYMENT messages from the message queue by calculating and making an additional ad hoc
      * payment when we have been notified of a pregnancy.
-     * TODO review/expand javadoc
      *
      * @param message The message to process.
      * @return The message status on completion
@@ -40,8 +37,11 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         AdditionalPregnancyPaymentMessageContext context = messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(message);
         Optional<PaymentCycle> paymentCycle = context.getPaymentCycle();
         if (paymentCycle.isEmpty() || hasPregnancyVouchers(paymentCycle)) {
+            log.debug("Making no additional payments as the is no payment cycle or payment cycle already contains pregnancy vouchers.");
             return COMPLETED;
         }
+
+        // HTBHF-1193 TODO calculate entitlement and make payment
 
         return COMPLETED;
     }
