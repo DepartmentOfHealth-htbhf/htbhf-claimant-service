@@ -40,7 +40,9 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
     private AdditionalPregnancyPaymentMessageProcessor messageProcessor;
 
     @Test
-    void shouldProcessMessageAndMakePaymentWhenCurrentPaymentCycleHasNoPregnancyVouchers() {}
+    void shouldProcessMessageAndMakePaymentWhenCurrentPaymentCycleHasNoPregnancyVouchers() {
+        // TODO HTBHF-1193 add in test once calculating additional pregnancy payments.
+    }
 
     @Test
     void shouldProcessMessageAndNotMakePaymentWhenCurrentPaymentCycleHasPregnancyVouchers() {

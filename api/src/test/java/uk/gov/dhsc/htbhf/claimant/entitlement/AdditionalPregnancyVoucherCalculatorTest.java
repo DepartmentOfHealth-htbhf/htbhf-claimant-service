@@ -51,11 +51,11 @@ class AdditionalPregnancyVoucherCalculatorTest {
             "15, 1", // week three, get vouchers for week four
             "22, 0"  // week four, get no vouchers
     })
-    void shouldCalculateNumberOfAdditionalPregnancyVouchers(int daysInCycle, int expectedNumberOfVouchers) {
+    void shouldCalculateNumberOfAdditionalPregnancyVouchers(int daysAfterStartOfCycle, int expectedNumberOfVouchers) {
         LocalDate expectedDueDate = LocalDate.now().plusMonths(6);
-        LocalDate claimUpdatedDate = LocalDate.now();
-        LocalDate paymentCycleStartDate = claimUpdatedDate.minusDays(daysInCycle);
+        LocalDate paymentCycleStartDate = LocalDate.now();
         LocalDate paymentCycleEndDate = paymentCycleStartDate.plusDays(NUMBER_OF_CALCULATION_PERIODS * ENTITLEMENT_CALCULATION_DURATION);
+        LocalDate claimUpdatedDate = paymentCycleStartDate.plusDays(daysAfterStartOfCycle);
         lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).thenReturn(true);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(paymentCycleStartDate, paymentCycleEndDate);
 

@@ -37,7 +37,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         AdditionalPregnancyPaymentMessageContext context = messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(message);
         Optional<PaymentCycle> paymentCycle = context.getPaymentCycle();
         if (paymentCycle.isEmpty() || hasPregnancyVouchers(paymentCycle)) {
-            log.debug("Making no additional payments as the is no payment cycle or payment cycle already contains pregnancy vouchers.");
+            log.debug("Making no additional payments as there is no payment cycle or payment cycle already contains pregnancy vouchers.");
             return COMPLETED;
         }
 
