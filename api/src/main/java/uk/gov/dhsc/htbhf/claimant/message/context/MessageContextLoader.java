@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
+import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
@@ -83,6 +84,18 @@ public class MessageContextLoader {
                 .claim(claim)
                 .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())
                 .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .build();
+    }
+
+    public AdditionalPregnancyPaymentMessageContext loadAdditionalPregnancyPaymentMessageContext(Message message) {
+        AdditionalPregnancyPaymentMessagePayload payload = payloadMapper.getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        Optional<PaymentCycle> paymentCycle = paymentCycleRepository.findCurrentCycleForClaim(claim);
+
+        return AdditionalPregnancyPaymentMessageContext.builder()
+                .claim(claim)
+                .paymentCycle(paymentCycle)
                 .build();
     }
 

@@ -11,9 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
-import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -27,6 +25,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
@@ -34,6 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
@@ -353,6 +353,30 @@ class MessageContextLoaderTest {
         assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirth);
         verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
         verify(claimRepository).findById(claimId);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadAdditionalPregnancyPaymentContext() {
+        //Given
+        Claim claim = aValidClaim();
+        UUID claimId = claim.getId();
+        PaymentCycle latestPaymentCycle = aPaymentCycleWithClaim(claim);
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findCurrentCycleForClaim(any())).willReturn(Optional.of(latestPaymentCycle));
+        var payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claimId).build();
+        given(payloadMapper.getPayload(any(), eq(AdditionalPregnancyPaymentMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(ADDITIONAL_PREGNANCY_PAYMENT);
+
+        //When
+        AdditionalPregnancyPaymentMessageContext context = loader.loadAdditionalPregnancyPaymentMessageContext(message);
+
+        //Then
+        assertThat(context).isNotNull();
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).isEqualTo(Optional.of(latestPaymentCycle));
+        verify(payloadMapper).getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);
+        verify(claimRepository).findById(claimId);
+        verify(paymentCycleRepository).findCurrentCycleForClaim(claim);
     }
 
 }

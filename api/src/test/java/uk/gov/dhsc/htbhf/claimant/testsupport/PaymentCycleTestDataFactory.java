@@ -33,6 +33,11 @@ public class PaymentCycleTestDataFactory {
                 .build();
     }
 
+    public static PaymentCycle aPaymentCycleWithCycleEntitlementAndClaim(PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement,
+                                                                         Claim claim) {
+        return aPaymentCycleWithCycleStartDateEntitlementAndClaim(LocalDate.now(), paymentCycleVoucherEntitlement, claim);
+    }
+
     public static PaymentCycle aPaymentCycleWithCycleStartDateAndClaim(LocalDate startDate, Claim claim) {
         return aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
