@@ -103,7 +103,7 @@ public class PaymentService {
      * @return The {@link Payment} entity relevant to this process.
      */
     @SuppressWarnings("PMD.NullAssignment")
-    public Payment makeRegularPayment(PaymentCycle paymentCycle, String cardAccountId) {
+    public Payment makePaymentForCycle(PaymentCycle paymentCycle, String cardAccountId) {
         Payment payment = null;
         DepositFundsResponse depositFundsResponse = null;
         try {

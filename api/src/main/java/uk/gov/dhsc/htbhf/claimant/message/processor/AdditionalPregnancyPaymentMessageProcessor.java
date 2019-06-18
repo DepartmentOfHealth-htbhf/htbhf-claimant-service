@@ -70,7 +70,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
 
     private int calculatePaymentAmountInPence(Message message, AdditionalPregnancyPaymentMessageContext context, Optional<PaymentCycle> paymentCycle) {
         LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();
-        LocalDate claimUpdatedDate = message.getMessageTimestamp().toLocalDate();
+        LocalDate claimUpdatedDate = message.getCreatedTimestamp().toLocalDate();
         int numberOfVouchers = additionalPregnancyVoucherCalculator.getAdditionalPregnancyVouchers(expectedDeliveryDate, paymentCycle.get(), claimUpdatedDate);
         return voucherValueInPence * numberOfVouchers;
     }
