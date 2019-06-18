@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdditionalPregnancyPaymentMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">AdditionalPregnancyPaymentMessageProcessor.java</span></div><h1>AdditionalPregnancyPaymentMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+
+import java.util.Optional;
+import javax.transaction.Transactional;
+
+import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
+
+<span class="fc" id="L20">@Slf4j</span>
+@Component
+@AllArgsConstructor
+public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypeProcessor {
+
+    private MessageContextLoader messageContextLoader;
+
+    /**
+     * Processes ADDITIONAL_PREGNANCY_PAYMENT messages from the message queue by calculating and making an additional ad hoc
+     * payment when we have been notified of a pregnancy.
+     *
+     * @param message The message to process.
+     * @return The message status on completion
+     */
+    @Override
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    public MessageStatus processMessage(Message message) {
+<span class="fc" id="L37">        AdditionalPregnancyPaymentMessageContext context = messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(message);</span>
+<span class="fc" id="L38">        Optional&lt;PaymentCycle&gt; paymentCycle = context.getPaymentCycle();</span>
+<span class="pc bpc" id="L39" title="1 of 4 branches missed.">        if (paymentCycle.isEmpty() || hasPregnancyVouchers(paymentCycle)) {</span>
+<span class="fc" id="L40">            log.debug(&quot;Making no additional payments as there is no payment cycle or payment cycle already contains pregnancy vouchers.&quot;);</span>
+<span class="fc" id="L41">            return COMPLETED;</span>
+        }
+
+        // HTBHF-1193 TODO calculate entitlement and make payment
+
+<span class="nc" id="L46">        return COMPLETED;</span>
+    }
+
+    private boolean hasPregnancyVouchers(Optional&lt;PaymentCycle&gt; paymentCycle) {
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        return paymentCycle.get().getVoucherEntitlement().getVouchersForPregnancy() &gt; 0;</span>
+    }
+
+    @Override
+    public MessageType supportsMessageType() {
+<span class="fc" id="L55">        return ADDITIONAL_PREGNANCY_PAYMENT;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
