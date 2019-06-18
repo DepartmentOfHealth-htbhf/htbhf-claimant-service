@@ -32,7 +32,7 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
 <span class="fc" id="L34">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L35">        paymentService.makePayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
+<span class="fc" id="L35">        paymentService.makePaymentForCycle(messageContext.getPaymentCycle(), messageContext.getCardAccountId());</span>
 <span class="fc" id="L36">        return COMPLETED;</span>
     }
 
