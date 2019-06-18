@@ -47,7 +47,7 @@ class MakePaymentMessageProcessorTest {
 
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
-        verify(paymentService).makePayment(paymentCycle, claim.getCardAccountId());
+        verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
     }
 
     @Test
