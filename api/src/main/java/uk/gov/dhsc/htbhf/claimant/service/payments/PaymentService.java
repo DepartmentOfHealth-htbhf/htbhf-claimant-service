@@ -74,7 +74,12 @@ public class PaymentService {
      * @return The {@link Payment} entity relevant to this process.
      */
     public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
-        Payment payment = makePayment(paymentCycle, cardAccountId, paymentCycle.getTotalEntitlementAmountInPence());
+        Payment payment = makePayment(
+                paymentCycle,
+                cardAccountId,
+                paymentCycle.getTotalEntitlementAmountInPence(),
+                paymentCycle.getTotalEntitlementAmountInPence()
+        );
         paymentCycleService.updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
         return payment;
     }
@@ -88,7 +93,7 @@ public class PaymentService {
      * @return The {@link Payment} entity relevant to this process.
      */
     public Payment makeInterimPayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence) {
-        return makePayment(paymentCycle, cardAccountId, amountInPence);
+        return makePayment(paymentCycle, cardAccountId, amountInPence, null);
     }
 
     /**
@@ -103,7 +108,7 @@ public class PaymentService {
      * @return The {@link Payment} entity relevant to this process.
      */
     @SuppressWarnings("PMD.NullAssignment")
-    public Payment makeRegularPayment(PaymentCycle paymentCycle, String cardAccountId) {
+    public Payment makePaymentForCycle(PaymentCycle paymentCycle, String cardAccountId) {
         Payment payment = null;
         DepositFundsResponse depositFundsResponse = null;
         try {
@@ -130,7 +135,7 @@ public class PaymentService {
         return payment;
     }
 
-    private Payment makePayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence) {
+    private Payment makePayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence, Integer entitlementAmountInPence) {
         Payment payment = null;
         DepositFundsResponse depositFundsResponse = null;
         try {
@@ -141,14 +146,14 @@ public class PaymentService {
         } catch (RuntimeException e) {
             String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                     cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
-            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle.getClaim(), amountInPence, payment, depositFundsResponse);
+            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle.getClaim(), entitlementAmountInPence, payment, depositFundsResponse);
             throw new EventFailedException(failedEvent, e, failureMessage);
         }
         return payment;
     }
 
     @SuppressWarnings("PMD.NullAssignment")
-    private MakePaymentEvent buildFailedMakePaymentEvent(Claim claim, int entitlementInPence, Payment payment, DepositFundsResponse depositFundsResponse) {
+    private MakePaymentEvent buildFailedMakePaymentEvent(Claim claim, Integer entitlementInPence, Payment payment, DepositFundsResponse depositFundsResponse) {
         return MakePaymentEvent.builder()
                 .claimId(claim.getId())
                 .entitlementAmountInPence(entitlementInPence)
