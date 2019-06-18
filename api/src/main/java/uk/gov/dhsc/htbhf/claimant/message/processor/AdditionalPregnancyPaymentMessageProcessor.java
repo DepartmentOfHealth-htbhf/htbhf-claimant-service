@@ -1,8 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.AdditionalPregnancyVoucherCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
@@ -10,7 +11,9 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import javax.transaction.Transactional;
 
@@ -19,10 +22,22 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANC
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypeProcessor {
 
-    private MessageContextLoader messageContextLoader;
+    private final MessageContextLoader messageContextLoader;
+    private final AdditionalPregnancyVoucherCalculator additionalPregnancyVoucherCalculator;
+    private final Integer voucherValueInPence;
+    private final PaymentService paymentService;
+
+    public AdditionalPregnancyPaymentMessageProcessor(@Value("${entitlement.voucher-value-in-pence}") Integer voucherValueInPence,
+                                                      MessageContextLoader messageContextLoader,
+                                                      AdditionalPregnancyVoucherCalculator additionalPregnancyVoucherCalculator,
+                                                      PaymentService paymentService) {
+        this.messageContextLoader = messageContextLoader;
+        this.additionalPregnancyVoucherCalculator = additionalPregnancyVoucherCalculator;
+        this.voucherValueInPence = voucherValueInPence;
+        this.paymentService = paymentService;
+    }
 
     /**
      * Processes ADDITIONAL_PREGNANCY_PAYMENT messages from the message queue by calculating and making an additional ad hoc
@@ -41,13 +56,23 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
             return COMPLETED;
         }
 
-        // HTBHF-1193 TODO calculate entitlement and make payment
+        int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle);
+        if (paymentAmountInPence > 0) {
+            paymentService.makeInterimPayment(paymentCycle.get(), context.getClaim().getCardAccountId(), paymentAmountInPence);
+        }
 
         return COMPLETED;
     }
 
     private boolean hasPregnancyVouchers(Optional<PaymentCycle> paymentCycle) {
         return paymentCycle.get().getVoucherEntitlement().getVouchersForPregnancy() > 0;
+    }
+
+    private int calculatePaymentAmountInPence(Message message, AdditionalPregnancyPaymentMessageContext context, Optional<PaymentCycle> paymentCycle) {
+        LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();
+        LocalDate claimUpdatedDate = message.getMessageTimestamp().toLocalDate();
+        int numberOfVouchers = additionalPregnancyVoucherCalculator.getAdditionalPregnancyVouchers(expectedDeliveryDate, paymentCycle.get(), claimUpdatedDate);
+        return voucherValueInPence * numberOfVouchers;
     }
 
     @Override

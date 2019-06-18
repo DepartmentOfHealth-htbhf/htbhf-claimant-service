@@ -1,10 +1,11 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dhsc.htbhf.claimant.entitlement.AdditionalPregnancyVoucherCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -27,6 +28,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFacto
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 @ExtendWith(MockitoExtension.class)
 class AdditionalPregnancyPaymentMessageProcessorTest {
@@ -35,13 +38,52 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
     private MessageContextLoader messageContextLoader;
     @Mock
     private PaymentService paymentService;
+    @Mock
+    private AdditionalPregnancyVoucherCalculator voucherCalculator;
 
-    @InjectMocks
     private AdditionalPregnancyPaymentMessageProcessor messageProcessor;
+
+    @BeforeEach
+    public void setUp() {
+        messageProcessor = new AdditionalPregnancyPaymentMessageProcessor(VOUCHER_VALUE_IN_PENCE, messageContextLoader, voucherCalculator, paymentService);
+    }
 
     @Test
     void shouldProcessMessageAndMakePaymentWhenCurrentPaymentCycleHasNoPregnancyVouchers() {
-        // TODO HTBHF-1193 add in test once calculating additional pregnancy payments.
+        int numberOfVouchers = 2;
+        Claim claim = aValidClaim();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
+        PaymentCycle paymentCycle = aPaymentCycleWithCycleEntitlementAndClaim(voucherEntitlement, claim);
+
+        shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
+
+        verify(paymentService).makeInterimPayment(paymentCycle, claim.getCardAccountId(), numberOfVouchers * VOUCHER_VALUE_IN_PENCE);
+    }
+
+    @Test
+    void shouldProcessMessageAndMakeNoPaymentWhenThereAreNoAdditionalVouchers() {
+        int numberOfVouchers = 0;
+        Claim claim = aValidClaim();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
+        PaymentCycle paymentCycle = aPaymentCycleWithCycleEntitlementAndClaim(voucherEntitlement, claim);
+
+        shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
+
+        verifyZeroInteractions(paymentService);
+    }
+
+    private void shouldCalculateAdditionalVouchers(int numberOfVouchers, Claim claim, PaymentCycle paymentCycle) {
+        Message message = aValidMessageWithType(ADDITIONAL_PREGNANCY_PAYMENT);
+        AdditionalPregnancyPaymentMessageContext context = aValidAdditionalPregnancyPaymentMessageContext(claim, Optional.of(paymentCycle));
+        given(messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(any())).willReturn(context);
+        given(voucherCalculator.getAdditionalPregnancyVouchers(any(), any(), any())).willReturn(numberOfVouchers);
+
+        MessageStatus messageStatus = messageProcessor.processMessage(message);
+
+        assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
+        verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
+        verify(voucherCalculator)
+                .getAdditionalPregnancyVouchers(claim.getClaimant().getExpectedDeliveryDate(), paymentCycle, message.getMessageTimestamp().toLocalDate());
     }
 
     @Test
@@ -57,7 +99,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(paymentService);
+        verifyZeroInteractions(voucherCalculator, paymentService);
     }
 
     @Test
@@ -72,6 +114,6 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(paymentService);
+        verifyZeroInteractions(voucherCalculator, paymentService);
     }
 }

@@ -5,9 +5,11 @@ import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
@@ -86,5 +88,27 @@ public class PaymentCycleService {
 
     public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
         return voucherEntitlement.getVouchersForPregnancy() > 0 ? claim.getClaimant().getExpectedDeliveryDate() : null;
+    }
+
+    /**
+     * Update and saves the payment cycle with the given calculation and card balance.
+     * @param paymentCycle payment cycle to update
+     * @param paymentCycleStatus payment cycle status
+     * @param cardBalanceInPence card balance in pence
+     */
+    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus, int cardBalanceInPence) {
+        paymentCycle.setCardBalanceInPence(cardBalanceInPence);
+        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
+        updatePaymentCycle(paymentCycle, paymentCycleStatus);
+    }
+
+    /**
+     * Update and saves the payment cycle with the given calculation.
+     * @param paymentCycle payment cycle to update
+     * @param paymentCycleStatus payment cycle status
+     */
+    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
+        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
+        paymentCycleRepository.save(paymentCycle);
     }
 }

@@ -12,13 +12,16 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -50,7 +53,7 @@ class DetermineEntitlementMessageProcessorTest {
     @Mock
     private PaymentCycleService paymentCycleService;
     @Mock
-    private PaymentService paymentService;
+    private MessageQueueClient messageQueueClient;
 
     @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
@@ -85,9 +88,10 @@ class DetermineEntitlementMessageProcessorTest {
 
         verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim(), expectedDeliveryDate);
         if (eligibilityStatus == ELIGIBLE) {
-            verify(paymentService).createMakePaymentMessage(context.getCurrentPaymentCycle());
+            MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(context.getCurrentPaymentCycle());
+            verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         } else {
-            verifyZeroInteractions(paymentService);
+            verifyZeroInteractions(messageQueueClient);
         }
     }
 

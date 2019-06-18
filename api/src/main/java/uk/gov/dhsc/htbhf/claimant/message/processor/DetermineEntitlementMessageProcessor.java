@@ -7,15 +7,13 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
-import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
-import uk.gov.dhsc.htbhf.claimant.message.MessageType;
-import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.*;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import java.time.LocalDate;
 import javax.transaction.Transactional;
@@ -35,7 +33,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private PaymentCycleService paymentCycleService;
 
-    private PaymentService paymentService;
+    private MessageQueueClient messageQueueClient;
 
     @Override
     public MessageType supportsMessageType() {
@@ -67,10 +65,15 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         updateAndSavePaymentCycle(currentPaymentCycle, decision);
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
-            paymentService.createMakePaymentMessage(currentPaymentCycle);
+            createMakePaymentMessage(currentPaymentCycle);
         }
 
         return COMPLETED;
+    }
+
+    private void createMakePaymentMessage(PaymentCycle paymentCycle) {
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
+        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
     private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
