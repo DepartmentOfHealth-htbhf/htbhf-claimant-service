@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 
@@ -71,7 +73,7 @@ class ClaimControllerTest {
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         given(claimantConverter.convert(any())).willReturn(claimant);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
-        given(claimService.createOrUpdateClaim(any(), any())).willReturn(claimResult);
+        given(claimService.createOrUpdateClaim(any())).willReturn(claimResult);
 
         // When
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
@@ -81,7 +83,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(claimResultDTO);
-        verify(claimService).createOrUpdateClaim(claimant, dto.getDeviceFingerprint());
+        verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(dto.getClaimant());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
@@ -98,7 +100,7 @@ class ClaimControllerTest {
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
         given(claimantConverter.convert(any())).willReturn(claimant);
-        given(claimService.createOrUpdateClaim(any(), any())).willReturn(claimResult);
+        given(claimService.createOrUpdateClaim(any())).willReturn(claimResult);
 
         // When
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
@@ -108,7 +110,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(claimResultDTO);
-        verify(claimService).createOrUpdateClaim(claimant, dto.getDeviceFingerprint());
+        verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(dto.getClaimant());
         verifyZeroInteractions(entitlementConverter);
     }
@@ -121,7 +123,7 @@ class ClaimControllerTest {
         String updatedField = EXPECTED_DELIVERY_DATE.getFieldName();
         ClaimResult claimResult = anUpdatedClaimResult(updatedField);
         given(claimantConverter.convert(any())).willReturn(claimant);
-        given(claimService.createOrUpdateClaim(any(), any())).willReturn(claimResult);
+        given(claimService.createOrUpdateClaim(any())).willReturn(claimResult);
 
         // When
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
@@ -137,7 +139,7 @@ class ClaimControllerTest {
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsInvalid() {
         // Given
-        given(claimService.createOrUpdateClaim(any(), any())).willReturn(aClaimResult(ClaimStatus.NEW, Optional.empty()));
+        given(claimService.createOrUpdateClaim(any())).willReturn(aClaimResult(ClaimStatus.NEW, Optional.empty()));
         Claimant claimant = aValidClaimant();
         given(claimantConverter.convert(any())).willReturn(claimant);
         Map mockStatusMap = mock(Map.class);
@@ -153,9 +155,19 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(claimResultDTO);
-        verify(claimService).createOrUpdateClaim(claimant, dto.getDeviceFingerprint());
+        verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(mockStatusMap).get(ClaimStatus.NEW);
         verify(claimantConverter).convert(dto.getClaimant());
+    }
+
+    private void verifyCreateOrUpdateClaimCalledCorrectly(Claimant claimant, ClaimDTO dto) {
+        ArgumentCaptor<ClaimRequest> captor = ArgumentCaptor.forClass(ClaimRequest.class);
+        verify(claimService).createOrUpdateClaim(captor.capture());
+        ClaimRequest claimRequest = captor.getValue();
+        assertThat(claimRequest).isNotNull();
+        assertThat(claimRequest.getClaimant()).isEqualTo(claimant);
+        assertThat(claimRequest.getDeviceFingerprint()).isEqualTo(dto.getDeviceFingerprint());
+        assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
     }
 
     private ClaimResult aClaimResult(ClaimStatus claimStatus, Optional<VoucherEntitlement> voucherEntitlement) {

@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
@@ -53,7 +54,12 @@ public class ClaimController {
     public ResponseEntity<ClaimResultDTO> createOrUpdateClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, claimDTO.getDeviceFingerprint());
+        ClaimRequest claimRequest = ClaimRequest.builder()
+                .claimant(claimant)
+                .deviceFingerprint(claimDTO.getDeviceFingerprint())
+                .webUIVersion(claimDTO.getWebUIVersion())
+                .build();
+        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
 
         return createResponse(result);
     }

@@ -47,6 +47,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
@@ -60,6 +62,8 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceTest {
+
+    private static final String WEB_UI_VERSION = "1.1.1";
 
     @InjectMocks
     ClaimService claimService;
@@ -77,7 +81,7 @@ class ClaimServiceTest {
     MessageQueueClient messageQueueClient;
 
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
-    private final String deviceFingerprintHash = DigestUtils.md5Hex(deviceFingerprint.toString());
+    private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
     @Test
     void shouldSaveNonExistingEligibleClaimantAndSendNewCardMessage() {
@@ -88,9 +92,10 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -99,6 +104,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
+        assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
 
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
@@ -120,9 +126,10 @@ class ClaimServiceTest {
         Claimant claimant = aValidClaimant();
         EligibilityAndEntitlementDecision eligibility = aDecisionWithStatus(eligibilityStatus);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(eligibility);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -134,6 +141,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
+        assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
 
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
@@ -151,9 +159,10 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -180,9 +189,10 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         verify(claimRepository).save(result.getClaim());
@@ -207,9 +217,10 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
@@ -237,9 +248,10 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
@@ -280,9 +292,10 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
@@ -304,9 +317,10 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
@@ -328,9 +342,10 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
@@ -347,9 +362,12 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
+                .deviceFingerprint(null)
+                .build();
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, null);
+        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
 
         //then
         assertThat(result).isNotNull();
@@ -367,15 +385,40 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
+                .deviceFingerprint(emptyMap())
+                .build();
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimant, emptyMap());
+        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
 
         //then
         assertThat(result).isNotNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getDeviceFingerprint()).isEmpty();
         assertThat(result.getClaim().getDeviceFingerprintHash()).isNull();
+    }
+
+    @Test
+    void shouldHandleNullWebUIVersion() {
+        //given
+        Claimant claimant = aValidClaimant();
+        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
+        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
+        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
+                .webUIVersion(null)
+                .build();
+
+        //when
+        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
+
+        //then
+        assertThat(result).isNotNull();
+        assertThat(result.getClaim()).isNotNull();
+        assertThat(result.getClaim().getWebUIVersion()).isNull();
     }
 
     @Test
@@ -390,10 +433,11 @@ class ClaimServiceTest {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         given(claimRepository.findById(any())).willReturn(Optional.empty());
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
         IllegalStateException exception = catchThrowableOfType(
-                () -> claimService.createOrUpdateClaim(newClaimant, deviceFingerprint), IllegalStateException.class);
+                () -> claimService.createOrUpdateClaim(request), IllegalStateException.class);
 
         //then
         assertThat(exception).isNotNull();
@@ -418,9 +462,10 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
+        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(newClaimant, deviceFingerprint);
+        ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isNull();
@@ -429,6 +474,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
         assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
+        assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -446,9 +492,10 @@ class ClaimServiceTest {
         Claimant claimant = aValidClaimant();
         RuntimeException testException = new RuntimeException("Test exception");
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willThrow(testException);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> claimService.createOrUpdateClaim(claimant, deviceFingerprint), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createOrUpdateClaim(request), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(testException);
@@ -473,6 +520,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getClaimant()).isEqualTo(claimant);
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
+        assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
     }
 
     private void verifyCreateNewCardMessageSent(ClaimResult result, PaymentCycleVoucherEntitlement voucherEntitlement, List<LocalDate> datesOfBirth) {
