@@ -51,17 +51,18 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    public ClaimResult createOrUpdateClaim(Claimant claimant, Map<String, Object> deviceFingerprint) {
+    public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
+
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
             if (claimExistsAndIsEligible(decision)) {
                 Claim claim = findClaim(decision.getExistingClaimId());
-                List<String> updatedFields = updateClaim(claim, claimant);
+                List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
             }
 
-            Claim claim = createAndSaveClaim(claimant, decision, deviceFingerprint);
+            Claim claim = createAndSaveClaim(claimRequest, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendNewCardMessage(claim, decision);
                 return createResult(claim, decision.getVoucherEntitlement());
@@ -69,7 +70,7 @@ public class ClaimService {
 
             return createResult(claim);
         } catch (RuntimeException e) {
-            handleFailedClaim(claimant, deviceFingerprint, e);
+            handleFailedClaim(claimRequest, e);
             throw e;
         }
     }
@@ -82,9 +83,9 @@ public class ClaimService {
         }
     }
 
-    private void handleFailedClaim(Claimant claimant, Map<String, Object> deviceFingerprint, RuntimeException e) {
+    private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
         EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
-        Claim claim = buildClaim(claimant, decision, deviceFingerprint);
+        Claim claim = buildClaim(claimRequest, decision);
         NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
         FailureEvent failureEvent = FailureEvent.builder()
                 .failureDescription("Unable to create (or update) claim")
@@ -124,8 +125,8 @@ public class ClaimService {
         return updatedFields;
     }
 
-    private Claim createAndSaveClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
-        Claim claim = buildClaim(claimant, decision, deviceFingerprint);
+    private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+        Claim claim = buildClaim(claimRequest, decision);
         claimRepository.save(claim);
         log.info("Saved new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
@@ -139,9 +140,10 @@ public class ClaimService {
 
     @SuppressFBWarnings(value = "SECMD5",
             justification = "Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption")
-    private Claim buildClaim(Claimant claimant, EligibilityAndEntitlementDecision decision, Map<String, Object> deviceFingerprint) {
+    private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
         ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
         LocalDateTime currentDateTime = LocalDateTime.now();
+        Map<String, Object> deviceFingerprint = claimRequest.getDeviceFingerprint();
         String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());
         return Claim.builder()
                 .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())
@@ -150,9 +152,10 @@ public class ClaimService {
                 .eligibilityStatusTimestamp(currentDateTime)
                 .claimStatus(claimStatus)
                 .claimStatusTimestamp(currentDateTime)
-                .claimant(claimant)
+                .claimant(claimRequest.getClaimant())
                 .deviceFingerprint(deviceFingerprint)
                 .deviceFingerprintHash(fingerprintHash)
+                .webUIVersion(claimRequest.getWebUIVersion())
                 .build();
     }
 

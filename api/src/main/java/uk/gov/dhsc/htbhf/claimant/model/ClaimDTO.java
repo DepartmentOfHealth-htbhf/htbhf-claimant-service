@@ -28,4 +28,8 @@ public class ClaimDTO {
     @ApiModelProperty(notes = "The fingerprint of the device used to make the claim, as best it can be identified. Probably a collection of header values.")
     private Map<String, Object> deviceFingerprint;
 
+    @JsonProperty("webUIVersion")
+    @ApiModelProperty(notes = "The version of the web-ui application used to create this request.")
+    private String webUIVersion;
+
 }

@@ -53,6 +53,9 @@ public class Claim extends VersionedEntity {
     @Column(name = "device_fingerprint_hash")
     private String deviceFingerprintHash;
 
+    @Column(name = "web_ui_version")
+    private String webUIVersion;
+
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @ToString.Exclude
