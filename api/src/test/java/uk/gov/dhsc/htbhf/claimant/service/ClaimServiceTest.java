@@ -363,6 +363,7 @@ class ClaimServiceTest {
         ClaimRequest claimRequest = ClaimRequest.builder()
                 .claimant(claimant)
                 .deviceFingerprint(null)
+                .webUIVersion(WEB_UI_VERSION)
                 .build();
 
         //when
@@ -387,6 +388,7 @@ class ClaimServiceTest {
         ClaimRequest claimRequest = ClaimRequest.builder()
                 .claimant(claimant)
                 .deviceFingerprint(emptyMap())
+                .webUIVersion(WEB_UI_VERSION)
                 .build();
 
         //when
@@ -410,6 +412,7 @@ class ClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest claimRequest = ClaimRequest.builder()
                 .claimant(claimant)
+                .deviceFingerprint(deviceFingerprint)
                 .webUIVersion(null)
                 .build();
 
