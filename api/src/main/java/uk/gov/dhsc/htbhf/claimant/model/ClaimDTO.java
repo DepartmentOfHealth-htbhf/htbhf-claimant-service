@@ -29,7 +29,8 @@ public class ClaimDTO {
     private Map<String, Object> deviceFingerprint;
 
     @JsonProperty("webUIVersion")
-    @ApiModelProperty(notes = "The version of the web-ui application used to create this request.")
+    @ApiModelProperty(notes = "The version of the web-ui application used to create this request. "
+            + "Identifies which version of the Terms and Conditions the applicant accepted.")
     private String webUIVersion;
 
 }

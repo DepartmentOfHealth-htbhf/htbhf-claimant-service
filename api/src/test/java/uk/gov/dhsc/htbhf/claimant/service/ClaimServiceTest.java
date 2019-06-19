@@ -47,6 +47,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
@@ -79,7 +81,7 @@ class ClaimServiceTest {
     MessageQueueClient messageQueueClient;
 
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
-    private final String deviceFingerprintHash = DigestUtils.md5Hex(deviceFingerprint.toString());
+    private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
     @Test
     void shouldSaveNonExistingEligibleClaimantAndSendNewCardMessage() {
@@ -360,10 +362,8 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
-        ClaimRequest claimRequest = ClaimRequest.builder()
-                .claimant(claimant)
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(null)
-                .webUIVersion(WEB_UI_VERSION)
                 .build();
 
         //when
@@ -385,10 +385,8 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
-        ClaimRequest claimRequest = ClaimRequest.builder()
-                .claimant(claimant)
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(emptyMap())
-                .webUIVersion(WEB_UI_VERSION)
                 .build();
 
         //when
@@ -410,9 +408,7 @@ class ClaimServiceTest {
         var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
-        ClaimRequest claimRequest = ClaimRequest.builder()
-                .claimant(claimant)
-                .deviceFingerprint(deviceFingerprint)
+        ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .webUIVersion(null)
                 .build();
 
@@ -511,14 +507,6 @@ class ClaimServiceTest {
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
-    }
-
-    private ClaimRequest aClaimRequestForClaimant(Claimant claimant) {
-        return ClaimRequest.builder()
-                .claimant(claimant)
-                .deviceFingerprint(deviceFingerprint)
-                .webUIVersion(WEB_UI_VERSION)
-                .build();
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
