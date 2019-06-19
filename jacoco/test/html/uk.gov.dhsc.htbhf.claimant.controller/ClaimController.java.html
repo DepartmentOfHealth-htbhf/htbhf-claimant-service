@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
@@ -29,7 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController()
 @RequestMapping(value = &quot;/v2/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-<span class="fc" id="L32">@Slf4j</span>
+<span class="fc" id="L33">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimController {
 
@@ -51,42 +52,47 @@ public class ClaimController {
     @ApiOperation(&quot;Create or update a claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;ClaimResultDTO&gt; createOrUpdateClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L54">        log.debug(&quot;Received claim&quot;);</span>
-<span class="fc" id="L55">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
-<span class="fc" id="L56">        ClaimResult result = claimService.createOrUpdateClaim(claimant, claimDTO.getDeviceFingerprint());</span>
+<span class="fc" id="L55">        log.debug(&quot;Received claim&quot;);</span>
+<span class="fc" id="L56">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
+<span class="fc" id="L57">        ClaimRequest claimRequest = ClaimRequest.builder()</span>
+<span class="fc" id="L58">                .claimant(claimant)</span>
+<span class="fc" id="L59">                .deviceFingerprint(claimDTO.getDeviceFingerprint())</span>
+<span class="fc" id="L60">                .webUIVersion(claimDTO.getWebUIVersion())</span>
+<span class="fc" id="L61">                .build();</span>
+<span class="fc" id="L62">        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);</span>
 
-<span class="fc" id="L58">        return createResponse(result);</span>
+<span class="fc" id="L64">        return createResponse(result);</span>
     }
 
     private ResponseEntity&lt;ClaimResultDTO&gt; createResponse(ClaimResult result) {
-<span class="fc" id="L62">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
-<span class="fc" id="L63">        HttpStatus statusCode = getHttpStatus(result);</span>
-<span class="fc" id="L64">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
-<span class="fc" id="L65">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
-<span class="fc" id="L66">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L67">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
-<span class="fc" id="L68">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L69">                .claimUpdated(result.getClaimUpdated())</span>
-<span class="fc" id="L70">                .updatedFields(result.getUpdatedFields())</span>
-<span class="fc" id="L71">                .build();</span>
-<span class="fc" id="L72">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L68">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
+<span class="fc" id="L69">        HttpStatus statusCode = getHttpStatus(result);</span>
+<span class="fc" id="L70">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
+<span class="fc" id="L71">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
+<span class="fc" id="L72">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L73">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
+<span class="fc" id="L74">                .voucherEntitlement(entitlement)</span>
+<span class="fc" id="L75">                .claimUpdated(result.getClaimUpdated())</span>
+<span class="fc" id="L76">                .updatedFields(result.getUpdatedFields())</span>
+<span class="fc" id="L77">                .build();</span>
+<span class="fc" id="L78">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
-<span class="fc" id="L76">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
+<span class="fc" id="L82">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
-<span class="fc" id="L81">            return HttpStatus.OK;</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
+<span class="fc" id="L87">            return HttpStatus.OK;</span>
         }
-<span class="fc" id="L83">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
-<span class="fc" id="L84">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (statusCode == null) {</span>
-<span class="fc" id="L86">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
-<span class="fc" id="L87">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="fc" id="L89">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
+<span class="fc" id="L90">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (statusCode == null) {</span>
+<span class="fc" id="L92">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="fc" id="L93">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L89">        return statusCode;</span>
+<span class="fc" id="L95">        return statusCode;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
