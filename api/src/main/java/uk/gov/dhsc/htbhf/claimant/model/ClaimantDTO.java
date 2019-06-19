@@ -16,6 +16,8 @@ import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
+
 @Data
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
@@ -64,4 +66,12 @@ public class ClaimantDTO {
     @JsonProperty("phoneNumber")
     @ApiModelProperty(notes = "The claimant's UK phone number. Must be in +44 format, e.g. +447123456789")
     private String phoneNumber;
+
+    @NotNull
+    @Pattern(regexp = VALID_EMAIL_REGEX, message = "invalid email address")
+    @Size(max = 256)
+    @JsonProperty("emailAddress")
+    @ApiModelProperty(notes = "The claimant's email address. e.g. test@email.com")
+    private String emailAddress;
+
 }

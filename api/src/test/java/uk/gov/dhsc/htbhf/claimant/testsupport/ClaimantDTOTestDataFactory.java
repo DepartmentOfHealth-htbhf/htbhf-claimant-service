@@ -20,6 +20,12 @@ public class ClaimantDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimantDTO aClaimantDTOWithEmailAddress(String emailAddress) {
+        return aValidClaimantBuilder()
+                .emailAddress(emailAddress)
+                .build();
+    }
+
     public static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()
                 .firstName(VALID_FIRST_NAME)
@@ -28,7 +34,8 @@ public class ClaimantDTOTestDataFactory {
                 .dateOfBirth(VALID_DOB)
                 .address(aValidAddressBuilder().build())
                 .expectedDeliveryDate(now().plusMonths(1))
-                .phoneNumber(VALID_PHONE_NUMBER);
+                .phoneNumber(VALID_PHONE_NUMBER)
+                .emailAddress(VALID_EMAIL_ADDRESS);
     }
 
     public static AddressDTO.AddressDTOBuilder aValidAddressBuilder() {

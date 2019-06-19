@@ -13,6 +13,7 @@ public class TestConstants {
     public static final String VALID_TOWN_OR_CITY = "Springfield";
     public static final String VALID_POSTCODE = "AA1 1AA";
     public static final String VALID_PHONE_NUMBER = "+447123456789";
+    public static final String VALID_EMAIL_ADDRESS = "test@email.com";
 
     public static final String DWP_HOUSEHOLD_IDENTIFIER = "dwpHousehold1";
     public static final String HMRC_HOUSEHOLD_IDENTIFIER = "hmrcHousehold1";

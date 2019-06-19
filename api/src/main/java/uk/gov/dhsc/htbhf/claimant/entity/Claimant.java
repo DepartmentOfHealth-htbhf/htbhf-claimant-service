@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
+
 /**
  * Domain object for a Claimant.
  */
@@ -50,4 +52,10 @@ public class Claimant extends VersionedEntity {
     @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +447123456789 format")
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    @NotNull
+    @Pattern(regexp = VALID_EMAIL_REGEX, message = "invalid email address")
+    @Size(max = 256)
+    @Column(name = "email_address")
+    private String emailAddress;
 }
