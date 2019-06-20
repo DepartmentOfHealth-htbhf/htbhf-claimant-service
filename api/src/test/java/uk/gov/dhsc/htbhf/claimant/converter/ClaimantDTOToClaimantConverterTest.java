@@ -45,6 +45,7 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getExpectedDeliveryDate()).isEqualTo(claimantDTO.getExpectedDeliveryDate());
         assertThat(result.getAddress()).isEqualTo(ADDRESS);
         assertThat(result.getPhoneNumber()).isEqualTo(claimantDTO.getPhoneNumber());
+        assertThat(result.getEmailAddress()).isEqualTo(claimantDTO.getEmailAddress());
         verify(addressConverter).convert(claimantDTO.getAddress());
     }
 

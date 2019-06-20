@@ -56,6 +56,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
@@ -315,6 +316,34 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.phoneNumber", "invalid UK phone number, must be in +44 format, e.g. +447123456789");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "plainaddress",
+            "#@%^%#$@#$@#.com",
+            "@domain.com"
+    })
+    void shouldFailWithInvalidEmailAddress(String emailAddress) {
+        //Given
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(emailAddress);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        //Then
+        assertValidationErrorInResponse(response, "claimant.emailAddress", "invalid email address");
+    }
+
+    @Test
+    void shouldFailWithTooLongEmailAddress() {
+        //Given
+        String longEmailAddress = CharBuffer.allocate(256).toString().replace('\0', 'A') + "@email.com";
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(longEmailAddress);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
+        //When
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        //Then
+        assertValidationErrorInResponse(response, "claimant.emailAddress", "size must be between 0 and 256");
     }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,

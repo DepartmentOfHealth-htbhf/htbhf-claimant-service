@@ -7,6 +7,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 
+import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
@@ -218,6 +219,60 @@ class ClaimantTest extends AbstractValidationTest {
     void shouldValidateClaimantWithPhoneNumberInCorrectFormat(String phoneNumber) {
         //Given
         Claimant claimant = aClaimantWithPhoneNumber(phoneNumber);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "plainaddress",
+            "#@%^%#$@#$@#.com",
+            "@domain.com",
+            "Joe Smith <email@domain.com>",
+            "email.domain.com",
+            "email@domain.com (Joe Smith)",
+            "@email.com",
+            "test@domain"
+    })
+    void shouldFailToValidateInvalidEmailAddress(String emailAddress) {
+        //Given
+        Claimant claimant = aClaimantWithEmailAddress(emailAddress);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("invalid email address", "emailAddress");
+    }
+
+    @Test
+    void shouldFailToValidateEmailAddressTooLong() {
+        //Given
+        String longEmailAddress = CharBuffer.allocate(256).toString().replace('\0', 'A') + "@email.com";
+        Claimant claimant = aClaimantWithEmailAddress(longEmailAddress);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 256", "emailAddress");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "email@domain.com",
+            "firstname.lastname@domain.com",
+            "email@subdomain.domain.com",
+            "firstname+lastname@domain.com",
+            "1234567890@domain.com",
+            "Email@domain-one.com",
+            "_______@domain.com",
+            "email@domain.name",
+            "email@domain.co.jp",
+            "firstname-lastname@domain.com",
+            "Pälé@example.com"
+    })
+    void shouldValidateClaimantWithValidEmailAddress(String emailAddress) {
+        //Given
+        Claimant claimant = aClaimantWithEmailAddress(emailAddress);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then

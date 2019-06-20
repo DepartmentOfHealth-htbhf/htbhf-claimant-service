@@ -7,6 +7,7 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_EMAIL_ADDRESS;
 
 public final class ClaimantTestDataFactory {
 
@@ -65,6 +66,12 @@ public final class ClaimantTestDataFactory {
                 .build();
     }
 
+    public static Claimant aClaimantWithEmailAddress(String emailAddress) {
+        return aValidClaimantBuilder()
+                .emailAddress(emailAddress)
+                .build();
+    }
+
     public static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
                 .firstName(VALID_FIRST_NAME)
@@ -72,6 +79,7 @@ public final class ClaimantTestDataFactory {
                 .nino(VALID_NINO)
                 .dateOfBirth(VALID_DOB)
                 .phoneNumber(VALID_PHONE_NUMBER)
+                .emailAddress(VALID_EMAIL_ADDRESS)
                 .address(aValidAddress());
     }
 
@@ -81,6 +89,7 @@ public final class ClaimantTestDataFactory {
                 .lastName("Smith")
                 .nino("BE654321B")
                 .dateOfBirth(LocalDate.parse("1990-11-20"))
-                .phoneNumber(VALID_PHONE_NUMBER);
+                .phoneNumber(VALID_PHONE_NUMBER)
+                .emailAddress(VALID_EMAIL_ADDRESS);
     }
 }

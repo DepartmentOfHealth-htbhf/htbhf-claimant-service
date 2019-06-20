@@ -147,6 +147,12 @@ definitions:
         format: "date"
         example: "1985-12-30"
         description: "The date of birth, in the format YYYY-MM-DD"
+      emailAddress:
+        type: "string"
+        description: "The claimant's email address. e.g. test@email.com"
+        minLength: 0
+        maxLength: 256
+        pattern: "^[^@]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+$"
       expectedDeliveryDate:
         type: "string"
         format: "date"
