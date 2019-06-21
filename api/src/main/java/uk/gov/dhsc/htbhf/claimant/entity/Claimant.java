@@ -21,7 +21,8 @@ import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
 @ToString(callSuper = true)
 public class Claimant extends VersionedEntity {
 
-    @Size(max = 500)
+    @NotNull
+    @Size(min = 1, max = 500)
     @Column(name = "first_name")
     private String firstName;
 
