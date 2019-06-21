@@ -29,6 +29,16 @@ class ClaimantTest extends AbstractValidationTest {
     }
 
     @Test
+    void shouldFailToValidateClaimantWithNoFirstName() {
+        //Given
+        Claimant claimant = aClaimantWithFirstName(null);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "firstName");
+    }
+
+    @Test
     void shouldFailToValidateClaimantWithNoLastName() {
         //Given
         Claimant claimant = aClaimantWithLastName(null);
@@ -45,7 +55,7 @@ class ClaimantTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 500", "firstName");
+        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "firstName");
     }
 
     @Test
@@ -56,6 +66,16 @@ class ClaimantTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithBlankFirstName() {
+        //Given
+        Claimant claimant = aClaimantWithFirstName("");
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "firstName");
     }
 
     @Test
@@ -71,13 +91,13 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithInvalidFirstNameAndSurname() {
         //Given
-        Claimant claimant = aClaimantWithFirstNameAndLastName(LONG_NAME, "");
+        Claimant claimant = aClaimantWithFirstNameAndLastName(LONG_NAME, LONG_NAME);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasTotalViolations(2)
                 .hasViolation("size must be between 1 and 500", "lastName")
-                .hasViolation("size must be between 0 and 500", "firstName");
+                .hasViolation("size must be between 1 and 500", "firstName");
     }
 
     @Test

@@ -24,7 +24,8 @@ import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
 @ApiModel(description = "A claimant for help to buy healthy foods.")
 public class ClaimantDTO {
 
-    @Size(max = 500)
+    @NotNull
+    @Size(min = 1, max = 500)
     @JsonProperty("firstName")
     @ApiModelProperty(notes = "First (given) name", example = "Jo")
     private String firstName;
