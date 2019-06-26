@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import static java.time.LocalDate.now;
+import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 public class ClaimantDTOTestDataFactory {
@@ -11,6 +12,7 @@ public class ClaimantDTOTestDataFactory {
     public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
                 .expectedDeliveryDate(now().plusMonths(4))
+                .childrenDob(singletonList(MAGGIE_DOB))
                 .build();
     }
 

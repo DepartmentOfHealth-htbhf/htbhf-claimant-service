@@ -15,6 +15,7 @@ import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
 
 class ClaimantTest extends AbstractValidationTest {
 
@@ -297,5 +298,26 @@ class ClaimantTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithChildrenDob() {
+        //Given
+        Claimant claimant = aClaimantWithChildrenDob(MAGGIE_DOB);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldFailToValidateClaimantWithChildrenDobInFuture() {
+        //Given
+        LocalDate futureDate = LocalDate.now().plusYears(1);
+        Claimant claimant = aClaimantWithChildrenDob(futureDate);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("dates of birth of children should be all in the past", "childrenDob");
     }
 }
