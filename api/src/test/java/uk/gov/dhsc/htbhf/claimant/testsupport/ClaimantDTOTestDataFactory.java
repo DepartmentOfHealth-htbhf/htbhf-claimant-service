@@ -3,11 +3,17 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
+import java.time.LocalDate;
+
 import static java.time.LocalDate.now;
 import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 public class ClaimantDTOTestDataFactory {
+
+    public static ClaimantDTO aValidClaimantDTO() {
+        return aValidClaimantBuilder().build();
+    }
 
     public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
@@ -28,7 +34,13 @@ public class ClaimantDTOTestDataFactory {
                 .build();
     }
 
-    public static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
+    public static ClaimantDTO aClaimantDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+        return aValidClaimantBuilder()
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .build();
+    }
+
+    private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()
                 .firstName(VALID_FIRST_NAME)
                 .lastName(VALID_LAST_NAME)
