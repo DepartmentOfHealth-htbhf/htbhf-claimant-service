@@ -8,33 +8,22 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.*;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
-import java.nio.CharBuffer;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -51,12 +40,13 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
@@ -73,8 +63,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
 @AutoConfigureWireMock(port = 8100)
 class ClaimantServiceIntegrationTests {
 
-    // Create a string 501 characters long
-    private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
     private static final String ELIGIBILITY_SERVICE_URL = "/v1/eligibility";
 
     @Autowired
@@ -208,69 +196,27 @@ class ClaimantServiceIntegrationTests {
         assertDuplicateResponse(response);
     }
 
-    @ParameterizedTest(name = "Field {0} with invalid value {1} on a claim returns the correct error response")
-    @MethodSource("shouldFailWithValidationErrorArguments")
-    void shouldFailWithValidationError(String fieldName, String value, String expectedErrorMessage, String expectedField) {
+    @Test
+    void shouldFailWithClaimantValidationError() {
         //Given
-        ClaimDTO claim = aValidClaimDTO();
-        modifyFieldOnObject(claim.getClaimant(), fieldName, value);
+        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationErrorInResponse(response, expectedField, expectedErrorMessage);
+        assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
     }
 
-    //This is a MethodSource because of the use of LONG_STRING
-    private static Stream<Arguments> shouldFailWithValidationErrorArguments() {
-        return Stream.of(
-                Arguments.of("lastName", LONG_STRING, "size must be between 1 and 500", "claimant.lastName"),
-                Arguments.of("lastName", null, "must not be null", "claimant.lastName"),
-                Arguments.of("lastName", "", "size must be between 1 and 500", "claimant.lastName"),
-                Arguments.of("firstName", LONG_STRING, "size must be between 1 and 500", "claimant.firstName"),
-                Arguments.of("firstName", null, "must not be null", "claimant.firstName"),
-                Arguments.of("nino", null, "must not be null", "claimant.nino"),
-                Arguments.of("nino", "", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("nino", "YYHU456781", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("nino", "888888888", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("nino", "ABCDEFGHI", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("nino", "ZQQ123456CZ", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("nino", "QQ123456T", "must match \"[a-zA-Z]{2}\\d{6}[a-dA-D]\"", "claimant.nino"),
-                Arguments.of("dateOfBirth", "9999-12-31", "must be a past date", "claimant.dateOfBirth"),
-                Arguments.of("expectedDeliveryDate", "9999-12-31",
-                        "must not be more than one month in the past or 8 months in the future", "claimant.expectedDeliveryDate"),
-                Arguments.of("expectedDeliveryDate", "1990-12-31",
-                        "must not be more than one month in the past or 8 months in the future", "claimant.expectedDeliveryDate"),
-                Arguments.of("address", null, "must not be null", "claimant.address"),
-                Arguments.of("dateOfBirth", null, "must not be null", "claimant.dateOfBirth")
-        );
-    }
-
-    @ParameterizedTest(name = "Field {0} with invalid value {1} on an address returns the correct error response")
-    @MethodSource("shouldFailWithAddressValidationErrorArguments")
-    void shouldFailWithAddressValidationError(String fieldName, String value, String expectedErrorMessage, String expectedField) {
+    @Test
+    void shouldFailWithAddressValidationError() {
         //Given
-        ClaimDTO claim = aValidClaimDTO();
-        modifyFieldOnObject(claim.getClaimant().getAddress(), fieldName, value);
+        AddressDTO addressDTO = anAddressDTOWithLine1(null);
+        ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationErrorInResponse(response, expectedField, expectedErrorMessage);
-    }
-
-    //This is a MethodSource because of the use of LONG_STRING
-    private static Stream<Arguments> shouldFailWithAddressValidationErrorArguments() {
-        return Stream.of(
-                Arguments.of("addressLine1", null, "must not be null", "claimant.address.addressLine1"),
-                Arguments.of("addressLine1", LONG_STRING, "size must be between 1 and 500", "claimant.address.addressLine1"),
-                Arguments.of("addressLine2", LONG_STRING, "size must be between 0 and 500", "claimant.address.addressLine2"),
-                Arguments.of("townOrCity", null, "must not be null", "claimant.address.townOrCity"),
-                Arguments.of("townOrCity", LONG_STRING, "size must be between 1 and 500", "claimant.address.townOrCity"),
-                Arguments.of("postcode", "AA1122BB", "invalid postcode format", "claimant.address.postcode"),
-                Arguments.of("postcode", "A", "invalid postcode format", "claimant.address.postcode"),
-                Arguments.of("postcode", "11AA21", "invalid postcode format", "claimant.address.postcode"),
-                Arguments.of("postcode", "", "invalid postcode format", "claimant.address.postcode"),
-                Arguments.of("postcode", null, "must not be null", "claimant.address.postcode")
-        );
+        assertValidationErrorInResponse(response, "claimant.address.addressLine1", "must not be null");
     }
 
     @ParameterizedTest(name = "Field {0} with invalid value {1} on an error response")
@@ -302,50 +248,6 @@ class ClaimantServiceIntegrationTests {
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "+4477009005",
-            "+447700900516987679",
-            "abcdef",
-            "07123456789" // not in +44 format
-    })
-    void shouldFailWithInvalidPhoneNumber(String phoneNumber) {
-        // Given
-        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(phoneNumber);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
-        //Then
-        assertValidationErrorInResponse(response, "claimant.phoneNumber", "invalid UK phone number, must be in +44 format, e.g. +447123456789");
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-            "plainaddress",
-            "#@%^%#$@#$@#.com",
-            "@domain.com"
-    })
-    void shouldFailWithInvalidEmailAddress(String emailAddress) {
-        //Given
-        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(emailAddress);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
-        //Then
-        assertValidationErrorInResponse(response, "claimant.emailAddress", "invalid email address");
-    }
-
-    @Test
-    void shouldFailWithTooLongEmailAddress() {
-        //Given
-        String longEmailAddress = CharBuffer.allocate(256).toString().replace('\0', 'A') + "@email.com";
-        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(longEmailAddress);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
-        //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
-        //Then
-        assertValidationErrorInResponse(response, "claimant.emailAddress", "size must be between 0 and 256");
-    }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
                                                   EligibilityStatus eligibilityStatus,
@@ -380,16 +282,6 @@ class ClaimantServiceIntegrationTests {
         JSONObject jsonObject = new JSONObject(json);
         jsonObject.getJSONObject("claimant").put(fieldName, newValue);
         return jsonObject.toString();
-    }
-
-    private void modifyFieldOnObject(Object nestedObjectToSetFieldOn, String fieldName, String value) {
-        Object valueToSet = (isLocalDateField(fieldName) && value != null) ? LocalDate.parse(value) : value;
-        ReflectionTestUtils.setField(nestedObjectToSetFieldOn, fieldName, valueToSet);
-    }
-
-    private boolean isLocalDateField(String fieldName) {
-        List dateFields = Arrays.asList("dateOfBirth", "expectedDeliveryDate");
-        return dateFields.contains(fieldName);
     }
 
     private RequestEntity buildRequestEntity(Object requestObject) {
