@@ -142,6 +142,12 @@ definitions:
       address:
         description: "The address of the claimant"
         $ref: "#/definitions/AddressDTO"
+      childrenDob:
+        type: "array"
+        description: "The dates of birth of the claimant's children (if they have\
+          \ any)"
+        items:
+          $ref: "#/definitions/LocalDate"
       dateOfBirth:
         type: "string"
         format: "date"

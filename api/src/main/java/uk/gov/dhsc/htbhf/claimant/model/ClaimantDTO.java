@@ -8,8 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.DateWithinRelativeRange;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 
 import java.time.LocalDate;
+import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -74,5 +76,10 @@ public class ClaimantDTO {
     @JsonProperty("emailAddress")
     @ApiModelProperty(notes = "The claimant's email address. e.g. test@email.com")
     private String emailAddress;
+
+    @JsonProperty("childrenDob")
+    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if they have any)")
+    @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
+    private List<LocalDate> childrenDob;
 
 }

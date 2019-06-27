@@ -47,6 +47,7 @@ class MessageProcessorConfigurationTest {
         //Given the application context is built using the TestConfig below
 
         //Then
+        @SuppressWarnings("unchecked")
         Map<MessageType, MessageTypeProcessor> allMessageProcessorsByType = (Map<MessageType, MessageTypeProcessor>)
                 ReflectionTestUtils.getField(messageProcessor, "messageProcessorsByType");
         assertThat(allMessageProcessorsByType).hasSize(2);

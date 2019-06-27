@@ -1,10 +1,16 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 
 import java.time.LocalDate;
+import java.util.List;
 import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
 
@@ -59,4 +65,9 @@ public class Claimant extends VersionedEntity {
     @Size(max = 256)
     @Column(name = "email_address")
     private String emailAddress;
+
+    @Column(name = "children_dob_json")
+    @Type(type = "json")
+    @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
+    private List<LocalDate> childrenDob;
 }
