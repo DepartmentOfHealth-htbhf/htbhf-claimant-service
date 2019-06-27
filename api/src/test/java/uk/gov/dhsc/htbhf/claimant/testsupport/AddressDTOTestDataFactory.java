@@ -20,6 +20,24 @@ public class AddressDTOTestDataFactory {
                 .build();
     }
 
+    public static AddressDTO anAddressDTOWithLine2(String addressLine2) {
+        return aValidAddressDTOBuilder()
+                .addressLine2(addressLine2)
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithTownOrCity(String townOrCity) {
+        return aValidAddressDTOBuilder()
+                .townOrCity(townOrCity)
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithPostcode(String postcode) {
+        return aValidAddressDTOBuilder()
+                .postcode(postcode)
+                .build();
+    }
+
     private static AddressDTO.AddressDTOBuilder aValidAddressDTOBuilder() {
         return AddressDTO.builder()
                 .addressLine1(ADDRESS_LINE_1)

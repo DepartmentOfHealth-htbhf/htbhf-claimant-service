@@ -13,13 +13,9 @@ import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.*;
 
 class ClaimantDTOTest extends AbstractValidationTest {
-
-    // Create a string 501 characters long
-    private static final String LONG_STRING = CharBuffer.allocate(501).toString().replace('\0', 'A');
 
     @Test
     void shouldSuccessfullyValidateClaimant() {
@@ -155,8 +151,8 @@ class ClaimantDTOTest extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithExpectedDeliveryDateTooFarInPast() {
         //Given
-        LocalDate dateInFuture = LocalDate.now().minusYears(2);
-        ClaimantDTO claimant = aClaimantDTOWithExpectedDeliveryDate(dateInFuture);
+        LocalDate dateInPast = LocalDate.now().minusYears(2);
+        ClaimantDTO claimant = aClaimantDTOWithExpectedDeliveryDate(dateInPast);
         //When
         Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
@@ -174,7 +170,6 @@ class ClaimantDTOTest extends AbstractValidationTest {
     void shouldFailWithInvalidPhoneNumber(String phoneNumber) {
         // Given
         ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(phoneNumber);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
@@ -190,7 +185,6 @@ class ClaimantDTOTest extends AbstractValidationTest {
     void shouldFailWithInvalidEmailAddress(String emailAddress) {
         //Given
         ClaimantDTO claimant = aClaimantDTOWithEmailAddress(emailAddress);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
@@ -202,7 +196,6 @@ class ClaimantDTOTest extends AbstractValidationTest {
         //Given
         String longEmailAddress = CharBuffer.allocate(256).toString().replace('\0', 'A') + "@email.com";
         ClaimantDTO claimant = aClaimantDTOWithEmailAddress(longEmailAddress);
-        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
