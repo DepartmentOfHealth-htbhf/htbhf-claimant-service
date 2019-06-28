@@ -10,11 +10,39 @@ public class AddressDTOTestDataFactory {
     private static final String POSTCODE = "AA1 1AA";
 
     public static AddressDTO aValidAddressDTO() {
+        return aValidAddressDTOBuilder()
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithLine1(String addressLine1) {
+        return aValidAddressDTOBuilder()
+                .addressLine1(addressLine1)
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithLine2(String addressLine2) {
+        return aValidAddressDTOBuilder()
+                .addressLine2(addressLine2)
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithTownOrCity(String townOrCity) {
+        return aValidAddressDTOBuilder()
+                .townOrCity(townOrCity)
+                .build();
+    }
+
+    public static AddressDTO anAddressDTOWithPostcode(String postcode) {
+        return aValidAddressDTOBuilder()
+                .postcode(postcode)
+                .build();
+    }
+
+    private static AddressDTO.AddressDTOBuilder aValidAddressDTOBuilder() {
         return AddressDTO.builder()
                 .addressLine1(ADDRESS_LINE_1)
                 .addressLine2(ADDRESS_LINE_2)
                 .townOrCity(TOWN_OR_CITY)
-                .postcode(POSTCODE)
-                .build();
+                .postcode(POSTCODE);
     }
 }

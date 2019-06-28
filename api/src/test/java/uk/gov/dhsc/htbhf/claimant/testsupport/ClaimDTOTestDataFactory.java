@@ -6,11 +6,13 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import java.time.LocalDate;
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 
 public final class ClaimDTOTestDataFactory {
 
+    private static final String WEB_UI_VERSION = "1.0.0";
     public static final Map<String, Object> DEVICE_FINGERPRINT = Map.of(
             "user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36",
             "x-forwarded-for", "52.215.192.132",
@@ -21,15 +23,12 @@ public final class ClaimDTOTestDataFactory {
 
     public static ClaimDTO aValidClaimDTO() {
         return aClaimDTOBuilder()
-                .claimant(aValidClaimantBuilder().build())
                 .build();
     }
 
     public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aClaimDTOBuilder()
-                .claimant(aValidClaimantBuilder()
-                        .expectedDeliveryDate(expectedDeliveryDate)
-                        .build())
+                .claimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate))
                 .build();
     }
 
@@ -45,8 +44,22 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimDTO aClaimDTOWithDeviceFingerprint(Map<String, Object> fingerprint) {
+        return aClaimDTOBuilder()
+                .deviceFingerprint(fingerprint)
+                .build();
+    }
+
+    public static ClaimDTO aClaimDTOWithWebUIVersion(String version) {
+        return aClaimDTOBuilder()
+                .webUIVersion(version)
+                .build();
+    }
+
     private static ClaimDTO.ClaimDTOBuilder aClaimDTOBuilder() {
         return ClaimDTO.builder()
-                .deviceFingerprint(DEVICE_FINGERPRINT);
+                .claimant(aValidClaimantDTO())
+                .deviceFingerprint(DEVICE_FINGERPRINT)
+                .webUIVersion(WEB_UI_VERSION);
     }
 }
