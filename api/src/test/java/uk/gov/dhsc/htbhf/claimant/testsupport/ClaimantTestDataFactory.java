@@ -5,8 +5,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
+import java.util.Arrays;
 
-import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_EMAIL_ADDRESS;
 
@@ -29,8 +29,8 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().lastName(lastName).build();
     }
 
-    public static Claimant aClaimantWithChildrenDob(LocalDate dateOfBirth) {
-        return aValidClaimantBuilder().childrenDob(singletonList(dateOfBirth)).build();
+    public static Claimant aClaimantWithChildrenDob(LocalDate... dateOfBirth) {
+        return aValidClaimantBuilder().childrenDob(Arrays.asList(dateOfBirth)).build();
     }
 
     public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {

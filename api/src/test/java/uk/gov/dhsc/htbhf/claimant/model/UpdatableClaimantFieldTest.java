@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 
 import java.time.LocalDate;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddressBuilder;
@@ -19,7 +20,10 @@ class UpdatableClaimantFieldTest {
     @EnumSource(UpdatableClaimantField.class)
     void shouldReportFieldsHaveDifferentValues(UpdatableClaimantField field) {
         Claimant originalClaimant = Claimant.builder().build();
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
+        Claimant newClaimant = aValidClaimantBuilder()
+                .expectedDeliveryDate(LocalDate.now())
+                .childrenDob(singletonList(LocalDate.now()))
+                .build();
 
         assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
     }
@@ -88,7 +92,7 @@ class UpdatableClaimantFieldTest {
     }
 
     @Test
-    void shouldUpdatePhoneNUmber() {
+    void shouldUpdatePhoneNumber() {
         Claimant originalClaimant = aValidClaimant();
         Claimant newClaimant = aClaimantWithPhoneNumber("+44987654321");
         assertThat(newClaimant).isNotEqualTo(originalClaimant);
@@ -96,6 +100,17 @@ class UpdatableClaimantFieldTest {
         UpdatableClaimantField.PHONE_NUMBER.updateOriginal(originalClaimant, newClaimant);
 
         assertThat(originalClaimant.getPhoneNumber()).isEqualTo(newClaimant.getPhoneNumber());
+    }
+
+    @Test
+    void shouldUpdateChildrenDob() {
+        Claimant originalClaimant = aClaimantWithChildrenDob(LocalDate.now().minusYears(2));
+        Claimant newClaimant = aClaimantWithChildrenDob(LocalDate.now().minusYears(2), LocalDate.now().minusMonths(1));
+        assertThat(newClaimant).isNotEqualTo(originalClaimant);
+
+        UpdatableClaimantField.CHILDREN_DOB.updateOriginal(originalClaimant, newClaimant);
+
+        assertThat(originalClaimant.getChildrenDob()).isEqualTo(newClaimant.getChildrenDob());
     }
 
     @Test
