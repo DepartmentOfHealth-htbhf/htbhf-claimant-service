@@ -67,6 +67,17 @@ public enum UpdatableClaimantField {
             originalClaimant.setPhoneNumber(newClaimant.getPhoneNumber());
         }
     },
+    CHILDREN_DOB("childrenDob") {
+        @Override
+        Object getValue(Claimant claimant) {
+            return claimant.getChildrenDob();
+        }
+
+        @Override
+        public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
+            originalClaimant.setChildrenDob(newClaimant.getChildrenDob());
+        }
+    },
     ADDRESS("address") {
         @Override
         public boolean valueIsDifferent(Claimant originalClaimant, Claimant newClaimant) {
