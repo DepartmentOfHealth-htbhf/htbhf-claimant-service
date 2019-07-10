@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityObjectMapperSupplier.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.entity.util</a> &gt; <span class="el_source">EntityObjectMapperSupplier.java</span></div><h1>EntityObjectMapperSupplier.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.entity.util;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.vladmihalcea.hibernate.type.util.ObjectMapperSupplier;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Supplies an {@link ObjectMapper} that is used by the json hibernate type.
+ * See https://vladmihalcea.com/hibernate-types-customize-jackson-objectmapper/.
+ * This class is referenced in the hibernate-types.properties file.
+ */
+<span class="fc" id="L18">public class EntityObjectMapperSupplier implements ObjectMapperSupplier {</span>
+
+    @Override
+    public ObjectMapper get() {
+<span class="fc" id="L22">        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();</span>
+
+<span class="fc" id="L24">        JavaTimeModule javaTimeModule = new JavaTimeModule();</span>
+<span class="fc" id="L25">        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));</span>
+<span class="fc" id="L26">        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ISO_LOCAL_DATE));</span>
+<span class="fc" id="L27">        objectMapper.registerModule(javaTimeModule);</span>
+
+<span class="fc" id="L29">        return objectMapper;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
