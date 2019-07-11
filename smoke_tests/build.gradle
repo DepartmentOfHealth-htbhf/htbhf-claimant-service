@@ -2,7 +2,7 @@ buildscript {
     ext {
         springBootVersion = '2.1.5.RELEASE'
         junitVersion = '5.3.2'
-        jacksonVersion = '2.9.9'
+        jacksonDatabindVersion = '2.9.9.1'
     }
 }
 
@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
     testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"

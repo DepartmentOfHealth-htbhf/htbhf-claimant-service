@@ -5,7 +5,8 @@ buildscript {
         hikariCPVersion = '3.3.1'
         flywayVersion = '5.2.4'
         postgresJdbcVersion = '42.2.5'
-        jacksonVersion = '2.9.9'
+        jacksonDatabindVersion = '2.9.9.1'
+        jacksonDataformatVersion = '2.9.9'
     }
     repositories {
         mavenCentral()
@@ -54,7 +55,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation "org.springframework.security:spring-security-core:5.1.5.RELEASE"
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}"
     implementation "com.zaxxer:HikariCP:${hikariCPVersion}"
     implementation "org.postgresql:postgresql:${postgresJdbcVersion}"
     implementation "org.flywaydb:flyway-core:${flywayVersion}"
@@ -85,7 +86,7 @@ dependencies {
     testImplementation "org.junit.vintage:junit-vintage-engine:${junitVersion}"
     testImplementation "org.assertj:assertj-core:3.11.1"
     testImplementation "io.zonky.test:embedded-database-spring-test:1.4.1"
-    testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
+    testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonDataformatVersion}"
     testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner:2.1.1.RELEASE"
     testImplementation "uk.gov.dhsc.htbhf:htbhf-common-test:latest.release"
 
