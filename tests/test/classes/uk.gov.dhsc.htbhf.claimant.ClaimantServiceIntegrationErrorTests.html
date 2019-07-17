@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.294s</div>
+<div class="counter">0.255s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,7 +79,7 @@
 </thead>
 <tr>
 <td class="success">shouldReturnInternalServiceError()</td>
-<td class="success">0.294s</td>
+<td class="success">0.255s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -94,10 +94,10 @@
  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
   '  |____| .__|_| |_|_| |_\__, | / / / /
  =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::        (v2.1.5.RELEASE)
+ :: Spring Boot ::        (v2.1.6.RELEASE)
 
-15:45:32.822 [http-nio-auto-2-exec-1] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
-15:45:32.893 [http-nio-auto-2-exec-1] ERROR u.g.d.h.errorhandler.ErrorHandler - An error occurred during incoming POST request to /v2/claims: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+17:06:39.284 [http-nio-auto-2-exec-1] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
+17:06:39.331 [http-nio-auto-2-exec-1] ERROR u.g.d.h.errorhandler.ErrorHandler - An error occurred during incoming POST request to /v2/claims: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService.evaluateClaimant(EligibilityAndEntitlementService.java:47)
@@ -126,35 +126,35 @@ uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caugh
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
 	at uk.gov.dhsc.htbhf.requestcontext.RequestIdFilter.doFilterInternal(RequestIdFilter.java:55)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
-	at org.springframework.boot.actuate.web.trace.servlet.HttpTraceFilter.doFilterInternal(HttpTraceFilter.java:90)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.boot.actuate.web.trace.servlet.HttpTraceFilter.doFilterInternal(HttpTraceFilter.java:88)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
 	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
 	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:92)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
 	at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:93)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
-	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.filterAndRecordMetrics(WebMvcMetricsFilter.java:117)
-	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:106)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.filterAndRecordMetrics(WebMvcMetricsFilter.java:114)
+	at org.springframework.boot.actuate.metrics.web.servlet.WebMvcMetricsFilter.doFilterInternal(WebMvcMetricsFilter.java:104)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
 	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:200)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:109)
 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193)
 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:166)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:200)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:202)
 	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:96)
 	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:490)
 	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:139)
@@ -163,8 +163,8 @@ uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caugh
 	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:343)
 	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:408)
 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:66)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:836)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1747)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:853)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1587)
 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:49)
 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
@@ -192,7 +192,7 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.4.1</a> at Jul 11, 2019, 3:45:53 PM</p>
+<a href="http://www.gradle.org">Gradle 5.4.1</a> at Jul 17, 2019, 5:06:57 PM</p>
 </div>
 </div>
 </body>
