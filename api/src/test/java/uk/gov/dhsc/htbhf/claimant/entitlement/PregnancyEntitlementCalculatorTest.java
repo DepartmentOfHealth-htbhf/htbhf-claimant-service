@@ -9,19 +9,9 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class PregnancyEntitlementCalculatorTest {
 
-    private static final int WEEKS_BEFORE_DUE_DATE = 16;
-    private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 28;
-    private static final int PAYMENT_CYCLE_NO_CALCULATION_PERIODS = 4;
-    //This is the important values for these tests.
-    private static final int PREGNANCY_GRACE_PERIOD_IN_WEEKS = 8;
-    private static final PaymentCycleConfig CONFIG = new PaymentCycleConfig(
-            PAYMENT_CYCLE_DURATION_IN_DAYS,
-            PAYMENT_CYCLE_NO_CALCULATION_PERIODS,
-            WEEKS_BEFORE_DUE_DATE,
-            PREGNANCY_GRACE_PERIOD_IN_WEEKS
-    );
+    private static final int PREGNANCY_GRACE_PERIOD_IN_WEEKS = 12;
 
-    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(CONFIG);
+    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_WEEKS);
 
     @Test
     void shouldReturnTrueForDueDateInFuture() {
