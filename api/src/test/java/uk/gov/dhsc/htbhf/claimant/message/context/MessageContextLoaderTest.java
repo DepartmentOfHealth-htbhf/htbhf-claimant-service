@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dhsc.htbhf.claimant.EmailTemplateConfig;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -20,15 +21,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
@@ -49,6 +48,9 @@ class MessageContextLoaderTest {
 
     @Mock
     private PayloadMapper payloadMapper;
+
+    @Mock
+    private EmailTemplateConfig emailTemplateConfig;
 
     @InjectMocks
     private MessageContextLoader loader;
@@ -377,6 +379,35 @@ class MessageContextLoaderTest {
         verify(payloadMapper).getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);
         verify(claimRepository).findById(claimId);
         verify(paymentCycleRepository).findCurrentCycleForClaim(claim);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadEmailMessageContext() {
+        //Given
+        Claim claim = aValidClaim();
+        UUID claimId = claim.getId();
+        String templateId = "12334546";
+        Message message = aValidMessageWithType(SEND_EMAIL);
+        EmailMessagePayload payload = EmailMessagePayload.builder()
+                .claimId(claimId)
+                .emailType(EmailType.NEW_CARD)
+                .emailPersonalisation(emptyMap())
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(emailTemplateConfig.getTemplateIdForEmail(any())).willReturn(templateId);
+        given(payloadMapper.getPayload(message, EmailMessagePayload.class)).willReturn(payload);
+
+        //When
+        EmailMessageContext context = loader.loadEmailMessageContext(message);
+
+        //Then
+        assertThat(context.getTemplateId()).isEqualTo(templateId);
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getEmailPersonalisation()).isEqualTo(emptyMap());
+        verify(emailTemplateConfig).getTemplateIdForEmail(EmailType.NEW_CARD);
+        verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
+        verify(claimRepository).findById(claimId);
+        verifyZeroInteractions(paymentCycleRepository);
     }
 
 }
