@@ -2,9 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.message;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_FIRST_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
-public class SendFirstEmailDummyMessageTypeProcessor implements MessageTypeProcessor {
+public class SendEmailDummyMessageTypeProcessor implements MessageTypeProcessor {
 
     @Override
     public MessageStatus processMessage(Message message) {
@@ -13,6 +13,6 @@ public class SendFirstEmailDummyMessageTypeProcessor implements MessageTypeProce
 
     @Override
     public MessageType supportsMessageType() {
-        return SEND_FIRST_EMAIL;
+        return SEND_EMAIL;
     }
 }

@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_FIRST_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
 @SpringJUnitConfig(classes = {MessageProcessorConfigurationTest.TestConfig.class, MessageProcessorConfiguration.class})
 @TestPropertySource(properties = {
@@ -53,9 +53,9 @@ class MessageProcessorConfigurationTest {
         assertThat(allMessageProcessorsByType).hasSize(2);
         assertThat(allMessageProcessorsByType.containsKey(CREATE_NEW_CARD)).isTrue();
         assertThat(allMessageProcessorsByType.containsKey(MAKE_PAYMENT)).isFalse();
-        assertThat(allMessageProcessorsByType.containsKey(SEND_FIRST_EMAIL)).isTrue();
+        assertThat(allMessageProcessorsByType.containsKey(SEND_EMAIL)).isTrue();
         assertThat(allMessageProcessorsByType.get(CREATE_NEW_CARD)).isInstanceOf(CreateNewCardDummyMessageTypeProcessor.class);
-        assertThat(allMessageProcessorsByType.get(SEND_FIRST_EMAIL)).isInstanceOf(SendFirstEmailDummyMessageTypeProcessor.class);
+        assertThat(allMessageProcessorsByType.get(SEND_EMAIL)).isInstanceOf(SendEmailDummyMessageTypeProcessor.class);
         assertThat(allMessageProcessorsByType.get(MAKE_PAYMENT)).isNull();
         verifyZeroInteractions(messageRepository);
     }
@@ -89,8 +89,8 @@ class MessageProcessorConfigurationTest {
         }
 
         @Bean
-        SendFirstEmailDummyMessageTypeProcessor sendFirstEmailDummyMessageTypeProcessor() {
-            return new SendFirstEmailDummyMessageTypeProcessor();
+        SendEmailDummyMessageTypeProcessor sendFirstEmailDummyMessageTypeProcessor() {
+            return new SendEmailDummyMessageTypeProcessor();
         }
     }
 
