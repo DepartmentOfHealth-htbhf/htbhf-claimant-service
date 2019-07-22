@@ -35,7 +35,10 @@ import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -62,13 +65,13 @@ class MessageProcessorTest {
     private CreateNewCardDummyMessageTypeProcessor createNewCardDummyMessageTypeProcessor = new CreateNewCardDummyMessageTypeProcessor();
 
     @Spy
-    private SendFirstEmailDummyMessageTypeProcessor sendFirstEmailDummyMessageTypeProcessor = new SendFirstEmailDummyMessageTypeProcessor();
+    private SendEmailDummyMessageTypeProcessor sendEmailDummyMessageTypeProcessor = new SendEmailDummyMessageTypeProcessor();
 
     @BeforeEach
     void init() {
         Map<MessageType, MessageTypeProcessor> messageTypeProcessorMap = Map.of(
                 CREATE_NEW_CARD, createNewCardDummyMessageTypeProcessor,
-                SEND_FIRST_EMAIL, sendFirstEmailDummyMessageTypeProcessor);
+                SEND_EMAIL, sendEmailDummyMessageTypeProcessor);
         messageProcessor = new MessageProcessor(messageStatusProcessor, messageRepository, eventAuditor, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
     }
 
@@ -88,7 +91,7 @@ class MessageProcessorTest {
         messageProcessor.processAllMessages();
         //Then
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
-        verify(sendFirstEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
+        verify(sendEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         Stream.of(MessageType.values()).forEach(
                 messageType -> verify(messageRepository).findAllMessagesByTypeOrderedByDate(messageType, PAGEABLE)
         );
@@ -155,13 +158,13 @@ class MessageProcessorTest {
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE)).thenReturn(singletonList(cardMessage));
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_EMAIL, PAGEABLE)).thenReturn(emptyList());
         //When
         IllegalArgumentException thrown = catchThrowableOfType(() -> messageProcessor.processAllMessages(), IllegalArgumentException.class);
         //Then
         assertThat(thrown).hasMessage("No message type processor found in application context for message type: "
                 + "MAKE_PAYMENT, there are 1 message(s) in the queue");
-        verify(sendFirstEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
+        verify(sendEmailDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         verify(createNewCardDummyMessageTypeProcessor, never()).processMessage(any(Message.class));
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE);
         verify(messageRepository).findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE);
@@ -177,7 +180,7 @@ class MessageProcessorTest {
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE)).thenReturn(asList(cardMessage, cardMessage));
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE)).thenReturn(emptyList());
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE)).thenReturn(emptyList());
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_EMAIL, PAGEABLE)).thenReturn(emptyList());
         //When
         messageProcessor.processAllMessages();
         //Then
@@ -191,21 +194,21 @@ class MessageProcessorTest {
 
     @Test
     void shouldLogNullMessageProcessResult() {
-        Message emailMessage = aValidMessageWithType(SEND_FIRST_EMAIL);
+        Message emailMessage = aValidMessageWithType(SEND_EMAIL);
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(CREATE_NEW_CARD, PAGEABLE)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_PAYMENT, PAGEABLE)).thenReturn(emptyList());
         lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(MAKE_FIRST_PAYMENT, PAGEABLE)).thenReturn(emptyList());
-        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_FIRST_EMAIL, PAGEABLE)).thenReturn(singletonList(emailMessage));
+        lenient().when(messageRepository.findAllMessagesByTypeOrderedByDate(SEND_EMAIL, PAGEABLE)).thenReturn(singletonList(emailMessage));
         //When
         messageProcessor.processAllMessages();
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
         assertThat(events).hasSize(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message(s) of type SEND_FIRST_EMAIL");
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message(s) of type SEND_EMAIL");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
         // use startsWith instead of isEqualTo because the full class name contains mockito text.
         assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"
-                + " uk.gov.dhsc.htbhf.claimant.message.SendFirstEmailDummyMessageTypeProcessor");
+                + " uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.ERROR);
     }
 
