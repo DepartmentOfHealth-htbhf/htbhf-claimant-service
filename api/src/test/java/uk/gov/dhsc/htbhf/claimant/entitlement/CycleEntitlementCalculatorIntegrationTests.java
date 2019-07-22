@@ -245,7 +245,7 @@ class CycleEntitlementCalculatorIntegrationTests {
     void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedWithin8WeeksAfterExpectedDueDate() {
         VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
         PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
-        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8).minusDays(2));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(12).minusDays(2));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
         PaymentCycleVoucherEntitlement result =
@@ -261,10 +261,10 @@ class CycleEntitlementCalculatorIntegrationTests {
     }
 
     @Test
-    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateGoesOver8WeekThresholdWithinNextPaymentCycle() {
+    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateGoesOver12WeekThresholdWithinNextPaymentCycle() {
         VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
         PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
-        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(6).minusDays(2));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(10).minusDays(2));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
         PaymentCycleVoucherEntitlement result =
@@ -280,10 +280,10 @@ class CycleEntitlementCalculatorIntegrationTests {
     }
 
     @Test
-    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateIsExactlyOn8WeekThresholdAtStartOfPaymentCycle() {
+    void shouldCalculateEntitlementWhenThereHasBeenNoChildNotifiedAndTheExpectedDueDateIsExactlyOn12WeekThresholdAtStartOfPaymentCycle() {
         VoucherEntitlement voucherEntitlement = VoucherEntitlement.builder().vouchersForPregnancy(4).build();
         PaymentCycleVoucherEntitlement previousEntitlement = new PaymentCycleVoucherEntitlement(singletonList(voucherEntitlement));
-        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(8));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().minusWeeks(12));
         List<LocalDate> childrenDatesOfBirth = emptyList();
 
         PaymentCycleVoucherEntitlement result =
