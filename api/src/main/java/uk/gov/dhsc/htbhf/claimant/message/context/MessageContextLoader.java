@@ -3,15 +3,13 @@ package uk.gov.dhsc.htbhf.claimant.message.context;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.EmailTemplateConfig;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
-import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -28,6 +26,8 @@ public class MessageContextLoader {
     private PaymentCycleRepository paymentCycleRepository;
 
     private PayloadMapper payloadMapper;
+
+    private EmailTemplateConfig emailTemplateConfig;
 
     /**
      * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
@@ -84,6 +84,24 @@ public class MessageContextLoader {
                 .claim(claim)
                 .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())
                 .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .build();
+    }
+
+    /**
+     * Method used to inflate the contents of a SEND_EMAIL message.
+     *
+     * @param message The message to inflate.
+     * @return A wrapper object with the inflated objects
+     */
+    public EmailMessageContext loadEmailMessageContext(Message message) {
+        EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        String templateId = emailTemplateConfig.getTemplateIdForEmail(payload.getEmailType());
+        return EmailMessageContext.builder()
+                .claim(claim)
+                .templateId(templateId)
+                .emailPersonalisation(payload.getEmailPersonalisation())
                 .build();
     }
 
