@@ -3,15 +3,13 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.EmailTemplateConfig;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
-import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.DetermineEntitlementMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -20,7 +18,7 @@ import java.util.UUID;
 
 @Component
 @AllArgsConstructor
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L21">@Slf4j</span>
 public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
@@ -28,6 +26,8 @@ public class MessageContextLoader {
     private PaymentCycleRepository paymentCycleRepository;
 
     private PayloadMapper payloadMapper;
+
+    private EmailTemplateConfig emailTemplateConfig;
 
     /**
      * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
@@ -87,38 +87,56 @@ public class MessageContextLoader {
 <span class="fc" id="L87">                .build();</span>
     }
 
+    /**
+     * Method used to inflate the contents of a SEND_EMAIL message.
+     *
+     * @param message The message to inflate.
+     * @return A wrapper object with the inflated objects
+     */
+    public EmailMessageContext loadEmailMessageContext(Message message) {
+<span class="fc" id="L97">        EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);</span>
+
+<span class="fc" id="L99">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L100">        String templateId = emailTemplateConfig.getTemplateIdForEmail(payload.getEmailType());</span>
+<span class="fc" id="L101">        return EmailMessageContext.builder()</span>
+<span class="fc" id="L102">                .claim(claim)</span>
+<span class="fc" id="L103">                .templateId(templateId)</span>
+<span class="fc" id="L104">                .emailPersonalisation(payload.getEmailPersonalisation())</span>
+<span class="fc" id="L105">                .build();</span>
+    }
+
     public AdditionalPregnancyPaymentMessageContext loadAdditionalPregnancyPaymentMessageContext(Message message) {
-<span class="fc" id="L91">        AdditionalPregnancyPaymentMessagePayload payload = payloadMapper.getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);</span>
+<span class="fc" id="L109">        AdditionalPregnancyPaymentMessagePayload payload = payloadMapper.getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);</span>
 
-<span class="fc" id="L93">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L94">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findCurrentCycleForClaim(claim);</span>
+<span class="fc" id="L111">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L112">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findCurrentCycleForClaim(claim);</span>
 
-<span class="fc" id="L96">        return AdditionalPregnancyPaymentMessageContext.builder()</span>
-<span class="fc" id="L97">                .claim(claim)</span>
-<span class="fc" id="L98">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L99">                .build();</span>
+<span class="fc" id="L114">        return AdditionalPregnancyPaymentMessageContext.builder()</span>
+<span class="fc" id="L115">                .claim(claim)</span>
+<span class="fc" id="L116">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L117">                .build();</span>
     }
 
     private Claim getAndCheckClaim(UUID claimId) {
-<span class="fc" id="L103">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
-<span class="nc" id="L105">            logAndThrowException(&quot;claim&quot;, claimId);</span>
+<span class="fc" id="L121">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
+<span class="nc" id="L123">            logAndThrowException(&quot;claim&quot;, claimId);</span>
         }
-<span class="fc" id="L107">        return claim.get();</span>
+<span class="fc" id="L125">        return claim.get();</span>
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {
-<span class="fc" id="L111">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
-<span class="nc" id="L113">            logAndThrowException(cycleName, paymentCycleId);</span>
+<span class="fc" id="L129">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
+<span class="nc" id="L131">            logAndThrowException(cycleName, paymentCycleId);</span>
         }
-<span class="fc" id="L115">        return paymentCycle.get();</span>
+<span class="fc" id="L133">        return paymentCycle.get();</span>
     }
 
     private void logAndThrowException(String fieldName, UUID uuid) {
-<span class="fc" id="L119">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
-<span class="fc" id="L120">        log.error(errorMessage);</span>
-<span class="fc" id="L121">        throw new MessageProcessingException(errorMessage);</span>
+<span class="fc" id="L137">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
+<span class="fc" id="L138">        log.error(errorMessage);</span>
+<span class="fc" id="L139">        throw new MessageProcessingException(errorMessage);</span>
     }
 
 }
