@@ -17,3 +17,6 @@ The jar artefact of the API project is deployed to the PaaS, using the [manifest
 Note that this requires some services be present in the space to which it is deployed: 
 * `htbhf-claimant-service-postgres` (see [db/README.md](db/README.md) for further details)
 * `logit-ssl-drain` (see [https://docs.cloud.service.gov.uk/monitoring_apps.html#configure-app](https://docs.cloud.service.gov.uk/monitoring_apps.html#configure-app) for further details)
+
+### Running locally
+In order to run the application locally, a valid notify api key will need to be set in an environment variable called `NOTIFY_API_KEY`. e.g. `export NOTIFY_API_KEY=MY-API-KEY`
