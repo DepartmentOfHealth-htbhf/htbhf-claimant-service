@@ -13,7 +13,8 @@ import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 
-import static java.util.Collections.emptyMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_EMAIL_ADDRESS;
 
@@ -48,10 +50,11 @@ class EmailMessageProcessorTest {
         //Given
         Claim claim = aValidClaim();
         String templateId = "12334546";
+        Map<String, Object> emailPersonalisation = buildEmailPersonalisation();
         EmailMessageContext context = EmailMessageContext.builder()
                 .claim(claim)
                 .templateId(templateId)
-                .emailPersonalisation(emptyMap())
+                .emailPersonalisation(emailPersonalisation)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         Message message = aValidMessageWithType(SEND_EMAIL);
@@ -62,7 +65,7 @@ class EmailMessageProcessorTest {
         //Then
         assertThat(status).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadEmailMessageContext(message);
-        verify(client).sendEmail(eq(templateId), eq(VALID_EMAIL_ADDRESS), eq(emptyMap()), any(String.class), eq(REPLY_TO_ADDRESS_ID));
+        verify(client).sendEmail(eq(templateId), eq(VALID_EMAIL_ADDRESS), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
     }
 
 }
