@@ -8,18 +8,12 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_EMAIL_ADDRESS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 public final class ClaimantTestDataFactory {
 
     // Create a string 501 characters long
     public static final String LONG_NAME = CharBuffer.allocate(501).toString().replace('\0', 'A');
-
-    private static final String VALID_NINO = "EB123456C";
-    private static final String VALID_FIRST_NAME = "James";
-    private static final String VALID_LAST_NAME = "Smith";
-    private static final LocalDate VALID_DOB = TestConstants.JAMES_DATE_OF_BIRTH;
-    private static final String VALID_PHONE_NUMBER = "+447700900128";
 
     public static Claimant aValidClaimant() {
         return aValidClaimantBuilder().build();

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class EmailMessagePayload {
+public class EmailMessagePayload implements MessagePayload {
     private UUID claimId;
     private EmailType emailType;
     private Map<String, Object> emailPersonalisation;
