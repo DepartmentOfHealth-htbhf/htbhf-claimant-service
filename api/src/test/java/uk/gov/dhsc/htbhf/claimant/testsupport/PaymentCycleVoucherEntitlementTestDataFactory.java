@@ -44,6 +44,18 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                 .build();
     }
 
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithFourWeeklyPregnancyVouchersOnly() {
+        List<VoucherEntitlement> entitlements = List.of(
+                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(4)),
+                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(2)),
+                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(1)),
+                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(3))
+        );
+        return PaymentCycleVoucherEntitlement.builder()
+                .voucherEntitlements(entitlements)
+                .build();
+    }
+
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithZeroVouchers() {
         return aPaymentCycleVoucherEntitlementWithEntitlement(aVoucherEntitlementWithZeroVouchers());
     }

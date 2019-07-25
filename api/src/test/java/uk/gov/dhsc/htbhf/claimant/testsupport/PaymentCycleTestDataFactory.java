@@ -16,7 +16,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 public class PaymentCycleTestDataFactory {
 
     private static final int TOTAL_VOUCHERS = 1;
-    public static final int TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE = 310;
+    public static final int TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE = 4960;
 
 
     public static PaymentCycle aValidPaymentCycle() {
