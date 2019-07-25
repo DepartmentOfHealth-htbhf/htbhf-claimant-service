@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
@@ -170,7 +172,7 @@ class PaymentServiceTest {
     void shouldAuditFailedPaymentWhenInterimPaymentFails() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         RuntimeException testException = new RuntimeException("test exception");
-        int paymentAmountInPence = 310;
+        int paymentAmountInPence = 4960;
         given(cardClient.depositFundsToCard(any(), any())).willThrow(testException);
 
         EventFailedException exception = catchThrowableOfType(() -> paymentService.makeInterimPayment(paymentCycle, CARD_ACCOUNT_ID, paymentAmountInPence),
