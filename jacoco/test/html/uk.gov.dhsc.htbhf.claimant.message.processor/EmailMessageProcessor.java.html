@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">EmailMessageProcessor.java</span></div><h1>EmailMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.EmailMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.service.notify.NotificationClient;
+import uk.gov.service.notify.NotificationClientException;
+import uk.gov.service.notify.SendEmailResponse;
+
+import java.util.UUID;
+
+<span class="fc" id="L18">@Slf4j</span>
+@Component
+public class EmailMessageProcessor implements MessageTypeProcessor {
+
+    private final NotificationClient client;
+    private final MessageContextLoader messageContextLoader;
+    private final String replyToAddressId;
+
+    public EmailMessageProcessor(NotificationClient client,
+                                 MessageContextLoader messageContextLoader,
+<span class="fc" id="L28">                                 @Value(&quot;${notify.email-reply-to-id}&quot;) String replyToAddressId) {</span>
+<span class="fc" id="L29">        this.client = client;</span>
+<span class="fc" id="L30">        this.messageContextLoader = messageContextLoader;</span>
+<span class="fc" id="L31">        this.replyToAddressId = replyToAddressId;</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    public MessageStatus processMessage(Message message) {
+<span class="fc" id="L36">        EmailMessageContext messageContext = messageContextLoader.loadEmailMessageContext(message);</span>
+<span class="fc" id="L37">        UUID messageReference = UUID.randomUUID();</span>
+        try {
+<span class="fc" id="L39">            SendEmailResponse sendEmailResponse = client.sendEmail(</span>
+<span class="fc" id="L40">                    messageContext.getTemplateId(),</span>
+<span class="fc" id="L41">                    messageContext.getClaim().getClaimant().getEmailAddress(),</span>
+<span class="fc" id="L42">                    messageContext.getEmailPersonalisation(),</span>
+<span class="fc" id="L43">                    messageReference.toString(),</span>
+                    replyToAddressId
+            );
+<span class="fc" id="L46">            log.debug(&quot;Email message sent, response: {}&quot;, sendEmailResponse);</span>
+<span class="nc" id="L47">        } catch (NotificationClientException e) {</span>
+            //TODO HTBHF-1885: Create a failed event if we catch an Exception and throw new FailedEventException.
+<span class="nc" id="L49">            log.error(&quot;Failed to send email message&quot;, e);</span>
+<span class="fc" id="L50">        }</span>
+<span class="fc" id="L51">        return MessageStatus.COMPLETED;</span>
+    }
+
+    @Override
+    public MessageType supportsMessageType() {
+<span class="fc" id="L56">        return MessageType.SEND_EMAIL;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

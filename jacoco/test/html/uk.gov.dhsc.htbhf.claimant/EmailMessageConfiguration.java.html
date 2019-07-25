@@ -2,26 +2,33 @@
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.service.notify.NotificationClient;
 
 import java.util.Map;
 
 @EnableConfigurationProperties
 @Configuration
 @ConfigurationProperties(prefix = &quot;notify&quot;)
-@Getter
-@Setter
 <span class="fc" id="L18">public class EmailMessageConfiguration {</span>
 
+    @Getter
+    @Setter
     private Map&lt;EmailType, String&gt; templateIds;
 
     @Bean
     public EmailTemplateConfig emailTemplateConfig() {
-<span class="fc" id="L24">        return new EmailTemplateConfig(templateIds);</span>
+<span class="fc" id="L26">        return new EmailTemplateConfig(templateIds);</span>
+    }
+
+    @Bean
+    public NotificationClient notificationClient(@Value(&quot;${notify.api-key}&quot;) String notifyApiKey) {
+<span class="fc" id="L31">        return new NotificationClient(notifyApiKey);</span>
     }
 
 }
