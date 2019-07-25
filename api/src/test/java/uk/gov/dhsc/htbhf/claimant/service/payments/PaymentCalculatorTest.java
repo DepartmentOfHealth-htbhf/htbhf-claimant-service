@@ -7,13 +7,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 
 class PaymentCalculatorTest {
 
     private static final int MAXIMUM_BALANCE_PERIOD = 8;
     private PaymentCalculator paymentCalculator = new PaymentCalculator(MAXIMUM_BALANCE_PERIOD);
-    private static final PaymentCycleVoucherEntitlement ENTITLEMENT = aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers();
+    private static final PaymentCycleVoucherEntitlement ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
     private static final int MAXIMUM_BALANCE = 9920;
     private static final int PAYMENT_CYCLE_ENTITLEMENT_AMOUNT = 4960;
 

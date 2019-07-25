@@ -1,73 +1,70 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithNoPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithPregnancyVoucherOnlyForDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithZeroVouchers;
 
 public class PaymentCycleVoucherEntitlementTestDataFactory {
-
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
-        return buildDefaultPaymentCycleVoucherEntitlement()
-                .voucherEntitlements(singletonList(
-                        aVoucherEntitlementWithPregnancyVouchers(4)
-                ))
-                .build();
-    }
-
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers() {
-        return buildDefaultPaymentCycleVoucherEntitlement()
-                .voucherEntitlements(singletonList(
-                        aVoucherEntitlementWithPregnancyVouchers(0)
-                ))
-                .build();
-    }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchers() {
         return buildDefaultPaymentCycleVoucherEntitlement()
                 .build();
     }
 
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers() {
-        List<VoucherEntitlement> entitlements = List.of(
-                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(4)),
-                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(2)),
-                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(1)),
-                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(3))
-        );
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
         return PaymentCycleVoucherEntitlement.builder()
-                .voucherEntitlements(entitlements)
+                .voucherEntitlements(
+                        List.of(
+                                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(1)),
+                                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(2)),
+                                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(3)),
+                                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(4))
+                        )
+                )
                 .build();
     }
 
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithFourWeeklyPregnancyVouchersOnly() {
-        List<VoucherEntitlement> entitlements = List.of(
-                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(4)),
-                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(2)),
-                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(1)),
-                aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now().minusWeeks(3))
-        );
-        return PaymentCycleVoucherEntitlement.builder()
-                .voucherEntitlements(entitlements)
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers() {
+        return buildDefaultPaymentCycleVoucherEntitlement()
+                .voucherEntitlements(
+                        List.of(
+                                aVoucherEntitlementWithNoPregnancyVouchers(LocalDate.now().minusWeeks(1)),
+                                aVoucherEntitlementWithNoPregnancyVouchers(LocalDate.now().minusWeeks(2)),
+                                aVoucherEntitlementWithNoPregnancyVouchers(LocalDate.now().minusWeeks(3)),
+                                aVoucherEntitlementWithNoPregnancyVouchers(LocalDate.now().minusWeeks(4))
+                        )
+                )
                 .build();
     }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithZeroVouchers() {
-        return aPaymentCycleVoucherEntitlementWithEntitlement(aVoucherEntitlementWithZeroVouchers());
-    }
-
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithEntitlement(VoucherEntitlement voucherEntitlement) {
         return buildDefaultPaymentCycleVoucherEntitlement()
-                .voucherEntitlements(singletonList(voucherEntitlement))
+                .voucherEntitlements(
+                        List.of(
+                                aVoucherEntitlementWithZeroVouchers(LocalDate.now().minusWeeks(1)),
+                                aVoucherEntitlementWithZeroVouchers(LocalDate.now().minusWeeks(2)),
+                                aVoucherEntitlementWithZeroVouchers(LocalDate.now().minusWeeks(3)),
+                                aVoucherEntitlementWithZeroVouchers(LocalDate.now().minusWeeks(4))
+                        )
+                )
                 .build();
     }
 
     private static PaymentCycleVoucherEntitlement.PaymentCycleVoucherEntitlementBuilder buildDefaultPaymentCycleVoucherEntitlement() {
         return PaymentCycleVoucherEntitlement.builder()
-                .voucherEntitlements(singletonList(aValidVoucherEntitlement()));
+                .voucherEntitlements(
+                        List.of(
+                                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(1)),
+                                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(2)),
+                                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(3)),
+                                aVoucherEntitlementWithEntitlementDate(LocalDate.now().minusWeeks(4))
+                        )
+                );
     }
 }

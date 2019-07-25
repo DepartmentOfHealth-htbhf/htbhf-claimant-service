@@ -16,13 +16,13 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
-    public static VoucherEntitlement aVoucherEntitlementWithZeroVouchers() {
+    public static VoucherEntitlement aVoucherEntitlementWithZeroVouchers(LocalDate entitlementDate) {
         return VoucherEntitlement.builder()
                 .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
                 .vouchersForChildrenUnderOne(0)
                 .vouchersForChildrenBetweenOneAndFour(0)
                 .vouchersForPregnancy(0)
-                .entitlementDate(LocalDate.now())
+                .entitlementDate(entitlementDate)
                 .build();
     }
 
@@ -42,9 +42,10 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
-    public static VoucherEntitlement aVoucherEntitlementWithPregnancyVouchers(Integer vouchersForPregnancy) {
+    public static VoucherEntitlement aVoucherEntitlementWithNoPregnancyVouchers(LocalDate entitlementDate) {
         return aVoucherEntitlementBuilder()
-                .vouchersForPregnancy(vouchersForPregnancy)
+                .vouchersForPregnancy(0)
+                .entitlementDate(entitlementDate)
                 .build();
     }
 
