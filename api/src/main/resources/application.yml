@@ -98,8 +98,7 @@ postgres:
     id: "htbhf-claimant-service-postgres"
 
 notify:
-  # TODO HTBHF-1884 Replace API key with value in variable service.
-  api-key: a1af3a61-3088-4b95-831b-f7fe79c306c8
+  api-key: ${vcap.services.notify-service.credentials.notify-api-key}
   # NOTE: This is currently the beta reply to email address.
   email-reply-to-id: 19556c63-bdfa-4411-ad08-f4ceaa7a695e
   templateIds:
