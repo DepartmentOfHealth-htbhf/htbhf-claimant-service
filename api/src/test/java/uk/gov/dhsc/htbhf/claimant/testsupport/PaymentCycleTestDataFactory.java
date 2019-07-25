@@ -45,13 +45,6 @@ public class PaymentCycleTestDataFactory {
                 .build();
     }
 
-    public static PaymentCycle aPaymentCycleWithCycleStartDateAndClaim(LocalDate startDate, Claim claim) {
-        return aValidPaymentCycleBuilder()
-                .cycleStartDate(startDate)
-                .claim(claim)
-                .build();
-    }
-
     public static PaymentCycle aPaymentCycleWithPaymentAndClaim(Payment payment, Claim claim) {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
@@ -74,6 +67,8 @@ public class PaymentCycleTestDataFactory {
                 .paymentCycleStatus(NEW)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .cycleStartDate(LocalDate.now())
+                .cycleEndDate(LocalDate.now().plusWeeks(4))
                 .totalVouchers(TOTAL_VOUCHERS)
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE);
     }
