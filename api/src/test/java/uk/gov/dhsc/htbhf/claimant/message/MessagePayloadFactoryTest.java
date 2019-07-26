@@ -19,8 +19,7 @@ import static org.assertj.core.api.Assertions.entry;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithFourWeeklyPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
@@ -62,7 +61,7 @@ class MessagePayloadFactoryTest {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
                 .cycleEndDate(endDate)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithFourWeeklyVouchers())
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build();
 
         EmailMessagePayload payload = MessagePayloadFactory.buildSendNewCardSuccessEmailPayload(paymentCycle);
@@ -87,7 +86,7 @@ class MessagePayloadFactoryTest {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithFourWeeklyPregnancyVouchersOnly())
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithPregnancyVouchers())
                 .cycleStartDate(startDate)
                 .cycleEndDate(endDate)
                 .totalEntitlementAmountInPence(1240)
