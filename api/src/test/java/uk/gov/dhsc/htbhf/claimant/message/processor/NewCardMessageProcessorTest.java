@@ -36,7 +36,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFacto
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithPayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -78,7 +78,7 @@ class NewCardMessageProcessorTest {
         NewCardMessageContext context = aValidNewCardMessageContext();
         LocalDate cycleStartDate = context.getClaim().getClaimStatusTimestamp().toLocalDate();
         given(messageContextLoader.loadNewCardContext(any())).willReturn(context);
-        PaymentCycle paymentCycle = aValidPaymentCycleForContext(context, cycleStartDate);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(context.getClaim());
         given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any(), any())).willReturn(paymentCycle);
         Message message = aValidMessage();
 
@@ -97,15 +97,6 @@ class NewCardMessageProcessorTest {
                 context.getDatesOfBirthOfChildren());
         verifyMakeFirstPaymentMessageSent(context.getClaim(), paymentCycle);
     }
-
-    private PaymentCycle aValidPaymentCycleForContext(NewCardMessageContext context, LocalDate cycleStartDate) {
-        return aValidPaymentCycleBuilder()
-                    .cycleStartDate(cycleStartDate)
-                    .claim(context.getClaim())
-                    .voucherEntitlement(context.getPaymentCycleVoucherEntitlement())
-                    .build();
-    }
-
 
     private void verifyMakeFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
