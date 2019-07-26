@@ -17,9 +17,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
@@ -56,13 +56,7 @@ class MessagePayloadFactoryTest {
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
-        //TODO MRS 2019-07-25: This a realistic PaymentCycle with 4 weekly entitlements in it, change the default constructed PaymentCycle with entitlements
-        // so it is more realistic like this, plus remove those PaymentCycles that no longer make sense from the TestDataFactory.
-        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
-                .cycleStartDate(startDate)
-                .cycleEndDate(endDate)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .build();
+        PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
 
         EmailMessagePayload payload = MessagePayloadFactory.buildSendNewCardSuccessEmailPayload(paymentCycle);
 
@@ -85,12 +79,7 @@ class MessagePayloadFactoryTest {
     void shouldBuildSendNewCardSuccessEmailPayloadWithOnlyPregnancyPayment() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
-        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithPregnancyVouchers())
-                .cycleStartDate(startDate)
-                .cycleEndDate(endDate)
-                .totalEntitlementAmountInPence(1240)
-                .build();
+        PaymentCycle paymentCycle = aPaymentCycleWithPregnancyVouchersOnly(startDate, endDate);
 
         EmailMessagePayload payload = MessagePayloadFactory.buildSendNewCardSuccessEmailPayload(paymentCycle);
 
