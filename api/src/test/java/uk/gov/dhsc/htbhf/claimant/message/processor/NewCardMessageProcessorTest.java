@@ -16,6 +16,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
@@ -31,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidNewCardMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
@@ -95,17 +98,27 @@ class NewCardMessageProcessorTest {
                 cycleStartDate,
                 context.getPaymentCycleVoucherEntitlement(),
                 context.getDatesOfBirthOfChildren());
-        verifyMakeFirstPaymentMessageSent(context.getClaim(), paymentCycle);
+        ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
+        verifyMakeFirstPaymentMessageSent(payloadCaptor, context.getClaim(), paymentCycle);
+        verifySendNewCardEmailMessageSent(payloadCaptor, context.getClaim(), paymentCycle);
     }
 
-    private void verifyMakeFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
-        ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
+    private void verifyMakeFirstPaymentMessageSent(ArgumentCaptor<MessagePayload> payloadCaptor, Claim claim, PaymentCycle paymentCycle) {
         verify(messageQueueDAO).sendMessage(payloadCaptor.capture(), eq(MessageType.MAKE_FIRST_PAYMENT));
         assertThat(payloadCaptor.getValue()).isInstanceOf(MakePaymentMessagePayload.class);
         MakePaymentMessagePayload payload = (MakePaymentMessagePayload) payloadCaptor.getValue();
         assertThat(payload.getCardAccountId()).isEqualTo(claim.getCardAccountId());
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
+    }
+
+    private void verifySendNewCardEmailMessageSent(ArgumentCaptor<MessagePayload> payloadCaptor, Claim claim, PaymentCycle paymentCycle) {
+        verify(messageQueueDAO).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
+        assertThat(payloadCaptor.getValue()).isInstanceOf(EmailMessagePayload.class);
+        EmailMessagePayload payload = (EmailMessagePayload) payloadCaptor.getValue();
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), paymentCycle.getCycleEndDate());
     }
 
 }
