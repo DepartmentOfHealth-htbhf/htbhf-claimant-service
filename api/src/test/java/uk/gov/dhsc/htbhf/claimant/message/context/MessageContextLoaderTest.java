@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,6 +28,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -391,7 +391,7 @@ class MessageContextLoaderTest {
         EmailMessagePayload payload = EmailMessagePayload.builder()
                 .claimId(claimId)
                 .emailType(EmailType.NEW_CARD)
-                .emailPersonalisation(emptyMap())
+                .emailPersonalisation(buildEmailPersonalisation())
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(emailTemplateConfig.getTemplateIdForEmail(any())).willReturn(templateId);
@@ -403,7 +403,8 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context.getTemplateId()).isEqualTo(templateId);
         assertThat(context.getClaim()).isEqualTo(claim);
-        assertThat(context.getEmailPersonalisation()).isEqualTo(emptyMap());
+        assertThat(context.getEmailPersonalisation()).isEqualTo(buildEmailPersonalisation());
+        assertThat(context.getEmailType()).isEqualTo(EmailType.NEW_CARD);
         verify(emailTemplateConfig).getTemplateIdForEmail(EmailType.NEW_CARD);
         verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
         verify(claimRepository).findById(claimId);
