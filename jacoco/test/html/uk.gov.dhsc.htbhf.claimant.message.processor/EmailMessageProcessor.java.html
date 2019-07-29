@@ -4,18 +4,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.EmailMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.service.audit.FailedEmailEvent;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.util.UUID;
 
-<span class="fc" id="L18">@Slf4j</span>
+<span class="fc" id="L20">@Slf4j</span>
 @Component
 public class EmailMessageProcessor implements MessageTypeProcessor {
 
@@ -25,35 +27,44 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
 
     public EmailMessageProcessor(NotificationClient client,
                                  MessageContextLoader messageContextLoader,
-<span class="fc" id="L28">                                 @Value(&quot;${notify.email-reply-to-id}&quot;) String replyToAddressId) {</span>
-<span class="fc" id="L29">        this.client = client;</span>
-<span class="fc" id="L30">        this.messageContextLoader = messageContextLoader;</span>
-<span class="fc" id="L31">        this.replyToAddressId = replyToAddressId;</span>
-<span class="fc" id="L32">    }</span>
+<span class="fc" id="L30">                                 @Value(&quot;${notify.email-reply-to-id}&quot;) String replyToAddressId) {</span>
+<span class="fc" id="L31">        this.client = client;</span>
+<span class="fc" id="L32">        this.messageContextLoader = messageContextLoader;</span>
+<span class="fc" id="L33">        this.replyToAddressId = replyToAddressId;</span>
+<span class="fc" id="L34">    }</span>
 
     @Override
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L36">        EmailMessageContext messageContext = messageContextLoader.loadEmailMessageContext(message);</span>
-<span class="fc" id="L37">        UUID messageReference = UUID.randomUUID();</span>
+<span class="fc" id="L38">        EmailMessageContext messageContext = messageContextLoader.loadEmailMessageContext(message);</span>
+<span class="fc" id="L39">        UUID messageReference = UUID.randomUUID();</span>
         try {
-<span class="fc" id="L39">            SendEmailResponse sendEmailResponse = client.sendEmail(</span>
-<span class="fc" id="L40">                    messageContext.getTemplateId(),</span>
-<span class="fc" id="L41">                    messageContext.getClaim().getClaimant().getEmailAddress(),</span>
-<span class="fc" id="L42">                    messageContext.getEmailPersonalisation(),</span>
-<span class="fc" id="L43">                    messageReference.toString(),</span>
+<span class="fc" id="L41">            SendEmailResponse sendEmailResponse = client.sendEmail(</span>
+<span class="fc" id="L42">                    messageContext.getTemplateId(),</span>
+<span class="fc" id="L43">                    messageContext.getClaim().getClaimant().getEmailAddress(),</span>
+<span class="fc" id="L44">                    messageContext.getEmailPersonalisation(),</span>
+<span class="fc" id="L45">                    messageReference.toString(),</span>
                     replyToAddressId
             );
-<span class="fc" id="L46">            log.debug(&quot;Email message sent, response: {}&quot;, sendEmailResponse);</span>
-<span class="nc" id="L47">        } catch (NotificationClientException e) {</span>
-            //TODO HTBHF-1885: Create a failed event if we catch an Exception and throw new FailedEventException.
-<span class="nc" id="L49">            log.error(&quot;Failed to send email message&quot;, e);</span>
-<span class="fc" id="L50">        }</span>
-<span class="fc" id="L51">        return MessageStatus.COMPLETED;</span>
+<span class="fc" id="L48">            log.debug(&quot;Email message sent, response: {}&quot;, sendEmailResponse);</span>
+<span class="fc" id="L49">        } catch (NotificationClientException e) {</span>
+<span class="fc" id="L50">            log.error(&quot;Failed to send email message&quot;, e);</span>
+<span class="fc" id="L51">            String failureMessage = String.format(&quot;Failed to send %s email message, exception is: %s&quot;, messageContext.getEmailType(), e.getMessage());</span>
+<span class="fc" id="L52">            throw new EventFailedException(buildFailedNewCardEmailEvent(messageContext), e, failureMessage);</span>
+<span class="fc" id="L53">        }</span>
+<span class="fc" id="L54">        return MessageStatus.COMPLETED;</span>
+    }
+
+    private FailedEmailEvent buildFailedNewCardEmailEvent(EmailMessageContext context) {
+<span class="fc" id="L58">        return FailedEmailEvent.builder()</span>
+<span class="fc" id="L59">                .claimId(context.getClaim().getId())</span>
+<span class="fc" id="L60">                .emailType(context.getEmailType())</span>
+<span class="fc" id="L61">                .templateId(context.getTemplateId())</span>
+<span class="fc" id="L62">                .build();</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L56">        return MessageType.SEND_EMAIL;</span>
+<span class="fc" id="L67">        return MessageType.SEND_EMAIL;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
