@@ -70,21 +70,21 @@ public class MessagePayloadFactory {
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
         return formatPaymentAmountSummary(
-                "\\n* %s for a pregnancy",
+                "\n* %s for a pregnancy",
                 voucherEntitlement.getVouchersForPregnancy(),
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private static String buildUnder1PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
         return formatPaymentAmountSummary(
-                "\\n* %s for children under 1",
+                "\n* %s for children under 1",
                 voucherEntitlement.getVouchersForChildrenUnderOne(),
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private static String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
         return formatPaymentAmountSummary(
-                "\\n* %s for children between 1 and 4",
+                "\n* %s for children between 1 and 4",
                 voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
