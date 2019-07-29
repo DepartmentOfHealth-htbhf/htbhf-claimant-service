@@ -4,11 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.EmailMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.service.audit.FailedEmailEvent;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
@@ -45,10 +47,19 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
             );
             log.debug("Email message sent, response: {}", sendEmailResponse);
         } catch (NotificationClientException e) {
-            //TODO HTBHF-1885: Create a failed event if we catch an Exception and throw new FailedEventException.
             log.error("Failed to send email message", e);
+            String failureMessage = String.format("Failed to send %s email message, exception is: %s", messageContext.getEmailType(), e.getMessage());
+            throw new EventFailedException(buildFailedNewCardEmailEvent(messageContext), e, failureMessage);
         }
         return MessageStatus.COMPLETED;
+    }
+
+    private FailedEmailEvent buildFailedNewCardEmailEvent(EmailMessageContext context) {
+        return FailedEmailEvent.builder()
+                .claimId(context.getClaim().getId())
+                .emailType(context.getEmailType())
+                .templateId(context.getTemplateId())
+                .build();
     }
 
     @Override
