@@ -39,4 +39,7 @@ public class TestConstants {
 
     public static final int AVAILABLE_BALANCE_IN_PENCE = 100;
     public static final int LEDGER_BALANCE_IN_PENCE = 100;
+
+    public static final String TEST_EXCEPTION_MESSAGE = "test exception";
+    public static final RuntimeException TEST_EXCEPTION = new RuntimeException(TEST_EXCEPTION_MESSAGE);
 }
