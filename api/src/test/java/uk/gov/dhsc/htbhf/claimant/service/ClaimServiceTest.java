@@ -56,6 +56,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -490,15 +491,14 @@ class ClaimServiceTest {
     void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
         Claimant claimant = aValidClaimant();
-        RuntimeException testException = new RuntimeException("Test exception");
-        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willThrow(testException);
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willThrow(TEST_EXCEPTION);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
         RuntimeException thrown = catchThrowableOfType(() -> claimService.createOrUpdateClaim(request), RuntimeException.class);
 
         //then
-        assertThat(thrown).isEqualTo(testException);
+        assertThat(thrown).isEqualTo(TEST_EXCEPTION);
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(claimArgumentCaptor.capture());

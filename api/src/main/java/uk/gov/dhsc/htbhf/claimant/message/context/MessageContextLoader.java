@@ -102,6 +102,7 @@ public class MessageContextLoader {
                 .claim(claim)
                 .templateId(templateId)
                 .emailPersonalisation(payload.getEmailPersonalisation())
+                .emailType(payload.getEmailType())
                 .build();
     }
 

@@ -14,7 +14,9 @@ public enum ClaimEventMetadataKey {
     PAYMENT_AMOUNT("paymentAmount"),
     ENTITLEMENT_AMOUNT_IN_PENCE("entitlementAmountInPence"),
     BALANCE_ON_CARD("balanceOnCard"),
-    UPDATED_FIELDS("updatedFields");
+    UPDATED_FIELDS("updatedFields"),
+    EMAIL_TYPE("emailType"),
+    EMAIL_TEMPLATE_ID("emailTemplateId");
 
     private String key;
 

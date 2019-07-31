@@ -10,5 +10,6 @@ public enum ClaimEventType implements EventType {
     UPDATED_CLAIM,
     NEW_CARD,
     MAKE_PAYMENT,
-    BALANCE_TOO_HIGH_FOR_PAYMENT
+    BALANCE_TOO_HIGH_FOR_PAYMENT,
+    FAILED_EMAIL
 }

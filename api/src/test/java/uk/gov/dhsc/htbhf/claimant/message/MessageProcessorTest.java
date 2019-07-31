@@ -43,6 +43,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTypeAndTimestamp;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 
 @ExtendWith(MockitoExtension.class)
 class MessageProcessorTest {
@@ -137,7 +138,7 @@ class MessageProcessorTest {
         UUID claimId = UUID.randomUUID();
         NewCardEvent event = NewCardEvent.builder().claimId(claimId).build();
         String failureMessage = "Something went badly wrong";
-        EventFailedException eventFailedException = new EventFailedException(event, new RuntimeException("test exception"), failureMessage);
+        EventFailedException eventFailedException = new EventFailedException(event, TEST_EXCEPTION, failureMessage);
         given(createNewCardDummyMessageTypeProcessor.processMessage(any())).willThrow(eventFailedException);
 
         //When

@@ -12,16 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
-import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
-import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -31,15 +27,13 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.NEW;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifyCardCreationEventFailExceptionAndEventAreCorrectWithCardId;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifyCardCreationEventFailExceptionAndEventAreCorrectWithoutCardId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aValidCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.EXCEPTION_DETAIL_KEY;
-import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.FAILED_EVENT_KEY;
-import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.FAILURE_DESCRIPTION_KEY;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 
 @ExtendWith(MockitoExtension.class)
 class NewCardServiceTest {
@@ -94,15 +88,14 @@ class NewCardServiceTest {
                 .build();
         CardRequest cardRequest = aValidCardRequest();
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
-        RuntimeException testException = new RuntimeException("test exception");
-        given(cardClient.requestNewCard(any())).willThrow(testException);
+        given(cardClient.requestNewCard(any())).willThrow(TEST_EXCEPTION);
 
         EventFailedException exception = catchThrowableOfType(() -> newCardService.createNewCard(claim), EventFailedException.class);
 
         assertThat(claim.getClaimStatus()).isEqualTo(NEW);
         assertThat(claim.getCardAccountId()).isNull();
 
-        verifyEventFailExceptionAndEventAreCorrectWithoutCardId(claim, testException, exception);
+        verifyCardCreationEventFailExceptionAndEventAreCorrectWithoutCardId(claim, TEST_EXCEPTION, exception);
         verify(cardRequestFactory).createCardRequest(claim);
     }
 
@@ -116,8 +109,7 @@ class NewCardServiceTest {
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         CardResponse cardResponse = aCardResponse();
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
-        RuntimeException testException = new RuntimeException("test exception");
-        doThrow(testException).when(claimRepository).save(any());
+        doThrow(TEST_EXCEPTION).when(claimRepository).save(any());
         given(clock.instant()).willReturn(fixedClock.instant());
         given(clock.getZone()).willReturn(fixedClock.getZone());
 
@@ -127,42 +119,9 @@ class NewCardServiceTest {
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
 
-        verifyEventFailExceptionAndEventAreCorrectWithCardId(claim, testException, exception, cardResponse.getCardAccountId());
+        verifyCardCreationEventFailExceptionAndEventAreCorrectWithCardId(claim, TEST_EXCEPTION, exception, cardResponse.getCardAccountId());
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
     }
 
-    private void verifyEventFailExceptionAndEventAreCorrectWithCardId(Claim claim,
-                                                                      RuntimeException testException,
-                                                                      EventFailedException exception,
-                                                                      String cardAccountId) {
-        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.updateAndSaveClaim", cardAccountId);
-    }
-
-    private void verifyEventFailExceptionAndEventAreCorrectWithoutCardId(Claim claim,
-                                                                         RuntimeException testException,
-                                                                         EventFailedException exception) {
-        verifyEventFailExceptionAndEventAreCorrect(claim, testException, exception, "NewCardService.createNewCard", null);
-    }
-
-    private void verifyEventFailExceptionAndEventAreCorrect(Claim claim,
-                                                            RuntimeException testException,
-                                                            EventFailedException exception,
-                                                            String stackLocation,
-                                                            String cardAccountId) {
-        String expectedFailureMessage = String.format("Card creation failed for claim %s, exception is: test exception", claim.getId());
-        assertThat(exception).hasMessage(expectedFailureMessage);
-        assertThat(exception).hasCause(testException);
-        FailureEvent failureEvent = exception.getFailureEvent();
-        assertThat(failureEvent.getEventType()).isEqualTo(CommonEventType.FAILURE);
-        assertThat(failureEvent.getTimestamp()).isNotNull();
-        Map<String, Object> metadata = failureEvent.getEventMetadata();
-        assertThat(metadata.get(CLAIM_ID.getKey())).isEqualTo(claim.getId());
-        assertThat(metadata.get(FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CARD);
-        assertThat(metadata.get(CARD_ACCOUNT_ID.getKey())).isEqualTo(cardAccountId);
-        assertThat(metadata.get(FAILURE_DESCRIPTION_KEY)).isEqualTo(expectedFailureMessage);
-        String actualExceptionDetail = (String) metadata.get(EXCEPTION_DETAIL_KEY);
-        assertThat(actualExceptionDetail).startsWith("test exception");
-        assertThat(actualExceptionDetail).contains(stackLocation);
-    }
 }
