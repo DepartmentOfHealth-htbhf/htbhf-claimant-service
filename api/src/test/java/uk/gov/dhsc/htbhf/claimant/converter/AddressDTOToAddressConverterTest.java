@@ -24,6 +24,7 @@ class AddressDTOToAddressConverterTest {
         assertThat(result.getAddressLine1()).isEqualTo(addressDTO.getAddressLine1());
         assertThat(result.getAddressLine2()).isEqualTo(addressDTO.getAddressLine2());
         assertThat(result.getTownOrCity()).isEqualTo(addressDTO.getTownOrCity());
+        assertThat(result.getCounty()).isEqualTo(addressDTO.getCounty());
         assertThat(result.getPostcode()).isEqualTo(addressDTO.getPostcode());
     }
 
