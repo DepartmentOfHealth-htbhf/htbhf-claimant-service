@@ -20,6 +20,10 @@ public class AddressTestDataFactory {
         return aValidAddressBuilder().townOrCity(townOrCity).build();
     }
 
+    public static Address anAddressWithCounty(String county) {
+        return aValidAddressBuilder().county(county).build();
+    }
+
     public static Address anAddressWithPostcode(String postcode) {
         return aValidAddressBuilder().postcode(postcode).build();
     }
@@ -29,6 +33,7 @@ public class AddressTestDataFactory {
                 .addressLine1("Flat b")
                 .addressLine2("123 Fake street")
                 .townOrCity("Springfield")
+                .county("Devon")
                 .postcode("AA1 1AA");
     }
 }

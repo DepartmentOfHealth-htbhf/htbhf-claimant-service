@@ -38,6 +38,10 @@ public class Address extends VersionedEntity {
     @Column(name = "town_or_city")
     private String townOrCity;
 
+    @Size(min = 1, max = 500)
+    @Column(name = "county")
+    private String county;
+
     @NotNull
     @Pattern(regexp = UK_POST_CODE_REGEX, message = "invalid postcode format")
     @Column(name = "postcode")
