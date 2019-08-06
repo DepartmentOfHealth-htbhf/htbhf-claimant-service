@@ -24,6 +24,26 @@ class AddressDTOTest extends AbstractValidationTest {
     }
 
     @Test
+    void shouldSuccessfullyValidateAddressWithNoAddressLine2() {
+        //Given
+        AddressDTO addressDTO = anAddressDTOWithLine2(null);
+        //When
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldSuccessfullyValidateAddressWithNoCounty() {
+        //Given
+        AddressDTO addressDTO = anAddressDTOWithCounty(null);
+        //When
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
     void shouldFailToValidateAddressWithNoLine1() {
         //Given
         AddressDTO addressDTO = anAddressDTOWithLine1(null);
@@ -61,6 +81,16 @@ class AddressDTOTest extends AbstractValidationTest {
         Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "townOrCity");
+    }
+
+    @Test
+    void shouldFailToValidateAddressWithTooLongCounty() {
+        //Given
+        AddressDTO addressDTO = anAddressDTOWithCounty(LONG_STRING);
+        //When
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "county");
     }
 
     @Test

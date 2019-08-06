@@ -7,6 +7,7 @@ public class AddressDTOTestDataFactory {
     private static final String ADDRESS_LINE_1 = "Flat b";
     private static final String ADDRESS_LINE_2 = "123 Fake street";
     private static final String TOWN_OR_CITY = "Springfield";
+    private static final String COUNTY = "Devon";
     private static final String POSTCODE = "AA1 1AA";
 
     public static AddressDTO aValidAddressDTO() {
@@ -32,6 +33,12 @@ public class AddressDTOTestDataFactory {
                 .build();
     }
 
+    public static AddressDTO anAddressDTOWithCounty(String county) {
+        return aValidAddressDTOBuilder()
+                .county(county)
+                .build();
+    }
+
     public static AddressDTO anAddressDTOWithPostcode(String postcode) {
         return aValidAddressDTOBuilder()
                 .postcode(postcode)
@@ -43,6 +50,7 @@ public class AddressDTOTestDataFactory {
                 .addressLine1(ADDRESS_LINE_1)
                 .addressLine2(ADDRESS_LINE_2)
                 .townOrCity(TOWN_OR_CITY)
+                .county(COUNTY)
                 .postcode(POSTCODE);
     }
 }
