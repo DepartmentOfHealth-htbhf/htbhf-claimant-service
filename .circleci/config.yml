@@ -1,0 +1,102 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:11.0.4-jdk-stretch
+    environment:
+      - APP_NAME=htbhf-claimant-service
+      - CF_DOMAIN=apps.internal
+      - SMOKE_TESTS=./ci_scripts/smoke_tests.sh
+      - BIN_DIR=./bin
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+      - restore_cache:
+          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+      - add_ssh_keys:
+          fingerprints:
+            - "d5:78:74:e9:5c:24:0d:5e:be:f7:91:8a:5b:ba:1d:93"
+      - run:
+          name: build
+          command: ./gradlew clean build check -s
+      - save_cache:
+          paths:
+            - ~/.gradle/wrapper
+          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+      - save_cache:
+          paths:
+            - ~/.gradle/caches
+          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+      - run:
+          name: deploy
+          command: ./ci_scripts/ci_deploy.sh
+      - run:
+          name: release
+          command: ./gradlew ciPerformRelease -s
+      - persist_to_workspace:
+          root: api/build
+          paths:
+            - ./*
+  deploy-docs:
+    docker:
+      - image: circleci/openjdk:11.0.4-jdk-stretch
+      - image: circleci/node:10.16.0
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "d5:78:74:e9:5c:24:0d:5e:be:f7:91:8a:5b:ba:1d:93"
+      - attach_workspace:
+          at: build/
+      - run:
+          name: upload test coverage
+          command: ./gradlew jacocoTestReport testReport copyReports && bash <(curl -s https://codecov.io/bash)
+      - run:
+          name: Install gh-pages
+          command: sudo npm install -g --silent gh-pages@2.0.1
+      - run:
+          name: Configure git email
+          command: git config user.email "dhsc-htbhf-support@equalexperts.com"
+      - run:
+          name: Configure git name
+          command: git config user.name "ci-build"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dist build/reports
+  trigger-cd-build:
+    docker:
+      - image: circleci/node:10.16.0
+    steps:
+      - attach_workspace:
+          at: bin/
+      - run:
+          name: ls
+          command: ls bin/
+      - run:
+          name: make script executable
+          command: chmod +x ./bin/deployment-scripts/management_scripts/trigger_circleci_cd_to_deploy_node_app.sh
+      - run:
+          name: Trigger cd build
+          command: ./bin/deployment-scripts/management_scripts/trigger_circleci_cd_to_deploy_node_app.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: gh-pages
+      - deploy-docs:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
+      - trigger-cd-build:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
