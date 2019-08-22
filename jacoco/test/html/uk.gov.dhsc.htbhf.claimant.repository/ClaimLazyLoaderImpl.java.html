@@ -10,7 +10,7 @@ import javax.persistence.PersistenceContext;
 
 @Component
 @AllArgsConstructor
-class ClaimLazyLoaderImpl implements ClaimLazyLoader {
+public class ClaimLazyLoaderImpl implements ClaimLazyLoader {
 
     @PersistenceContext
     private final EntityManager entityManager;
