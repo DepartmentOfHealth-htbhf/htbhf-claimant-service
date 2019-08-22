@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -229,7 +228,7 @@ class ClaimantServiceIntegrationTests {
             "Foo, expectedDeliveryDate, 'Foo' could not be parsed as a LocalDate, claimant.expectedDeliveryDate"
     })
     void shouldFailWithInvalidDateFormatError(String dateString, String fieldName, String expectedErrorMessage, String expectedField)
-            throws JsonProcessingException, JSONException {
+            throws JsonProcessingException {
         //Given
         String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
         //When
@@ -277,7 +276,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
     }
 
-    private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException, JSONException {
+    private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException {
         String json = objectMapper.writeValueAsString(originalValue);
         JSONObject jsonObject = new JSONObject(json);
         jsonObject.getJSONObject("claimant").put(fieldName, newValue);
