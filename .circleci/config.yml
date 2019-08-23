@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:11.0.4-jdk-stretch
+      - image: circleci/openjdk:11.0.4-jdk-stretch-node
     steps:
       - checkout
       - restore_cache:
@@ -24,7 +24,7 @@ jobs:
             - ./*
   deploy:
     docker:
-      - image: circleci/openjdk:11.0.4-jdk-stretch
+      - image: circleci/openjdk:11.0.4-jdk-stretch-node
     environment:
       - APP_NAME=htbhf-claimant-service
       - CF_DOMAIN=apps.internal
@@ -59,12 +59,6 @@ jobs:
       - run:
           name: release
           command: ./gradlew ciPerformRelease -s
-      - run:
-          name: install node repo
-          command: curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-      - run:
-          name: install node
-          command: sudo apt-get install -y nodejs
       - run:
           name: Install gh-pages
           command: sudo npm install -g --silent gh-pages@2.0.1
