@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
 
@@ -48,6 +49,21 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getEmailAddress()).isEqualTo(claimantDTO.getEmailAddress());
         assertThat(result.getChildrenDob()).containsExactly(MAGGIE_DOB);
         verify(addressConverter).convert(claimantDTO.getAddress());
+    }
+
+    @Test
+    void shouldEnsureNinoIsUppercased() {
+        // Given
+        String nino = "AA123456A";
+        ClaimantDTO claimantDTO = aClaimantDTOWithNino(nino.toLowerCase());
+        when(addressConverter.convert(claimantDTO.getAddress())).thenReturn(ADDRESS);
+
+        // When
+        Claimant result = converter.convert(claimantDTO);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getNino()).isEqualTo(nino);
     }
 
     @Test

@@ -5,6 +5,8 @@ import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
+import static org.apache.commons.lang3.StringUtils.upperCase;
+
 /**
  * Converts a {@link ClaimantDTO} into a {@link Claimant}.
  */
@@ -24,7 +26,7 @@ public class ClaimantDTOToClaimantConverter {
                 .lastName(claimant.getLastName())
                 .dateOfBirth(claimant.getDateOfBirth())
                 .expectedDeliveryDate(claimant.getExpectedDeliveryDate())
-                .nino(claimant.getNino())
+                .nino(upperCase(claimant.getNino()))
                 .phoneNumber(claimant.getPhoneNumber())
                 .emailAddress(claimant.getEmailAddress())
                 .address(addressConverter.convert(claimant.getAddress()))
