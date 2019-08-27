@@ -5,6 +5,7 @@ applications:
   - java_buildpack
   health-check-type: http
   health-check-http-endpoint: /actuator/health
+  health-check-timeout: 180
   routes:
     - route: htbhf-claimant-service((app-suffix)).apps.internal
   env:
