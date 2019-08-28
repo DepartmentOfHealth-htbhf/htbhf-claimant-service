@@ -26,10 +26,14 @@ jobs:
     docker:
       - image: circleci/openjdk:11.0.4-jdk-stretch-node
     environment:
-      - APP_NAME=htbhf-claimant-service
-      - CF_DOMAIN=apps.internal
-      - SMOKE_TESTS=./ci_scripts/smoke_tests.sh
-      - BIN_DIR=./bin
+      APP_NAME: htbhf-claimant-service
+      SMOKE_TESTS: ./ci_scripts/smoke_tests.sh
+      BIN_DIR: ./bin
+      CF_DOMAIN: apps.internal
+      CF_PUBLIC_DOMAIN: london.cloudapps.digital
+      CF_ORG: department-of-health-and-social-care
+      CF_API: api.london.cloud.service.gov.uk
+      BINTRAY_ROOT_URL: https://dl.bintray.com/departmentofhealth-htbhf/maven/uk/gov/dhsc/htbhf
     steps:
       - checkout
       - add_ssh_keys:
