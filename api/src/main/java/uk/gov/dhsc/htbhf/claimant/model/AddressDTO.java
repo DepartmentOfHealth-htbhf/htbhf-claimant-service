@@ -37,7 +37,7 @@ public class AddressDTO {
     @ApiModelProperty(notes = "Town or city of the address", example = "London")
     private String townOrCity;
 
-    @Size(min = 1, max = 500)
+    @Size(max = 500)
     @JsonProperty("county")
     @ApiModelProperty(notes = "County of the address", example = "Devon")
     private String county;
