@@ -48,6 +48,16 @@ public class AddressTest extends AbstractValidationTest {
     }
 
     @Test
+    void shouldValidateAddressSuccessfullyWithEmptyCounty() {
+        //Given
+        Address address = anAddressWithCounty("");
+        //When
+        Set<ConstraintViolation<Address>> violations = validator.validate(address);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
     void shouldFailToValidateAddressWithNoAddressLine1() {
         //Given
         Address address = anAddressWithAddressLine1(null);
@@ -104,7 +114,7 @@ public class AddressTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Address>> violations = validator.validate(address);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "county");
+        assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 500", "county");
     }
 
     @Test

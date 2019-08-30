@@ -39,6 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTOBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
@@ -90,6 +91,15 @@ class ClaimantServiceIntegrationTests {
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNullFields() throws JsonProcessingException {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());
+    }
+
+    @Test
+    void shouldAcceptAndCreateANewValidClaimWithSomeEmptyAddressFields() throws JsonProcessingException {
+        AddressDTO addressWithEmptyLine2AndCounty = aValidAddressDTOBuilder()
+                .addressLine2("")
+                .county("")
+                .build();
+        shouldAcceptAndCreateValidClaim(aClaimDTOWithClaimant(aClaimantDTOWithAddress(addressWithEmptyLine2AndCounty)));
     }
 
     @Test

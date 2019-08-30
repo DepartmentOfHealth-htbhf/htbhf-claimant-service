@@ -45,7 +45,7 @@ public class AddressDTOTestDataFactory {
                 .build();
     }
 
-    private static AddressDTO.AddressDTOBuilder aValidAddressDTOBuilder() {
+    public static AddressDTO.AddressDTOBuilder aValidAddressDTOBuilder() {
         return AddressDTO.builder()
                 .addressLine1(ADDRESS_LINE_1)
                 .addressLine2(ADDRESS_LINE_2)

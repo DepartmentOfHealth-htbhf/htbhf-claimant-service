@@ -38,7 +38,7 @@ public class Address extends VersionedEntity {
     @Column(name = "town_or_city")
     private String townOrCity;
 
-    @Size(min = 1, max = 500)
+    @Size(max = 500)
     @Column(name = "county")
     private String county;
 

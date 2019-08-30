@@ -27,6 +27,7 @@ public class ClaimantServiceAssertionUtils {
         assertThat(actual.getAddressLine1()).isEqualTo(expected.getAddressLine1());
         assertThat(actual.getAddressLine2()).isEqualTo(expected.getAddressLine2());
         assertThat(actual.getTownOrCity()).isEqualTo(expected.getTownOrCity());
+        assertThat(actual.getCounty()).isEqualTo(expected.getCounty());
         assertThat(actual.getPostcode()).isEqualTo(expected.getPostcode());
     }
 }
