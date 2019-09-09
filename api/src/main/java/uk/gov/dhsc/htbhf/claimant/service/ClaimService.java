@@ -107,8 +107,8 @@ public class ClaimService {
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {
         List<String> updatedFields = updateClaimantFields(claim, claimant);
+        log.info("Updating claim: {},  fields updated {}", claim.getId(), updatedFields);
         claimRepository.save(claim);
-        log.info("Updated claim: {},  fields updated {}", claim.getId(), updatedFields);
         eventAuditor.auditUpdatedClaim(claim, updatedFields);
         return updatedFields;
     }
@@ -127,8 +127,8 @@ public class ClaimService {
 
     private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
         Claim claim = buildClaim(claimRequest, decision);
+        log.info("Saving new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         claimRepository.save(claim);
-        log.info("Saved new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         eventAuditor.auditNewClaim(claim);
         return claim;
     }

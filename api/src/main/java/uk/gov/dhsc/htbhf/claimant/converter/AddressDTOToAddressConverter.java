@@ -5,6 +5,8 @@ import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
+import static org.apache.commons.lang3.StringUtils.upperCase;
+
 /**
  * Converts a {@link AddressDTO} into a {@link Address}.
  */
@@ -18,7 +20,7 @@ public class AddressDTOToAddressConverter {
                 .addressLine2(source.getAddressLine2())
                 .townOrCity(source.getTownOrCity())
                 .county(source.getCounty())
-                .postcode(source.getPostcode())
+                .postcode(upperCase(source.getPostcode()))
                 .build();
 
     }
