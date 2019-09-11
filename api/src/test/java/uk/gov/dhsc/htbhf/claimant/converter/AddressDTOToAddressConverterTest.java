@@ -39,7 +39,7 @@ class AddressDTOToAddressConverterTest {
         Address result = converter.convert(addressDTO);
 
         // Then
-        assertThat(result.getPostcode()).isEqualTo(addressDTO.getPostcode().toUpperCase());
+        assertThat(result.getPostcode()).isEqualTo("AA11AA");
     }
 
     @Test
