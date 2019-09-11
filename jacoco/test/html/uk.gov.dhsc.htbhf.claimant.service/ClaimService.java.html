@@ -107,8 +107,8 @@ public class ClaimService {
 
     private List&lt;String&gt; updateClaim(Claim claim, Claimant claimant) {
 <span class="fc" id="L109">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
-<span class="fc" id="L110">        claimRepository.save(claim);</span>
-<span class="fc" id="L111">        log.info(&quot;Updated claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
+<span class="fc" id="L110">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
+<span class="fc" id="L111">        claimRepository.save(claim);</span>
 <span class="fc" id="L112">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
 <span class="fc" id="L113">        return updatedFields;</span>
     }
@@ -127,8 +127,8 @@ public class ClaimService {
 
     private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
 <span class="fc" id="L129">        Claim claim = buildClaim(claimRequest, decision);</span>
-<span class="fc" id="L130">        claimRepository.save(claim);</span>
-<span class="fc" id="L131">        log.info(&quot;Saved new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L130">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L131">        claimRepository.save(claim);</span>
 <span class="fc" id="L132">        eventAuditor.auditNewClaim(claim);</span>
 <span class="fc" id="L133">        return claim;</span>
     }
