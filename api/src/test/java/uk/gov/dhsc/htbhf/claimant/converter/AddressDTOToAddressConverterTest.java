@@ -2,10 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
 
 class AddressDTOToAddressConverterTest {
 
@@ -14,7 +16,7 @@ class AddressDTOToAddressConverterTest {
     @Test
     void shouldConvertAddressDTOToEquivalentAddressObject() {
         // Given
-        var addressDTO = aValidClaimDTO().getClaimant().getAddress();
+        AddressDTO addressDTO = aValidAddressDTO();
 
         // When
         Address result = converter.convert(addressDTO);
@@ -26,6 +28,18 @@ class AddressDTOToAddressConverterTest {
         assertThat(result.getTownOrCity()).isEqualTo(addressDTO.getTownOrCity());
         assertThat(result.getCounty()).isEqualTo(addressDTO.getCounty());
         assertThat(result.getPostcode()).isEqualTo(addressDTO.getPostcode());
+    }
+
+    @Test
+    void shouldConvertPostcodeToUppercase() {
+        // Given
+        AddressDTO addressDTO = anAddressDTOWithPostcode("aa11aa");
+
+        // When
+        Address result = converter.convert(addressDTO);
+
+        // Then
+        assertThat(result.getPostcode()).isEqualTo("AA11AA");
     }
 
     @Test
