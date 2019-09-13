@@ -139,4 +139,41 @@ class AddressDTOTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("invalid postcode format", "postcode");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "GY1 1WR",
+            "JE3 1FU",
+            "IM1 3LY",
+            "Gy1 1wr",
+            "je311fu",
+            "im13ly",
+    })
+    void shouldFailValidationWithChannelIslandPostcode(String postcode) {
+        //Given
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
+        //When
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("postcodes in the Channel Islands or Isle of Man are not acceptable", "postcode");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "GA11BB",
+            "JA10AX",
+            "M11AE",
+            "IO338GY",
+            "CY26JE",
+            "DE551IM",
+            "DM55 1PT",
+    })
+    void shouldPassValidationWithNonChannelIslandPostcode(String postcode) {
+        //Given
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
+        //When
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
 }

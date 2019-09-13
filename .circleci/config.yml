@@ -61,6 +61,9 @@ jobs:
             echo "export TRAVIS_BRANCH=$CIRCLE_BRANCH" >> $BASH_ENV
             source $BASH_ENV
       - run:
+          name: pull updates from concurrent builds
+          command: git pull
+      - run:
           name: release
           command: ./gradlew ciPerformRelease -s
       - run:
