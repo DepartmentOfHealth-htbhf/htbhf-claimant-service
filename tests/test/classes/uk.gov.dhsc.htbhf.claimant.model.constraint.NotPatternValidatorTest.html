@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=edge"/>
-<title>Test results - EligibilityResponseTest</title>
+<title>Test results - NotPatternValidatorTest</title>
 <link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="../css/style.css" rel="stylesheet" type="text/css"/>
 <script src="../js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">
-<h1>EligibilityResponseTest</h1>
+<h1>NotPatternValidatorTest</h1>
 <div class="breadcrumbs">
 <a href="../index.html">all</a> &gt; 
-<a href="../packages/uk.gov.dhsc.htbhf.claimant.model.eligibility.html">uk.gov.dhsc.htbhf.claimant.model.eligibility</a> &gt; EligibilityResponseTest</div>
+<a href="../packages/uk.gov.dhsc.htbhf.claimant.model.constraint.html">uk.gov.dhsc.htbhf.claimant.model.constraint</a> &gt; NotPatternValidatorTest</div>
 <div id="summary">
 <table>
 <tr>
@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">9</div>
+<div class="counter">10</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0s</div>
+<div class="counter">0.015s</div>
 <p>duration</p>
 </div>
 </td>
@@ -76,57 +76,63 @@
 </tr>
 </thead>
 <tr>
-<td class="success">[1] ELIGIBLE</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[1]</td>
+<td class="success">emptyStringShouldBeValid()</td>
+<td class="success">emptyStringShouldBeValid()</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">[2] INELIGIBLE</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[2]</td>
+<td class="success">nullStringShouldBeValid()</td>
+<td class="success">nullStringShouldBeValid()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">String ({0}) matching pattern should not be valid</td>
+<td class="success">stringMatchingPatternShouldNotBeValid(String)[1]</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">[3] PENDING</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[3]</td>
+<td class="success">String ({0}) matching pattern should not be valid</td>
+<td class="success">stringMatchingPatternShouldNotBeValid(String)[2]</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">String ({0}) matching pattern should not be valid</td>
+<td class="success">stringMatchingPatternShouldNotBeValid(String)[3]</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">[4] NO_MATCH</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[4]</td>
+<td class="success">String ({0}) matching pattern should not be valid</td>
+<td class="success">stringMatchingPatternShouldNotBeValid(String)[4]</td>
 <td class="success">0s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">[5] ERROR</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[5]</td>
-<td class="success">0s</td>
+<td class="success">String ({0}) not matching pattern should be valid</td>
+<td class="success">stringNotMatchingPatternShouldBeValid(String)[1]</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">[6] DUPLICATE</td>
-<td class="success">shouldCreateEligibilityResponseWithGivenStatus(EligibilityStatus)[6]</td>
-<td class="success">0s</td>
+<td class="success">String ({0}) not matching pattern should be valid</td>
+<td class="success">stringNotMatchingPatternShouldBeValid(String)[2]</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldGetDateOfBirthOfChildren()</td>
-<td class="success">shouldGetDateOfBirthOfChildren()</td>
-<td class="success">0s</td>
+<td class="success">String ({0}) not matching pattern should be valid</td>
+<td class="success">stringNotMatchingPatternShouldBeValid(String)[3]</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">shouldReturnEmptyListForDateOfBirthOfChildrenWhenNoChildren()</td>
-<td class="success">shouldReturnEmptyListForDateOfBirthOfChildrenWhenNoChildren()</td>
-<td class="success">0s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldReturnEmptyListForDateOfBirthOfChildrenWhenNullChildren()</td>
-<td class="success">shouldReturnEmptyListForDateOfBirthOfChildrenWhenNullChildren()</td>
-<td class="success">0s</td>
+<td class="success">String ({0}) not matching pattern should be valid</td>
+<td class="success">stringNotMatchingPatternShouldBeValid(String)[4]</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 </table>
