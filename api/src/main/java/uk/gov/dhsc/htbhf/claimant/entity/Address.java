@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.NotPattern;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.CHANNEL_ISLAND_POST_CODE_REGEX;
 import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.UK_POST_CODE_REGEX;
 
 /**
@@ -44,6 +46,7 @@ public class Address extends VersionedEntity {
 
     @NotNull
     @Pattern(regexp = UK_POST_CODE_REGEX, message = "invalid postcode format")
+    @NotPattern(regexp = CHANNEL_ISLAND_POST_CODE_REGEX, message = "postcodes in the Channel Islands or Isle of Man are not acceptable")
     @Column(name = "postcode")
     private String postcode;
 }

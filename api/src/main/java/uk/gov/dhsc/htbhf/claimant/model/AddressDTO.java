@@ -7,11 +7,13 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.NotPattern;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.CHANNEL_ISLAND_POST_CODE_REGEX;
 import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.UK_POST_CODE_REGEX;
 
 @Data
@@ -44,6 +46,7 @@ public class AddressDTO {
 
     @NotNull
     @Pattern(regexp = UK_POST_CODE_REGEX, message = "invalid postcode format")
+    @NotPattern(regexp = CHANNEL_ISLAND_POST_CODE_REGEX, message = "postcodes in the Channel Islands or Isle of Man are not acceptable")
     @JsonProperty("postcode")
     @ApiModelProperty(notes = "The postcode of the address.", example = "AA1 1AA")
     private String postcode;

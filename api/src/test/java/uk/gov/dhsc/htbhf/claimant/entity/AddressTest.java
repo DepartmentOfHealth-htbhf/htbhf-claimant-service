@@ -158,4 +158,42 @@ public class AddressTest extends AbstractValidationTest {
         //Then
         Assertions.assertThat(id).isEqualTo(address.getId());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "GY1 1WR",
+            "JE3 1FU",
+            "IM1 3LY",
+            "Gy1 1wr",
+            "je311fu",
+            "im13ly",
+    })
+    void shouldFailValidationWithChannelIslandPostcode(String postcode) {
+        //Given
+        Address address = anAddressWithPostcode(postcode);
+        //When
+        Set<ConstraintViolation<Address>> violations = validator.validate(address);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("postcodes in the Channel Islands or Isle of Man are not acceptable", "postcode");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "GA11BB",
+            "JA10AX",
+            "M11AE",
+            "IO338GY",
+            "CY26JE",
+            "DE551IM",
+            "DM55 1PT",
+    })
+    void shouldPassValidationWithNonChannelIslandPostcode(String postcode) {
+        //Given
+        Address address = anAddressWithPostcode(postcode);
+        //When
+        Set<ConstraintViolation<Address>> violations = validator.validate(address);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
 }
