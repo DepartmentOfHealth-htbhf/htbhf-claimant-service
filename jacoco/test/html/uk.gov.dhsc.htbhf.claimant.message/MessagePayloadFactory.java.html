@@ -49,52 +49,68 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
      * @return The constructed payload.
      */
     public static EmailMessagePayload buildSendNewCardSuccessEmailPayload(PaymentCycle paymentCycle) {
-<span class="fc" id="L52">        Claimant claimant = paymentCycle.getClaim().getClaimant();</span>
-<span class="fc" id="L53">        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();</span>
-<span class="fc" id="L54">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L55">        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
-<span class="fc" id="L56">        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
-<span class="fc" id="L57">        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(),</span>
-<span class="fc" id="L58">                convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence()));</span>
-<span class="fc" id="L59">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
-<span class="fc" id="L60">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
-<span class="fc" id="L61">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));</span>
-<span class="fc" id="L62">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().format(DATE_FORMATTER);</span>
-<span class="fc" id="L63">        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
-<span class="fc" id="L64">        return EmailMessagePayload.builder()</span>
-<span class="fc" id="L65">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L66">                .emailType(EmailType.NEW_CARD)</span>
-<span class="fc" id="L67">                .emailPersonalisation(emailPersonalisation)</span>
-<span class="fc" id="L68">                .build();</span>
+<span class="fc" id="L52">        Map&lt;String, Object&gt; emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);</span>
+<span class="fc" id="L53">        return EmailMessagePayload.builder()</span>
+<span class="fc" id="L54">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L55">                .emailType(EmailType.NEW_CARD)</span>
+<span class="fc" id="L56">                .emailPersonalisation(emailPersonalisation)</span>
+<span class="fc" id="L57">                .build();</span>
+    }
+
+    public static EmailMessagePayload buildPaymentNotificationEmailPayload(PaymentCycle paymentCycle) {
+<span class="fc" id="L61">        Map&lt;String, Object&gt; emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);</span>
+<span class="fc" id="L62">        return EmailMessagePayload.builder()</span>
+<span class="fc" id="L63">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L64">                .emailType(EmailType.PAYMENT)</span>
+<span class="fc" id="L65">                .emailPersonalisation(emailPersonalisation)</span>
+<span class="fc" id="L66">                .build();</span>
+    }
+
+    private static Map&lt;String, Object&gt; createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle) {
+<span class="fc" id="L70">        Claimant claimant = paymentCycle.getClaim().getClaimant();</span>
+<span class="fc" id="L71">        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();</span>
+<span class="fc" id="L72">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L73">        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
+<span class="fc" id="L74">        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
+        // TODO: MGS: HTBHF-2282 remove FIRST_PAYMENT_AMOUNT once the instant success template has been updated to use PAYMENT_AMOUNT
+<span class="fc" id="L76">        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L77">        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
+<span class="fc" id="L78">        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
+<span class="fc" id="L79">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
+<span class="fc" id="L80">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
+<span class="fc" id="L81">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));</span>
+<span class="fc" id="L82">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().format(DATE_FORMATTER);</span>
+<span class="fc" id="L83">        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
+<span class="fc" id="L84">        return emailPersonalisation;</span>
     }
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L72">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L88">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for a pregnancy&quot;,
-<span class="fc" id="L74">                voucherEntitlement.getVouchersForPregnancy(),</span>
-<span class="fc" id="L75">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L90">                voucherEntitlement.getVouchersForPregnancy(),</span>
+<span class="fc" id="L91">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String buildUnder1PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L79">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L95">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for children under 1&quot;,
-<span class="fc" id="L81">                voucherEntitlement.getVouchersForChildrenUnderOne(),</span>
-<span class="fc" id="L82">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L97">                voucherEntitlement.getVouchersForChildrenUnderOne(),</span>
+<span class="fc" id="L98">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L86">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L102">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for children between 1 and 4&quot;,
-<span class="fc" id="L88">                voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),</span>
-<span class="fc" id="L89">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L104">                voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),</span>
+<span class="fc" id="L105">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (numberOfVouchers == 0) {</span>
-<span class="fc" id="L94">            return &quot;&quot;;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (numberOfVouchers == 0) {</span>
+<span class="fc" id="L110">            return &quot;&quot;;</span>
         }
-<span class="fc" id="L96">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
-<span class="fc" id="L97">        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));</span>
+<span class="fc" id="L112">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
+<span class="fc" id="L113">        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));</span>
     }
 
 }
