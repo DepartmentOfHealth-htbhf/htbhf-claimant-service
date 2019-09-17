@@ -79,7 +79,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 <span class="fc" id="L79">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
 <span class="fc" id="L80">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
 <span class="fc" id="L81">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));</span>
-<span class="fc" id="L82">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().format(DATE_FORMATTER);</span>
+<span class="fc" id="L82">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);</span>
 <span class="fc" id="L83">        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
 <span class="fc" id="L84">        return emailPersonalisation;</span>
     }
