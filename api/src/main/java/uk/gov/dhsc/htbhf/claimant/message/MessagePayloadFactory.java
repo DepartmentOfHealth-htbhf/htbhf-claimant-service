@@ -49,23 +49,39 @@ public class MessagePayloadFactory {
      * @return The constructed payload.
      */
     public static EmailMessagePayload buildSendNewCardSuccessEmailPayload(PaymentCycle paymentCycle) {
-        Claimant claimant = paymentCycle.getClaim().getClaimant();
-        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        Map<String, Object> emailPersonalisation = new HashMap<>();
-        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
-        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(),
-                convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence()));
-        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
-        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
-        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
-        String formattedCycleEndDate = paymentCycle.getCycleEndDate().format(DATE_FORMATTER);
-        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(EmailType.NEW_CARD)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
+    }
+
+    public static EmailMessagePayload buildPaymentNotificationEmailPayload(PaymentCycle paymentCycle) {
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);
+        return EmailMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .emailType(EmailType.PAYMENT)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle) {
+        Claimant claimant = paymentCycle.getClaim().getClaimant();
+        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
+        Map<String, Object> emailPersonalisation = new HashMap<>();
+        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
+        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
+        // TODO: MGS: HTBHF-2282 remove FIRST_PAYMENT_AMOUNT once the instant success template has been updated to use PAYMENT_AMOUNT
+        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());
+        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
+        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
+        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
+        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
+        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
+        String formattedCycleEndDate = paymentCycle.getCycleEndDate().format(DATE_FORMATTER);
+        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
+        return emailPersonalisation;
     }
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
