@@ -118,7 +118,7 @@ class NewCardMessageProcessorTest {
         EmailMessagePayload payload = (EmailMessagePayload) payloadCaptor.getValue();
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), paymentCycle.getCycleEndDate());
+        assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), paymentCycle.getCycleEndDate().plusDays(1));
     }
 
 }
