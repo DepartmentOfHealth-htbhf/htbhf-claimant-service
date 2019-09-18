@@ -6,10 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithNoPregnancyVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithPregnancyVoucherOnlyForDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.*;
 
 public class PaymentCycleVoucherEntitlementTestDataFactory {
 
@@ -28,6 +25,15 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(1)),
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(2)),
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(3))
+        );
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchersForUnderOneOnly(LocalDate startDate) {
+        return buildPaymentCycleVoucherEntitlement(
+                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate),
+                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(1)),
+                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(2)),
+                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(3))
         );
     }
 

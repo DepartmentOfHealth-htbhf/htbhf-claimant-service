@@ -5,5 +5,6 @@ package uk.gov.dhsc.htbhf.claimant.message.payload;
  */
 public enum EmailType {
     NEW_CARD,
-    PAYMENT
+    PAYMENT,
+    CHILD_TURNS_FOUR
 }
