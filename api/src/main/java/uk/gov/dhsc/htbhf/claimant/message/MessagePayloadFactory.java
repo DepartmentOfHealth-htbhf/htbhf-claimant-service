@@ -17,6 +17,9 @@ import java.util.Map;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
+/**
+ * Factory object for building message payloads for emails.
+ */
 public class MessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -49,7 +52,7 @@ public class MessagePayloadFactory {
      * @return The constructed payload.
      */
     public static EmailMessagePayload buildSendNewCardSuccessEmailPayload(PaymentCycle paymentCycle) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, paymentCycle.getVoucherEntitlement());
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(EmailType.NEW_CARD)
@@ -58,7 +61,7 @@ public class MessagePayloadFactory {
     }
 
     public static EmailMessagePayload buildPaymentNotificationEmailPayload(PaymentCycle paymentCycle) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle);
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, paymentCycle.getVoucherEntitlement());
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(EmailType.PAYMENT)
@@ -66,9 +69,29 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle) {
+    /**
+     * Builds the message payload for the email that gets sent should one of the claimants children be turning
+     * 4 during the next payment cycle.
+     *
+     * @param paymentCycle                       The current payment cycle
+     * @param entitlementNextMonth               The entitlement that the claimant will be receiving next month
+     * @param multipleChildrenTurningFourInMonth Whether or not there are multiple children turning 4 next month
+     * @return The build email payload.
+     */
+    public static EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                                  PaymentCycleVoucherEntitlement entitlementNextMonth,
+                                                                                  boolean multipleChildrenTurningFourInMonth) {
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
+        emailPersonalisation.put(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
+        return EmailMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .emailType(EmailType.CHILD_TURNS_FOUR)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
         Claimant claimant = paymentCycle.getClaim().getClaimant();
-        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
         Map<String, Object> emailPersonalisation = new HashMap<>();
         emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
         emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
