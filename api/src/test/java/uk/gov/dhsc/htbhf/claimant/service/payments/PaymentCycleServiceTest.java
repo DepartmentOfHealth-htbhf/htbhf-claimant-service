@@ -51,8 +51,9 @@ class PaymentCycleServiceTest {
 
     @Test
     void shouldCreateNewPaymentCycleWithExpectedDueDateForEligibleClaimWithPregnancyVouchers() {
-        LocalDate today = LocalDate.now().plusMonths(9);
-        Claim claim = aClaimWithExpectedDeliveryDate(today);
+        LocalDate today = LocalDate.now();
+        LocalDate dueDate = LocalDate.now().plusMonths(9);
+        Claim claim = aClaimWithExpectedDeliveryDate(dueDate);
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
 
@@ -63,7 +64,7 @@ class PaymentCycleServiceTest {
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
-        assertThat(result.getExpectedDeliveryDate()).isEqualTo(today);
+        assertThat(result.getExpectedDeliveryDate()).isEqualTo(dueDate);
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
     }
