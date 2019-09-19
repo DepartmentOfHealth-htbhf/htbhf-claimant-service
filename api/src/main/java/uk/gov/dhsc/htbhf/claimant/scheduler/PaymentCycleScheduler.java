@@ -17,7 +17,8 @@ import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExcept
 
 /**
  * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
- * for active claims whose current PaymentCycle is due to come to an end.
+ * for active claims whose current PaymentCycle is due to come to an end
+ * (ending on or before [today + end-date-offset-days]).
  * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
  */
 @Slf4j
@@ -31,7 +32,7 @@ public class PaymentCycleScheduler {
     public PaymentCycleScheduler(
             PaymentCycleRepository paymentCycleRepository,
             CreateNewPaymentCycleJob job,
-            @Value("${payment-cycle.schedule.end-date-offset-days:0}") int endDateOffsetDays) {
+            @Value("${payment-cycle.schedule.end-date-offset-days:-1}") int endDateOffsetDays) {
 
         this.paymentCycleRepository = paymentCycleRepository;
         this.job = job;

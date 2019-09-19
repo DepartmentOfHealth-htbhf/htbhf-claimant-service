@@ -82,7 +82,7 @@ public class PaymentCycleTestDataFactory {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .cycleStartDate(LocalDate.now())
-                .cycleEndDate(LocalDate.now().plusWeeks(4))
+                .cycleEndDate(LocalDate.now().plusWeeks(4).minusDays(1))
                 .totalVouchers(TOTAL_VOUCHERS)
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE);
     }

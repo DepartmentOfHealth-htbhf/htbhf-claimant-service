@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
@@ -79,6 +80,16 @@ class PaymentCycleSchedulerTest {
         verify(job).createNewPaymentCycle(paymentCycle2.getClaimId(), paymentCycle2.getCycleId(), paymentCycle2.getCycleEndDate().plusDays(1));
         verify(job).createNewPaymentCycle(paymentCycle3.getClaimId(), paymentCycle3.getCycleId(), paymentCycle3.getCycleEndDate().plusDays(1));
         verifyNoMoreInteractions(job);
+    }
+
+    @Test
+    void shouldQueryForCyclesEndingYesterdayWhenOffsetIsMinus1() {
+        this.scheduler = new PaymentCycleScheduler(paymentCycleRepository, job, -1);
+        given(paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(any())).willReturn(emptyList());
+
+        scheduler.createNewPaymentCycles();
+
+        verify(paymentCycleRepository).findActiveClaimsWithCycleEndingOnOrBefore(LocalDate.now().minusDays(1));
     }
 
     ClosingPaymentCycle createClosingPaymentCycle(UUID claimId, UUID cycleId, LocalDate endDate) {
