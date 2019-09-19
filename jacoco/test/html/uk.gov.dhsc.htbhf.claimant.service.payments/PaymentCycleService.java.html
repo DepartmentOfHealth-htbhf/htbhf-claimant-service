@@ -40,7 +40,7 @@ public class PaymentCycleService {
 <span class="fc" id="L40">                .claim(claim)</span>
 <span class="fc" id="L41">                .paymentCycleStatus(NEW)</span>
 <span class="fc" id="L42">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L43">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L43">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
 <span class="fc" id="L44">                .build();</span>
 <span class="fc" id="L45">        paymentCycleRepository.save(paymentCycle);</span>
 <span class="fc" id="L46">        return paymentCycle;</span>
@@ -66,7 +66,7 @@ public class PaymentCycleService {
 <span class="fc" id="L66">                .claim(claim)</span>
 <span class="fc" id="L67">                .paymentCycleStatus(NEW)</span>
 <span class="fc" id="L68">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L69">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))</span>
+<span class="fc" id="L69">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
 <span class="fc" id="L70">                .eligibilityStatus(ELIGIBLE)</span>
 <span class="fc" id="L71">                .childrenDob(datesOfBirthOfChildren)</span>
 <span class="fc" id="L72">                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))</span>

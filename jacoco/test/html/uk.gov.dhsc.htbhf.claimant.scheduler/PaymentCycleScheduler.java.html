@@ -17,10 +17,11 @@ import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExcept
 
 /**
  * Responsible for creating new {@link uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle} objects
- * for active claims whose current PaymentCycle is due to come to an end.
+ * for active claims whose current PaymentCycle is due to come to an end
+ * (ending on or before [today + end-date-offset-days]).
  * This scheduler simply invokes the CreateNewPaymentCycleJob for each such claim.
  */
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 @Component
 public class PaymentCycleScheduler {
 
@@ -31,12 +32,12 @@ public class PaymentCycleScheduler {
     public PaymentCycleScheduler(
             PaymentCycleRepository paymentCycleRepository,
             CreateNewPaymentCycleJob job,
-<span class="fc" id="L34">            @Value(&quot;${payment-cycle.schedule.end-date-offset-days:0}&quot;) int endDateOffsetDays) {</span>
+<span class="fc" id="L35">            @Value(&quot;${payment-cycle.schedule.end-date-offset-days}&quot;) int endDateOffsetDays) {</span>
 
-<span class="fc" id="L36">        this.paymentCycleRepository = paymentCycleRepository;</span>
-<span class="fc" id="L37">        this.job = job;</span>
-<span class="fc" id="L38">        this.endDateOffsetDays = endDateOffsetDays;</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L37">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L38">        this.job = job;</span>
+<span class="fc" id="L39">        this.endDateOffsetDays = endDateOffsetDays;</span>
+<span class="fc" id="L40">    }</span>
 
     @Scheduled(cron = &quot;${payment-cycle.schedule.cron-schedule}&quot;)
     @SchedulerLock(
@@ -45,25 +46,25 @@ public class PaymentCycleScheduler {
             lockAtMostForString = &quot;${payment-cycle.schedule.maximum-lock-time}&quot;)
     @NewRequestContextWithSessionId(sessionId = &quot;PaymentCycleScheduler&quot;)
     public void createNewPaymentCycles() {
-<span class="fc" id="L48">        LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);</span>
-<span class="fc" id="L49">        log.debug(&quot;Querying for active claims with cycles ending on {}&quot;, cycleEndDate);</span>
-<span class="fc" id="L50">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
+<span class="fc" id="L49">        LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);</span>
+<span class="fc" id="L50">        log.debug(&quot;Querying for active claims with cycles ending on {}&quot;, cycleEndDate);</span>
+<span class="fc" id="L51">        List&lt;ClosingPaymentCycle&gt; cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);</span>
 
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">        if (CollectionUtils.isEmpty(cycles)) {</span>
-<span class="nc" id="L53">            log.info(&quot;No new PaymentCycles to create&quot;);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(cycles)) {</span>
+<span class="fc" id="L54">            log.info(&quot;No new PaymentCycles to create&quot;);</span>
         } else {
-<span class="fc" id="L55">            log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
-<span class="fc" id="L56">            cycles.forEach(this::createNewPaymentCycle);</span>
-<span class="fc" id="L57">            log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L56">            log.info(&quot;Creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
+<span class="fc" id="L57">            cycles.forEach(this::createNewPaymentCycle);</span>
+<span class="fc" id="L58">            log.debug(&quot;Finished creating new PaymentCycles for {} claims&quot;, cycles.size());</span>
         }
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L60">    }</span>
 
     private void createNewPaymentCycle(ClosingPaymentCycle cycle) {
         try {
-<span class="fc" id="L63">            job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1));</span>
-<span class="fc" id="L64">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L65">            log.error(&quot;Unable to create new payment cycle for claim {}: {}&quot;, cycle.getClaimId(), constructExceptionDetail(e), e);</span>
-<span class="fc" id="L66">        }</span>
-<span class="fc" id="L67">    }</span>
+<span class="fc" id="L64">            job.createNewPaymentCycle(cycle.getClaimId(), cycle.getCycleId(), cycle.getCycleEndDate().plusDays(1));</span>
+<span class="fc" id="L65">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L66">            log.error(&quot;Unable to create new payment cycle for claim {}: {}&quot;, cycle.getClaimId(), constructExceptionDetail(e), e);</span>
+<span class="fc" id="L67">        }</span>
+<span class="fc" id="L68">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
