@@ -108,6 +108,20 @@ class CycleEntitlementCalculatorTest {
         verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
     }
 
+    @Test
+    void shouldGetVoucherEntitlementDatesForCycleStartDate() {
+        //Given
+        LocalDate startDate = LocalDate.now();
+        //When
+        List<LocalDate> entitlementDates = cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(startDate);
+        //Then
+        assertThat(entitlementDates).containsExactly(
+                LocalDate.now(),
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(2)
+        );
+    }
+
     private void assertEntitlement(VoucherEntitlement voucherEntitlement, PaymentCycleVoucherEntitlement result) {
         assertEntitlementWithBackDatedVouchers(0, voucherEntitlement, result);
     }
