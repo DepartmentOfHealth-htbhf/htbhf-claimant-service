@@ -32,7 +32,7 @@ public class PaymentCycleScheduler {
     public PaymentCycleScheduler(
             PaymentCycleRepository paymentCycleRepository,
             CreateNewPaymentCycleJob job,
-            @Value("${payment-cycle.schedule.end-date-offset-days:-1}") int endDateOffsetDays) {
+            @Value("${payment-cycle.schedule.end-date-offset-days}") int endDateOffsetDays) {
 
         this.paymentCycleRepository = paymentCycleRepository;
         this.job = job;
