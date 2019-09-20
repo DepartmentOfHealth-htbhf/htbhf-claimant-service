@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -26,7 +26,7 @@ public class EligibilityAndEntitlementService {
     private final EligibilityClient client;
     private final DuplicateClaimChecker duplicateClaimChecker;
     private final ClaimRepository claimRepository;
-    private final CycleEntitlementCalculator cycleEntitlementCalculator;
+    private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
     /**
      * Determines the eligibility and entitlement for the given claimant. If the claimant's NINO is not found in the database,
@@ -46,7 +46,7 @@ public class EligibilityAndEntitlementService {
         log.debug("Checking eligibility");
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         log.debug("Calculating entitlement");
-        PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
+        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
@@ -73,7 +73,7 @@ public class EligibilityAndEntitlementService {
             LocalDate cycleStartDate,
             PaymentCycle previousCycle) {
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
-        PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(
+        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,

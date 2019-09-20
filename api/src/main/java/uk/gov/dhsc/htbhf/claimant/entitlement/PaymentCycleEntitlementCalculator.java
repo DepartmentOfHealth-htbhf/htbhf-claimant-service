@@ -16,32 +16,31 @@ import static java.util.Collections.emptyList;
  * periods would result in entitlement being calculated four times, each one week apart.
  */
 @Component
-//TODO MRS 18/09/2019: Rename this class to PaymentCycleEntitlementCalculator
-public class CycleEntitlementCalculator {
+public class PaymentCycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDuration;
     private final Integer numberOfCalculationPeriods;
     private final Integer weeksBeforeDueDate;
     private final Integer weeksAfterDueDate;
     private final EntitlementCalculator entitlementCalculator;
-    private final BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator;
+    private final BackDatedPaymentCycleEntitlementCalculator backDatedPaymentCycleEntitlementCalculator;
 
     /**
-     * Constructor for {@link CycleEntitlementCalculator}.
+     * Constructor for {@link PaymentCycleEntitlementCalculator}.
      *
      * @param paymentCycleConfig                  configuration for the payment cycle
      * @param entitlementCalculator               calculates entitlement for a single calculation period
-     * @param backDatedCycleEntitlementCalculator calculates back dated vouchers for previous cycles
+     * @param backDatedPaymentCycleEntitlementCalculator calculates back dated vouchers for previous cycles
      */
-    public CycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
-                                      EntitlementCalculator entitlementCalculator,
-                                      BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator) {
+    public PaymentCycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
+                                             EntitlementCalculator entitlementCalculator,
+                                             BackDatedPaymentCycleEntitlementCalculator backDatedPaymentCycleEntitlementCalculator) {
         this.weeksBeforeDueDate = paymentCycleConfig.getWeeksBeforeDueDate();
         this.weeksAfterDueDate = paymentCycleConfig.getWeeksAfterDueDate();
         this.entitlementCalculationDuration = paymentCycleConfig.getEntitlementCalculationDurationInDays();
         this.numberOfCalculationPeriods = paymentCycleConfig.getNumberOfCalculationPeriods();
         this.entitlementCalculator = entitlementCalculator;
-        this.backDatedCycleEntitlementCalculator = backDatedCycleEntitlementCalculator;
+        this.backDatedPaymentCycleEntitlementCalculator = backDatedPaymentCycleEntitlementCalculator;
     }
 
     /**
@@ -79,7 +78,7 @@ public class CycleEntitlementCalculator {
 
         // ignore expected due date as we've determined that the pregnancy has happened
         List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren, cycleStartDate);
-        Integer backdateVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);
+        Integer backdateVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);
     }
 
