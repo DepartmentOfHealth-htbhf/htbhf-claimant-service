@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChildDateOfBirthCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">ChildDateOfBirthCalculator.java</span></div><h1>ChildDateOfBirthCalculator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+
+import java.time.LocalDate;
+
+/**
+ * Contains utility methods for helping to figure out information pertaining to the dates of birth
+ * for the Claimant.
+ */
+@Component
+public class ChildDateOfBirthCalculator {
+
+    private final CycleEntitlementCalculator cycleEntitlementCalculator;
+
+<span class="fc" id="L19">    public ChildDateOfBirthCalculator(CycleEntitlementCalculator cycleEntitlementCalculator) {</span>
+<span class="fc" id="L20">        this.cycleEntitlementCalculator = cycleEntitlementCalculator;</span>
+<span class="fc" id="L21">    }</span>
+
+    /**
+     * Calculates how many of the children's dates of birth listed on the given PaymentCycle have birthdays
+     * which would affect the next payment after this cycle. The dates that would affect the next payment
+     * are between the last entitlement date of the current cycle and the final entitlement date of the next
+     * cycle. Those with birthdays on the start boundary date (the date of the final entitlement date of
+     * the current cycle) are not included, but those on the end boundary date (the final entitlement date
+     * of the next cycle) are included.
+     *
+     * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
+     * @return The number of children who will soon turn 4 that affect the next Payment.
+     */
+    public int getNumberOfChildrenTurningFourAffectingNextPayment(PaymentCycle paymentCycle) {
+<span class="fc" id="L35">        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 4);</span>
+    }
+
+    /**
+     * As per the method above but for children turning 1.
+     *
+     * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
+     * @return The number of children who will soon turn 1 that affect the next Payment.
+     */
+    public int getNumberOfChildrenTurningOneAffectingNextPayment(PaymentCycle paymentCycle) {
+<span class="fc" id="L45">        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 1);</span>
+    }
+
+    private int getNumberOfChildrenWithBirthdayAffectingNextPayment(PaymentCycle paymentCycle, int age) {
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(paymentCycle.getChildrenDob())) {</span>
+<span class="fc" id="L50">            return 0;</span>
+        }
+<span class="fc" id="L52">        LocalDate currentCycleStartDate = paymentCycle.getCycleStartDate();</span>
+<span class="fc" id="L53">        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);</span>
+<span class="fc" id="L54">        LocalDate lastEntitlementDateInCurrentCycle = getLatestEntitlementDateFromCycleStartDate(currentCycleStartDate);</span>
+<span class="fc" id="L55">        LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);</span>
+<span class="fc" id="L56">        return Math.toIntExact(paymentCycle.getChildrenDob().stream()</span>
+<span class="fc" id="L57">                .filter(childDob -&gt; isWithinPeriodExcludingStartDateIncludingEndDate(</span>
+                        lastEntitlementDateInCurrentCycle,
+                        lastEntitlementDateInNextCycle,
+                        age,
+                        childDob))
+<span class="fc" id="L62">                .count());</span>
+    }
+
+    private LocalDate getLatestEntitlementDateFromCycleStartDate(LocalDate cycleStartDate) {
+<span class="fc" id="L66">        return cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)</span>
+<span class="fc" id="L67">                .stream().max(LocalDate::compareTo).get();</span>
+    }
+
+    private boolean isWithinPeriodExcludingStartDateIncludingEndDate(LocalDate lastEntitlementDateInCurrentCycle,
+                                                                     LocalDate lastEntitlementDateInNextCycle,
+                                                                     int age,
+                                                                     LocalDate childDob) {
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        return childDob.isAfter(lastEntitlementDateInCurrentCycle.minusYears(age))</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">                &amp;&amp; childDob.isBefore(lastEntitlementDateInNextCycle.minusYears(age).plusDays(1));</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
