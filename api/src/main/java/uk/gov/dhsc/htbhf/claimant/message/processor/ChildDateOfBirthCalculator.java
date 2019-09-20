@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
@@ -14,10 +14,10 @@ import java.time.LocalDate;
 @Component
 public class ChildDateOfBirthCalculator {
 
-    private final CycleEntitlementCalculator cycleEntitlementCalculator;
+    private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
-    public ChildDateOfBirthCalculator(CycleEntitlementCalculator cycleEntitlementCalculator) {
-        this.cycleEntitlementCalculator = cycleEntitlementCalculator;
+    public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
+        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
     }
 
     /**
@@ -63,7 +63,7 @@ public class ChildDateOfBirthCalculator {
     }
 
     private LocalDate getLatestEntitlementDateFromCycleStartDate(LocalDate cycleStartDate) {
-        return cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)
+        return paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)
                 .stream().max(LocalDate::compareTo).get();
     }
 

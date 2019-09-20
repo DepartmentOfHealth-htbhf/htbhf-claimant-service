@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
@@ -28,21 +28,21 @@ class ChildDateOfBirthCalculatorTest {
     private static final LocalDate NEXT_CYCLE_FINAL_ENTITLEMENT_DATE = LocalDate.now().plusWeeks(7);
 
     @Mock
-    private CycleEntitlementCalculator cycleEntitlementCalculator;
+    private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
     @InjectMocks
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     @BeforeEach
     void setupMocks() {
-        lenient().when(cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(LocalDate.now()))
+        lenient().when(paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(LocalDate.now()))
                 .thenReturn(List.of(
                         LocalDate.now(),
                         LocalDate.now().plusWeeks(1),
                         LocalDate.now().plusWeeks(2),
                         CURRENT_CYCLE_FINAL_ENTITLEMENT_DATE
                 ));
-        lenient().when(cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(LocalDate.now().plusWeeks(4)))
+        lenient().when(paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(LocalDate.now().plusWeeks(4)))
                 .thenReturn(List.of(
                         LocalDate.now().plusWeeks(4),
                         LocalDate.now().plusWeeks(5),

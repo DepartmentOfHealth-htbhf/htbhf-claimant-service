@@ -18,19 +18,19 @@ import static java.util.Collections.min;
  * is less than zero, zero is returned.
  */
 @Service
-public class BackDatedCycleEntitlementCalculator {
+public class BackDatedPaymentCycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDurationInDays;
     private final EntitlementCalculator entitlementCalculator;
 
     /**
-     * Constructor for {@link BackDatedCycleEntitlementCalculator}.
+     * Constructor for {@link BackDatedPaymentCycleEntitlementCalculator}.
      *
      * @param paymentCycleConfig    configuration for the payment cycle
      * @param entitlementCalculator calculates entitlement for a single calculation period
      */
-    public BackDatedCycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
-                                               EntitlementCalculator entitlementCalculator) {
+    public BackDatedPaymentCycleEntitlementCalculator(PaymentCycleConfig paymentCycleConfig,
+                                                      EntitlementCalculator entitlementCalculator) {
         this.entitlementCalculationDurationInDays = paymentCycleConfig.getEntitlementCalculationDurationInDays();
         this.entitlementCalculator = entitlementCalculator;
     }

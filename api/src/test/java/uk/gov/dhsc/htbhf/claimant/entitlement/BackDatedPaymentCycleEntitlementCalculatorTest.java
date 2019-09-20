@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class BackDatedCycleEntitlementCalculatorTest {
+class BackDatedPaymentCycleEntitlementCalculatorTest {
 
     private static final int ENTITLEMENT_CALCULATION_DURATION_IN_DAYS = 2;
     private static final VoucherEntitlement ONE_VOUCHER = VoucherEntitlement.builder().vouchersForChildrenUnderOne(1).build();
@@ -33,12 +33,12 @@ class BackDatedCycleEntitlementCalculatorTest {
     private EntitlementCalculator entitlementCalculator = mock(EntitlementCalculator.class);
     private PaymentCycleConfig paymentCycleConfig = mock(PaymentCycleConfig.class);
 
-    private BackDatedCycleEntitlementCalculator backDatedCycleEntitlementCalculator;
+    private BackDatedPaymentCycleEntitlementCalculator backDatedPaymentCycleEntitlementCalculator;
 
     @BeforeEach
     void init() {
         given(paymentCycleConfig.getEntitlementCalculationDurationInDays()).willReturn(ENTITLEMENT_CALCULATION_DURATION_IN_DAYS);
-        backDatedCycleEntitlementCalculator = new BackDatedCycleEntitlementCalculator(paymentCycleConfig, entitlementCalculator);
+        backDatedPaymentCycleEntitlementCalculator = new BackDatedPaymentCycleEntitlementCalculator(paymentCycleConfig, entitlementCalculator);
     }
 
     @ParameterizedTest
@@ -49,7 +49,8 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(TWO_VOUCHERS);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(ONE_VOUCHER);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
+        Integer backDatedVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate,
+                newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and a child born six or seven days ago, we must go back three entitlement dates to cover the new child
         // the vouchers for the new child is 2 * 3 = 6
@@ -74,7 +75,8 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(TWO_VOUCHERS);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(ONE_VOUCHER);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
+        Integer backDatedVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate,
+                newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and the youngest child born seven days ago, we must go back three entitlement dates to cover the new children
         // the vouchers for the new child is 2 * 3 = 6
@@ -99,7 +101,8 @@ class BackDatedCycleEntitlementCalculatorTest {
         given(entitlementCalculator.calculateVoucherEntitlement(eq(Optional.empty()), anyList(), any())).willReturn(ONE_VOUCHER);
         given(entitlementCalculator.calculateVoucherEntitlement(any(), eq(emptyList()), any())).willReturn(TWO_VOUCHERS);
 
-        Integer backDatedVouchers = backDatedCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildrenDatesOfBirth, LocalDate.now());
+        Integer backDatedVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate,
+                newChildrenDatesOfBirth, LocalDate.now());
 
         // with a cycle duration of two days and a child born three days ago, we must go back one entitlement date to cover the new child
         // the vouchers for the new child is 1 * 1 = 1
