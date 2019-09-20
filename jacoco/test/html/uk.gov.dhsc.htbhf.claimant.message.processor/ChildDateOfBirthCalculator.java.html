@@ -2,7 +2,7 @@
 
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
@@ -14,10 +14,10 @@ import java.time.LocalDate;
 @Component
 public class ChildDateOfBirthCalculator {
 
-    private final CycleEntitlementCalculator cycleEntitlementCalculator;
+    private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
-<span class="fc" id="L19">    public ChildDateOfBirthCalculator(CycleEntitlementCalculator cycleEntitlementCalculator) {</span>
-<span class="fc" id="L20">        this.cycleEntitlementCalculator = cycleEntitlementCalculator;</span>
+<span class="fc" id="L19">    public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {</span>
+<span class="fc" id="L20">        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;</span>
 <span class="fc" id="L21">    }</span>
 
     /**
@@ -63,7 +63,7 @@ public class ChildDateOfBirthCalculator {
     }
 
     private LocalDate getLatestEntitlementDateFromCycleStartDate(LocalDate cycleStartDate) {
-<span class="fc" id="L66">        return cycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)</span>
+<span class="fc" id="L66">        return paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)</span>
 <span class="fc" id="L67">                .stream().max(LocalDate::compareTo).get();</span>
     }
 

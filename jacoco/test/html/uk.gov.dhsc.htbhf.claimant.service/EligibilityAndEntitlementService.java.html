@@ -3,7 +3,7 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.CycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -26,7 +26,7 @@ public class EligibilityAndEntitlementService {
     private final EligibilityClient client;
     private final DuplicateClaimChecker duplicateClaimChecker;
     private final ClaimRepository claimRepository;
-    private final CycleEntitlementCalculator cycleEntitlementCalculator;
+    private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
     /**
      * Determines the eligibility and entitlement for the given claimant. If the claimant's NINO is not found in the database,
@@ -46,7 +46,7 @@ public class EligibilityAndEntitlementService {
 <span class="fc" id="L46">        log.debug(&quot;Checking eligibility&quot;);</span>
 <span class="fc" id="L47">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
 <span class="fc" id="L48">        log.debug(&quot;Calculating entitlement&quot;);</span>
-<span class="fc" id="L49">        PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L49">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
 <span class="fc" id="L50">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
 <span class="fc" id="L51">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
 <span class="fc" id="L52">                LocalDate.now());</span>
@@ -73,7 +73,7 @@ public class EligibilityAndEntitlementService {
             LocalDate cycleStartDate,
             PaymentCycle previousCycle) {
 <span class="fc" id="L75">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
-<span class="fc" id="L76">        PaymentCycleVoucherEntitlement entitlement = cycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L76">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
 <span class="fc" id="L77">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
 <span class="fc" id="L78">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
                 cycleStartDate,
