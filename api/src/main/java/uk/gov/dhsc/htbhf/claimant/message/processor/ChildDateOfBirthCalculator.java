@@ -31,8 +31,8 @@ public class ChildDateOfBirthCalculator {
      * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
      * @return The number of children who will soon turn 4 that affect the next Payment.
      */
-    public int getNumberOfChildrenTurningFourWhichAffectsNextPayment(PaymentCycle paymentCycle) {
-        return getNumberOfChildrenTurningAgeWhichAffectsNextPayment(paymentCycle, 4);
+    public int getNumberOfChildrenTurningFourAffectingNextPayment(PaymentCycle paymentCycle) {
+        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 4);
     }
 
     /**
@@ -41,11 +41,11 @@ public class ChildDateOfBirthCalculator {
      * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
      * @return The number of children who will soon turn 1 that affect the next Payment.
      */
-    public int getNumberOfChildrenTurningOneWhichAffectsNextPayment(PaymentCycle paymentCycle) {
-        return getNumberOfChildrenTurningAgeWhichAffectsNextPayment(paymentCycle, 1);
+    public int getNumberOfChildrenTurningOneAffectingNextPayment(PaymentCycle paymentCycle) {
+        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 1);
     }
 
-    private int getNumberOfChildrenTurningAgeWhichAffectsNextPayment(PaymentCycle paymentCycle, int age) {
+    private int getNumberOfChildrenWithBirthdayAffectingNextPayment(PaymentCycle paymentCycle, int age) {
         if (CollectionUtils.isEmpty(paymentCycle.getChildrenDob())) {
             return 0;
         }
@@ -54,7 +54,7 @@ public class ChildDateOfBirthCalculator {
         LocalDate lastEntitlementDateInCurrentCycle = getLatestEntitlementDateFromCycleStartDate(currentCycleStartDate);
         LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);
         return Math.toIntExact(paymentCycle.getChildrenDob().stream()
-                .filter(childDob -> isWithinPeriodExcludingStartBoundaryIncludingEndBoundary(
+                .filter(childDob -> isWithinPeriodExcludingStartDateIncludingEndDate(
                         lastEntitlementDateInCurrentCycle,
                         lastEntitlementDateInNextCycle,
                         age,
@@ -67,10 +67,10 @@ public class ChildDateOfBirthCalculator {
                 .stream().max(LocalDate::compareTo).get();
     }
 
-    private boolean isWithinPeriodExcludingStartBoundaryIncludingEndBoundary(LocalDate lastEntitlementDateInCurrentCycle,
-                                                                             LocalDate lastEntitlementDateInNextCycle,
-                                                                             int age,
-                                                                             LocalDate childDob) {
+    private boolean isWithinPeriodExcludingStartDateIncludingEndDate(LocalDate lastEntitlementDateInCurrentCycle,
+                                                                     LocalDate lastEntitlementDateInNextCycle,
+                                                                     int age,
+                                                                     LocalDate childDob) {
         return childDob.isAfter(lastEntitlementDateInCurrentCycle.minusYears(age))
                 && childDob.isBefore(lastEntitlementDateInNextCycle.minusYears(age).plusDays(1));
     }
