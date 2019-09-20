@@ -16,6 +16,7 @@ import static java.util.Collections.emptyList;
  * periods would result in entitlement being calculated four times, each one week apart.
  */
 @Component
+//TODO MRS 18/09/2019: Rename this class to PaymentCycleEntitlementCalculator
 public class CycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDuration;
@@ -85,7 +86,7 @@ public class CycleEntitlementCalculator {
     private List<VoucherEntitlement> calculateCycleEntitlements(Optional<LocalDate> expectedDueDate,
                                                                 List<LocalDate> dateOfBirthOfChildren,
                                                                 LocalDate cycleStartDate) {
-        List<LocalDate> entitlementDates = getCurrentCycleEntitlementDates(cycleStartDate);
+        List<LocalDate> entitlementDates = getVoucherEntitlementDatesFromStartDate(cycleStartDate);
         return entitlementDates.stream()
                 .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))
                 .collect(Collectors.toList());
@@ -119,7 +120,13 @@ public class CycleEntitlementCalculator {
         return !dateOfBirth.isBefore(startDate) && !dateOfBirth.isAfter(endDate);
     }
 
-    private List<LocalDate> getCurrentCycleEntitlementDates(LocalDate cycleStartDate) {
+    /**
+     * Get the voucher entitlement dates from the given PaymentCycle start date.
+     *
+     * @param cycleStartDate The start date of the PaymentCycle
+     * @return The List of dates for the payment cycle.
+     */
+    public List<LocalDate> getVoucherEntitlementDatesFromStartDate(LocalDate cycleStartDate) {
         List<LocalDate> entitlementDates = new ArrayList<>(numberOfCalculationPeriods);
         for (int i = 0; i < numberOfCalculationPeriods; i++) {
             entitlementDates.add(cycleStartDate.plusDays(i * entitlementCalculationDuration));
