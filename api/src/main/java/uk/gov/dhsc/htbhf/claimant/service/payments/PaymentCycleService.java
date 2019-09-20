@@ -40,7 +40,7 @@ public class PaymentCycleService {
                 .claim(claim)
                 .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
-                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
+                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .build();
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
@@ -66,7 +66,7 @@ public class PaymentCycleService {
                 .claim(claim)
                 .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
-                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays))
+                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .eligibilityStatus(ELIGIBLE)
                 .childrenDob(datesOfBirthOfChildren)
                 .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))

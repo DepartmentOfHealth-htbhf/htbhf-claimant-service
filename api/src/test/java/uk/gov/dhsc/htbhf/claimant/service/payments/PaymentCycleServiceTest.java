@@ -46,7 +46,10 @@ class PaymentCycleServiceTest {
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycle(claim, today);
 
-        verifyPaymentCycleSavedCorrectly(today, claim, result);
+        verifyPaymentCycleSavedCorrectly(claim, result);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getCycleStartDate()).isEqualTo(today);
+        assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
     }
 
     @Test
@@ -59,10 +62,12 @@ class PaymentCycleServiceTest {
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement, datesOfBirth);
 
-        verifyPaymentCycleSavedCorrectly(today, claim, result);
+        verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getCycleStartDate()).isEqualTo(today);
+        assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
         assertThat(result.getExpectedDeliveryDate()).isEqualTo(dueDate);
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
@@ -78,7 +83,7 @@ class PaymentCycleServiceTest {
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, expectedDeliveryDate, entitlement, datesOfBirth);
 
-        verifyPaymentCycleSavedCorrectly(expectedDeliveryDate, claim, result);
+        verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
@@ -119,14 +124,11 @@ class PaymentCycleServiceTest {
         assertThat(result).isNull();
     }
 
-    private void verifyPaymentCycleSavedCorrectly(LocalDate today, Claim claim, PaymentCycle result) {
+    private void verifyPaymentCycleSavedCorrectly(Claim claim, PaymentCycle result) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleRepository).save(argumentCaptor.capture());
         PaymentCycle paymentCycle = argumentCaptor.getValue();
         assertThat(paymentCycle.getClaim()).isEqualTo(claim);
-        assertThat(paymentCycle.getCycleStartDate()).isEqualTo(today);
-        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
-        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH));
         assertThat(result).isEqualTo(paymentCycle);
     }
 }
