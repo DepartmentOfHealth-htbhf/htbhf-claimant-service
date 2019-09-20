@@ -8,7 +8,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
@@ -29,6 +31,7 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(paymentCycleVoucherEntitlement)
                 .claim(claim)
+                .childrenDob(nullSafeGetChildrenDob(claim))
                 .build();
     }
 
@@ -38,6 +41,7 @@ public class PaymentCycleTestDataFactory {
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate))
                 .cycleStartDate(startDate)
                 .claim(claim)
+                .childrenDob(nullSafeGetChildrenDob(claim))
                 .build();
     }
 
@@ -56,19 +60,24 @@ public class PaymentCycleTestDataFactory {
                 .cycleEndDate(endDate)
                 .totalEntitlementAmountInPence(1240)
                 .totalVouchers(4)
+                .childrenDob(emptyList())
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithPaymentAndClaim(Payment payment, Claim claim) {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
+                .childrenDob(nullSafeGetChildrenDob(claim))
                 .build();
         paymentCycle.addPayment(payment);
         return paymentCycle;
     }
 
     public static PaymentCycle aPaymentCycleWithClaim(Claim claim) {
-        return aValidPaymentCycleBuilder().claim(claim).build();
+        return aValidPaymentCycleBuilder()
+                .claim(claim)
+                .childrenDob(nullSafeGetChildrenDob(claim))
+                .build();
     }
 
     public static PaymentCycle aPaymentCycleWithStatus(PaymentCycleStatus status) {
@@ -82,8 +91,16 @@ public class PaymentCycleTestDataFactory {
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .cycleStartDate(LocalDate.now())
-                .cycleEndDate(LocalDate.now().plusWeeks(4).minusDays(1))
+                //Next cycle starts 4 weeks after the current one so last day of current cycle is one day less
+                .cycleEndDate(LocalDate.now().plusDays(27))
                 .totalVouchers(TOTAL_VOUCHERS)
+                .childrenDob(List.of(
+                        LocalDate.now().minusMonths(6),
+                        LocalDate.now().minusYears(3).minusMonths(6)))
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE);
+    }
+
+    private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
+        return (claim == null) ? emptyList() : claim.getClaimant().getChildrenDob();
     }
 }
