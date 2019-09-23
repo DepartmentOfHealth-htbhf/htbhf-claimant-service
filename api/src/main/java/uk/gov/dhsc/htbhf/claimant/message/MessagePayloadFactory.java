@@ -95,9 +95,7 @@ public class MessagePayloadFactory {
         Map<String, Object> emailPersonalisation = new HashMap<>();
         emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
         emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-        // TODO: MGS: HTBHF-2282 remove FIRST_PAYMENT_AMOUNT once the instant success template has been updated to use PAYMENT_AMOUNT
         String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());
-        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
         emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
         emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
         emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));

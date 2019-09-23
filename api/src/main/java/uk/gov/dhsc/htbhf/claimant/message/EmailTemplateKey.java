@@ -7,7 +7,6 @@ public enum EmailTemplateKey {
 
     FIRST_NAME("First_name"),
     LAST_NAME("Last_name"),
-    FIRST_PAYMENT_AMOUNT("first_payment_amount"),
     PAYMENT_AMOUNT("payment_amount"),
     PREGNANCY_PAYMENT("pregnancy_payment"),
     CHILDREN_UNDER_1_PAYMENT("children_under_1_payment"),
