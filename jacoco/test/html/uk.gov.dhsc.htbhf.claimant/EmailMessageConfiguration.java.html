@@ -17,18 +17,19 @@ import java.util.Map;
 @ConfigurationProperties(prefix = &quot;notify&quot;)
 <span class="fc" id="L18">public class EmailMessageConfiguration {</span>
 
+    //TODO MRS 20/09/2019: Remove the template ids from the configuration, they should really sit with the enum and is too hidden in the config.
     @Getter
     @Setter
     private Map&lt;EmailType, String&gt; templateIds;
 
     @Bean
     public EmailTemplateConfig emailTemplateConfig() {
-<span class="fc" id="L26">        return new EmailTemplateConfig(templateIds);</span>
+<span class="fc" id="L27">        return new EmailTemplateConfig(templateIds);</span>
     }
 
     @Bean
     public NotificationClient notificationClient(@Value(&quot;${notify.api-key}&quot;) String notifyApiKey) {
-<span class="fc" id="L31">        return new NotificationClient(notifyApiKey);</span>
+<span class="fc" id="L32">        return new NotificationClient(notifyApiKey);</span>
     }
 
 }
