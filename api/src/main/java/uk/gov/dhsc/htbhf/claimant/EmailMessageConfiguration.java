@@ -17,6 +17,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "notify")
 public class EmailMessageConfiguration {
 
+    //TODO MRS 20/09/2019: Remove the template ids from the configuration, they should really sit with the enum and is too hidden in the config.
     @Getter
     @Setter
     private Map<EmailType, String> templateIds;

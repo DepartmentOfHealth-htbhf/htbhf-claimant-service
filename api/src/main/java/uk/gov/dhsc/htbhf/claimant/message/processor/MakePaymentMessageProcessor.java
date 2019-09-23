@@ -3,7 +3,10 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -14,8 +17,11 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
+import java.time.LocalDate;
+import java.util.Optional;
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildPaymentNotificationEmailPayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
@@ -30,16 +36,42 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
     private MessageContextLoader messageContextLoader;
+    private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
     private MessageQueueClient messageQueueClient;
+    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
-        paymentService.makePaymentForCycle(messageContext.getPaymentCycle(), messageContext.getCardAccountId());
-        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(messageContext.getPaymentCycle());
+        PaymentCycle paymentCycle = messageContext.getPaymentCycle();
+        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
+        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+        int numChildrenTurningFourInNextMonth = childDateOfBirthCalculator.getNumberOfChildrenTurningFourAffectingNextPayment(paymentCycle);
+        if (numChildrenTurningFourInNextMonth > 0) {
+            sendChildTurnsFourEmail(paymentCycle, numChildrenTurningFourInNextMonth);
+        }
         return COMPLETED;
+    }
+
+    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, int numChildrenTurningFourInNextMonth) {
+        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
+        boolean multipleChildrenTurningFourInNextMonth = numChildrenTurningFourInNextMonth > 1;
+        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(
+                paymentCycle,
+                entitlement,
+                multipleChildrenTurningFourInNextMonth);
+        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+    }
+
+    private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
+        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);
+        return paymentCycleEntitlementCalculator.calculateEntitlement(
+                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),
+                currentPaymentCycle.getChildrenDob(),
+                nextCycleStartDate,
+                currentPaymentCycle.getVoucherEntitlement());
     }
 
     @Override
