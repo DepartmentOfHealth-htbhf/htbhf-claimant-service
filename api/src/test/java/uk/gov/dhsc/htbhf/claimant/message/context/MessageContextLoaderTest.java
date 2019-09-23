@@ -5,7 +5,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.EmailTemplateConfig;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -48,9 +47,6 @@ class MessageContextLoaderTest {
 
     @Mock
     private PayloadMapper payloadMapper;
-
-    @Mock
-    private EmailTemplateConfig emailTemplateConfig;
 
     @InjectMocks
     private MessageContextLoader loader;
@@ -386,7 +382,6 @@ class MessageContextLoaderTest {
         //Given
         Claim claim = aValidClaim();
         UUID claimId = claim.getId();
-        String templateId = "12334546";
         Message message = aValidMessageWithType(SEND_EMAIL);
         EmailMessagePayload payload = EmailMessagePayload.builder()
                 .claimId(claimId)
@@ -394,18 +389,16 @@ class MessageContextLoaderTest {
                 .emailPersonalisation(buildEmailPersonalisation())
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        given(emailTemplateConfig.getTemplateIdForEmail(any())).willReturn(templateId);
         given(payloadMapper.getPayload(message, EmailMessagePayload.class)).willReturn(payload);
 
         //When
         EmailMessageContext context = loader.loadEmailMessageContext(message);
 
         //Then
-        assertThat(context.getTemplateId()).isEqualTo(templateId);
+        assertThat(context.getTemplateId()).isEqualTo("bbbd8805-b020-41c9-b43f-c0e62318a6d5");
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEmailPersonalisation()).isEqualTo(buildEmailPersonalisation());
         assertThat(context.getEmailType()).isEqualTo(EmailType.NEW_CARD);
-        verify(emailTemplateConfig).getTemplateIdForEmail(EmailType.NEW_CARD);
         verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
         verify(claimRepository).findById(claimId);
         verifyZeroInteractions(paymentCycleRepository);

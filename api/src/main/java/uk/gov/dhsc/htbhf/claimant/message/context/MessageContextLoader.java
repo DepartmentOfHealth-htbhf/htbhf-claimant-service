@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.message.context;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.EmailTemplateConfig;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -26,8 +25,6 @@ public class MessageContextLoader {
     private PaymentCycleRepository paymentCycleRepository;
 
     private PayloadMapper payloadMapper;
-
-    private EmailTemplateConfig emailTemplateConfig;
 
     /**
      * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
@@ -97,7 +94,7 @@ public class MessageContextLoader {
         EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);
 
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        String templateId = emailTemplateConfig.getTemplateIdForEmail(payload.getEmailType());
+        String templateId = payload.getEmailType().getTemplateId();
         return EmailMessageContext.builder()
                 .claim(claim)
                 .templateId(templateId)
