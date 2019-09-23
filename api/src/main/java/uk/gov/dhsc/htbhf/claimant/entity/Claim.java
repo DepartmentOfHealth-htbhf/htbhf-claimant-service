@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "claim")
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)

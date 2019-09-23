@@ -44,11 +44,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
@@ -233,6 +236,33 @@ class ClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
         verifyZeroInteractions(messageQueueClient);
+    }
+
+    @Test
+    void shouldUpdateClaimToPendingExpiryForMatchingNinoWhenIneligible() {
+        //given
+        Claim existingClaim = aClaimWithClaimStatus(ACTIVE);
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(INELIGIBLE)
+                .existingClaimId(existingClaim.getId())
+                .build());
+        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        Claim updatedClaim = existingClaim.toBuilder().claimStatus(PENDING_EXPIRY).eligibilityStatus(INELIGIBLE).build();
+        given(claimRepository.save(any())).willReturn(updatedClaim);
+        ClaimRequest request = aClaimRequestForClaimant(existingClaim.getClaimant());
+
+        //when
+        ClaimResult result = claimService.createOrUpdateClaim(request);
+
+        //then
+        assertThat(result.getClaim().getClaimStatus()).isEqualTo(PENDING_EXPIRY);
+        verify(eligibilityAndEntitlementService).evaluateClaimant(existingClaim.getClaimant());
+        verify(claimRepository).findById(existingClaim.getId());
+        ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(argumentCaptor.capture());
+        // The id, claimStatusTimestamp", eligibilityStatusTimestamp fields will not match due to id being random and timestamps being set to the current time.
+        assertThat(argumentCaptor.getValue()).isEqualToIgnoringGivenFields(updatedClaim, "id", "claimStatusTimestamp", "eligibilityStatusTimestamp");
+        //TODO DW HTBHF-1757 verify email sent
     }
 
     @Test
@@ -457,10 +487,8 @@ class ClaimServiceTest {
         //given
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        UUID existingClaimId = UUID.randomUUID();
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(INELIGIBLE)
-                .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);

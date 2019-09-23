@@ -24,6 +24,7 @@ import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
@@ -55,8 +56,14 @@ public class ClaimService {
 
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
-            if (claimExistsAndIsEligible(decision)) {
+            if (claimExists(decision)) {
                 Claim claim = findClaim(decision.getExistingClaimId());
+
+                if (decisionIsNotEligible(decision)) {
+                    Claim updatedClaim = handleClaimBecomingIneligible(claim);
+                    return createResult(updatedClaim);
+                }
+
                 List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
@@ -96,13 +103,29 @@ public class ClaimService {
         claimRepository.save(claim);
     }
 
-    private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
-        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
+    private boolean decisionIsNotEligible(EligibilityAndEntitlementDecision decision) {
+        return decision.getEligibilityStatus() != EligibilityStatus.ELIGIBLE;
+    }
+
+    private boolean claimExists(EligibilityAndEntitlementDecision decision) {
+        return decision.getExistingClaimId() != null;
     }
 
     private Claim findClaim(UUID claimId) {
         Optional<Claim> optionalClaim = claimRepository.findById(claimId);
         return optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + claimId));
+    }
+
+    private Claim handleClaimBecomingIneligible(Claim claim) {
+        log.info("Updating claim {} to PENDING_EXPIRY", claim.getId());
+        LocalDateTime now = LocalDateTime.now();
+        claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
+        claim.setEligibilityStatus(EligibilityStatus.INELIGIBLE);
+        claim.setClaimStatusTimestamp(now);
+        claim.setEligibilityStatusTimestamp(now);
+        Claim updatedClaim = claimRepository.save(claim);
+        eventAuditor.auditUpdatedClaim(claim, emptyList());
+        return updatedClaim;
     }
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {
