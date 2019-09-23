@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageProcessorScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.scheduler</a> &gt; <span class="el_source">MessageProcessorScheduler.java</span></div><h1>MessageProcessorScheduler.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.scheduler;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.message.MessageProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
+
+/**
+ * Component responsible for scheduling the processing of messages.
+ * Each MessageType has its own cron schedule - see https://stackoverflow.com/a/26147143 for examples.
+ * Each messageType also has its own minimum and maximum lock period. For a definition of the ISO-8601 duration format, see
+ * https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm.
+ * Note that the {@link MessageProcessor} also specifies a limit on the number of messages to process
+ * in one go.
+ */
+<span class="fc" id="L20">@Slf4j</span>
+@RequiredArgsConstructor
+@Component
+public class MessageProcessorScheduler {
+
+    private static final String EVERY_30_SECONDS = &quot;*/30 * * * * *&quot;;
+    private static final String ONE_HOUR = &quot;PT60M&quot;;
+    private static final String FIFTEEN_SECONDS = &quot;PT15S&quot;;
+
+    private final MessageProcessor messageProcessor;
+
+    @Scheduled(cron = EVERY_30_SECONDS) 
+    @SchedulerLock(
+            name = &quot;Process ADDITIONAL_PREGNANCY_PAYMENT messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:ADDITIONAL_PREGNANCY_PAYMENT&quot;)
+    public void processAdditionalPregnancyPaymentMessages() {
+<span class="fc" id="L38">        messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc" id="L39">    }</span>
+
+    @Scheduled(cron = &quot;*/30 * 8-18 * * *&quot;)  // every 30 seconds between 8am and 6pm
+    @SchedulerLock(
+            name = &quot;Process SEND_EMAIL messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:SEND_EMAIL&quot;)
+    public void processSendEmailMessages() {
+<span class="fc" id="L48">        messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L49">    }</span>
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = &quot;Process CREATE_NEW_CARD messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:CREATE_NEW_CARD&quot;)
+    public void processCreateNewCardMessages() {
+<span class="fc" id="L58">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
+<span class="fc" id="L59">    }</span>
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = &quot;Process DETERMINE_ENTITLEMENT messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:DETERMINE_ENTITLEMENT&quot;)
+    public void processDetermineEntitlementMessages() {
+<span class="fc" id="L68">        messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);</span>
+<span class="fc" id="L69">    }</span>
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = &quot;Process MAKE_FIRST_PAYMENT messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_FIRST_PAYMENT&quot;)
+    public void processFirstPaymentMessages() {
+<span class="fc" id="L78">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L79">    }</span>
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = &quot;Process MAKE_PAYMENT messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_PAYMENT&quot;)
+    public void processPaymentMessages() {
+<span class="fc" id="L88">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L89">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
