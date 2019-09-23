@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.payload</a> &gt; <span class="el_source">EmailType.java</span></div><h1>EmailType.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.payload;
 
 /**
- * Enum containing all the types of email we currently have setup, each one should have a templateId setup in the config.
+ * Enum containing all the types of email we currently have setup, each one should have its templateId
+ * as stated in the Notify template.
  */
-<span class="fc" id="L6">public enum EmailType {</span>
-<span class="fc" id="L7">    NEW_CARD,</span>
-<span class="fc" id="L8">    PAYMENT,</span>
-<span class="fc" id="L9">    CHILD_TURNS_FOUR</span>
+<span class="fc" id="L7">public enum EmailType {</span>
+<span class="fc" id="L8">    NEW_CARD(&quot;bbbd8805-b020-41c9-b43f-c0e62318a6d5&quot;),</span>
+<span class="fc" id="L9">    PAYMENT(&quot;9a61639f-8330-498a-8c53-31809b3837c1&quot;),</span>
+<span class="fc" id="L10">    CHILD_TURNS_FOUR(&quot;7060a1ac-32cd-4227-8217-394c73bb712c&quot;);</span>
+
+    private String templateId;
+
+<span class="fc" id="L14">    EmailType(String templateId) {</span>
+<span class="fc" id="L15">        this.templateId = templateId;</span>
+<span class="fc" id="L16">    }</span>
+
+    public String getTemplateId() {
+<span class="fc" id="L19">        return templateId;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
