@@ -25,7 +25,6 @@ public class EmailPayloadAssertions {
         assertThat(emailPersonalisation).containsOnly(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
-                entry("first_payment_amount", "£12.40"),
                 entry("payment_amount", "£12.40"),
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", ""),
@@ -48,7 +47,6 @@ public class EmailPayloadAssertions {
         assertThat(emailPersonalisation).containsOnly(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
-                entry("first_payment_amount", "£49.60"),
                 entry("payment_amount", "£49.60"),
                 entry("pregnancy_payment", ""),
                 entry("children_under_1_payment", "\n* £49.60 for children under 1"),
@@ -69,7 +67,6 @@ public class EmailPayloadAssertions {
         assertThat(emailPersonalisation).containsOnly(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
-                entry("first_payment_amount", "£49.60"),
                 entry("payment_amount", "£49.60"),
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),
