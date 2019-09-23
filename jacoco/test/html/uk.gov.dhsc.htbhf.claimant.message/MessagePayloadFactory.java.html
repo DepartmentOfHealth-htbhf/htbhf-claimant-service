@@ -95,45 +95,43 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 <span class="fc" id="L95">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L96">        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
 <span class="fc" id="L97">        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
-        // TODO: MGS: HTBHF-2282 remove FIRST_PAYMENT_AMOUNT once the instant success template has been updated to use PAYMENT_AMOUNT
-<span class="fc" id="L99">        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());</span>
-<span class="fc" id="L100">        emailPersonalisation.put(EmailTemplateKey.FIRST_PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
-<span class="fc" id="L101">        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
-<span class="fc" id="L102">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
-<span class="fc" id="L103">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
-<span class="fc" id="L104">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));</span>
-<span class="fc" id="L105">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);</span>
-<span class="fc" id="L106">        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
-<span class="fc" id="L107">        return emailPersonalisation;</span>
+<span class="fc" id="L98">        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L99">        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
+<span class="fc" id="L100">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
+<span class="fc" id="L101">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
+<span class="fc" id="L102">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));</span>
+<span class="fc" id="L103">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);</span>
+<span class="fc" id="L104">        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
+<span class="fc" id="L105">        return emailPersonalisation;</span>
     }
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L111">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L109">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for a pregnancy&quot;,
-<span class="fc" id="L113">                voucherEntitlement.getVouchersForPregnancy(),</span>
-<span class="fc" id="L114">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L111">                voucherEntitlement.getVouchersForPregnancy(),</span>
+<span class="fc" id="L112">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String buildUnder1PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L118">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L116">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for children under 1&quot;,
-<span class="fc" id="L120">                voucherEntitlement.getVouchersForChildrenUnderOne(),</span>
-<span class="fc" id="L121">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L118">                voucherEntitlement.getVouchersForChildrenUnderOne(),</span>
+<span class="fc" id="L119">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L125">        return formatPaymentAmountSummary(</span>
+<span class="fc" id="L123">        return formatPaymentAmountSummary(</span>
                 &quot;\n* %s for children between 1 and 4&quot;,
-<span class="fc" id="L127">                voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),</span>
-<span class="fc" id="L128">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L125">                voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),</span>
+<span class="fc" id="L126">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-<span class="fc bfc" id="L132" title="All 2 branches covered.">        if (numberOfVouchers == 0) {</span>
-<span class="fc" id="L133">            return &quot;&quot;;</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (numberOfVouchers == 0) {</span>
+<span class="fc" id="L131">            return &quot;&quot;;</span>
         }
-<span class="fc" id="L135">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
-<span class="fc" id="L136">        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));</span>
+<span class="fc" id="L133">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
+<span class="fc" id="L134">        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));</span>
     }
 
 }
