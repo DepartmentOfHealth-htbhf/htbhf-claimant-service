@@ -122,7 +122,8 @@ class DetermineEntitlementMessageProcessorTest {
 
         verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim());
         verifyClaimSavedAsPendingExpiry();
-        verifyZeroInteractions(messageQueueClient);
+        MessagePayload expectedPayload = MessagePayloadFactory.buildClaimIsNoLongerEligibleNotificationEmailPayload(context.getClaim());
+        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.SEND_EMAIL);
     }
 
     private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle,
