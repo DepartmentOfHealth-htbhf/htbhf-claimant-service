@@ -37,6 +37,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -65,7 +66,7 @@ class MakePaymentMessageProcessorTest {
         Claim claim = paymentCycle.getClaim();
         MakePaymentMessageContext messageContext = aValidMakePaymentMessageContext(paymentCycle, claim);
         given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
-        given(childDateOfBirthCalculator.getNumberOfChildrenTurningFourAffectingNextPayment(any())).willReturn(0);
+        given(childDateOfBirthCalculator.getChildrenDateOfBirthSummaryAffectingNextPayment(any())).willReturn(NO_CHILDREN);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
         MessageStatus result = processor.processMessage(message);
@@ -73,7 +74,7 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
-        verify(childDateOfBirthCalculator).getNumberOfChildrenTurningFourAffectingNextPayment(paymentCycle);
+        verify(childDateOfBirthCalculator).getChildrenDateOfBirthSummaryAffectingNextPayment(paymentCycle);
         verifyPaymentEmailNotificationSent(paymentCycle, claim);
         verifyZeroInteractions(paymentCycleEntitlementCalculator);
     }
@@ -84,7 +85,8 @@ class MakePaymentMessageProcessorTest {
         Claim claim = paymentCycle.getClaim();
         MakePaymentMessageContext messageContext = aValidMakePaymentMessageContext(paymentCycle, claim);
         given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
-        given(childDateOfBirthCalculator.getNumberOfChildrenTurningFourAffectingNextPayment(any())).willReturn(1);
+        NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
+        given(childDateOfBirthCalculator.getChildrenDateOfBirthSummaryAffectingNextPayment(any())).willReturn(nextPaymentCycleSummary);
         LocalDate startOfNextCycle = LocalDate.now().plusDays(28);
         //This entitlement specifically has no vouchers for 1-4 year olds.
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementWithVouchersForUnderOneOnly(startOfNextCycle);
@@ -96,7 +98,7 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
-        verify(childDateOfBirthCalculator).getNumberOfChildrenTurningFourAffectingNextPayment(paymentCycle);
+        verify(childDateOfBirthCalculator).getChildrenDateOfBirthSummaryAffectingNextPayment(paymentCycle);
         List<LocalDate> dateOfBirthOfChildren = List.of(
                 LocalDate.now().minusMonths(6),
                 LocalDate.now().minusYears(3).minusMonths(6));
