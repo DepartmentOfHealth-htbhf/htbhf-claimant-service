@@ -9,18 +9,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers;
 
@@ -47,7 +51,7 @@ class PaymentCycleServiceTest {
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycle(claim, today);
 
         verifyPaymentCycleSavedCorrectly(claim, result);
-        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
         assertThat(result.getCycleStartDate()).isEqualTo(today);
         assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
     }
@@ -65,7 +69,7 @@ class PaymentCycleServiceTest {
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
-        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
         assertThat(result.getCycleStartDate()).isEqualTo(today);
         assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
@@ -86,7 +90,7 @@ class PaymentCycleServiceTest {
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
-        assertThat(result.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+        assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
         assertThat(result.getExpectedDeliveryDate()).isNull();
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
@@ -122,6 +126,51 @@ class PaymentCycleServiceTest {
         LocalDate result = paymentCycleService.getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement);
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void shouldUpdatePaymentCycleWithStatusAndCardBalance() {
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .paymentCycleStatus(NEW)
+                .cardBalanceInPence(null)
+                .build();
+        int newCardBalance = 200;
+        LocalDateTime now = LocalDateTime.now();
+
+        paymentCycleService.updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, newCardBalance);
+
+        assertThat(paymentCycle.getCardBalanceTimestamp()).isAfterOrEqualTo(now);
+        assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(newCardBalance);
+        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+    }
+
+    @Test
+    void shouldUpdatePaymentCycleWithEligibilityAndEntitlementDecision() {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(2);
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .claim(claim)
+                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .paymentCycleStatus(NEW)
+                .childrenDob(null)
+                .voucherEntitlement(null)
+                .expectedDeliveryDate(null)
+                .build();
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
+                .dateOfBirthOfChildren(List.of(LocalDate.now().minusYears(1)))
+                .eligibilityStatus(EligibilityStatus.INELIGIBLE)
+                .voucherEntitlement(voucherEntitlement)
+                .build();
+
+        paymentCycleService.updatePaymentCycle(paymentCycle, decision);
+
+        assertThat(paymentCycle.getId()).isEqualTo(paymentCycle.getId());
+        assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(decision.getEligibilityStatus());
+        assertThat(paymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
+        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
+        assertThat(paymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());
+        assertThat(paymentCycle.getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
     }
 
     private void verifyPaymentCycleSavedCorrectly(Claim claim, PaymentCycle result) {

@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
@@ -100,6 +101,22 @@ public class PaymentCycleService {
         paymentCycle.setCardBalanceInPence(cardBalanceInPence);
         paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
         updatePaymentCycle(paymentCycle, paymentCycleStatus);
+    }
+
+    /**
+     * Update and saves the payment cycle with the decision.
+     * @param paymentCycle payment cycle to update
+     * @param decision decision to update the payment cycle with
+     */
+    public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
+        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
+        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
+        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
+        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
+        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), decision.getVoucherEntitlement());
+        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);
+        paymentCycleRepository.save(paymentCycle);
     }
 
     /**
