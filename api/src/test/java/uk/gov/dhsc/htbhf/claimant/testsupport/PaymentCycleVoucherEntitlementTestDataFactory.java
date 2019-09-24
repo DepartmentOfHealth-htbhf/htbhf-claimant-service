@@ -28,12 +28,12 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
         );
     }
 
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchersForUnderOneOnly(LocalDate startDate) {
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchersForUnderOne(LocalDate startDate) {
         return buildPaymentCycleVoucherEntitlement(
-                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate),
-                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(1)),
-                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(2)),
-                aVoucherEntitlementWithVouchersForUnderOneOnly(startDate.plusWeeks(3))
+                aVoucherEntitlementWithVouchersForUnderOne(startDate),
+                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(1)),
+                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(2)),
+                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(3))
         );
     }
 
