@@ -45,6 +45,8 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 @ExtendWith(MockitoExtension.class)
 class DetermineEntitlementMessageProcessorTest {
 
+    private static final LocalDate EXPECTED_DELIVERY_DATE = LocalDate.now().plusMonths(2);
+
     @Mock
     private EligibilityAndEntitlementService eligibilityAndEntitlementService;
     @Mock
@@ -62,8 +64,7 @@ class DetermineEntitlementMessageProcessorTest {
     @Test
     void shouldSuccessfullyProcessMessageAndTriggerPaymentWhenClaimantIsEligible() {
         //Given
-        LocalDate expectedDeliveryDate = LocalDate.now();
-        DetermineEntitlementMessageContext context = buildMessageContextWithExpectedDeliveryDate(expectedDeliveryDate);
+        DetermineEntitlementMessageContext context = buildMessageContext();
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
@@ -71,7 +72,7 @@ class DetermineEntitlementMessageProcessorTest {
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
 
         // expected delivery date
-        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(expectedDeliveryDate);
+        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(EXPECTED_DELIVERY_DATE);
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -86,7 +87,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim(), expectedDeliveryDate);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim());
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(context.getCurrentPaymentCycle());
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         verifyZeroInteractions(claimRepository);
@@ -96,8 +97,7 @@ class DetermineEntitlementMessageProcessorTest {
     @CsvSource({"INELIGIBLE", "PENDING", "NO_MATCH"})
     void shouldUpdateClaimWhenClaimantIsNotEligible(EligibilityStatus eligibilityStatus) {
         //Given
-        LocalDate expectedDeliveryDate = LocalDate.now();
-        DetermineEntitlementMessageContext context = buildMessageContextWithExpectedDeliveryDate(expectedDeliveryDate);
+        DetermineEntitlementMessageContext context = buildMessageContext();
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
@@ -105,7 +105,7 @@ class DetermineEntitlementMessageProcessorTest {
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
 
         // expected delivery date
-        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(expectedDeliveryDate);
+        given(paymentCycleService.getExpectedDeliveryDateIfRelevant(any(), any())).willReturn(EXPECTED_DELIVERY_DATE);
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -120,7 +120,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim(), expectedDeliveryDate);
+        verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim());
         verifyClaimSavedAsPendingExpiry();
         MessagePayload expectedPayload = MessagePayloadFactory.buildClaimIsNoLongerEligibleNotificationEmailPayload(context.getClaim());
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.SEND_EMAIL);
@@ -128,8 +128,7 @@ class DetermineEntitlementMessageProcessorTest {
 
     private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle,
                                                      EligibilityAndEntitlementDecision decision,
-                                                     Claim claim,
-                                                     LocalDate expectedDeliveryDate) {
+                                                     Claim claim) {
         ArgumentCaptor<PaymentCycle> argumentCaptor = ArgumentCaptor.forClass(PaymentCycle.class);
         verify(paymentCycleService).getExpectedDeliveryDateIfRelevant(claim, paymentCycle.getVoucherEntitlement());
         verify(paymentCycleService).savePaymentCycle(argumentCaptor.capture());
@@ -140,7 +139,7 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(savedPaymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
         assertThat(savedPaymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
         assertThat(savedPaymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());
-        assertThat(savedPaymentCycle.getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        assertThat(savedPaymentCycle.getExpectedDeliveryDate()).isEqualTo(EXPECTED_DELIVERY_DATE);
     }
 
     private void verifyClaimSavedAsPendingExpiry() {
@@ -150,9 +149,9 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.PENDING_EXPIRY);
     }
 
-    private DetermineEntitlementMessageContext buildMessageContextWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+    private DetermineEntitlementMessageContext buildMessageContext() {
         //Claim
-        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claim claim = aClaimWithExpectedDeliveryDate(EXPECTED_DELIVERY_DATE);
 
         //Current payment cycle
         PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
