@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentCycleEmailHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">PaymentCycleEmailHandler.java</span></div><h1>PaymentCycleEmailHandler.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload;
+
+/**
+ * Component responsible for determining if any additional emails need to be sent out in addition to
+ * the normal Payment email for a given PaymentCycle.
+ */
+@Component
+@AllArgsConstructor
+<span class="fc" id="L24">@Slf4j</span>
+public class PaymentCycleEmailHandler {
+
+    private MessageQueueClient messageQueueClient;
+    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
+
+    public void handleAdditionalEmails(PaymentCycle paymentCycle) {
+<span class="fc" id="L32">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
+<span class="fc" id="L34">            sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+        }
+<span class="fc" id="L36">    }</span>
+
+    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+<span class="fc" id="L39">        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);</span>
+<span class="fc" id="L40">        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();</span>
+<span class="fc" id="L41">        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(</span>
+                paymentCycle,
+                entitlement,
+                multipleChildrenTurningFourInNextMonth);
+<span class="fc" id="L45">        log.info(&quot;Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]&quot;, paymentCycle.getId());</span>
+<span class="fc" id="L46">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L47">    }</span>
+
+    private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
+<span class="fc" id="L50">        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);</span>
+<span class="fc" id="L51">        return paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L52">                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),</span>
+<span class="fc" id="L53">                currentPaymentCycle.getChildrenDob(),</span>
+                nextCycleStartDate,
+<span class="fc" id="L55">                currentPaymentCycle.getVoucherEntitlement());</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
