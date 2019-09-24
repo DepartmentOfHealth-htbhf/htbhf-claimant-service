@@ -48,43 +48,44 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L48">        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());</span>
 <span class="fc" id="L49">        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);</span>
 <span class="fc" id="L50">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L51">        int numChildrenTurningFourInNextMonth = childDateOfBirthCalculator.getNumberOfChildrenTurningFourAffectingNextPayment(paymentCycle);</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (numChildrenTurningFourInNextMonth &gt; 0) {</span>
-<span class="fc" id="L53">            sendChildTurnsFourEmail(paymentCycle, numChildrenTurningFourInNextMonth);</span>
+<span class="fc" id="L51">        NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment =</span>
+<span class="fc" id="L52">                childDateOfBirthCalculator.getChildrenDateOfBirthSummaryAffectingNextPayment(paymentCycle);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (dateOfBirthSummaryAffectingNextPayment.hasChildrenTurningFour()) {</span>
+<span class="fc" id="L54">            sendChildTurnsFourEmail(paymentCycle, dateOfBirthSummaryAffectingNextPayment);</span>
         }
-<span class="fc" id="L55">        return COMPLETED;</span>
+<span class="fc" id="L56">        return COMPLETED;</span>
     }
 
-    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, int numChildrenTurningFourInNextMonth) {
-<span class="fc" id="L59">        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        boolean multipleChildrenTurningFourInNextMonth = numChildrenTurningFourInNextMonth &gt; 1;</span>
-<span class="fc" id="L61">        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(</span>
+    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+<span class="fc" id="L60">        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);</span>
+<span class="fc" id="L61">        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();</span>
+<span class="fc" id="L62">        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(</span>
                 paymentCycle,
                 entitlement,
                 multipleChildrenTurningFourInNextMonth);
-<span class="fc" id="L65">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L66">    }</span>
+<span class="fc" id="L66">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L67">    }</span>
 
     private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
-<span class="fc" id="L69">        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);</span>
-<span class="fc" id="L70">        return paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L71">                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),</span>
-<span class="fc" id="L72">                currentPaymentCycle.getChildrenDob(),</span>
+<span class="fc" id="L70">        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);</span>
+<span class="fc" id="L71">        return paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L72">                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),</span>
+<span class="fc" id="L73">                currentPaymentCycle.getChildrenDob(),</span>
                 nextCycleStartDate,
-<span class="fc" id="L74">                currentPaymentCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L75">                currentPaymentCycle.getVoucherEntitlement());</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L79">        return MAKE_PAYMENT;</span>
+<span class="fc" id="L80">        return MAKE_PAYMENT;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void processFailedMessage(Message message, FailureEvent failureEvent) {
-<span class="fc" id="L85">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L86">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
-<span class="fc" id="L87">    }</span>
+<span class="fc" id="L86">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L87">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
+<span class="fc" id="L88">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

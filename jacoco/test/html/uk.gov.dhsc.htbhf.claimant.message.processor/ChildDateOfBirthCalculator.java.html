@@ -7,6 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
 
+import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
+
 /**
  * Contains utility methods for helping to figure out information pertaining to the dates of birth
  * for the Claimant.
@@ -16,9 +18,9 @@ public class ChildDateOfBirthCalculator {
 
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
-<span class="fc" id="L19">    public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {</span>
-<span class="fc" id="L20">        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;</span>
-<span class="fc" id="L21">    }</span>
+<span class="fc" id="L21">    public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {</span>
+<span class="fc" id="L22">        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;</span>
+<span class="fc" id="L23">    }</span>
 
     /**
      * Calculates how many of the children's dates of birth listed on the given PaymentCycle have birthdays
@@ -29,50 +31,46 @@ public class ChildDateOfBirthCalculator {
      * of the next cycle) are included.
      *
      * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
-     * @return The number of children who will soon turn 4 that affect the next Payment.
+     * @return The number of children who will soon turn 1 or 4 that affect the next Payment.
      */
-    public int getNumberOfChildrenTurningFourAffectingNextPayment(PaymentCycle paymentCycle) {
-<span class="fc" id="L35">        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 4);</span>
-    }
-
-    /**
-     * As per the method above but for children turning 1.
-     *
-     * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
-     * @return The number of children who will soon turn 1 that affect the next Payment.
-     */
-    public int getNumberOfChildrenTurningOneAffectingNextPayment(PaymentCycle paymentCycle) {
-<span class="fc" id="L45">        return getNumberOfChildrenWithBirthdayAffectingNextPayment(paymentCycle, 1);</span>
-    }
-
-    private int getNumberOfChildrenWithBirthdayAffectingNextPayment(PaymentCycle paymentCycle, int age) {
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(paymentCycle.getChildrenDob())) {</span>
-<span class="fc" id="L50">            return 0;</span>
+    public NextPaymentCycleSummary getChildrenDateOfBirthSummaryAffectingNextPayment(PaymentCycle paymentCycle) {
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(paymentCycle.getChildrenDob())) {</span>
+<span class="fc" id="L38">            return NO_CHILDREN;</span>
         }
-<span class="fc" id="L52">        LocalDate currentCycleStartDate = paymentCycle.getCycleStartDate();</span>
-<span class="fc" id="L53">        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);</span>
-<span class="fc" id="L54">        LocalDate lastEntitlementDateInCurrentCycle = getLatestEntitlementDateFromCycleStartDate(currentCycleStartDate);</span>
-<span class="fc" id="L55">        LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);</span>
-<span class="fc" id="L56">        return Math.toIntExact(paymentCycle.getChildrenDob().stream()</span>
-<span class="fc" id="L57">                .filter(childDob -&gt; isWithinPeriodExcludingStartDateIncludingEndDate(</span>
+<span class="fc" id="L40">        LocalDate currentCycleStartDate = paymentCycle.getCycleStartDate();</span>
+<span class="fc" id="L41">        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);</span>
+<span class="fc" id="L42">        LocalDate lastEntitlementDateInCurrentCycle = getLatestEntitlementDateFromCycleStartDate(currentCycleStartDate);</span>
+<span class="fc" id="L43">        LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);</span>
+<span class="fc" id="L44">        int childrenAgedOneAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 1);</span>
+<span class="fc" id="L45">        int childrenAgedFourAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 4);</span>
+<span class="fc" id="L46">        return NextPaymentCycleSummary.builder()</span>
+<span class="fc" id="L47">                .numberOfChildrenTurningOne(childrenAgedOneAffectingNextPayment)</span>
+<span class="fc" id="L48">                .numberOfChildrenTurningFour(childrenAgedFourAffectingNextPayment)</span>
+<span class="fc" id="L49">                .build();</span>
+    }
+
+    private int countChildrenOfAge(PaymentCycle paymentCycle, LocalDate lastEntitlementDateInCurrentCycle,
+                                   LocalDate lastEntitlementDateInNextCycle, int age) {
+<span class="fc" id="L54">        return Math.toIntExact(paymentCycle.getChildrenDob().stream()</span>
+<span class="fc" id="L55">                .filter(childDob -&gt; isWithinPeriodExcludingStartDateIncludingEndDate(</span>
                         lastEntitlementDateInCurrentCycle,
                         lastEntitlementDateInNextCycle,
                         age,
                         childDob))
-<span class="fc" id="L62">                .count());</span>
+<span class="fc" id="L60">                .count());</span>
     }
 
     private LocalDate getLatestEntitlementDateFromCycleStartDate(LocalDate cycleStartDate) {
-<span class="fc" id="L66">        return paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)</span>
-<span class="fc" id="L67">                .stream().max(LocalDate::compareTo).get();</span>
+<span class="fc" id="L64">        return paymentCycleEntitlementCalculator.getVoucherEntitlementDatesFromStartDate(cycleStartDate)</span>
+<span class="fc" id="L65">                .stream().max(LocalDate::compareTo).get();</span>
     }
 
     private boolean isWithinPeriodExcludingStartDateIncludingEndDate(LocalDate lastEntitlementDateInCurrentCycle,
                                                                      LocalDate lastEntitlementDateInNextCycle,
                                                                      int age,
                                                                      LocalDate childDob) {
-<span class="fc bfc" id="L74" title="All 2 branches covered.">        return childDob.isAfter(lastEntitlementDateInCurrentCycle.minusYears(age))</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">                &amp;&amp; childDob.isBefore(lastEntitlementDateInNextCycle.minusYears(age).plusDays(1));</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        return childDob.isAfter(lastEntitlementDateInCurrentCycle.minusYears(age))</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">                &amp;&amp; childDob.isBefore(lastEntitlementDateInNextCycle.minusYears(age).plusDays(1));</span>
     }
 
 }
