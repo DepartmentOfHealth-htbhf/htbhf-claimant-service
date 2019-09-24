@@ -48,16 +48,17 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
         paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
         EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
-        int numChildrenTurningFourInNextMonth = childDateOfBirthCalculator.getNumberOfChildrenTurningFourAffectingNextPayment(paymentCycle);
-        if (numChildrenTurningFourInNextMonth > 0) {
-            sendChildTurnsFourEmail(paymentCycle, numChildrenTurningFourInNextMonth);
+        NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment =
+                childDateOfBirthCalculator.getChildrenDateOfBirthSummaryAffectingNextPayment(paymentCycle);
+        if (dateOfBirthSummaryAffectingNextPayment.hasChildrenTurningFour()) {
+            sendChildTurnsFourEmail(paymentCycle, dateOfBirthSummaryAffectingNextPayment);
         }
         return COMPLETED;
     }
 
-    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, int numChildrenTurningFourInNextMonth) {
+    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
-        boolean multipleChildrenTurningFourInNextMonth = numChildrenTurningFourInNextMonth > 1;
+        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
         EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(
                 paymentCycle,
                 entitlement,
