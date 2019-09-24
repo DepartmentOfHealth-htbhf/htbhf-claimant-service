@@ -20,6 +20,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 /**
  * Factory object for building message payloads for emails.
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class MessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -90,6 +91,28 @@ public class MessagePayloadFactory {
                 .build();
     }
 
+    /**
+     * Builds the message payload for the email that gets sent when a claim is no longer Eligible.
+     *
+     * @param claim The claim that is no longer eligible.
+     * @return The email payload
+     */
+    public static EmailMessagePayload buildClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {
+        Map<String, Object> emailPersonalisation = createClaimNoLongerEligibleEmailPersonalisationMap(claim.getClaimant());
+        return EmailMessagePayload.builder()
+                .claimId(claim.getId())
+                .emailType(EmailType.CLAIM_NO_LONGER_ELIGIBLE)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    private static Map<String, Object> createClaimNoLongerEligibleEmailPersonalisationMap(Claimant claimant) {
+        return Map.of(
+                EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
+                EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName()
+        );
+    }
+
     private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
         Claimant claimant = paymentCycle.getClaim().getClaimant();
         Map<String, Object> emailPersonalisation = new HashMap<>();
@@ -133,5 +156,4 @@ public class MessagePayloadFactory {
         int totalAmount = numberOfVouchers * voucherAmountInPence;
         return String.format(summaryTemplate, convertPenceToPounds(totalAmount));
     }
-
 }
