@@ -33,7 +33,7 @@ public class ChildDateOfBirthCalculator {
      * @param paymentCycle The current PaymentCycle including the relevant dates of birth of the children.
      * @return The number of children who will soon turn 1 or 4 that affect the next Payment.
      */
-    public NextPaymentCycleSummary getChildrenDateOfBirthSummaryAffectingNextPayment(PaymentCycle paymentCycle) {
+    public NextPaymentCycleSummary getNextPaymentCycleSummary(PaymentCycle paymentCycle) {
         if (CollectionUtils.isEmpty(paymentCycle.getChildrenDob())) {
             return NO_CHILDREN;
         }
