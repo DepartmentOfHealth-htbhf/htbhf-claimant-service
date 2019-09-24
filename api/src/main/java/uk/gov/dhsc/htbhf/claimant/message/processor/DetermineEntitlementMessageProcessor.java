@@ -3,15 +3,14 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.entity.Message;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
+import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.*;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -32,6 +31,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private MessageContextLoader messageContextLoader;
 
     private PaymentCycleService paymentCycleService;
+
+    private ClaimRepository claimRepository;
 
     private MessageQueueClient messageQueueClient;
 
@@ -61,11 +62,12 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
-        //TODO HTBHF-1296 - update ClaimStatus from ACTIVE to PENDING_EXPIRY if Claimant is no longer eligible.
         updateAndSavePaymentCycle(currentPaymentCycle, decision);
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
+        } else {
+            handleNonEligibleClaim(currentPaymentCycle);
         }
 
         return COMPLETED;
@@ -74,6 +76,12 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {
         MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
+    }
+
+    private void handleNonEligibleClaim(PaymentCycle currentPaymentCycle) {
+        Claim claim = currentPaymentCycle.getClaim();
+        claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
+        claimRepository.save(claim);
     }
 
     private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
