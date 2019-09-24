@@ -35,21 +35,19 @@ public class EmailPayloadAssertions {
 
     /**
      * Asserts that the values are correct for an email where we notify the claimant that their entitlement will be changing
-     * because one or more of their children will be turning 4 in the next payment cycle. The method assumes that they will be receiving
-     * 4 vouchers for children under 1 and is specifically different to the standard number of vouchers in the PaymentCycles
-     * built by the test data factory.
+     * because one or more of their children will be turning 4 in the next payment cycle.
      *
      * @param emailPersonalisation The map of data to verify
      * @param nextPaymentDate      The payment date expected in the Map.
      */
-    public static void assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers(Map<String, Object> emailPersonalisation,
-                                                                                                     LocalDate nextPaymentDate) {
+    public static void assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers(Map<String, Object> emailPersonalisation,
+                                                                                                   LocalDate nextPaymentDate) {
         assertThat(emailPersonalisation).containsOnly(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
-                entry("payment_amount", "£49.60"),
-                entry("pregnancy_payment", ""),
-                entry("children_under_1_payment", "\n* £49.60 for children under 1"),
+                entry("payment_amount", "£37.20"),
+                entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
+                entry("children_under_1_payment", "\n* £24.80 for children under 1"),
                 entry("children_under_4_payment", ""),
                 entry("multiple_children", false),
                 entry("next_payment_date", DATE_FORMATTER.format(nextPaymentDate))
