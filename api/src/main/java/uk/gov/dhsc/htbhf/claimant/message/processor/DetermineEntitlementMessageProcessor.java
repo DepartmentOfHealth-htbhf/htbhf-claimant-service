@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
@@ -82,6 +83,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         Claim claim = currentPaymentCycle.getClaim();
         claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
         claimRepository.save(claim);
+        MessagePayload messagePayload = MessagePayloadFactory.buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);
+        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 
     private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {

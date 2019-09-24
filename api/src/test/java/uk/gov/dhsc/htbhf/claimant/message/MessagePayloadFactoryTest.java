@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly;
@@ -119,5 +120,18 @@ class MessagePayloadFactoryTest {
         assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 
+    @Test
+    void shouldBuildClaimIsNoLongerEligibleNotificationEmailPayload() {
+        Claim claim = aValidClaim();
+
+        EmailMessagePayload payload = MessagePayloadFactory.buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);
+
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.CLAIM_NO_LONGER_ELIGIBLE);
+        assertThat(payload.getEmailPersonalisation())
+                .containsOnly(
+                        entry("First_name", claim.getClaimant().getFirstName()),
+                        entry("Last_name", claim.getClaimant().getLastName()));
+    }
 
 }
