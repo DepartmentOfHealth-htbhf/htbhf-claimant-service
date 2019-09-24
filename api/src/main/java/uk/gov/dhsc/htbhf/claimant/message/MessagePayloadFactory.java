@@ -71,27 +71,6 @@ public class MessagePayloadFactory {
     }
 
     /**
-     * Builds the message payload for the email that gets sent should one of the claimants children be turning
-     * 4 during the next payment cycle.
-     *
-     * @param paymentCycle                       The current payment cycle
-     * @param entitlementNextMonth               The entitlement that the claimant will be receiving next month
-     * @param multipleChildrenTurningFourInMonth Whether or not there are multiple children turning 4 next month
-     * @return The build email payload.
-     */
-    public static EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
-                                                                                  PaymentCycleVoucherEntitlement entitlementNextMonth,
-                                                                                  boolean multipleChildrenTurningFourInMonth) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
-        emailPersonalisation.put(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
-        return EmailMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.CHILD_TURNS_FOUR)
-                .emailPersonalisation(emailPersonalisation)
-                .build();
-    }
-
-    /**
      * Builds the message payload for the email that gets sent when a claim is no longer Eligible.
      *
      * @param claim The claim that is no longer eligible.
@@ -106,14 +85,7 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    private static Map<String, Object> createClaimNoLongerEligibleEmailPersonalisationMap(Claimant claimant) {
-        return Map.of(
-                EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
-                EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName()
-        );
-    }
-
-    private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
+    public static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
         Claimant claimant = paymentCycle.getClaim().getClaimant();
         Map<String, Object> emailPersonalisation = new HashMap<>();
         emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
@@ -126,6 +98,13 @@ public class MessagePayloadFactory {
         String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
         emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
         return emailPersonalisation;
+    }
+
+    private static Map<String, Object> createClaimNoLongerEligibleEmailPersonalisationMap(Claimant claimant) {
+        return Map.of(
+                EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
+                EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName()
+        );
     }
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {

@@ -6,14 +6,17 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.createPaymentEmailPersonalisationMap;
 
 /**
  * Component responsible for determining if any additional emails need to be sent out in addition to
@@ -53,6 +56,18 @@ public class PaymentCycleEmailHandler {
                 currentPaymentCycle.getChildrenDob(),
                 nextCycleStartDate,
                 currentPaymentCycle.getVoucherEntitlement());
+    }
+
+    private EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                            PaymentCycleVoucherEntitlement entitlementNextMonth,
+                                                                            boolean multipleChildrenTurningFourInMonth) {
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
+        emailPersonalisation.put(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
+        return EmailMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .emailType(EmailType.CHILD_TURNS_FOUR)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
     }
 
 }

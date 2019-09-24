@@ -14,7 +14,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -22,7 +21,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOne;
 
 class MessagePayloadFactoryTest {
 
@@ -51,7 +49,6 @@ class MessagePayloadFactoryTest {
 
     @Test
     void shouldBuildSendNewCardSuccessEmailPayloadWithAllPaymentTypes() {
-
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
@@ -101,23 +98,6 @@ class MessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
         assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(payload.getEmailPersonalisation(), endDate.plusDays(1));
-    }
-
-    @Test
-    void shouldBuildChildTurnsFourNotificationEmailPayload() {
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(28);
-        PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
-        //This is specifically built so that it is different to the voucher entitlement on the PaymentCycle - it has no vouchers for under 4
-        PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersForUnderOne(startDate);
-        boolean multipleChildrenTurningFourInMonth = false;
-
-        EmailMessagePayload payload = MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload(paymentCycle,
-                paymentCycleVoucherEntitlement, multipleChildrenTurningFourInMonth);
-
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
-        assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 
     @Test
