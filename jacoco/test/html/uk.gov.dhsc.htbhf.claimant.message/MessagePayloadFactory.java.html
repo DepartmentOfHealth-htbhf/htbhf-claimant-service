@@ -118,7 +118,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 <span class="fc" id="L118">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L119">        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
 <span class="fc" id="L120">        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
-<span class="fc" id="L121">        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L121">        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());</span>
 <span class="fc" id="L122">        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
 <span class="fc" id="L123">        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));</span>
 <span class="fc" id="L124">        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));</span>
