@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.dhsc.htbhf.claimant.communications.ClaimEmailManager;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -57,6 +58,8 @@ class DetermineEntitlementMessageProcessorTest {
     private ClaimRepository claimRepository;
     @Mock
     private MessageQueueClient messageQueueClient;
+    @Mock
+    private ClaimEmailManager claimEmailManager;
 
     @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
@@ -122,8 +125,7 @@ class DetermineEntitlementMessageProcessorTest {
 
         verifyPaymentCycleSavedWithDecision(context.getCurrentPaymentCycle(), decision, context.getClaim());
         verifyClaimSavedAsPendingExpiry();
-        MessagePayload expectedPayload = MessagePayloadFactory.buildClaimIsNoLongerEligibleNotificationEmailPayload(context.getClaim());
-        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.SEND_EMAIL);
+        verify(claimEmailManager).sendClaimNoLongerEligibleEmail(context.getClaim());
     }
 
     private void verifyPaymentCycleSavedWithDecision(PaymentCycle paymentCycle,
