@@ -95,7 +95,7 @@ public class MessagePayloadFactory {
         Map<String, Object> emailPersonalisation = new HashMap<>();
         emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
         emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-        String paymentAmount = convertPenceToPounds(paymentCycle.getTotalEntitlementAmountInPence());
+        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());
         emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
         emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
         emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));

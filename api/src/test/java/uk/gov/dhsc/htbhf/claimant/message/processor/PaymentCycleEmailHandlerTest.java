@@ -25,9 +25,9 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOneOnly;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOne;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleEmailHandlerTest {
@@ -53,7 +53,7 @@ class PaymentCycleEmailHandlerTest {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has no vouchers for 1-4 year olds.
-        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementWithVouchersForUnderOneOnly(START_OF_NEXT_CYCLE);
+        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementWithVouchersForUnderOne(START_OF_NEXT_CYCLE);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
 
         paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
@@ -85,7 +85,7 @@ class PaymentCycleEmailHandlerTest {
         EmailMessagePayload payload = (EmailMessagePayload) messagePayload;
         assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadCorrectForChildUnderFourNotificationWithNoPregnancyVouchers(payload.getEmailPersonalisation(),
+        assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers(payload.getEmailPersonalisation(),
                 paymentCycle.getCycleEndDate().plusDays(1));
     }
 
