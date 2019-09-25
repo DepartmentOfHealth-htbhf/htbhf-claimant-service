@@ -45,12 +45,13 @@ public class EmailPayloadAssertions {
         assertThat(emailPersonalisation).containsOnly(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
-                entry("payment_amount", "£37.20"),
+                entry("payment_amount", "£40.30"),
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),
                 entry("children_under_4_payment", ""),
                 entry("multiple_children", false),
-                entry("next_payment_date", DATE_FORMATTER.format(nextPaymentDate))
+                entry("next_payment_date", DATE_FORMATTER.format(nextPaymentDate)),
+                entry("regular_payment", "£37.20")
         );
     }
 

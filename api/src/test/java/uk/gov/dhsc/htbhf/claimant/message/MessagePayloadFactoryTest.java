@@ -21,7 +21,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOne;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOnePlusOneForFirstWeekForUnderFour;
 
 class MessagePayloadFactoryTest {
 
@@ -108,7 +108,8 @@ class MessagePayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
         //This is specifically built so that it is different to the voucher entitlement on the PaymentCycle - it has no vouchers for under 4
-        PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersForUnderOne(startDate);
+        PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement =
+                aPaymentCycleVoucherEntitlementWithVouchersForUnderOnePlusOneForFirstWeekForUnderFour(startDate);
         boolean multipleChildrenTurningFourInMonth = false;
 
         EmailMessagePayload payload = MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload(paymentCycle,

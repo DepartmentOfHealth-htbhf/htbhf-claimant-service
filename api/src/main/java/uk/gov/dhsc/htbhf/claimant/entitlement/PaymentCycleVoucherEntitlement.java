@@ -64,4 +64,12 @@ public class PaymentCycleVoucherEntitlement {
                 .min(comparing(VoucherEntitlement::getEntitlementDate))
                 .get();
     }
+
+    //TODO MRS 25/09/2019: Unit test
+    @JsonIgnore
+    public VoucherEntitlement getLastVoucherEntitlementForCycle() {
+        return voucherEntitlements.stream()
+                .max(comparing(VoucherEntitlement::getEntitlementDate))
+                .get();
+    }
 }

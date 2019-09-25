@@ -12,7 +12,8 @@ public enum EmailTemplateKey {
     CHILDREN_UNDER_1_PAYMENT("children_under_1_payment"),
     CHILDREN_UNDER_4_PAYMENT("children_under_4_payment"),
     NEXT_PAYMENT_DATE("next_payment_date"),
-    MULTIPLE_CHILDREN("multiple_children");
+    MULTIPLE_CHILDREN("multiple_children"),
+    REGULAR_PAYMENT("regular_payment");
 
     private String templateKeyName;
 
