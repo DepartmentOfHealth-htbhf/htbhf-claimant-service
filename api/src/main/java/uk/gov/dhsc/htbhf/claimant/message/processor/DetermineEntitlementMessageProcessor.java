@@ -15,7 +15,6 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
-import java.time.LocalDate;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
@@ -54,7 +53,6 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-
         DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
         Claimant claimant = messageContext.getClaim().getClaimant();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
@@ -65,7 +63,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
-        updateAndSavePaymentCycle(currentPaymentCycle, decision);
+        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
 
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
@@ -86,17 +84,6 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
         claimRepository.save(claim);
         claimEmailManager.sendClaimNoLongerEligibleEmail(claim);
-    }
-
-    private void updateAndSavePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
-        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
-        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
-        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
-        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
-        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
-        LocalDate expectedDeliveryDate = paymentCycleService.getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), decision.getVoucherEntitlement());
-        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);
-        paymentCycleService.savePaymentCycle(paymentCycle);
     }
 
 }
