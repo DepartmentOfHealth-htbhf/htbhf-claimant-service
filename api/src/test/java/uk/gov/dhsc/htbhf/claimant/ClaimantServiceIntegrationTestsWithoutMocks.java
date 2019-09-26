@@ -18,7 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
+import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
@@ -62,7 +62,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
 @AutoConfigureWireMock(port = 8100)
-class ClaimantServiceIntegrationTests {
+class ClaimantServiceIntegrationTestsWithoutMocks {
 
     private static final String ELIGIBILITY_SERVICE_URL = "/v1/eligibility";
 
@@ -76,12 +76,11 @@ class ClaimantServiceIntegrationTests {
     ClaimRepository claimRepository;
 
     @Autowired
-    MessageRepository messageRepository;
+    RepositoryMediator repositoryMediator;
 
     @AfterEach
     void deleteAllClaimsAndMessages() {
-        claimRepository.deleteAll();
-        messageRepository.deleteAll();
+        repositoryMediator.deleteAllEntities();
     }
 
     @Test

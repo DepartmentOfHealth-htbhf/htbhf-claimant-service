@@ -49,6 +49,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -201,7 +202,7 @@ public class PaymentCycleIntegrationTests {
     }
 
     private String formatVoucherAmount(int voucherCount) {
-        return currencyFormat.format(new BigDecimal(voucherCount * 310).divide(ONE_HUNDRED));
+        return currencyFormat.format(new BigDecimal(voucherCount * VOUCHER_VALUE_IN_PENCE).divide(ONE_HUNDRED));
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(String cardAccountId, List<LocalDate> childrensDatesOfBirth, LocalDate expectedDeliveryDate) {
