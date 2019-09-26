@@ -5,15 +5,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildChildTurnsFourNotificationEmailPayload;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.formatPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Component responsible for determining if any additional emails need to be sent out in addition to
@@ -23,6 +30,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildChil
 @AllArgsConstructor
 @Slf4j
 public class PaymentCycleEmailHandler {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     private MessageQueueClient messageQueueClient;
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
@@ -49,6 +58,78 @@ public class PaymentCycleEmailHandler {
                 multipleChildrenTurningFourInNextMonth);
         log.info("Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]", paymentCycle.getId());
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+    }
+
+    private EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                                  PaymentCycleVoucherEntitlement entitlementNextMonth,
+                                                                                  boolean multipleChildrenTurningFourInMonth) {
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
+        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
+        return EmailMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .emailType(EmailType.CHILD_TURNS_FOUR)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    private Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        Claimant claimant = paymentCycle.getClaim().getClaimant();
+        Map<String, Object> emailPersonalisation = new HashMap<>();
+        emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
+        emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());
+        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence()));
+        emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
+        emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
+        emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
+        emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmount(voucherEntitlement));
+        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
+        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
+        return emailPersonalisation;
+    }
+
+    private String getRegularPaymentAmount(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int totalVouchersForRegularPayment = getRegularPaymentVouchers(voucherEntitlement);
+        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
+    }
+
+    private String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int totalVouchersForChildrenBetweenOneAndFour = getVouchersForBetweenOneAndFourForFinalWeek(voucherEntitlement) * 4;
+        return formatPaymentAmountSummary(
+                "\n* %s for children between 1 and 4",
+                totalVouchersForChildrenBetweenOneAndFour,
+                voucherEntitlement.getSingleVoucherValueInPence());
+    }
+
+    private int getVouchersForBetweenOneAndFourForFinalWeek(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenBetweenOneAndFour();
+    }
+
+    private int getRegularPaymentVouchers(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        // TODO read numberOfWeeksInCycle from config
+        int numberOfWeeksInCycle = 4;
+        return voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfWeeksInCycle;
+    }
+
+    private String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return formatPaymentAmountSummary(
+                "\n* %s for a pregnancy",
+                voucherEntitlement.getVouchersForPregnancy(),
+                voucherEntitlement.getSingleVoucherValueInPence());
+    }
+
+    private String buildUnder1PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return formatPaymentAmountSummary(
+                "\n* %s for children under 1",
+                voucherEntitlement.getVouchersForChildrenUnderOne(),
+                voucherEntitlement.getSingleVoucherValueInPence());
+    }
+
+    private String formatRegularPaymentAmount(int numberOfVouchers, int voucherAmountInPence) {
+        if (numberOfVouchers == 0) {
+            return "";
+        }
+        int totalAmount = numberOfVouchers * voucherAmountInPence;
+        return convertPenceToPounds(totalAmount);
     }
 
     private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
