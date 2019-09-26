@@ -25,7 +25,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWhenChildTurnsFourInFirstWeekOfNextCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersForUnderOne;
 
@@ -48,7 +48,7 @@ class PaymentCycleEmailHandlerTest {
     private PaymentCycleEmailHandler paymentCycleEmailHandler;
 
     @Test
-    void shouldSendEmailForChildTurnsFour() {
+    void shouldSendEmailForChildTurnsFourInFirstWeekOfNextCycle() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
@@ -85,7 +85,8 @@ class PaymentCycleEmailHandlerTest {
         EmailMessagePayload payload = (EmailMessagePayload) messagePayload;
         assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers(payload.getEmailPersonalisation(),
+        assertEmailPayloadCorrectForChildUnderFourNotificationWhenChildTurnsFourInFirstWeekOfNextCycle(
+                payload.getEmailPersonalisation(),
                 paymentCycle.getCycleEndDate().plusDays(1));
     }
 

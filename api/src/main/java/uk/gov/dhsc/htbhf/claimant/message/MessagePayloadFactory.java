@@ -15,11 +15,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Factory object for building message payloads for emails.
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class MessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -82,7 +84,7 @@ public class MessagePayloadFactory {
                                                                                   PaymentCycleVoucherEntitlement entitlementNextMonth,
                                                                                   boolean multipleChildrenTurningFourInMonth) {
         Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
-        emailPersonalisation.put(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
+        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(EmailType.CHILD_TURNS_FOUR)
@@ -90,26 +92,32 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    //TODO MRS 25/09/2019: Review and tidy changes in here
     private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
         Claimant claimant = paymentCycle.getClaim().getClaimant();
         Map<String, Object> emailPersonalisation = new HashMap<>();
-        emailPersonalisation.put(EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
-        emailPersonalisation.put(EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());
-        emailPersonalisation.put(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
-        emailPersonalisation.put(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
-        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
-        int totalVouchersForChildrenBetweenOneAndFour = getVouchersForBetweenOneAndFourForFinalWeek(voucherEntitlement) * 4;
-        emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(),
-                buildUnder4PaymentSummary(totalVouchersForChildrenBetweenOneAndFour, singleVoucherValueInPence));
+        emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
+        emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());
+        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence()));
+        emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
+        emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
+        emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
+        emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmount(voucherEntitlement));
         String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
-        emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
-        int totalVouchersForRegularPayment = getRegularPaymentVouchers(voucherEntitlement);
-        emailPersonalisation.put(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName(),
-                formatRegularPaymentAmount(totalVouchersForRegularPayment, singleVoucherValueInPence));
+        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
         return emailPersonalisation;
+    }
+
+    private static String getRegularPaymentAmount(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int totalVouchersForRegularPayment = getRegularPaymentVouchers(voucherEntitlement);
+        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
+    }
+
+    private static String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int totalVouchersForChildrenBetweenOneAndFour = getVouchersForBetweenOneAndFourForFinalWeek(voucherEntitlement) * 4;
+        return formatPaymentAmountSummary(
+                "\n* %s for children between 1 and 4",
+                totalVouchersForChildrenBetweenOneAndFour,
+                voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private static int getVouchersForBetweenOneAndFourForFinalWeek(PaymentCycleVoucherEntitlement voucherEntitlement) {
@@ -117,7 +125,9 @@ public class MessagePayloadFactory {
     }
 
     private static int getRegularPaymentVouchers(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4;
+        // TODO read numberOfWeeksInCycle from config
+        int numberOfWeeksInCycle = 4;
+        return voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfWeeksInCycle;
     }
 
     private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
@@ -132,13 +142,6 @@ public class MessagePayloadFactory {
                 "\n* %s for children under 1",
                 voucherEntitlement.getVouchersForChildrenUnderOne(),
                 voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private static String buildUnder4PaymentSummary(int totalVoucherForChildrenBetweenOneAndFour, int singleVoucherValueInPence) {
-        return formatPaymentAmountSummary(
-                "\n* %s for children between 1 and 4",
-                totalVoucherForChildrenBetweenOneAndFour,
-                singleVoucherValueInPence);
     }
 
     private static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {

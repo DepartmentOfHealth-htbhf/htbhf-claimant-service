@@ -35,9 +35,9 @@ public class PaymentCycleEmailHandler {
         }
         //TODO MRS 25/09/2019: For child turns 1 story, add this next section and build the sendChildTurnsOneEmail() based on the child turns 4 method.
         // Key thing here is that child under 1 vouchers will turn into child between 1 and 4 vouchers in the assertions.
-//        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-//            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
-//        }
+        //        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
+        //            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        //        }
     }
 
     private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {

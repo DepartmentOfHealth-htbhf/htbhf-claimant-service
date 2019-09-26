@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForChildUnderFourNotificationWhenChildTurnsFourInSecondWeekOfNextCycle;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -117,6 +117,6 @@ class MessagePayloadFactoryTest {
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
-        assertEmailPayloadCorrectForChildUnderFourNotificationWithPregnancyVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
+        assertEmailPayloadCorrectForChildUnderFourNotificationWhenChildTurnsFourInSecondWeekOfNextCycle(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 }
