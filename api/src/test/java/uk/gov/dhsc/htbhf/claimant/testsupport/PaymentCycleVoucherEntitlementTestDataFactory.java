@@ -5,6 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.*;
 
@@ -25,6 +26,15 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(1)),
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(2)),
                 aVoucherEntitlementWithEntitlementDate(startDate.plusWeeks(3))
+        );
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlement(LocalDate startDate, List<LocalDate> childrensDob, LocalDate dueDate) {
+        return buildPaymentCycleVoucherEntitlement(
+                aVoucherEntitlement(startDate, childrensDob, dueDate),
+                aVoucherEntitlement(startDate.plusWeeks(1), childrensDob, dueDate),
+                aVoucherEntitlement(startDate.plusWeeks(2), childrensDob, dueDate),
+                aVoucherEntitlement(startDate.plusWeeks(3), childrensDob, dueDate)
         );
     }
 

@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +33,10 @@ public class EligibilityResponseTestDataFactory {
 
     public static EligibilityResponse anEligibilityResponseWithHmrcHouseholdIdentifier(String hmrcHouseholdIdentifier) {
         return aValidEligibilityResponseBuilder().hmrcHouseholdIdentifier(hmrcHouseholdIdentifier).build();
+    }
+
+    public static List<ChildDTO> childrenWithBirthdates(List<LocalDate> datesOfBirth) {
+        return datesOfBirth.stream().map(dob -> new ChildDTO(dob)).collect(Collectors.toList());
     }
 
     private static EligibilityResponse.EligibilityResponseBuilder aValidEligibilityResponseBuilder() {
