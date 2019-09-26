@@ -1,9 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
@@ -41,8 +41,9 @@ class PaymentCycleEmailHandlerTest {
     private static final Optional<LocalDate> NOT_PREGNANT = Optional.empty();
     private static final LocalDate START_OF_NEXT_CYCLE = LocalDate.now().plusDays(28);
     private static final LocalDate UNDER_ONE_ALL_OF_NEXT_CYCLE = START_OF_NEXT_CYCLE.minusMonths(6);
-    private static final LocalDate TURNS_FOUR_DAY_ON_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4);
+    private static final LocalDate TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4);
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
+    private static final Integer NUMBER_OF_CALCULATION_PERIODS = 4;
 
     @Mock
     private MessageQueueClient messageQueueClient;
@@ -50,15 +51,24 @@ class PaymentCycleEmailHandlerTest {
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
     @Mock
     private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
-    @InjectMocks
+
     private PaymentCycleEmailHandler paymentCycleEmailHandler;
+
+    @BeforeEach
+    public void init() {
+        paymentCycleEmailHandler = new PaymentCycleEmailHandler(
+                NUMBER_OF_CALCULATION_PERIODS,
+                messageQueueClient,
+                childDateOfBirthCalculator,
+                paymentCycleEntitlementCalculator);
+    }
 
     @Test
     void shouldSendEmailForChildTurnsFourInFirstWeekOfNextCycle() {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has no vouchers for 1-4 year olds.
-        List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_DAY_ON_NEXT_PAYMENT_CYCLE);
+        List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlement(START_OF_NEXT_CYCLE, childrensDob, LocalDate.now().plusMonths(2));
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();

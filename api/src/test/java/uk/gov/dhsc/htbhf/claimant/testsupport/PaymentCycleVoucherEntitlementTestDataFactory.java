@@ -47,19 +47,6 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
         );
     }
 
-    /**
-     * Specific test case where we have vouchers for the 1-4 year old for the first entitlement date only (scenario where the child turns 4
-     * in the second week).
-     */
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchersForUnderOnePlusOneForFirstWeekForUnderFour(LocalDate startDate) {
-        return buildPaymentCycleVoucherEntitlement(
-                aVoucherEntitlementWithEntitlementDate(startDate),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(1)),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(2)),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(3))
-        );
-    }
-
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
         return buildPaymentCycleVoucherEntitlement(
                 aVoucherEntitlementWithPregnancyVoucherOnlyForDate(LocalDate.now()),

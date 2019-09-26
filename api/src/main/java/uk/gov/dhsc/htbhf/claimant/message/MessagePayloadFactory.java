@@ -20,7 +20,6 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 /**
  * Factory object for building message payloads for emails.
  */
-@SuppressWarnings("PMD.TooManyMethods")
 public class MessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
