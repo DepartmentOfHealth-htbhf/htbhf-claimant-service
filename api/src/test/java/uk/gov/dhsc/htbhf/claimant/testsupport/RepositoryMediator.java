@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +48,19 @@ public class RepositoryMediator {
         paymentCycle.getPayments().size();
         paymentCycle.getClaim().toString();
         return paymentCycle;
+    }
+
+    @Transactional
+    public Claim getClaimForNino(String nino) {
+        List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(nino);
+        assertThat(claimIds).isNotEmpty();
+        Optional<Claim> optional = claimRepository.findById(claimIds.get(0));
+        assertThat(optional.isPresent()).isTrue();
+        Claim claim = optional.get();
+        // ensure that everything has been loaded
+        claim.getClaimant().toString();
+        claim.getClaimant().getAddress().toString();
+        return claim;
     }
 
     /**
