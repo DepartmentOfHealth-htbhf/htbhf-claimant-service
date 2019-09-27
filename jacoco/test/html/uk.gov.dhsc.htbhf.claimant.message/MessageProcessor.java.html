@@ -45,9 +45,9 @@ public class MessageProcessor {
 <span class="fc" id="L45">    }</span>
 
     private void processMessagesOfType(List&lt;Message&gt; messages, MessageType messageType) {
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        if (CollectionUtils.isEmpty(messages)) {</span>
-<span class="nc" id="L49">            log.debug(&quot;No messages found to process for type: [{}]&quot;, messageType);</span>
-<span class="nc" id="L50">            return;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messages)) {</span>
+<span class="fc" id="L49">            log.debug(&quot;No messages found to process for type: [{}]&quot;, messageType);</span>
+<span class="fc" id="L50">            return;</span>
         }
 
 <span class="fc" id="L53">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageType);</span>
