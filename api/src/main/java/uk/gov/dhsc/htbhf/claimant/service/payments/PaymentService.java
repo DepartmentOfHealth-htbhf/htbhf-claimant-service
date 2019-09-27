@@ -45,17 +45,21 @@ public class PaymentService {
             Map<String, Object> eventMetadata = failureEvent.getEventMetadata();
             Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());
             String paymentReference = (String) eventMetadata.get(PAYMENT_REFERENCE.getKey());
-            Payment failedPayment = Payment.builder()
-                    .cardAccountId(cardAccountId)
-                    .claim(paymentCycle.getClaim())
-                    .paymentAmountInPence(amountToPayInPence)
-                    .paymentCycle(paymentCycle)
-                    .paymentReference(paymentReference)
-                    .paymentStatus(PaymentStatus.FAILURE)
-                    .paymentTimestamp(LocalDateTime.now())
-                    .build();
+            if (paymentReference == null) {
+                log.info("Not recording failed payment as there is no payment reference: {}", failureEvent);
+            } else {
+                Payment failedPayment = Payment.builder()
+                        .cardAccountId(cardAccountId)
+                        .claim(paymentCycle.getClaim())
+                        .paymentAmountInPence(amountToPayInPence)
+                        .paymentCycle(paymentCycle)
+                        .paymentReference(paymentReference)
+                        .paymentStatus(PaymentStatus.FAILURE)
+                        .paymentTimestamp(LocalDateTime.now())
+                        .build();
 
-            paymentRepository.save(failedPayment);
+                paymentRepository.save(failedPayment);
+            }
         } catch (Exception e) {
             log.error("Unexpected exception caught saving a failed payment for paymentCycle: {}, cardAccountId: {}, failureEvent: {}, exception detail: {}",
                     paymentCycle.getId(), cardAccountId, failureEvent, constructExceptionDetail(e), e);

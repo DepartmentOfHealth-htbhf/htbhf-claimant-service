@@ -241,19 +241,19 @@ class PaymentServiceTest {
     }
 
     @Test
-    void shouldSaveFailedPaymentWithNoReferenceOnEvent() {
+    void shouldNotSaveFailedPaymentWithNoReferenceOnEvent() {
         PaymentCycle paymentCycle = createAndSavePaymentCycle();
         MakePaymentEvent event = MakePaymentEvent.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
-                .paymentAmountInPence(100)
+                .paymentAmountInPence(null)
                 .paymentId(null)
                 .reference(null)
                 .build();
 
         paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, aFailureEventWithEvent(event));
 
-        verifyFailedPaymentSavedWithNoReference(paymentCycle);
+        verifyNoPaymentsInDatabase();
     }
 
     private PaymentCycle createAndSavePaymentCycle() {
