@@ -12,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
-import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
@@ -29,15 +27,20 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
@@ -46,6 +49,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 @AutoConfigureEmbeddedDatabase
 public class PaymentCycleIntegrationTests {
 
+    private static final LocalDate START_OF_NEXT_CYCLE = LocalDate.now().plusDays(28);
+    private static final LocalDate TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
 
@@ -102,6 +107,35 @@ public class PaymentCycleIntegrationTests {
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
+    void shouldSendEmailsWhenChildTurnsOneInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
+        // setup some claim variables
+        String cardAccountId = UUID.randomUUID().toString();
+        List<LocalDate> childTurningOneInFirstWeekOfNextPaymentCycle = singletonList(TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
+        int cardBalanceInPenceBeforeDeposit = 88;
+
+        wiremockManager.stubSuccessfulEligibilityResponse(childTurningOneInFirstWeekOfNextPaymentCycle);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        stubNotificationEmailResponse();
+
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, childTurningOneInFirstWeekOfNextPaymentCycle, null);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to make payment
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        Payment payment = currentCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatChildTurnsOneEmailWasSent(currentCycle);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @Test
@@ -174,7 +208,13 @@ public class PaymentCycleIntegrationTests {
         assertThat(successfulPayments).hasSize(1);
         Payment payment = successfulPayments.iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
+    }
 
+    private void assertThatChildTurnsOneEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
+        assertChildTurnsOneEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
     private List<Payment> getPaymentsWithStatus(PaymentCycle paymentCycle, PaymentStatus success) {
@@ -190,24 +230,43 @@ public class PaymentCycleIntegrationTests {
     private void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
-                eq(EmailType.PAYMENT.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
+                eq(PAYMENT.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
 
         Map personalisationMap = mapArgumentCaptor.getValue();
-        assertThat(personalisationMap).isNotNull();
-        Claim claim = newCycle.getClaim();
-        Claimant claimant = claim.getClaimant();
+        assertPaymentEmailPersonalisationMap(newCycle, personalisationMap);
+    }
+
+    private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsOnePersonalisationMap) {
+        assertCommonEmailFields(currentCycle, childTurnsOnePersonalisationMap);
+        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(0)); // child is turning one in the next payment cycle, so no vouchers going forward
+        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
+        assertThat(childTurnsOnePersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(5)); // two vouchers in first week plus one for weeks two, three and four
+        assertThat(childTurnsOnePersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
+    }
+
+    private void assertPaymentEmailPersonalisationMap(PaymentCycle newCycle, Map personalisationMap) {
         PaymentCycleVoucherEntitlement entitlement = newCycle.getVoucherEntitlement();
-        assertThat(personalisationMap.get(EmailTemplateKey.FIRST_NAME.getTemplateKeyName())).isEqualTo(claimant.getFirstName());
-        assertThat(personalisationMap.get(EmailTemplateKey.LAST_NAME.getTemplateKeyName())).isEqualTo(claimant.getLastName());
-        assertThat(personalisationMap.get(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName()))
+        assertCommonEmailFields(newCycle, personalisationMap);
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(newCycle.getTotalVouchers()));
-        assertThat(personalisationMap.get(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenUnderOne()));
-        assertThat(personalisationMap.get(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
-        assertThat(personalisationMap.get(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(entitlement.getVouchersForPregnancy()));
-        assertThat(personalisationMap.get(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName())).asString()
+    }
+
+    private void assertCommonEmailFields(PaymentCycle newCycle, Map personalisationMap) {
+        Claimant claimant = newCycle.getClaim().getClaimant();
+        assertThat(personalisationMap).isNotNull();
+        assertThat(personalisationMap.get(FIRST_NAME.getTemplateKeyName())).isEqualTo(claimant.getFirstName());
+        assertThat(personalisationMap.get(LAST_NAME.getTemplateKeyName())).isEqualTo(claimant.getLastName());
+        assertThat(personalisationMap.get(PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(newCycle.getVoucherEntitlement().getVouchersForPregnancy()));
+        assertThat(personalisationMap.get(NEXT_PAYMENT_DATE.getTemplateKeyName())).asString()
                 .contains(newCycle.getCycleEndDate().plusDays(1).format(EMAIL_DATE_PATTERN));
     }
 
