@@ -105,6 +105,7 @@ public class PaymentCycleIntegrationTests {
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @Test
@@ -130,7 +131,9 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentAndChildTurnsOneEmailWasSent(currentCycle);
+        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatChildTurnsOneEmailWasSent(currentCycle);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     private void stubNotificationEmailResponse() throws NotificationClientException {
@@ -158,22 +161,11 @@ public class PaymentCycleIntegrationTests {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
-    private void assertThatPaymentAndChildTurnsOneEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
-        ArgumentCaptor<Map> paymentMapArgumentCapture = ArgumentCaptor.forClass(Map.class);
+    private void assertThatChildTurnsOneEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
-                eq(PAYMENT.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), paymentMapArgumentCapture.capture(), any(), any());
-        assertPaymentEmailPersonalisationMap(currentCycle, paymentMapArgumentCapture.getValue());
-
-        ArgumentCaptor<Map> childTurnsOneMapArgumentCapture = ArgumentCaptor.forClass(Map.class);
-        verify(notificationClient).sendEmail(
-                eq(CHILD_TURNS_ONE.getTemplateId()),
-                eq(currentCycle.getClaim().getClaimant().getEmailAddress()),
-                childTurnsOneMapArgumentCapture.capture(),
-                any(),
-                any());
-        assertChildTurnsOneEmailPersonalisationMap(currentCycle, childTurnsOneMapArgumentCapture.getValue());
-
-        verifyNoMoreInteractions(notificationClient);
+                eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
+        assertChildTurnsOneEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
     private void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {

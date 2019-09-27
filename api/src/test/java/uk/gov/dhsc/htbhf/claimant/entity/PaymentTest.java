@@ -44,16 +44,6 @@ class PaymentTest extends AbstractValidationTest {
     }
 
     @Test
-    void shouldFailToValidatePaymentWithNoPaymentAmountInPence() {
-        //Given
-        Payment payment = aPaymentWithPaymentAmountInPence(null);
-        //When
-        Set<ConstraintViolation<Payment>> violations = validator.validate(payment);
-        //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "paymentAmountInPence");
-    }
-
-    @Test
     void shouldFailToValidatePaymentWithNoPaymentTimestamp() {
         //Given
         Payment payment = aPaymentWithPaymentTimestamp(null);

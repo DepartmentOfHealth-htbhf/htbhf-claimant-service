@@ -45,6 +45,7 @@ public class PaymentService {
             Map<String, Object> eventMetadata = failureEvent.getEventMetadata();
             Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());
             String paymentReference = (String) eventMetadata.get(PAYMENT_REFERENCE.getKey());
+            String failureDetail = (String) eventMetadata.get(FailureEvent.EXCEPTION_DETAIL_KEY);
             Payment failedPayment = Payment.builder()
                     .cardAccountId(cardAccountId)
                     .claim(paymentCycle.getClaim())
@@ -52,6 +53,7 @@ public class PaymentService {
                     .paymentCycle(paymentCycle)
                     .paymentReference(paymentReference)
                     .paymentStatus(PaymentStatus.FAILURE)
+                    .failureDetail(failureDetail)
                     .paymentTimestamp(LocalDateTime.now())
                     .build();
 
