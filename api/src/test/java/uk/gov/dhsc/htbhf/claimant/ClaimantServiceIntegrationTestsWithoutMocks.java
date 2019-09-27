@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
@@ -35,8 +35,8 @@ import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.CLAIMANT_ENDPOINT_URI;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTOBuilder;
@@ -112,7 +112,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         saveActiveClaimWithNinoAndNoExpectedDeliveryDate(claim.getClaimant().getNino());
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
         assertThat(response.getStatusCode()).isEqualTo(OK);
@@ -131,7 +131,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
         stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody()).isNotNull();
@@ -147,7 +147,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         ClaimDTO claim = aValidClaimDTO();
         stubEligibilityServiceWithInternalServiceError();
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertInternalServerErrorResponse(response);
         assertClaimPersistedSuccessfully(claim, ERROR, null, null);
@@ -177,7 +177,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -199,7 +199,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildRequestEntity(dto), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -211,7 +211,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
     }
@@ -223,7 +223,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.addressLine1", "must not be null");
     }
@@ -235,7 +235,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.postcode", "postcodes in the Channel Islands or Isle of Man are not acceptable");
     }
@@ -254,7 +254,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         //Given
         String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claimWithInvalidDate), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claimWithInvalidDate), ErrorResponse.class);
         //Then
         assertRequestCouldNotBeParsedErrorResponse(response, expectedField, expectedErrorMessage);
     }
@@ -264,7 +264,7 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         //Given
         String claim = "{}";
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
@@ -303,12 +303,6 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         JSONObject jsonObject = new JSONObject(json);
         jsonObject.getJSONObject("claimant").put(fieldName, newValue);
         return jsonObject.toString();
-    }
-
-    private RequestEntity buildRequestEntity(Object requestObject) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
     }
 
     private void saveActiveClaimWithNinoAndNoExpectedDeliveryDate(String nino) {

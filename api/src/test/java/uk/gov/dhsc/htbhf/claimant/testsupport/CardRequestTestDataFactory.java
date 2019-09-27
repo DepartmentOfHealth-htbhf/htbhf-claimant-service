@@ -1,8 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
-
-import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.JAMES_DATE_OF_BIRTH;
@@ -18,7 +20,7 @@ public class CardRequestTestDataFactory {
     public static CardRequest aValidCardRequest() {
         return CardRequest.builder()
                 .address(aValidAddressDTO())
-                .claimId(UUID.fromString(CLAIM_ID).toString())
+                .claimId(CLAIM_ID)
                 .dateOfBirth(JAMES_DATE_OF_BIRTH)
                 .firstName(JAMES_FIRST_NAME)
                 .lastName(JAMES_LAST_NAME)
@@ -26,6 +28,26 @@ public class CardRequestTestDataFactory {
                 .mobile(MOBILE)
                 .build();
 
+    }
+
+    public static CardRequest aCardRequest(Claim claim) {
+        Claimant claimant = claim.getClaimant();
+        Address address = claimant.getAddress();
+        return CardRequest.builder()
+                .address(AddressDTO.builder()
+                        .addressLine1(address.getAddressLine1())
+                        .addressLine2(address.getAddressLine2())
+                        .townOrCity(address.getTownOrCity())
+                        .postcode(address.getPostcode())
+                        .county(address.getCounty())
+                        .build())
+                .claimId(claim.getId().toString())
+                .dateOfBirth(claimant.getDateOfBirth())
+                .firstName(claimant.getFirstName())
+                .lastName(claimant.getLastName())
+                .email(claimant.getEmailAddress())
+                .mobile(claimant.getPhoneNumber())
+                .build();
     }
 
 }
