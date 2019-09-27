@@ -29,7 +29,6 @@ public class Payment extends BaseEntity {
     @Column(name = "card_account_id")
     private String cardAccountId;
 
-    @NotNull
     @Column(name = "payment_amount_in_pence")
     private Integer paymentAmountInPence;
 
@@ -39,6 +38,9 @@ public class Payment extends BaseEntity {
 
     @Column(name = "payment_reference")
     private String paymentReference;
+
+    @Column(name = "failure_detail")
+    private String failureDetail;
 
     @NotNull
     @Column(name = "payment_status")
