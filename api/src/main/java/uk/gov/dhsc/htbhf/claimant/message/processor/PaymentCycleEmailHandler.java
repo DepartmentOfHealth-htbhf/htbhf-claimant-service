@@ -28,6 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
  */
 @Component
 @Slf4j
+@SuppressWarnings("PMD.TooManyMethods")
 public class PaymentCycleEmailHandler {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -52,21 +53,25 @@ public class PaymentCycleEmailHandler {
         if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
             sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
         }
-        //TODO MRS 25/09/2019: For child turns 1 story, add this next section and build the sendChildTurnsOneEmail() based on the child turns 4 method.
-        // Key thing here is that child under 1 vouchers will turn into child between 1 and 4 vouchers in the assertions.
-        //        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-        //            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
-        //        }
+
+        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
+            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        }
     }
 
     private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
         boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
-        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(
-                paymentCycle,
-                entitlement,
-                multipleChildrenTurningFourInNextMonth);
+        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningFourInNextMonth);
         log.info("Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]", paymentCycle.getId());
+        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+    }
+
+    private void sendChildTurnsOneEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
+        boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();
+        EmailMessagePayload messagePayload = buildChildTurnsOneNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningOneInNextMonth);
+        log.info("Sending email for child turns 1 for Payment Cycle after cycle with id: [{}]", paymentCycle.getId());
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
     }
 
@@ -78,6 +83,18 @@ public class PaymentCycleEmailHandler {
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(EmailType.CHILD_TURNS_FOUR)
+                .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    private EmailMessagePayload buildChildTurnsOneNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                           PaymentCycleVoucherEntitlement entitlementNextMonth,
+                                                                           boolean multipleChildrenTurningOneInMonth) {
+        Map<String, Object> emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);
+        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningOneInMonth);
+        return EmailMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .emailType(EmailType.CHILD_TURNS_ONE)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
     }
@@ -103,28 +120,27 @@ public class PaymentCycleEmailHandler {
     }
 
     private String buildUnder4PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        int totalVouchersForChildrenBetweenOneAndFour = getVouchersForBetweenOneAndFourForFinalWeek(voucherEntitlement) * numberOfCalculationPeriods;
+        int vouchersForBetweenOneAndFourForFinalWeek = voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenBetweenOneAndFour();
+        int totalVouchersForChildrenUnderOne = vouchersForBetweenOneAndFourForFinalWeek * numberOfCalculationPeriods;
         return formatPaymentAmountSummary(
                 "\n* %s for children between 1 and 4",
-                totalVouchersForChildrenBetweenOneAndFour,
+                totalVouchersForChildrenUnderOne,
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
 
-    private int getVouchersForBetweenOneAndFourForFinalWeek(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenBetweenOneAndFour();
+    private String buildUnder1PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int vouchersForUnderOneForFinalWeek = voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenUnderOne();
+        int totalVouchersForChildrenUnderOne = vouchersForUnderOneForFinalWeek * numberOfCalculationPeriods;
+        return formatPaymentAmountSummary(
+                "\n* %s for children under 1",
+                totalVouchersForChildrenUnderOne,
+                voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private String buildPregnancyPaymentAmountSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
         return formatPaymentAmountSummary(
                 "\n* %s for a pregnancy",
                 voucherEntitlement.getVouchersForPregnancy(),
-                voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private String buildUnder1PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return formatPaymentAmountSummary(
-                "\n* %s for children under 1",
-                voucherEntitlement.getVouchersForChildrenUnderOne(),
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
 
