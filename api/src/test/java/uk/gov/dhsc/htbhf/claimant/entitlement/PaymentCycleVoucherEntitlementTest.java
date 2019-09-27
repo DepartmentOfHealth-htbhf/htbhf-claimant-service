@@ -128,4 +128,24 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(earliestVoucherEntitlementDate).isEqualTo(minusFourWeeks);
     }
 
+    @Test
+    void shouldReturnLastVoucherEntitlement() {
+        LocalDate minusOneWeek = LocalDate.now().minusWeeks(1);
+        LocalDate minusTwoWeeks = LocalDate.now().minusWeeks(2);
+        LocalDate minusThreeWeeks = LocalDate.now().minusWeeks(3);
+        LocalDate minusFourWeeks = LocalDate.now().minusWeeks(4);
+        List<VoucherEntitlement> entitlements = List.of(
+                aVoucherEntitlementWithEntitlementDate(minusFourWeeks),
+                aVoucherEntitlementWithEntitlementDate(minusTwoWeeks),
+                aVoucherEntitlementWithEntitlementDate(minusOneWeek),
+                aVoucherEntitlementWithEntitlementDate(minusThreeWeeks)
+        );
+        PaymentCycleVoucherEntitlement entitlement = PaymentCycleVoucherEntitlement.builder()
+                .voucherEntitlements(entitlements)
+                .build();
+
+        LocalDate lastVoucherEntitlement = entitlement.getLastVoucherEntitlementForCycle().getEntitlementDate();
+        assertThat(lastVoucherEntitlement).isEqualTo(minusOneWeek);
+    }
+
 }

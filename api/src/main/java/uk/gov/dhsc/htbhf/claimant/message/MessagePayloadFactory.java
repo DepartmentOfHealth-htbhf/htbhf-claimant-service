@@ -69,25 +69,12 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    /**
-     * Builds the message payload for the email that gets sent should one of the claimants children be turning
-     * 4 during the next payment cycle.
-     *
-     * @param paymentCycle                       The current payment cycle
-     * @param entitlementNextMonth               The entitlement that the claimant will be receiving next month
-     * @param multipleChildrenTurningFourInMonth Whether or not there are multiple children turning 4 next month
-     * @return The build email payload.
-     */
-    public static EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
-                                                                                  PaymentCycleVoucherEntitlement entitlementNextMonth,
-                                                                                  boolean multipleChildrenTurningFourInMonth) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, entitlementNextMonth);
-        emailPersonalisation.put(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
-        return EmailMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.CHILD_TURNS_FOUR)
-                .emailPersonalisation(emailPersonalisation)
-                .build();
+    public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
+        if (numberOfVouchers == 0) {
+            return "";
+        }
+        int totalAmount = numberOfVouchers * voucherAmountInPence;
+        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));
     }
 
     private static Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
@@ -126,11 +113,5 @@ public class MessagePayloadFactory {
                 voucherEntitlement.getSingleVoucherValueInPence());
     }
 
-    private static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-        if (numberOfVouchers == 0) {
-            return "";
-        }
-        int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));
-    }
+
 }
