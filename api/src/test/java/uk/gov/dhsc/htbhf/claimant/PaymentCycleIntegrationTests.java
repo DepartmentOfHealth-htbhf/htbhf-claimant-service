@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -136,8 +138,53 @@ public class PaymentCycleIntegrationTests {
         verifyNoMoreInteractions(notificationClient);
     }
 
+    @Test
+    @SuppressWarnings("VariableDeclarationUsageDistance")
+    void shouldRecoverFromErrorsToMakePaymentAndSendEmail() throws JsonProcessingException, NotificationClientException {
+        String cardAccountId = UUID.randomUUID().toString();
+        List<LocalDate> sixMonthOldAndThreeYearOld = Arrays.asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
+        int cardBalanceInPenceBeforeDeposit = 88;
+
+        // all external endpoint will cause an error
+        wiremockManager.stubErrorEligibilityResponse();
+        wiremockManager.stubErrorCardBalanceResponse(cardAccountId);
+        wiremockManager.stubErrorDepositResponse(cardAccountId);
+        stubNotificationEmailError();
+
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, LocalDate.now().plusMonths(4));
+
+        // invoke all schedulers multiple times, fixing the next error in turn each time
+        invokeAllSchedulers();
+        wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
+        invokeAllSchedulers();
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        invokeAllSchedulers();
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        invokeAllSchedulers();
+        Mockito.reset(notificationClient); // necessary to clear the error and the count of attempts to send an email
+        stubNotificationEmailResponse();
+        invokeAllSchedulers();
+
+        // confirm each error was recovered from, and the payment made successfully
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
+                aPaymentCycleVoucherEntitlement(LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
+        assertPaymentCycleIsIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        assertPaymentCycleHasFailedPayments(newCycle, 2);
+
+        Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+
+        assertThatPaymentEmailWasSent(newCycle);
+    }
+
     private void stubNotificationEmailResponse() throws NotificationClientException {
         when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenReturn(sendEmailResponse);
+    }
+
+    private void stubNotificationEmailError() throws NotificationClientException {
+        when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenThrow(new NotificationClientException("Something went wrong"));
     }
 
     private void invokeAllSchedulers() {
@@ -156,8 +203,10 @@ public class PaymentCycleIntegrationTests {
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.FULL_PAYMENT_MADE);
         assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(cardBalanceInPenceBeforeDeposit);
         assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
-        assertThat(paymentCycle.getPayments()).hasSize(1);
-        Payment payment = paymentCycle.getPayments().iterator().next();
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        List<Payment> successfulPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.SUCCESS);
+        assertThat(successfulPayments).hasSize(1);
+        Payment payment = successfulPayments.iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
@@ -166,6 +215,16 @@ public class PaymentCycleIntegrationTests {
         verify(notificationClient).sendEmail(
                 eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
         assertChildTurnsOneEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
+    }
+
+    private List<Payment> getPaymentsWithStatus(PaymentCycle paymentCycle, PaymentStatus success) {
+        return paymentCycle.getPayments().stream().filter(p -> p.getPaymentStatus() == success).collect(Collectors.toList());
+    }
+
+    private void assertPaymentCycleHasFailedPayments(PaymentCycle paymentCycle, int expectedFailureCount) {
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
+        assertThat(failedPayments).hasSize(expectedFailureCount);
     }
 
     private void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
