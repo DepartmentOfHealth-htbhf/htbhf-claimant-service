@@ -28,9 +28,10 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
  */
 @Component
 <span class="fc" id="L30">@Slf4j</span>
+@SuppressWarnings(&quot;PMD.TooManyMethods&quot;)
 public class PaymentCycleEmailHandler {
 
-<span class="fc" id="L33">    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;dd MMM yyyy&quot;);</span>
+<span class="fc" id="L34">    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(&quot;dd MMM yyyy&quot;);</span>
 
     private final Integer numberOfCalculationPeriods;
     private final MessageQueueClient messageQueueClient;
@@ -40,109 +41,124 @@ public class PaymentCycleEmailHandler {
     public PaymentCycleEmailHandler(@Value(&quot;${payment-cycle.number-of-calculation-periods}&quot;) Integer numberOfCalculationPeriods,
                                     MessageQueueClient messageQueueClient,
                                     ChildDateOfBirthCalculator childDateOfBirthCalculator,
-<span class="fc" id="L43">                                    PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {</span>
-<span class="fc" id="L44">        this.numberOfCalculationPeriods = numberOfCalculationPeriods;</span>
-<span class="fc" id="L45">        this.messageQueueClient = messageQueueClient;</span>
-<span class="fc" id="L46">        this.childDateOfBirthCalculator = childDateOfBirthCalculator;</span>
-<span class="fc" id="L47">        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L44">                                    PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {</span>
+<span class="fc" id="L45">        this.numberOfCalculationPeriods = numberOfCalculationPeriods;</span>
+<span class="fc" id="L46">        this.messageQueueClient = messageQueueClient;</span>
+<span class="fc" id="L47">        this.childDateOfBirthCalculator = childDateOfBirthCalculator;</span>
+<span class="fc" id="L48">        this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;</span>
+<span class="fc" id="L49">    }</span>
 
     public void handleAdditionalEmails(PaymentCycle paymentCycle) {
-<span class="fc" id="L51">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
-<span class="fc" id="L53">            sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+<span class="fc" id="L52">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
+<span class="fc" id="L54">            sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
         }
-        //TODO MRS 25/09/2019: For child turns 1 story, add this next section and build the sendChildTurnsOneEmail() based on the child turns 4 method.
-        // Key thing here is that child under 1 vouchers will turn into child between 1 and 4 vouchers in the assertions.
-        //        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-        //            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
-        //        }
+
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {</span>
+<span class="fc" id="L58">            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);</span>
+        }
 <span class="fc" id="L60">    }</span>
 
     private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
 <span class="fc" id="L63">        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);</span>
 <span class="fc" id="L64">        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();</span>
-<span class="fc" id="L65">        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(</span>
-                paymentCycle,
-                entitlement,
-                multipleChildrenTurningFourInNextMonth);
-<span class="fc" id="L69">        log.info(&quot;Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]&quot;, paymentCycle.getId());</span>
-<span class="fc" id="L70">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L71">    }</span>
+<span class="fc" id="L65">        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningFourInNextMonth);</span>
+<span class="fc" id="L66">        log.info(&quot;Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]&quot;, paymentCycle.getId());</span>
+<span class="fc" id="L67">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L68">    }</span>
+
+    private void sendChildTurnsOneEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+<span class="fc" id="L71">        PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);</span>
+<span class="fc" id="L72">        boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();</span>
+<span class="fc" id="L73">        EmailMessagePayload messagePayload = buildChildTurnsOneNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningOneInNextMonth);</span>
+<span class="fc" id="L74">        log.info(&quot;Sending email for child turns 1 for Payment Cycle after cycle with id: [{}]&quot;, paymentCycle.getId());</span>
+<span class="fc" id="L75">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L76">    }</span>
 
     private EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
                                                                             PaymentCycleVoucherEntitlement entitlementNextMonth,
                                                                             boolean multipleChildrenTurningFourInMonth) {
-<span class="fc" id="L76">        Map&lt;String, Object&gt; emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);</span>
-<span class="fc" id="L77">        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);</span>
-<span class="fc" id="L78">        return EmailMessagePayload.builder()</span>
-<span class="fc" id="L79">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L80">                .emailType(EmailType.CHILD_TURNS_FOUR)</span>
-<span class="fc" id="L81">                .emailPersonalisation(emailPersonalisation)</span>
-<span class="fc" id="L82">                .build();</span>
+<span class="fc" id="L81">        Map&lt;String, Object&gt; emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);</span>
+<span class="fc" id="L82">        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);</span>
+<span class="fc" id="L83">        return EmailMessagePayload.builder()</span>
+<span class="fc" id="L84">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L85">                .emailType(EmailType.CHILD_TURNS_FOUR)</span>
+<span class="fc" id="L86">                .emailPersonalisation(emailPersonalisation)</span>
+<span class="fc" id="L87">                .build();</span>
+    }
+
+    private EmailMessagePayload buildChildTurnsOneNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                           PaymentCycleVoucherEntitlement entitlementNextMonth,
+                                                                           boolean multipleChildrenTurningOneInMonth) {
+<span class="fc" id="L93">        Map&lt;String, Object&gt; emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);</span>
+<span class="fc" id="L94">        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningOneInMonth);</span>
+<span class="fc" id="L95">        return EmailMessagePayload.builder()</span>
+<span class="fc" id="L96">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L97">                .emailType(EmailType.CHILD_TURNS_ONE)</span>
+<span class="fc" id="L98">                .emailPersonalisation(emailPersonalisation)</span>
+<span class="fc" id="L99">                .build();</span>
     }
 
     private Map&lt;String, Object&gt; createEmailPersonalisationMapForNextCycle(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L86">        Claimant claimant = paymentCycle.getClaim().getClaimant();</span>
-<span class="fc" id="L87">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L88">        emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
-<span class="fc" id="L89">        emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
-<span class="fc" id="L90">        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence()));</span>
-<span class="fc" id="L91">        emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummaryForNextCycle(voucherEntitlement));</span>
-<span class="fc" id="L92">        emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummaryForNextCycle(voucherEntitlement));</span>
-<span class="fc" id="L93">        emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummaryForNextCycle(voucherEntitlement));</span>
-<span class="fc" id="L94">        emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmountForNextCycle(voucherEntitlement));</span>
-<span class="fc" id="L95">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);</span>
-<span class="fc" id="L96">        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
-<span class="fc" id="L97">        return emailPersonalisation;</span>
+<span class="fc" id="L103">        Claimant claimant = paymentCycle.getClaim().getClaimant();</span>
+<span class="fc" id="L104">        Map&lt;String, Object&gt; emailPersonalisation = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L105">        emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());</span>
+<span class="fc" id="L106">        emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());</span>
+<span class="fc" id="L107">        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence()));</span>
+<span class="fc" id="L108">        emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummaryForNextCycle(voucherEntitlement));</span>
+<span class="fc" id="L109">        emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummaryForNextCycle(voucherEntitlement));</span>
+<span class="fc" id="L110">        emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummaryForNextCycle(voucherEntitlement));</span>
+<span class="fc" id="L111">        emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmountForNextCycle(voucherEntitlement));</span>
+<span class="fc" id="L112">        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);</span>
+<span class="fc" id="L113">        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);</span>
+<span class="fc" id="L114">        return emailPersonalisation;</span>
     }
 
     private String getRegularPaymentAmountForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L101">        int totalVouchersForRegularPayment = voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfCalculationPeriods;</span>
-<span class="fc" id="L102">        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());</span>
+<span class="fc" id="L118">        int totalVouchersForRegularPayment = voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfCalculationPeriods;</span>
+<span class="fc" id="L119">        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
     private String buildUnder4PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L106">        int totalVouchersForChildrenBetweenOneAndFour = getVouchersForBetweenOneAndFourForFinalWeek(voucherEntitlement) * numberOfCalculationPeriods;</span>
-<span class="fc" id="L107">        return formatPaymentAmountSummary(</span>
-                &quot;\n* %s for children between 1 and 4&quot;,
-                totalVouchersForChildrenBetweenOneAndFour,
-<span class="fc" id="L110">                voucherEntitlement.getSingleVoucherValueInPence());</span>
-    }
-
-    private int getVouchersForBetweenOneAndFourForFinalWeek(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L114">        return voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenBetweenOneAndFour();</span>
-    }
-
-    private String buildPregnancyPaymentAmountSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L118">        return formatPaymentAmountSummary(</span>
-                &quot;\n* %s for a pregnancy&quot;,
-<span class="fc" id="L120">                voucherEntitlement.getVouchersForPregnancy(),</span>
-<span class="fc" id="L121">                voucherEntitlement.getSingleVoucherValueInPence());</span>
-    }
-
-    private String buildUnder1PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc" id="L123">        int vouchersForBetweenOneAndFourForFinalWeek = voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenBetweenOneAndFour();</span>
+<span class="fc" id="L124">        int totalVouchersForChildrenUnderOne = vouchersForBetweenOneAndFourForFinalWeek * numberOfCalculationPeriods;</span>
 <span class="fc" id="L125">        return formatPaymentAmountSummary(</span>
-                &quot;\n* %s for children under 1&quot;,
-<span class="fc" id="L127">                voucherEntitlement.getVouchersForChildrenUnderOne(),</span>
+                &quot;\n* %s for children between 1 and 4&quot;,
+                totalVouchersForChildrenUnderOne,
 <span class="fc" id="L128">                voucherEntitlement.getSingleVoucherValueInPence());</span>
     }
 
+    private String buildUnder1PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc" id="L132">        int vouchersForUnderOneForFinalWeek = voucherEntitlement.getLastVoucherEntitlementForCycle().getVouchersForChildrenUnderOne();</span>
+<span class="fc" id="L133">        int totalVouchersForChildrenUnderOne = vouchersForUnderOneForFinalWeek * numberOfCalculationPeriods;</span>
+<span class="fc" id="L134">        return formatPaymentAmountSummary(</span>
+                &quot;\n* %s for children under 1&quot;,
+                totalVouchersForChildrenUnderOne,
+<span class="fc" id="L137">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+    }
+
+    private String buildPregnancyPaymentAmountSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
+<span class="fc" id="L141">        return formatPaymentAmountSummary(</span>
+                &quot;\n* %s for a pregnancy&quot;,
+<span class="fc" id="L143">                voucherEntitlement.getVouchersForPregnancy(),</span>
+<span class="fc" id="L144">                voucherEntitlement.getSingleVoucherValueInPence());</span>
+    }
+
     private String formatRegularPaymentAmount(int numberOfVouchers, int voucherAmountInPence) {
-<span class="pc bpc" id="L132" title="1 of 2 branches missed.">        if (numberOfVouchers == 0) {</span>
-<span class="nc" id="L133">            return &quot;&quot;;</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">        if (numberOfVouchers == 0) {</span>
+<span class="nc" id="L149">            return &quot;&quot;;</span>
         }
-<span class="fc" id="L135">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
-<span class="fc" id="L136">        return convertPenceToPounds(totalAmount);</span>
+<span class="fc" id="L151">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
+<span class="fc" id="L152">        return convertPenceToPounds(totalAmount);</span>
     }
 
     private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
-<span class="fc" id="L140">        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);</span>
-<span class="fc" id="L141">        return paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L142">                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),</span>
-<span class="fc" id="L143">                currentPaymentCycle.getChildrenDob(),</span>
+<span class="fc" id="L156">        LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);</span>
+<span class="fc" id="L157">        return paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L158">                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),</span>
+<span class="fc" id="L159">                currentPaymentCycle.getChildrenDob(),</span>
                 nextCycleStartDate,
-<span class="fc" id="L145">                currentPaymentCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L161">                currentPaymentCycle.getVoucherEntitlement());</span>
     }
 
 }
