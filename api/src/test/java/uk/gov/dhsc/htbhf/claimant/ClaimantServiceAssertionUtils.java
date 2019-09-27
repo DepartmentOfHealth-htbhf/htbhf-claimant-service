@@ -42,7 +42,7 @@ public class ClaimantServiceAssertionUtils {
     }
 
     public static String formatVoucherAmount(int voucherCount) {
-        return CURRENCY_FORMAT.get().format(new BigDecimal(voucherCount * VOUCHER_VALUE_IN_PENCE).divide(ONE_HUNDRED));
+        return (voucherCount == 0) ? "" : CURRENCY_FORMAT.get().format(new BigDecimal(voucherCount * VOUCHER_VALUE_IN_PENCE).divide(ONE_HUNDRED));
     }
 
     private static void assertAddressEqual(Address actual, AddressDTO expected) {

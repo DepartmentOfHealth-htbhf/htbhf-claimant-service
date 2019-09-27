@@ -86,7 +86,8 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         List<LocalDate> childrenDob = claimant.getChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
-        wiremockManager.stubNewCardAndDepositResponses(claimant, cardAccountId);
+        wiremockManager.stubSuccessfulNewCardResponse(claimant, cardAccountId);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
@@ -105,7 +106,8 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
         assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
-        wiremockManager.assertThatNewCardAndDepositFundsInvokedForClaim(claim, payment);
+        wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
     }
 
     private void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {

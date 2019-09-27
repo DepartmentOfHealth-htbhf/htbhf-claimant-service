@@ -79,7 +79,8 @@ public class PaymentCycleIntegrationTests {
         int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
-        wiremockManager.stubCardBalanceAndDepositResponses(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
         Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, LocalDate.now().plusMonths(4));
@@ -94,7 +95,8 @@ public class PaymentCycleIntegrationTests {
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceAndDepositFundsInvokedForPayment(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle);

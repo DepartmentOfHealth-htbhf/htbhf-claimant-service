@@ -6,12 +6,11 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 
@@ -50,52 +49,37 @@ public class WiremockManager {
         eligibilityServiceMock.stubFor(post(urlEqualTo("/v1/eligibility")).willReturn(jsonResponse(eligibilityResponse)));
     }
 
-    public void stubCardBalanceAndDepositResponses(String cardAccountId, int cardBalanceInPenceBeforeDeposit) throws JsonProcessingException {
+    public void stubSuccessfulDepositResponse(String cardAccountId) throws JsonProcessingException {
+        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit"))
+                .willReturn(jsonResponse(aValidDepositFundsResponse())));
+    }
+
+    public void stubSuccessfulCardBalanceResponse(String cardAccountId, int cardBalanceInPenceBeforeDeposit) throws JsonProcessingException {
         cardServiceMock.stubFor(get(urlEqualTo("/v1/cards/" + cardAccountId + "/balance"))
                 .willReturn(jsonResponse(aValidCardBalanceResponse(cardBalanceInPenceBeforeDeposit))));
-        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit"))
-                .willReturn(jsonResponse(aValidDepositFundsResponse())));
     }
 
-    public void stubNewCardAndDepositResponses(ClaimantDTO claimant, String cardAccountId) throws JsonProcessingException {
-        CardRequest expectedRequest = expectedCardRequest(claimant);
+    public void stubSuccessfulNewCardResponse(ClaimantDTO claimant, String cardAccountId) throws JsonProcessingException {
         cardServiceMock.stubFor(post(urlEqualTo("/v1/cards"))
-                .withRequestBody(equalToJson(objectMapper.writeValueAsString(expectedRequest), true, true))
-                .willReturn(jsonResponse(aCardResponse(cardAccountId))));
-        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit"))
-                .willReturn(jsonResponse(aValidDepositFundsResponse())));
+                .willReturn(aResponse().withStatus(HttpStatus.CREATED.value())
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(objectMapper.writeValueAsString(aCardResponse(cardAccountId)))
+                ));
     }
 
-    public void assertThatGetBalanceAndDepositFundsInvokedForPayment(Payment payment) throws JsonProcessingException {
+    public void assertThatGetBalanceRequestMadeForClaim(Payment payment) {
         cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/balance")));
-        StringValuePattern expectedBody = expectedDepositRequestBody(payment);
-        cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/deposit")).withRequestBody(expectedBody));
     }
 
-    public void assertThatNewCardAndDepositFundsInvokedForClaim(Claim claim, Payment payment) throws JsonProcessingException {
-        StringValuePattern expectedCardRequestBody = equalToJson(objectMapper.writeValueAsString(aCardRequest(claim)));
-        cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards")).withRequestBody(expectedCardRequestBody));
+    public void assertThatDepositFundsRequestMadeForClaim(Payment payment) throws JsonProcessingException {
         StringValuePattern expectedDepositBody = expectedDepositRequestBody(payment);
         cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/deposit"))
                 .withRequestBody(expectedDepositBody));
     }
 
-    private CardRequest expectedCardRequest(ClaimantDTO claimant) {
-        AddressDTO address = claimant.getAddress();
-        return CardRequest.builder()
-                .address(AddressDTO.builder()
-                        .addressLine1(address.getAddressLine1())
-                        .addressLine2(address.getAddressLine2())
-                        .townOrCity(address.getTownOrCity())
-                        .postcode(address.getPostcode())
-                        .county(address.getCounty())
-                        .build())
-                .dateOfBirth(claimant.getDateOfBirth())
-                .firstName(claimant.getFirstName())
-                .lastName(claimant.getLastName())
-                .email(claimant.getEmailAddress())
-                .mobile(claimant.getPhoneNumber())
-                .build();
+    public void assertThatNewCardRequestMadeForClaim(Claim claim) throws JsonProcessingException {
+        StringValuePattern expectedCardRequestBody = equalToJson(objectMapper.writeValueAsString(aCardRequest(claim)));
+        cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards")).withRequestBody(expectedCardRequestBody));
     }
 
     private StringValuePattern expectedDepositRequestBody(Payment payment) throws JsonProcessingException {
