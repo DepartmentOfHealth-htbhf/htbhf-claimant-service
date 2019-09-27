@@ -87,6 +87,13 @@ public class WiremockManager {
                 ));
     }
 
+    public void stubErrorNewCardResponse() throws JsonProcessingException {
+        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .withBody("Something went badly wrong")));
+    }
+
     public void assertThatGetBalanceRequestMadeForClaim(Payment payment) {
         cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/balance")));
     }
