@@ -29,21 +29,16 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
         );
     }
 
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlement(LocalDate startDate, List<LocalDate> childrensDob) {
+        return aPaymentCycleVoucherEntitlement(startDate, childrensDob, null);
+    }
+
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlement(LocalDate startDate, List<LocalDate> childrensDob, LocalDate dueDate) {
         return buildPaymentCycleVoucherEntitlement(
                 aVoucherEntitlement(startDate, childrensDob, dueDate),
                 aVoucherEntitlement(startDate.plusWeeks(1), childrensDob, dueDate),
                 aVoucherEntitlement(startDate.plusWeeks(2), childrensDob, dueDate),
                 aVoucherEntitlement(startDate.plusWeeks(3), childrensDob, dueDate)
-        );
-    }
-
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithVouchersForUnderOne(LocalDate startDate) {
-        return buildPaymentCycleVoucherEntitlement(
-                aVoucherEntitlementWithVouchersForUnderOne(startDate),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(1)),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(2)),
-                aVoucherEntitlementWithVouchersForUnderOne(startDate.plusWeeks(3))
         );
     }
 
