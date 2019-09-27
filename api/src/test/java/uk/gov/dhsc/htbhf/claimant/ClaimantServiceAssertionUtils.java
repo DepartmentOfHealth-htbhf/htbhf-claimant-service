@@ -4,8 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
-import uk.gov.dhsc.htbhf.claimant.entity.Address;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
@@ -13,8 +12,10 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 public class ClaimantServiceAssertionUtils {
@@ -43,6 +44,16 @@ public class ClaimantServiceAssertionUtils {
 
     public static String formatVoucherAmount(int voucherCount) {
         return (voucherCount == 0) ? "" : CURRENCY_FORMAT.get().format(new BigDecimal(voucherCount * VOUCHER_VALUE_IN_PENCE).divide(ONE_HUNDRED));
+    }
+
+    public static List<Payment> getPaymentsWithStatus(PaymentCycle paymentCycle, PaymentStatus status) {
+        return paymentCycle.getPayments().stream().filter(p -> p.getPaymentStatus() == status).collect(Collectors.toList());
+    }
+
+    public static void assertThatPaymentCycleHasFailedPayments(PaymentCycle paymentCycle, int expectedFailureCount) {
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
+        assertThat(failedPayments).hasSize(expectedFailureCount);
     }
 
     private static void assertAddressEqual(Address actual, AddressDTO expected) {

@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +36,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
@@ -145,7 +146,7 @@ public class PaymentCycleIntegrationTests {
         List<LocalDate> sixMonthOldAndThreeYearOld = Arrays.asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
         int cardBalanceInPenceBeforeDeposit = 88;
 
-        // all external endpoint will cause an error
+        // all external endpoints will cause an error
         wiremockManager.stubErrorEligibilityResponse();
         wiremockManager.stubErrorCardBalanceResponse(cardAccountId);
         wiremockManager.stubErrorDepositResponse(cardAccountId);
@@ -170,7 +171,7 @@ public class PaymentCycleIntegrationTests {
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
                 aPaymentCycleVoucherEntitlement(LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
-        assertPaymentCycleHasFailedPayments(newCycle, 2);
+        assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
@@ -215,16 +216,6 @@ public class PaymentCycleIntegrationTests {
         verify(notificationClient).sendEmail(
                 eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
         assertChildTurnsOneEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
-    }
-
-    private List<Payment> getPaymentsWithStatus(PaymentCycle paymentCycle, PaymentStatus success) {
-        return paymentCycle.getPayments().stream().filter(p -> p.getPaymentStatus() == success).collect(Collectors.toList());
-    }
-
-    private void assertPaymentCycleHasFailedPayments(PaymentCycle paymentCycle, int expectedFailureCount) {
-        assertThat(paymentCycle.getPayments()).isNotEmpty();
-        List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
-        assertThat(failedPayments).hasSize(expectedFailureCount);
     }
 
     private void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
