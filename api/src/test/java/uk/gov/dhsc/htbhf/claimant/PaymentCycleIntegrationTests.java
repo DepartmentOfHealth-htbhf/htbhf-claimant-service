@@ -21,12 +21,11 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +36,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
@@ -84,7 +85,7 @@ public class PaymentCycleIntegrationTests {
     void shouldCreatePaymentCycleMakePaymentAndSendEmail() throws JsonProcessingException, NotificationClientException {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
-        List<LocalDate> sixMonthOldAndThreeYearOld = Arrays.asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
+        List<LocalDate> sixMonthOldAndThreeYearOld = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
         int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
@@ -144,7 +145,7 @@ public class PaymentCycleIntegrationTests {
     void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
-        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
+        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD);
         int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
@@ -172,10 +173,10 @@ public class PaymentCycleIntegrationTests {
     @SuppressWarnings("VariableDeclarationUsageDistance")
     void shouldRecoverFromErrorsToMakePaymentAndSendEmail() throws JsonProcessingException, NotificationClientException {
         String cardAccountId = UUID.randomUUID().toString();
-        List<LocalDate> sixMonthOldAndThreeYearOld = Arrays.asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
+        List<LocalDate> sixMonthOldAndThreeYearOld = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
         int cardBalanceInPenceBeforeDeposit = 88;
 
-        // all external endpoint will cause an error
+        // all external endpoints will cause an error
         wiremockManager.stubErrorEligibilityResponse();
         wiremockManager.stubErrorCardBalanceResponse(cardAccountId);
         wiremockManager.stubErrorDepositResponse(cardAccountId);
@@ -200,7 +201,7 @@ public class PaymentCycleIntegrationTests {
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
                 aPaymentCycleVoucherEntitlement(LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
-        assertPaymentCycleHasFailedPayments(newCycle, 2);
+        assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
@@ -254,16 +255,6 @@ public class PaymentCycleIntegrationTests {
         assertChildTurnsFourEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
-    private List<Payment> getPaymentsWithStatus(PaymentCycle paymentCycle, PaymentStatus success) {
-        return paymentCycle.getPayments().stream().filter(p -> p.getPaymentStatus() == success).collect(Collectors.toList());
-    }
-
-    private void assertPaymentCycleHasFailedPayments(PaymentCycle paymentCycle, int expectedFailureCount) {
-        assertThat(paymentCycle.getPayments()).isNotEmpty();
-        List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
-        assertThat(failedPayments).hasSize(expectedFailureCount);
-    }
-
     private void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
@@ -290,11 +281,11 @@ public class PaymentCycleIntegrationTests {
         assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // no children under one
         assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(0)); // child is turning four so will be off the scheme
+                .contains(formatVoucherAmount(4)); // only one child will be under four
         assertThat(childTurnsOnePersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
-                .isEqualTo(formatVoucherAmount(1)); // one voucher in first week only
+                .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
         assertThat(childTurnsOnePersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(0)); // child has turned four, so no vouchers going forward
+                .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
 
     private void assertPaymentEmailPersonalisationMap(PaymentCycle newCycle, Map personalisationMap) {
