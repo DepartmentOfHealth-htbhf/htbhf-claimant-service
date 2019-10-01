@@ -9,6 +9,7 @@ public enum EmailType {
     PAYMENT("9a61639f-8330-498a-8c53-31809b3837c1"),
     CHILD_TURNS_FOUR("7060a1ac-32cd-4227-8217-394c73bb712c"),
     CHILD_TURNS_ONE("a1a46ff3-3371-449e-bad6-571ab4e20286"),
+    NEW_CHILD_FROM_PREGNANCY("8d160350-ebdc-4315-a2cf-3b5f5eccb875"),
     CLAIM_NO_LONGER_ELIGIBLE("2c69f4ae-3f42-4e71-b305-247c23affb44");
 
     private String templateId;

@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.message.processor;
+package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
