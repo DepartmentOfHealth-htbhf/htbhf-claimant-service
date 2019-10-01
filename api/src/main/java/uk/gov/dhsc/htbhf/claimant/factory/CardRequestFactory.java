@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.converter.AddressToAddressDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 
@@ -19,12 +20,15 @@ public class CardRequestFactory {
 
     public CardRequest createCardRequest(Claim claim) {
         Assert.notNull(claim, "Claim must not be null");
-        AddressDTO address = addressConverter.convert(claim.getClaimant().getAddress());
+        Claimant claimant = claim.getClaimant();
+        AddressDTO address = addressConverter.convert(claimant.getAddress());
         return CardRequest.builder()
                 .address(address)
-                .firstName(claim.getClaimant().getFirstName())
-                .lastName(claim.getClaimant().getLastName())
-                .dateOfBirth(claim.getClaimant().getDateOfBirth())
+                .firstName(claimant.getFirstName())
+                .lastName(claimant.getLastName())
+                .dateOfBirth(claimant.getDateOfBirth())
+                .email(claimant.getEmailAddress())
+                .mobile(claimant.getPhoneNumber())
                 .claimId(claim.getId().toString())
                 .build();
 

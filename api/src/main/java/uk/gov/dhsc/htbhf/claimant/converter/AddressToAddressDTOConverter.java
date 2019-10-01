@@ -18,6 +18,7 @@ public class AddressToAddressDTOConverter {
                 .addressLine2(source.getAddressLine2())
                 .townOrCity(source.getTownOrCity())
                 .postcode(source.getPostcode())
+                .county(source.getCounty())
                 .build();
 
     }
