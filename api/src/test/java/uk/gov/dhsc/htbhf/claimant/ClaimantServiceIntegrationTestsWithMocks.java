@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -74,7 +73,6 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         wiremockManager.stopWireMock();
     }
 
-    @Disabled // TODO: HTBHF-2342 this test fails! the new card request is not correct
     @Test
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
         ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
@@ -106,7 +104,6 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
     }
 
-    @Disabled // TODO: HTBHF-2342 this test fails! the new card request is not correct
     @Test
     @SuppressWarnings("VariableDeclarationUsageDistance")
     void shouldRecoverFromErrorsToHandleSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
@@ -119,7 +116,7 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         // all external endpoints not invoked synchronously will cause an error
         wiremockManager.stubErrorNewCardResponse();
         wiremockManager.stubErrorDepositResponse(cardAccountId);
-        stubNotificationEmailResponse();
+        stubNotificationEmailError();
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
 

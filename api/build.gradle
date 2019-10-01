@@ -5,7 +5,7 @@ buildscript {
         hikariCPVersion = '3.3.1'
         flywayVersion = '5.2.4'
         postgresJdbcVersion = '42.2.5'
-        jacksonDatabindVersion = '2.9.9.1'
+        jacksonDatabindVersion = '2.9.9.3'
         jacksonDataformatVersion = '2.9.9'
     }
     repositories {
@@ -18,7 +18,7 @@ buildscript {
 }
 
 plugins {
-    id "org.springframework.boot" version "2.1.6.RELEASE"
+    id "org.springframework.boot" version "2.1.8.RELEASE"
     id 'io.franzbecker.gradle-lombok' version '1.14'
     id "org.owasp.dependencycheck" version "4.0.0.1"
     id "com.github.spotbugs" version "2.0.0"
@@ -43,6 +43,7 @@ group = 'uk.gov.dhsc.htbhf'
 sourceCompatibility = 1.11
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url  "https://dl.bintray.com/departmentofhealth-htbhf/maven"
