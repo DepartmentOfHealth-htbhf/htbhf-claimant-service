@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.converter.AddressToAddressDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 
@@ -18,15 +19,18 @@ public class CardRequestFactory {
     private AddressToAddressDTOConverter addressConverter;
 
     public CardRequest createCardRequest(Claim claim) {
-<span class="fc" id="L21">        Assert.notNull(claim, &quot;Claim must not be null&quot;);</span>
-<span class="fc" id="L22">        AddressDTO address = addressConverter.convert(claim.getClaimant().getAddress());</span>
-<span class="fc" id="L23">        return CardRequest.builder()</span>
-<span class="fc" id="L24">                .address(address)</span>
-<span class="fc" id="L25">                .firstName(claim.getClaimant().getFirstName())</span>
-<span class="fc" id="L26">                .lastName(claim.getClaimant().getLastName())</span>
-<span class="fc" id="L27">                .dateOfBirth(claim.getClaimant().getDateOfBirth())</span>
-<span class="fc" id="L28">                .claimId(claim.getId().toString())</span>
-<span class="fc" id="L29">                .build();</span>
+<span class="fc" id="L22">        Assert.notNull(claim, &quot;Claim must not be null&quot;);</span>
+<span class="fc" id="L23">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L24">        AddressDTO address = addressConverter.convert(claimant.getAddress());</span>
+<span class="fc" id="L25">        return CardRequest.builder()</span>
+<span class="fc" id="L26">                .address(address)</span>
+<span class="fc" id="L27">                .firstName(claimant.getFirstName())</span>
+<span class="fc" id="L28">                .lastName(claimant.getLastName())</span>
+<span class="fc" id="L29">                .dateOfBirth(claimant.getDateOfBirth())</span>
+<span class="fc" id="L30">                .email(claimant.getEmailAddress())</span>
+<span class="fc" id="L31">                .mobile(claimant.getPhoneNumber())</span>
+<span class="fc" id="L32">                .claimId(claim.getId().toString())</span>
+<span class="fc" id="L33">                .build();</span>
 
     }
 }
