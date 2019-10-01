@@ -46,7 +46,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
-public class ClaimantServiceIntegrationTestsWithMocks {
+public class ClaimantServiceIntegrationTestsWithScheduledServices {
 
     @MockBean
     private NotificationClient notificationClient;
