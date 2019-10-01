@@ -1,6 +1,6 @@
 # Claimant creator
 
-The application is a utility for loading the claimant and DWP database with data to be used for manual testing.
+The application is a utility for seeding the claimant and DWP database with data to be used for manual testing.
 
 Information about a claimant will be read from claimant.yml (in [src/main/resources](src/main/resources)). There is an example claimant in [claimant-example.yml](src/main/resources/claimant-example.yml)
 
