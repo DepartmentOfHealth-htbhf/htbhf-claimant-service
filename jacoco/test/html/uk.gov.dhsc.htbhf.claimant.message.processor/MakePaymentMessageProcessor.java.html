@@ -3,6 +3,7 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.communications.UpcomingBirthdayEmailHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -26,37 +27,37 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L29">@Slf4j</span>
+<span class="fc" id="L30">@Slf4j</span>
 public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
     private MessageContextLoader messageContextLoader;
     private MessageQueueClient messageQueueClient;
-    private PaymentCycleEmailHandler paymentCycleEmailHandler;
+    private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L40">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L41">        PaymentCycle paymentCycle = messageContext.getPaymentCycle();</span>
-<span class="fc" id="L42">        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());</span>
-<span class="fc" id="L43">        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);</span>
-<span class="fc" id="L44">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L45">        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);</span>
-<span class="fc" id="L46">        return COMPLETED;</span>
+<span class="fc" id="L41">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L42">        PaymentCycle paymentCycle = messageContext.getPaymentCycle();</span>
+<span class="fc" id="L43">        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());</span>
+<span class="fc" id="L44">        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);</span>
+<span class="fc" id="L45">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L46">        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);</span>
+<span class="fc" id="L47">        return COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L51">        return MAKE_PAYMENT;</span>
+<span class="fc" id="L52">        return MAKE_PAYMENT;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void processFailedMessage(Message message, FailureEvent failureEvent) {
-<span class="fc" id="L57">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L58">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L58">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L59">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
+<span class="fc" id="L60">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
