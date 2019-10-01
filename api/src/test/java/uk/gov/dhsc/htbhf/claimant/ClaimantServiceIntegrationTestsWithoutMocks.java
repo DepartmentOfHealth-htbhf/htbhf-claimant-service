@@ -89,6 +89,15 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
     }
 
     @Test
+    void shouldIgnoreUnknownFieldsInValidClaimRequest() throws JsonProcessingException {
+        ClaimDTO claim = aValidClaimDTOWithNoNullFields();
+        String webUiVersionProperty = "\"" + claim.getWebUIVersion() + "\",";
+        String json = objectMapper.writeValueAsString(claim)
+                .replace(webUiVersionProperty, webUiVersionProperty + " \"foo\":\"bar\",");
+        shouldAcceptAndCreateValidClaimFromJson(json);
+    }
+
+    @Test
     void shouldAcceptAndCreateANewValidClaimWithNullFields() throws JsonProcessingException {
         shouldAcceptAndCreateValidClaim(aValidClaimDTO());
     }
@@ -124,21 +133,6 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         assertThat(response.getBody().getUpdatedFields()).contains(EXPECTED_DELIVERY_DATE.getFieldName());
         assertClaimUpdatedSuccessfully(expectedDeliveryDate);
         verifyPostToEligibilityService();
-    }
-
-    private void shouldAcceptAndCreateValidClaim(ClaimDTO claim) throws JsonProcessingException {
-        //Given
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
-        //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
-        //Then
-        assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
-        assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
-        assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
     }
 
     @Test
@@ -269,6 +263,34 @@ class ClaimantServiceIntegrationTestsWithoutMocks {
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
+    private void shouldAcceptAndCreateValidClaim(ClaimDTO claim) throws JsonProcessingException {
+        //Given
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        //Then
+        assertThatClaimResultHasNewClaim(response);
+        assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
+    }
+
+    private void shouldAcceptAndCreateValidClaimFromJson(String claimJson) throws JsonProcessingException {
+        //Given
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimJson), ClaimResultDTO.class);
+        //Then
+        assertThatClaimResultHasNewClaim(response);
+    }
+
+    private void assertThatClaimResultHasNewClaim(ResponseEntity<ClaimResultDTO> response) {
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
+        assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
+    }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
                                                   EligibilityStatus eligibilityStatus,
