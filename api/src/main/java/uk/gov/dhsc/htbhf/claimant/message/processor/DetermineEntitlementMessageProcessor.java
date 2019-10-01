@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.communications.ClaimEmailManager;
+import uk.gov.dhsc.htbhf.claimant.communications.ClaimEmailHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.*;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
@@ -36,7 +36,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageQueueClient messageQueueClient;
 
-    private ClaimEmailManager claimEmailManager;
+    private ClaimEmailHandler claimEmailHandler;
 
     @Override
     public MessageType supportsMessageType() {
@@ -83,7 +83,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         Claim claim = currentPaymentCycle.getClaim();
         claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
         claimRepository.save(claim);
-        claimEmailManager.sendClaimNoLongerEligibleEmail(claim);
+        claimEmailHandler.sendClaimNoLongerEligibleEmail(claim);
     }
 
 }
