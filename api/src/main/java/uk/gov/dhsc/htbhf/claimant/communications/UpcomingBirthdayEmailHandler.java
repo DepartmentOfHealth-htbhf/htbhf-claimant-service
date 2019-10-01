@@ -31,7 +31,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 @Component
 @Slf4j
 @SuppressWarnings("PMD.TooManyMethods")
-public class PaymentCycleEmailHandler {
+public class UpcomingBirthdayEmailHandler {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
@@ -40,17 +40,17 @@ public class PaymentCycleEmailHandler {
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
-    public PaymentCycleEmailHandler(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
-                                    MessageQueueClient messageQueueClient,
-                                    ChildDateOfBirthCalculator childDateOfBirthCalculator,
-                                    PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
+    public UpcomingBirthdayEmailHandler(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
+                                        MessageQueueClient messageQueueClient,
+                                        ChildDateOfBirthCalculator childDateOfBirthCalculator,
+                                        PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
         this.messageQueueClient = messageQueueClient;
         this.childDateOfBirthCalculator = childDateOfBirthCalculator;
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
     }
 
-    public void handleAdditionalEmails(PaymentCycle paymentCycle) {
+    public void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
         NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
             sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
