@@ -6,7 +6,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleEmailHandler;
+import uk.gov.dhsc.htbhf.claimant.communications.UpcomingBirthdayEmailHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -44,7 +44,7 @@ class MakePaymentMessageProcessorTest {
     @Mock
     private MessageQueueClient messageQueueClient;
     @Mock
-    private PaymentCycleEmailHandler paymentCycleEmailHandler;
+    private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     @InjectMocks
     MakePaymentMessageProcessor processor;
@@ -63,7 +63,7 @@ class MakePaymentMessageProcessorTest {
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
         verifyPaymentEmailNotificationSent(paymentCycle, claim);
-        verify(paymentCycleEmailHandler).handleAdditionalEmails(paymentCycle);
+        verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
     }
 
     @Test
@@ -79,7 +79,7 @@ class MakePaymentMessageProcessorTest {
 
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).saveFailedPayment(paymentCycle, claim.getCardAccountId(), failureEvent);
-        verifyZeroInteractions(paymentCycleEmailHandler);
+        verifyZeroInteractions(upcomingBirthdayEmailHandler);
     }
 
     private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, Claim claim) {
