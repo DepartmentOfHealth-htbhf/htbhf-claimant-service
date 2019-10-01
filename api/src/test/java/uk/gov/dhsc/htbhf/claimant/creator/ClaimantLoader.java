@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.creator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -9,7 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.AddressDTOToAddressConverter;
 import uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.uc.UCAdult;
 import uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.uc.UCChild;
 import uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.uc.UCHousehold;
-import uk.gov.dhsc.htbhf.claimant.creator.dwp.respository.UCHouseholdRepository;
+import uk.gov.dhsc.htbhf.claimant.creator.dwp.repository.UCHouseholdRepository;
 import uk.gov.dhsc.htbhf.claimant.creator.model.AgeAt;
 import uk.gov.dhsc.htbhf.claimant.creator.model.ChildAgeInfo;
 import uk.gov.dhsc.htbhf.claimant.creator.model.ClaimantInfo;
@@ -37,6 +38,7 @@ import static java.util.Collections.nCopies;
  */
 @Component
 @AllArgsConstructor
+@Slf4j
 @Profile("test-claimant-creator")
 public class ClaimantLoader {
 
@@ -48,7 +50,8 @@ public class ClaimantLoader {
 
     @PostConstruct
     public void loadClaimantIntoDatabase() throws IOException {
-        ClaimantInfo claimantInfo = objectMapper.readValue(new ClassPathResource("claimant-creator/claimant.yml").getFile(), ClaimantInfo.class);
+        ClaimantInfo claimantInfo = objectMapper.readValue(new ClassPathResource("test-claimant-creator/claimant.yml").getFile(), ClaimantInfo.class);
+        log.info("Saving claim {}", claimantInfo);
         String dwpHouseholdIdentifier = createDWPHousehold(claimantInfo);
         Claim claim = createActiveClaim(claimantInfo, dwpHouseholdIdentifier);
         createPaymentCycleEndingYesterday(claim);

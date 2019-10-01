@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.creator.dwp.respository;
+package uk.gov.dhsc.htbhf.claimant.creator.dwp.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

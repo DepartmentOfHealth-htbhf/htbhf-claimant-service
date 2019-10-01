@@ -24,3 +24,6 @@ In order to run the application locally, a valid notify api key will need to be 
 Note, you must set the environment variable in the same context you are running the application in. 
 
 If you are  running the application in intellij, environment variables can be set via [run/debug configurations](https://www.jetbrains.com/help/idea/creating-and-editing-run-debug-configurations.html).
+
+### Create claims for local testing
+There is a test utility for creating claims in a locally running persisted database. See the test-claimant-creator [README](api/src/test/java/uk/gov/dhsc/htbhf/claimant/creator/README.md) for details on how to run it. 
