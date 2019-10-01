@@ -22,6 +22,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.util.UUID;
 import javax.transaction.Transactional;
@@ -234,10 +235,11 @@ class PaymentServiceTest {
                 .paymentId(UUID.randomUUID())
                 .reference(paymentReference)
                 .build();
+        FailureEvent failureEvent = aFailureEventWithEvent(event);
 
-        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, aFailureEventWithEvent(event));
+        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
-        verifyFailedPaymentSavedWithAllData(paymentCycle, amountToPay, paymentReference);
+        verifyFailedPaymentSavedWithAllData(paymentCycle, amountToPay, paymentReference, failureEvent);
     }
 
     @Test
@@ -246,14 +248,15 @@ class PaymentServiceTest {
         MakePaymentEvent event = MakePaymentEvent.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
-                .paymentAmountInPence(100)
+                .paymentAmountInPence(null)
                 .paymentId(null)
                 .reference(null)
                 .build();
+        FailureEvent failureEvent = aFailureEventWithEvent(event);
 
-        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, aFailureEventWithEvent(event));
+        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
-        verifyFailedPaymentSavedWithNoReference(paymentCycle);
+        verifyFailedPaymentSavedWithNoReference(paymentCycle, failureEvent);
     }
 
     private PaymentCycle createAndSavePaymentCycle() {
@@ -267,15 +270,17 @@ class PaymentServiceTest {
         assertThat(paymentRepository.findAll().iterator().hasNext()).isFalse();
     }
 
-    private void verifyFailedPaymentSavedWithNoReference(PaymentCycle paymentCycle) {
+    private void verifyFailedPaymentSavedWithNoReference(PaymentCycle paymentCycle, FailureEvent failureEvent) {
         Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
         assertThat(actualPayment.getPaymentReference()).isNull();
+        assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
-    private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentReference) {
+    private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentReference, FailureEvent failureEvent) {
         Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
         assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
         assertThat(actualPayment.getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
     private Payment verifyFailedPaymentSavedCorrectly(PaymentCycle paymentCycle) {

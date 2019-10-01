@@ -4,19 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.entity.Payment;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
@@ -43,15 +40,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
-public class ClaimantServiceIntegrationTestsWithMocks {
+public class ClaimantServiceIntegrationTestsWithScheduledServices {
 
     @MockBean
     private NotificationClient notificationClient;
@@ -78,7 +73,6 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         wiremockManager.stopWireMock();
     }
 
-    @Disabled // TODO: HTBHF-2342 this test fails! the new card request is not correct
     @Test
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
         ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
@@ -110,6 +104,51 @@ public class ClaimantServiceIntegrationTestsWithMocks {
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
     }
 
+    @Test
+    @SuppressWarnings("VariableDeclarationUsageDistance")
+    void shouldRecoverFromErrorsToHandleSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
+        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = claimDTO.getClaimant();
+        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        String cardAccountId = UUID.randomUUID().toString();
+
+        wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
+        // all external endpoints not invoked synchronously will cause an error
+        wiremockManager.stubErrorNewCardResponse();
+        wiremockManager.stubErrorDepositResponse(cardAccountId);
+        stubNotificationEmailError();
+
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+
+        // invoke all schedulers multiple times, fixing the next error in turn each time
+        invokeAllSchedulers();
+        wiremockManager.stubSuccessfulNewCardResponse(claimant, cardAccountId);
+        invokeAllSchedulers();
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        invokeAllSchedulers();
+        Mockito.reset(notificationClient); // necessary to clear the error and the count of attempts to send an email
+        stubNotificationEmailResponse();
+        invokeAllSchedulers();
+
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedEntitlement =
+                aPaymentCycleVoucherEntitlement(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
+        List<Payment> successfulPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.SUCCESS);
+        assertThat(successfulPayments).isNotEmpty();
+        Payment payment = successfulPayments.iterator().next();
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
+        assertThatPaymentCycleHasFailedPayments(paymentCycle, 1);
+
+        assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
+        wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+    }
+
     private void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
@@ -135,6 +174,10 @@ public class ClaimantServiceIntegrationTestsWithMocks {
 
     private void stubNotificationEmailResponse() throws NotificationClientException {
         when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenReturn(sendEmailResponse);
+    }
+
+    private void stubNotificationEmailError() throws NotificationClientException {
+        when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenThrow(new NotificationClientException("Something went wrong"));
     }
 
     private void invokeAllSchedulers() {

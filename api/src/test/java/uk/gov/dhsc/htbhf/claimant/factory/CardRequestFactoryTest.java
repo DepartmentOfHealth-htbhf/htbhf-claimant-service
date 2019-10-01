@@ -38,11 +38,13 @@ class CardRequestFactoryTest {
         assertThat(cardRequest.getClaimId()).isEqualTo(claim.getId().toString());
         assertThat(cardRequest.getDateOfBirth()).isEqualTo(claim.getClaimant().getDateOfBirth());
         assertThat(cardRequest.getAddress()).isEqualTo(aValidAddressDTO());
+        assertThat(cardRequest.getEmail()).isEqualTo(claim.getClaimant().getEmailAddress());
+        assertThat(cardRequest.getMobile()).isEqualTo(claim.getClaimant().getPhoneNumber());
         verify(addressConverter).convert(claim.getClaimant().getAddress());
     }
 
     @Test
-    void shouldCreateCardRequestWhenGivenNullClaim() {
+    void shouldNotCreateCardRequestWhenGivenNullClaim() {
         assertThatIllegalArgumentException().isThrownBy(() -> cardRequestFactory.createCardRequest(null));
     }
 }

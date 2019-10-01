@@ -31,7 +31,7 @@ public class FailedEventTestUtils {
                                                                             RuntimeException testException,
                                                                             EventFailedException exception,
                                                                             Integer totalEntitlementAmountInPence,
-                                                                            int paymentAmountInPence) {
+                                                                            Integer paymentAmountInPence) {
         String expectedFailureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                 TestConstants.CARD_ACCOUNT_ID, paymentCycle.getClaim().getId(), paymentCycle.getId(), TEST_EXCEPTION_MESSAGE);
         verifyCommonEventFailureDetail(exception, testException, expectedFailureMessage, paymentCycle.getClaim(), ClaimEventType.MAKE_PAYMENT);

@@ -16,7 +16,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
 @Component
 @AllArgsConstructor
-public class ClaimEmailManager {
+public class ClaimEmailHandler {
 
     private final MessageQueueClient messageQueueClient;
 

@@ -19,19 +19,19 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @ExtendWith(MockitoExtension.class)
-class ClaimEmailManagerTest {
+class ClaimEmailHandlerTest {
 
     @Mock
     private MessageQueueClient messageQueueClient;
 
     @InjectMocks
-    private ClaimEmailManager claimEmailManager;
+    private ClaimEmailHandler claimEmailHandler;
 
     @Test
     public void shouldPutClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
 
-        claimEmailManager.sendClaimNoLongerEligibleEmail(claim);
+        claimEmailHandler.sendClaimNoLongerEligibleEmail(claim);
 
         ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
