@@ -36,7 +36,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_N
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
 
 @ExtendWith(MockitoExtension.class)
-class PaymentCycleEmailHandlerTest {
+class UpcomingBirthdayEmailHandlerTest {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
     private static final Optional<LocalDate> NOT_PREGNANT = Optional.empty();
@@ -55,11 +55,11 @@ class PaymentCycleEmailHandlerTest {
     @Mock
     private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
-    private PaymentCycleEmailHandler paymentCycleEmailHandler;
+    private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     @BeforeEach
     public void init() {
-        paymentCycleEmailHandler = new PaymentCycleEmailHandler(
+        upcomingBirthdayEmailHandler = new UpcomingBirthdayEmailHandler(
                 NUMBER_OF_CALCULATION_PERIODS,
                 messageQueueClient,
                 childDateOfBirthCalculator,
@@ -76,7 +76,7 @@ class PaymentCycleEmailHandlerTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
 
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
@@ -100,7 +100,7 @@ class PaymentCycleEmailHandlerTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
 
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
@@ -123,7 +123,7 @@ class PaymentCycleEmailHandlerTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
 
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
@@ -146,7 +146,7 @@ class PaymentCycleEmailHandlerTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
 
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
@@ -165,7 +165,7 @@ class PaymentCycleEmailHandlerTest {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(NextPaymentCycleSummary.NO_CHILDREN);
 
-        paymentCycleEmailHandler.handleAdditionalEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
 
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verifyZeroInteractions(paymentCycleEntitlementCalculator, messageQueueClient);
