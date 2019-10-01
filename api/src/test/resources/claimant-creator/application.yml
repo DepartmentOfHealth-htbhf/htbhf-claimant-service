@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    properties.hibernate.dialect: org.hibernate.dialect.PostgreSQL95Dialect
+    properties.hibernate.temp.use_jdbc_metadata_defaults: false
+    properties.hibernate.connection.CharSet: utf8
+    properties.hibernate.connection.characterEncoding: utf8
+    properties.hibernate.connection.useUnicode: true
+    properties.hibernate.connection.releaseMode: after_transaction
+
+claimant:
+  url: jdbc:postgresql://localhost/claimant
+  username: claimant_admin
+  password: claimant_admin
+  driver-class-name: org.postgresql.Driver
+  type: com.zaxxer.hikari.HikariDataSource
+
+dwp:
+  url: jdbc:postgresql://localhost/eligibility_api
+  username: eligibility_admin
+  password: eligibility_admin
+  driver-class-name: org.postgresql.Driver
+  type: com.zaxxer.hikari.HikariDataSource
