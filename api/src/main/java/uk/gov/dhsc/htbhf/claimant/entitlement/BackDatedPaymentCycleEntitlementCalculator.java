@@ -43,10 +43,10 @@ public class BackDatedPaymentCycleEntitlementCalculator {
      * @param cycleStartDate          the start date of the payment cycle
      * @return the number of back dated vouchers the claimant is entitled to
      */
-    public Integer calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths, LocalDate cycleStartDate) {
+    public int calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths, LocalDate cycleStartDate) {
         List<LocalDate> backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths, cycleStartDate);
-        Integer vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);
-        Integer vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);
+        int vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);
+        int vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);
 
         int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;
         // do not return negative vouchers
