@@ -22,7 +22,6 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,7 +47,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FRO
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -60,7 +59,6 @@ public class PaymentCycleIntegrationTests {
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
-    private static final List<LocalDate> NO_CHILDREN = Collections.emptyList();
 
     @MockBean
     private NotificationClient notificationClient;
@@ -104,9 +102,9 @@ public class PaymentCycleIntegrationTests {
 
         // confirm new payment cycle created with a payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
-                aPaymentCycleVoucherEntitlement(LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
-        assertPaymentCycleIsIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
+        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
@@ -203,9 +201,9 @@ public class PaymentCycleIntegrationTests {
 
         // confirm each error was recovered from, and the payment made successfully
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
-                aPaymentCycleVoucherEntitlement(LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
-        assertPaymentCycleIsIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                        LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
+        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
         assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
@@ -220,23 +218,23 @@ public class PaymentCycleIntegrationTests {
     void shouldSendNewChildEmailWhenPaymentCycleIncludesBackdatedVouchers() throws JsonProcessingException, NotificationClientException {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
-        List<LocalDate> sixWeekOld = asList(LocalDate.now().minusWeeks(6));
+        List<LocalDate> sixWeekOldAndThreeYearOld = asList(LocalDate.now().minusWeeks(6), THREE_YEAR_OLD);
         int cardBalanceInPenceBeforeDeposit = 88;
 
-        wiremockManager.stubSuccessfulEligibilityResponse(sixWeekOld);
+        wiremockManager.stubSuccessfulEligibilityResponse(sixWeekOldAndThreeYearOld);
         wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, NO_CHILDREN, LocalDate.now().minusWeeks(7));
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, asList(THREE_YEAR_OLD), LocalDate.now().minusWeeks(7));
 
         invokeAllSchedulers();
 
         // confirm new payment cycle created with a payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
-                aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), sixWeekOld);
-        assertPaymentCycleIsIsFullyPaid(newCycle, sixWeekOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+                aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), sixWeekOldAndThreeYearOld);
+        assertPaymentCycleIsFullyPaid(newCycle, sixWeekOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
@@ -263,8 +261,8 @@ public class PaymentCycleIntegrationTests {
         messageProcessorScheduler.processSendEmailMessages();
     }
 
-    private void assertPaymentCycleIsIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
-                                                 int cardBalanceInPenceBeforeDeposit, PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
+    private void assertPaymentCycleIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
+                                               int cardBalanceInPenceBeforeDeposit, PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
         assertThat(paymentCycle.getChildrenDob()).isEqualTo(childrensDatesOfBirth);

@@ -20,12 +20,10 @@ import java.time.LocalDate;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.BDDMockito.eq;
 import static org.mockito.BDDMockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.EMAIL_DATE_FORMATTER;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertThatEmailPayloadCorrectForBackdatedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -87,18 +85,7 @@ class PaymentCycleNotificationHandlerTest {
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CHILD_FROM_PREGNANCY);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
 
-        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        assertThat(payload.getEmailPersonalisation()).contains(
-                entry("First_name", claim.getClaimant().getFirstName()),
-                entry("Last_name", claim.getClaimant().getLastName()),
-                entry("payment_amount", formatVoucherAmount(paymentCycle.getTotalVouchers())),
-                entry("pregnancy_payment", ""),
-                entry("children_under_1_payment",
-                        "\n* " + formatVoucherAmount(voucherEntitlement.getVouchersForChildrenUnderOne()) + " for children under 1"),
-                entry("children_under_4_payment", ""),
-                entry("backdated_payment", formatVoucherAmount(voucherEntitlement.getBackdatedVouchers())),
-                entry("next_payment_date", EMAIL_DATE_FORMATTER.format(paymentCycle.getCycleEndDate().plusDays(1)))
-        );
+        assertThatEmailPayloadCorrectForBackdatedPayment(payload.getEmailPersonalisation(), paymentCycle);
 
     }
 

@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
 
@@ -72,7 +72,7 @@ class UpcomingBirthdayEmailHandlerTest {
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has no vouchers for 1-4 year olds.
         List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
-        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlement(START_OF_NEXT_CYCLE, childrensDob);
+        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
@@ -96,7 +96,7 @@ class UpcomingBirthdayEmailHandlerTest {
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has one voucher for 1-4 year olds.
         List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
-        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlement(START_OF_NEXT_CYCLE, childrensDob);
+        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
@@ -119,7 +119,7 @@ class UpcomingBirthdayEmailHandlerTest {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         List<LocalDate> childrensDob = List.of(TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE);
-        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlement(START_OF_NEXT_CYCLE, childrensDob);
+        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
@@ -142,7 +142,7 @@ class UpcomingBirthdayEmailHandlerTest {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         List<LocalDate> childrensDob = List.of(TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
-        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlement(START_OF_NEXT_CYCLE, childrensDob);
+        PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 

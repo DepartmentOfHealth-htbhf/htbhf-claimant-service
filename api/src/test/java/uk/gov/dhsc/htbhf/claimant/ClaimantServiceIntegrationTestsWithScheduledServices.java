@@ -42,7 +42,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.CREATED;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -93,7 +93,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedEntitlement =
-                aPaymentCycleVoucherEntitlement(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+                aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
         assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         Payment payment = paymentCycle.getPayments().iterator().next();
@@ -136,7 +136,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedEntitlement =
-                aPaymentCycleVoucherEntitlement(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+                aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
         assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
         List<Payment> successfulPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.SUCCESS);
         assertThat(successfulPayments).isNotEmpty();
