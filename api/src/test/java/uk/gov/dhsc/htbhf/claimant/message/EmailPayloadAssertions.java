@@ -11,7 +11,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NA
 
 public class EmailPayloadAssertions {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
+    public static final DateTimeFormatter EMAIL_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     /**
      * The values asserted in this method are for a claimant who has pregnancy vouchers only in their entitlement
@@ -29,7 +29,7 @@ public class EmailPayloadAssertions {
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", ""),
                 entry("children_under_4_payment", ""),
-                entry("next_payment_date", DATE_FORMATTER.format(nextPaymentDate))
+                entry("next_payment_date", EMAIL_DATE_FORMATTER.format(nextPaymentDate))
         );
     }
 
@@ -48,7 +48,7 @@ public class EmailPayloadAssertions {
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),
                 entry("children_under_4_payment", "\n* £12.40 for children between 1 and 4"),
-                entry("next_payment_date", DATE_FORMATTER.format(nextPaymentDate))
+                entry("next_payment_date", EMAIL_DATE_FORMATTER.format(nextPaymentDate))
         );
     }
 }

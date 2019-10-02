@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -21,6 +22,7 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,10 +44,12 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymen
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FROM_PREGNANCY;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -56,6 +60,7 @@ public class PaymentCycleIntegrationTests {
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
+    private static final List<LocalDate> NO_CHILDREN = Collections.emptyList();
 
     @MockBean
     private NotificationClient notificationClient;
@@ -210,6 +215,39 @@ public class PaymentCycleIntegrationTests {
         assertThatPaymentEmailWasSent(newCycle);
     }
 
+    @Disabled("HTBHF-2028")
+    @Test
+    void shouldSendNewChildEmailWhenPaymentCycleIncludesBackdatedVouchers() throws JsonProcessingException, NotificationClientException {
+        // setup some claim variables
+        String cardAccountId = UUID.randomUUID().toString();
+        List<LocalDate> sixWeekOld = asList(LocalDate.now().minusWeeks(6));
+        int cardBalanceInPenceBeforeDeposit = 88;
+
+        wiremockManager.stubSuccessfulEligibilityResponse(sixWeekOld);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        stubNotificationEmailResponse();
+
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, NO_CHILDREN, LocalDate.now().minusWeeks(7));
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with a payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
+                aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), sixWeekOld);
+        assertPaymentCycleIsIsFullyPaid(newCycle, sixWeekOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+
+        // confirm card service called to make payment
+        Payment payment = newCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatNewChildEmailWasSent(newCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
     private void stubNotificationEmailResponse() throws NotificationClientException {
         when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenReturn(sendEmailResponse);
     }
@@ -262,6 +300,18 @@ public class PaymentCycleIntegrationTests {
 
         Map personalisationMap = mapArgumentCaptor.getValue();
         assertPaymentEmailPersonalisationMap(newCycle, personalisationMap);
+    }
+
+    private void assertThatNewChildEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(NEW_CHILD_FROM_PREGNANCY.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(),
+                any());
+
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertPaymentEmailPersonalisationMap(newCycle, personalisationMap);
+        assertThat(personalisationMap.get(BACKDATED_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(newCycle.getVoucherEntitlement().getBackdatedVouchers()));
     }
 
     private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsOnePersonalisationMap) {

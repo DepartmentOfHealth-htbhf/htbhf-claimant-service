@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,6 +41,20 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                 aVoucherEntitlement(startDate.plusWeeks(2), childrensDob, dueDate),
                 aVoucherEntitlement(startDate.plusWeeks(3), childrensDob, dueDate)
         );
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(
+            LocalDate startDate, List<LocalDate> childrensDob) {
+        LocalDate birthdate = childrensDob.stream().max(LocalDate::compareTo).get();
+        return PaymentCycleVoucherEntitlement.builder()
+                .backdatedVouchers((int) ChronoUnit.WEEKS.between(birthdate, startDate))
+                .voucherEntitlements(Arrays.asList(
+                        aVoucherEntitlement(startDate, childrensDob, null),
+                        aVoucherEntitlement(startDate.plusWeeks(1), childrensDob, null),
+                        aVoucherEntitlement(startDate.plusWeeks(2), childrensDob, null),
+                        aVoucherEntitlement(startDate.plusWeeks(3), childrensDob, null)
+                ))
+                .build();
     }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
