@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -51,7 +50,6 @@ class PaymentCycleNotificationHandlerTest {
         verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
     }
 
-    @Disabled("HTBHF-2028")
     @Test
     public void shouldSendNewChildFromPregnancyEmail() {
         Claim claim = aClaimWithExpectedDeliveryDate(LocalDate.now().minusWeeks(8));
