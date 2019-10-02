@@ -4,7 +4,7 @@ This application is a utility for seeding the claimant and DWP database with dat
 
 Information about a claimant will be read from claimant.yml (in [src/test/resources/test-claimant-creator](../../../../../../../resources/test-claimant-creator/)). There is an example file in [claimant-example.yml](../../../../../../../resources/test-claimant-creator/claimant-example.yml)
 
-This will add an active claim with a card account id, a claimant, address, UCHousehold, UCAdult, UCChild(s) and a payment cycle with a start date of yesterday.
+This will add an active claim with a card account id, a claimant, address, UCHousehold, UCAdult, UCChild(s) and a payment cycle with an end date of yesterday.
 
 Children's dates of birth are added using an ISO-8601 duration and an enum value representing when a child should be that age. 
 

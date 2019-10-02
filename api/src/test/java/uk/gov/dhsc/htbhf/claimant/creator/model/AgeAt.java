@@ -9,6 +9,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 public enum AgeAt {
 
-    START_OF_FIRST_CYCLE,
+    TODAY,
     START_OF_NEXT_CYCLE
 }

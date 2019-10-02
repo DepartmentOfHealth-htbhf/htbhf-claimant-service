@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 
 @SpringBootApplication
 @Profile("test-claimant-creator")
-public class ClaimantCreator {
+public class TestClaimantCreator {
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -33,7 +33,7 @@ public class ClaimantCreator {
     }
 
     public static void main(String[] args) {
-        SpringApplication application = new SpringApplication(ClaimantCreator.class);
+        SpringApplication application = new SpringApplication(TestClaimantCreator.class);
         application.setWebApplicationType(WebApplicationType.NONE);
         application.setAdditionalProfiles("test-claimant-creator");
         application.run(args);

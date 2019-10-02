@@ -1,20 +1,21 @@
 # all fields are mandatory unless stated otherwise
-claimant:
-  first-name: james
-  last-name: smith
-  nino: EE123456A
-  date-of-birth: 01/01/1970
-  mobile: +447123456789 # must be in +44 format
-  expectedDeliveryDate: 2020-01-01 # optional
-  email-address: test@domain.com
-  address:
-    first-line: 1 Street
-    second-line: Fake building # optional
-    townOrCity: London
-    county: Greator London # optional
-    postcode: BS11AA
-  children-age: # optional
-    - age: P3Y11M24D # duration in ISO-8601 format
-      at: START_OF_FIRST_CYCLE
-    - age: P6M
-      at: START_OF_NEXT_CYCLE
+firstName: james
+lastName: smith
+nino: EE123456A
+dateOfBirth: 1970-01-01
+mobile: +447123456789 # must be in +44 format
+expectedDeliveryDate: 2020-01-01 # optional
+emailAddress: test@domain.com
+address:
+  addressLine1: 1 Street
+  addressLine2: Fake building # optional
+  townOrCity: London
+  county: Greator London # optional
+  postcode: BS11AA
+childrenAgeInfo: # optional
+  - age: P3Y11M24D # duration in ISO-8601 format
+    at: TODAY
+  - age: P3Y11M17D
+    at: TODAY
+  - age: P6M
+    at: START_OF_NEXT_CYCLE

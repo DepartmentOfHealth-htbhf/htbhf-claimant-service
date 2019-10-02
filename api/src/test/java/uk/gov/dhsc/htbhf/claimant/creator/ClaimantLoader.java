@@ -15,7 +15,6 @@ import uk.gov.dhsc.htbhf.claimant.creator.model.AgeAt;
 import uk.gov.dhsc.htbhf.claimant.creator.model.ChildAgeInfo;
 import uk.gov.dhsc.htbhf.claimant.creator.model.ClaimantInfo;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -31,7 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
-import static java.util.Collections.nCopies;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
 
 /**
  * Populates the claimant and DWP database with the data in a {@link ClaimantInfo} object.
@@ -54,7 +53,7 @@ public class ClaimantLoader {
         log.info("Saving claim {}", claimantInfo);
         String dwpHouseholdIdentifier = createDWPHousehold(claimantInfo);
         Claim claim = createActiveClaim(claimantInfo, dwpHouseholdIdentifier);
-        createPaymentCycleEndingYesterday(claim);
+        createPaymentCycleEndingYesterday(claim, claimantInfo.getChildrenAgeInfo());
     }
 
     private String createDWPHousehold(ClaimantInfo claimantInfo) {
@@ -103,14 +102,14 @@ public class ClaimantLoader {
         return claimRepository.save(claim);
     }
 
-    private Claim createClaim(String dipHouseholdIdentifier, Claimant claimant) {
+    private Claim createClaim(String dwpHouseholdIdentifier, Claimant claimant) {
         return Claim.builder()
                 .claimStatus(ClaimStatus.ACTIVE)
                 .claimStatusTimestamp(LocalDateTime.now())
                 .cardAccountId(UUID.randomUUID().toString())
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .eligibilityStatusTimestamp(LocalDateTime.now())
-                .dwpHouseholdIdentifier(dipHouseholdIdentifier)
+                .dwpHouseholdIdentifier(dwpHouseholdIdentifier)
                 .claimant(claimant)
                 .build();
     }
@@ -129,21 +128,20 @@ public class ClaimantLoader {
                 .build();
     }
 
-    private void createPaymentCycleEndingYesterday(Claim claim) {
+    private void createPaymentCycleEndingYesterday(Claim claim, List<ChildAgeInfo> childrenAgeInfo) {
+        LocalDate cycleStartDate = LocalDate.now().minusDays(28);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlement(
+                cycleStartDate,
+                createListOfChildrenDatesOfBirth(childrenAgeInfo),
+                claim.getClaimant().getExpectedDeliveryDate());
         PaymentCycle paymentCycle = PaymentCycle.builder()
-                .cycleStartDate(LocalDate.now())
+                .cycleStartDate(cycleStartDate)
                 .cycleEndDate(LocalDate.now().minusDays(1))
                 .claim(claim)
                 .paymentCycleStatus(PaymentCycleStatus.NEW)
-                .voucherEntitlement(createEmptyPaymentCycleVoucherEntitlement()) // null voucher entitlement will cause errors
+                .voucherEntitlement(voucherEntitlement)
                 .build();
         paymentCycleRepository.save(paymentCycle);
-    }
-
-    private PaymentCycleVoucherEntitlement createEmptyPaymentCycleVoucherEntitlement() {
-        return PaymentCycleVoucherEntitlement.builder()
-                .voucherEntitlements(nCopies(4, VoucherEntitlement.builder().build()))
-                .build();
     }
 
     private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildAgeInfo> childAgeInfo) {
