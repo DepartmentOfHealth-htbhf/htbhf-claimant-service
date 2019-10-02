@@ -53,7 +53,12 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
-    public static VoucherEntitlement aVoucherEntitlement(LocalDate entitlementDate, List<LocalDate> childrensDob, LocalDate dueDate) {
+    public static VoucherEntitlement aVoucherEntitlementMatchingChildren(LocalDate entitlementDate, List<LocalDate> childrensDob) {
+        return aVoucherEntitlementMatchingChildrenAndPregnancy(entitlementDate, childrensDob, null);
+    }
+
+    public static VoucherEntitlement aVoucherEntitlementMatchingChildrenAndPregnancy(
+            LocalDate entitlementDate, List<LocalDate> childrensDob, LocalDate dueDate) {
         int pregnancy = dueDate == null || dueDate.plusWeeks(12).isBefore(entitlementDate) ? 0 : 1;
         int childrenUnderOne = (int) childrensDob.stream().filter(d -> d.plusYears(1).isAfter(entitlementDate)).count();
         int childrenUnderFour = (int) childrensDob.stream().filter(d -> d.plusYears(4).isAfter(entitlementDate)).count();
