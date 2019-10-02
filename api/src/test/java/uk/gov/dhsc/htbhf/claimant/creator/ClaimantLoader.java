@@ -19,6 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 
 /**
  * Populates the claimant and DWP database with the data in a {@link ClaimantInfo} object.
@@ -45,6 +46,7 @@ public class ClaimantLoader {
     private ClaimRepository claimRepository;
     private UCHouseholdRepository ucHouseholdRepository;
     private PaymentCycleRepository paymentCycleRepository;
+    private PaymentRepository paymentRepository;
     private AddressDTOToAddressConverter addressDTOToAddressConverter;
 
     @PostConstruct
@@ -53,7 +55,8 @@ public class ClaimantLoader {
         log.info("Saving claim {}", claimantInfo);
         String dwpHouseholdIdentifier = createDWPHousehold(claimantInfo);
         Claim claim = createActiveClaim(claimantInfo, dwpHouseholdIdentifier);
-        createPaymentCycleEndingYesterday(claim, claimantInfo.getChildrenAgeInfo());
+        PaymentCycle paymentCycle = createPaymentCycleEndingYesterday(claim, claimantInfo.getChildrenAgeInfo());
+        createPayment(claim, paymentCycle);
     }
 
     private String createDWPHousehold(ClaimantInfo claimantInfo) {
@@ -95,10 +98,10 @@ public class ClaimantLoader {
                 .build();
     }
 
-    private Claim createActiveClaim(ClaimantInfo claimantInfo, String dipHouseholdIdentifier) {
+    private Claim createActiveClaim(ClaimantInfo claimantInfo, String dwpHouseholdIdentifier) {
         Address address = addressDTOToAddressConverter.convert(claimantInfo.getAddressDTO());
         Claimant claimant = createClaimant(claimantInfo, address);
-        Claim claim = createClaim(dipHouseholdIdentifier, claimant);
+        Claim claim = createClaim(dwpHouseholdIdentifier, claimant);
         return claimRepository.save(claim);
     }
 
@@ -128,9 +131,9 @@ public class ClaimantLoader {
                 .build();
     }
 
-    private void createPaymentCycleEndingYesterday(Claim claim, List<ChildAgeInfo> childrenAgeInfo) {
+    private PaymentCycle createPaymentCycleEndingYesterday(Claim claim, List<ChildAgeInfo> childrenAgeInfo) {
         LocalDate cycleStartDate = LocalDate.now().minusDays(28);
-        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlement(
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 cycleStartDate,
                 createListOfChildrenDatesOfBirth(childrenAgeInfo),
                 claim.getClaimant().getExpectedDeliveryDate());
@@ -138,10 +141,22 @@ public class ClaimantLoader {
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(LocalDate.now().minusDays(1))
                 .claim(claim)
-                .paymentCycleStatus(PaymentCycleStatus.NEW)
+                .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
                 .build();
-        paymentCycleRepository.save(paymentCycle);
+        return paymentCycleRepository.save(paymentCycle);
+    }
+
+    private void createPayment(Claim claim, PaymentCycle paymentCycle) {
+        Payment payment = Payment.builder()
+                .paymentAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
+                .cardAccountId(claim.getCardAccountId())
+                .paymentStatus(PaymentStatus.SUCCESS)
+                .paymentReference(UUID.randomUUID().toString())
+                .paymentCycle(paymentCycle)
+                .paymentTimestamp(LocalDateTime.now().minusDays(28))
+                .build();
+        paymentRepository.save(payment);
     }
 
     private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildAgeInfo> childAgeInfo) {

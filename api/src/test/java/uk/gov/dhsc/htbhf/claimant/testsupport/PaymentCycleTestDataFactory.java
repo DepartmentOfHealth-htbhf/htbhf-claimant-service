@@ -30,6 +30,7 @@ public class PaymentCycleTestDataFactory {
                                                                          Claim claim) {
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(paymentCycleVoucherEntitlement)
+                .totalVouchers(paymentCycleVoucherEntitlement.getTotalVoucherEntitlement())
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
                 .build();
@@ -37,8 +38,10 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithStartDateAndClaim(LocalDate startDate,
                                                                   Claim claim) {
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate))
+                .voucherEntitlement(voucherEntitlement)
+                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
@@ -46,16 +49,20 @@ public class PaymentCycleTestDataFactory {
     }
 
     public static PaymentCycle aPaymentCycleWithStartAndEndDate(LocalDate startDate, LocalDate endDate) {
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate))
+                .voucherEntitlement(voucherEntitlement)
+                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleEndDate(endDate)
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithPregnancyVouchersOnly(LocalDate startDate, LocalDate endDate) {
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
         return aValidPaymentCycleBuilder()
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithPregnancyVouchers())
+                .voucherEntitlement(voucherEntitlement)
+                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .cycleEndDate(endDate)
                 .totalEntitlementAmountInPence(1240)
@@ -85,11 +92,13 @@ public class PaymentCycleTestDataFactory {
     }
 
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         return PaymentCycle.builder()
                 .claim(aValidClaim())
                 .paymentCycleStatus(NEW)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
+                .voucherEntitlement(voucherEntitlement)
+                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(LocalDate.now())
                 //Next cycle starts 4 weeks after the current one so last day of current cycle is one day less
                 .cycleEndDate(LocalDate.now().plusDays(27))
