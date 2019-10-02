@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleNotificationEmailHandler;
+import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -34,7 +34,7 @@ class MakePaymentMessageProcessorTest {
     @Mock
     private MessageContextLoader messageContextLoader;
     @Mock
-    private PaymentCycleNotificationEmailHandler paymentCycleNotificationEmailHandler;
+    private PaymentCycleNotificationHandler paymentCycleNotificationHandler;
 
     @InjectMocks
     MakePaymentMessageProcessor processor;
@@ -52,7 +52,7 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
-        verify(paymentCycleNotificationEmailHandler).sendNotificationEmails(paymentCycle);
+        verify(paymentCycleNotificationHandler).sendNotificationEmails(paymentCycle);
     }
 
     @Test
@@ -68,7 +68,7 @@ class MakePaymentMessageProcessorTest {
 
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).saveFailedPayment(paymentCycle, claim.getCardAccountId(), failureEvent);
-        verifyZeroInteractions(paymentCycleNotificationEmailHandler);
+        verifyZeroInteractions(paymentCycleNotificationHandler);
     }
 
 }

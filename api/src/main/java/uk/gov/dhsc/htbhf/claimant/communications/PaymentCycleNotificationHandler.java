@@ -11,7 +11,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildPaym
 
 @Component
 @AllArgsConstructor
-public class PaymentCycleNotificationEmailHandler {
+public class PaymentCycleNotificationHandler {
 
     private MessageQueueClient messageQueueClient;
     private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;

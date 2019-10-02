@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,17 +30,32 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
         );
     }
 
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlement(LocalDate startDate, List<LocalDate> childrensDob) {
-        return aPaymentCycleVoucherEntitlement(startDate, childrensDob, null);
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate startDate, List<LocalDate> childrensDob) {
+        return aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(startDate, childrensDob, null);
     }
 
-    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlement(LocalDate startDate, List<LocalDate> childrensDob, LocalDate dueDate) {
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+            LocalDate startDate, List<LocalDate> childrensDob, LocalDate dueDate) {
         return buildPaymentCycleVoucherEntitlement(
-                aVoucherEntitlement(startDate, childrensDob, dueDate),
-                aVoucherEntitlement(startDate.plusWeeks(1), childrensDob, dueDate),
-                aVoucherEntitlement(startDate.plusWeeks(2), childrensDob, dueDate),
-                aVoucherEntitlement(startDate.plusWeeks(3), childrensDob, dueDate)
+                aVoucherEntitlementMatchingChildrenAndPregnancy(startDate, childrensDob, dueDate),
+                aVoucherEntitlementMatchingChildrenAndPregnancy(startDate.plusWeeks(1), childrensDob, dueDate),
+                aVoucherEntitlementMatchingChildrenAndPregnancy(startDate.plusWeeks(2), childrensDob, dueDate),
+                aVoucherEntitlementMatchingChildrenAndPregnancy(startDate.plusWeeks(3), childrensDob, dueDate)
         );
+    }
+
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(
+            LocalDate startDate, List<LocalDate> childrensDob) {
+        LocalDate birthdate = childrensDob.stream().min(LocalDate::compareTo).get();
+        return PaymentCycleVoucherEntitlement.builder()
+                .backdatedVouchers((int) ChronoUnit.WEEKS.between(birthdate, startDate))
+                .voucherEntitlements(Arrays.asList(
+                        aVoucherEntitlementMatchingChildren(startDate, childrensDob),
+                        aVoucherEntitlementMatchingChildren(startDate.plusWeeks(1), childrensDob),
+                        aVoucherEntitlementMatchingChildren(startDate.plusWeeks(2), childrensDob),
+                        aVoucherEntitlementMatchingChildren(startDate.plusWeeks(3), childrensDob)
+                ))
+                .build();
     }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {

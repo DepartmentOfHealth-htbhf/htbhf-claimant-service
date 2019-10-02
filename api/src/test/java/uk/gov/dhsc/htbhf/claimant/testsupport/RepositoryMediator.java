@@ -17,7 +17,7 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlement;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 
 /**
  * Mediates between test case and the repositories to create & persist entities, and ensure that loaded entities are fully initialised.
@@ -36,6 +36,7 @@ public class RepositoryMediator {
 
     /**
      * Asserts that there is a current PaymentCycle, and initialises the collections of the returned PaymentCycle.
+     *
      * @param claim the claim to get the cycle for.
      * @return the current PaymentCycle.
      */
@@ -77,8 +78,9 @@ public class RepositoryMediator {
      * Ensures the given claim is persistent, then creates and persists a PaymentCycle for the given start date.
      * The payment cycle is created in a completed state (the payment having been made) based on the dates of birth,
      * the expected due date of the claimant and an assumption that they are eligible.
-     * @param claim the claim to create a paymentCycle for.
-     * @param cycleStartDate the start date of the cycle.
+     *
+     * @param claim                 the claim to create a paymentCycle for.
+     * @param cycleStartDate        the start date of the cycle.
      * @param childrensDatesOfBirth dates of birth of children.
      * @return the persistent PaymentCycle.
      */
@@ -90,7 +92,8 @@ public class RepositoryMediator {
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(27))
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlement(cycleStartDate, childrensDatesOfBirth, claim.getClaimant().getExpectedDeliveryDate()))
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                        cycleStartDate, childrensDatesOfBirth, claim.getClaimant().getExpectedDeliveryDate()))
                 .build();
         paymentCycleRepository.save(completedPaymentCycle);
         return completedPaymentCycle;
