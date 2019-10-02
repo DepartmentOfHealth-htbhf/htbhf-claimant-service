@@ -78,7 +78,7 @@ public class PaymentCycleEntitlementCalculator {
 
         // ignore expected due date as we've determined that the pregnancy has happened
         List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren, cycleStartDate);
-        Integer backdateVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);
+        int backdateVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);
     }
 
@@ -127,7 +127,7 @@ public class PaymentCycleEntitlementCalculator {
      */
     public List<LocalDate> getVoucherEntitlementDatesFromStartDate(LocalDate cycleStartDate) {
         List<LocalDate> entitlementDates = new ArrayList<>(numberOfCalculationPeriods);
-        for (int i = 0; i < numberOfCalculationPeriods; i++) {
+        for (long i = 0; i < numberOfCalculationPeriods; i++) {
             entitlementDates.add(cycleStartDate.plusDays(i * entitlementCalculationDuration));
         }
         return entitlementDates;
