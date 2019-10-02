@@ -22,6 +22,7 @@ public class Payment extends BaseEntity {
     private Claim claim;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_cycle_id")
     @ToString.Exclude
     private PaymentCycle paymentCycle;
 
