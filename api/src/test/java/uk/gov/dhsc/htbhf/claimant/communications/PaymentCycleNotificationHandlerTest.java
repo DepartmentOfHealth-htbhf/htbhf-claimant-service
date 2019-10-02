@@ -32,7 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
 @ExtendWith(MockitoExtension.class)
-class PaymentCycleNotificationEmailHandlerTest {
+class PaymentCycleNotificationHandlerTest {
 
     @Mock
     private MessageQueueClient messageQueueClient;
@@ -40,14 +40,14 @@ class PaymentCycleNotificationEmailHandlerTest {
     private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     @InjectMocks
-    PaymentCycleNotificationEmailHandler paymentCycleNotificationEmailHandler;
+    PaymentCycleNotificationHandler paymentCycleNotificationHandler;
 
     @Test
     public void shouldSendEmailAndInvokeUpcomingBirthdayEmailHandler() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         Claim claim = paymentCycle.getClaim();
 
-        paymentCycleNotificationEmailHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
         verifyPaymentEmailNotificationSent(paymentCycle, claim);
         verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
@@ -61,9 +61,9 @@ class PaymentCycleNotificationEmailHandlerTest {
                 aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), asList(LocalDate.now().minusWeeks(6)));
         PaymentCycle paymentCycle = aPaymentCycleWithCycleEntitlementAndClaim(voucherEntitlement, claim);
 
-        paymentCycleNotificationEmailHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
-        verifyNewChildFromPregnancyEmailNotificationSent(paymentCycle, claim);
+        verifyNewChildFromPregnancyEmailSent(paymentCycle, claim);
         verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
     }
 
@@ -76,7 +76,7 @@ class PaymentCycleNotificationEmailHandlerTest {
         verifyPaymentEmail(paymentCycle, claim, payloadCaptor.getValue());
     }
 
-    private void verifyNewChildFromPregnancyEmailNotificationSent(PaymentCycle paymentCycle, Claim claim) {
+    private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, Claim claim) {
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
         verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
 

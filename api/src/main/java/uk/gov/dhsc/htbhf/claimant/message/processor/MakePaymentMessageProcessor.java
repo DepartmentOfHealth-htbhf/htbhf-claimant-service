@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleNotificationEmailHandler;
+import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
@@ -29,7 +29,7 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 
     private PaymentService paymentService;
     private MessageContextLoader messageContextLoader;
-    private PaymentCycleNotificationEmailHandler paymentCycleNotificationEmailHandler;
+    private PaymentCycleNotificationHandler paymentCycleNotificationHandler;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
@@ -37,7 +37,7 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
         MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
         PaymentCycle paymentCycle = messageContext.getPaymentCycle();
         paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
-        paymentCycleNotificationEmailHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
         return COMPLETED;
     }
 
