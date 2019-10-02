@@ -155,6 +155,7 @@ public class ClaimantLoader {
                 .paymentReference(UUID.randomUUID().toString())
                 .paymentCycle(paymentCycle)
                 .paymentTimestamp(LocalDateTime.now().minusDays(28))
+                .claim(claim)
                 .build();
         paymentRepository.save(payment);
     }

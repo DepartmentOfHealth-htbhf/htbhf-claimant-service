@@ -58,12 +58,6 @@ card:
   services-base-uri: ${CARD_SERVICES_URI:http://localhost:8140}
 
 message-processor:
-  # run every 30 seconds. See https://stackoverflow.com/a/26147143 for more examples
-  cron-schedule: "*/30 * * * * *"
-  # lock for a minimum of 15 seconds, maximum of 60 minutes. See https://www.digi.com/resources/documentation/digidocs/90001437-13/reference/r_iso_8601_duration_format.htm
-  # for an explanation of the ISO-8601 duration format
-  minimum-lock-time: "PT15S"
-  maximum-lock-time: "PT60M"
   message-limit: 1000
 
 payment-cycle:
