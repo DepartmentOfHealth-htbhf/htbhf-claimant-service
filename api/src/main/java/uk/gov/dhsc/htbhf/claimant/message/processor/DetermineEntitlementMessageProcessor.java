@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
@@ -38,6 +39,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private ClaimEmailHandler claimEmailHandler;
 
+    private EventAuditor eventAuditor;
+
     @Override
     public MessageType supportsMessageType() {
         return DETERMINE_ENTITLEMENT;
@@ -54,7 +57,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
-        Claimant claimant = messageContext.getClaim().getClaimant();
+        Claim claim = messageContext.getClaim();
+        Claimant claimant = claim.getClaimant();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
@@ -65,13 +69,21 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
         paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
 
-        if (decision.getEligibilityStatus() == ELIGIBLE) {
+        if (decision.getVoucherEntitlement().getTotalVoucherValueInPence() == 0) {
+            setClaimToExpired(claim);
+            eventAuditor.auditClaimExpired(claim);
+        } else if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
         } else {
             handleNonEligibleClaim(currentPaymentCycle);
         }
 
         return COMPLETED;
+    }
+
+    private void setClaimToExpired(Claim claim) {
+        claim.setClaimStatus(ClaimStatus.EXPIRED);
+        claimRepository.save(claim);
     }
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {

@@ -97,4 +97,9 @@ public class EventAuditor {
     public void auditFailedEvent(FailureEvent failureEvent) {
         eventLogger.logEvent(failureEvent);
     }
+
+    public void auditClaimExpired(Claim claim) {
+        ClaimExpiredEvent event = new ClaimExpiredEvent(claim.getId());
+        eventLogger.logEvent(event);
+    }
 }

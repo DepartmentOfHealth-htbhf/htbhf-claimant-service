@@ -7,6 +7,7 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Arrays;
 
+import static java.util.Collections.emptyList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
@@ -62,6 +63,13 @@ public final class ClaimantTestDataFactory {
     public static Claimant aClaimantWithPhoneNumber(String phoneNumber) {
         return aValidClaimantBuilder()
                 .phoneNumber(phoneNumber)
+                .build();
+    }
+
+    public static Claimant aClaimantWithNoChildrenAndNotPregnant() {
+        return aValidClaimantBuilder()
+                .childrenDob(emptyList())
+                .expectedDeliveryDate(null)
                 .build();
     }
 

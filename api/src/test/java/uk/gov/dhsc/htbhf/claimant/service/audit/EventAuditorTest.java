@@ -23,8 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.*;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE;
@@ -58,9 +60,9 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(3)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
-                        entry(ClaimEventMetadataKey.CLAIM_STATUS.getKey(), ClaimStatus.ACTIVE),
-                        entry(ClaimEventMetadataKey.ELIGIBILITY_STATUS.getKey(), EligibilityStatus.ELIGIBLE));
+                        entry(CLAIM_ID.getKey(), claimId),
+                        entry(CLAIM_STATUS.getKey(), ClaimStatus.ACTIVE),
+                        entry(ELIGIBILITY_STATUS.getKey(), EligibilityStatus.ELIGIBLE));
     }
 
     @Test
@@ -89,8 +91,8 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(2)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
-                        entry(ClaimEventMetadataKey.UPDATED_FIELDS.getKey(), updatedFields));
+                        entry(CLAIM_ID.getKey(), claimId),
+                        entry(UPDATED_FIELDS.getKey(), updatedFields));
     }
 
     @Test
@@ -112,8 +114,8 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(2)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CARD_ACCOUNT_ID.getKey(), cardResponse.getCardAccountId()),
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId));
+                        entry(CARD_ACCOUNT_ID.getKey(), cardResponse.getCardAccountId()),
+                        entry(CLAIM_ID.getKey(), claimId));
 
     }
 
@@ -155,11 +157,11 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(5)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
-                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), paymentCycle.getTotalEntitlementAmountInPence()),
-                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), payment.getPaymentAmountInPence()),
-                        entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), payment.getId()),
-                        entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), depositFundsResponse.getReferenceId()));
+                        entry(CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
+                        entry(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), paymentCycle.getTotalEntitlementAmountInPence()),
+                        entry(PAYMENT_AMOUNT.getKey(), payment.getPaymentAmountInPence()),
+                        entry(PAYMENT_ID.getKey(), payment.getId()),
+                        entry(PAYMENT_REFERENCE.getKey(), depositFundsResponse.getReferenceId()));
     }
 
     @Test
@@ -181,10 +183,25 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(4)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.BALANCE_ON_CARD.getKey(), balanceOnCard),
-                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
-                        entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE),
-                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), 0));
+                        entry(BALANCE_ON_CARD.getKey(), balanceOnCard),
+                        entry(CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
+                        entry(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE),
+                        entry(PAYMENT_AMOUNT.getKey(), 0));
 
     }
+
+    @Test
+    void shouldAuditClaimExpired() {
+        Claim claim = aClaimWithClaimStatus(ClaimStatus.EXPIRED);
+
+        eventAuditor.auditClaimExpired(claim);
+
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(CLAIM_EXPIRED);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata()).containsOnly(entry(CLAIM_ID.getKey(), claim.getId()));
+    }
+
 }

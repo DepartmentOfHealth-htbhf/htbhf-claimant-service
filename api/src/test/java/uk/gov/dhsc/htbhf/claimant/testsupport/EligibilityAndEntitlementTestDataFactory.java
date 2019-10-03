@@ -20,6 +20,10 @@ public class EligibilityAndEntitlementTestDataFactory {
         return aValidDecisionBuilder().eligibilityStatus(eligibilityStatus).build();
     }
 
+    public static EligibilityAndEntitlementDecision aDecisionWithEntitlement(PaymentCycleVoucherEntitlement entitlement) {
+        return aValidDecisionBuilder().voucherEntitlement(entitlement).build();
+    }
+
     public static EligibilityAndEntitlementDecision aDecisionWithStatusAndEntitlement(EligibilityStatus eligibilityStatus,
                                                                                       PaymentCycleVoucherEntitlement entitlement) {
         return aValidDecisionBuilder()
