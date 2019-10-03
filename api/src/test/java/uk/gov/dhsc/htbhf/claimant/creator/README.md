@@ -17,6 +17,8 @@ will create a child who is three years, 11 months and 21 days at the start of th
 
 Adding this child would trigger a child turning four email to be sent as they will fall off the scheme during the next cycle.
 
+Optionally, you can add `excludeFromExistingCycle: true` to a childInfo to prevent that child appearing on the existing payment cycle. This feature is necessary for testing back dated vouchers for a new child.
+
 To run the test claimant creator, run the [TestClaimantCreator main method](TestClaimantCreator.java).
 
 The database connection details are defined in [application-test-claimant-creator.yml](../../../../../../../resources/application-test-claimant-creator.yml). Make sure these match your local instance of the claimant and eligibility (DWP) database before running the application. 
