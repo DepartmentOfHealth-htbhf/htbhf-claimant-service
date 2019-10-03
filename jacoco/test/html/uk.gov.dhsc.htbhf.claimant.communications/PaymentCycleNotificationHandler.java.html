@@ -6,8 +6,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildPaymentNotificationEmailPayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
 
 @Component
 @AllArgsConstructor
@@ -17,9 +18,15 @@ public class PaymentCycleNotificationHandler {
     private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
-<span class="fc" id="L20">        EmailMessagePayload messagePayload = buildPaymentNotificationEmailPayload(paymentCycle);</span>
-<span class="fc" id="L21">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L22">        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);</span>
-<span class="fc" id="L23">    }</span>
+<span class="fc bfc" id="L21" title="All 2 branches covered.">        EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
+<span class="fc" id="L22">                ? buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)</span>
+<span class="fc" id="L23">                : buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);</span>
+<span class="fc" id="L24">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L25">        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);</span>
+<span class="fc" id="L26">    }</span>
+
+    private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() &gt; 0;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
