@@ -29,6 +29,6 @@ public class ClaimantInfo {
     LocalDate expectedDeliveryDate;
     @JsonProperty("address")
     AddressDTO addressDTO;
-    @JsonProperty("childrenAgeInfo")
-    List<ChildAgeInfo> childrenAgeInfo;
+    @JsonProperty("childrenInfo")
+    List<ChildInfo> childrenInfo;
 }

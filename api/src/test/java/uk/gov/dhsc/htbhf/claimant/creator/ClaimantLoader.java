@@ -12,7 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.uc.UCChild;
 import uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.uc.UCHousehold;
 import uk.gov.dhsc.htbhf.claimant.creator.dwp.repository.UCHouseholdRepository;
 import uk.gov.dhsc.htbhf.claimant.creator.model.AgeAt;
-import uk.gov.dhsc.htbhf.claimant.creator.model.ChildAgeInfo;
+import uk.gov.dhsc.htbhf.claimant.creator.model.ChildInfo;
 import uk.gov.dhsc.htbhf.claimant.creator.model.ClaimantInfo;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 
@@ -50,12 +51,13 @@ public class ClaimantLoader {
     private AddressDTOToAddressConverter addressDTOToAddressConverter;
 
     @PostConstruct
+    @Transactional
     public void loadClaimantIntoDatabase() throws IOException {
         ClaimantInfo claimantInfo = objectMapper.readValue(new ClassPathResource("test-claimant-creator/claimant.yml").getFile(), ClaimantInfo.class);
         log.info("Saving claim {}", claimantInfo);
         String dwpHouseholdIdentifier = createDWPHousehold(claimantInfo);
         Claim claim = createActiveClaim(claimantInfo, dwpHouseholdIdentifier);
-        PaymentCycle paymentCycle = createPaymentCycleEndingYesterday(claim, claimantInfo.getChildrenAgeInfo());
+        PaymentCycle paymentCycle = createPaymentCycleEndingYesterday(claim, claimantInfo.getChildrenInfo());
         createPayment(claim, paymentCycle);
     }
 
@@ -66,22 +68,22 @@ public class ClaimantLoader {
         UCAdult ucAdult = createUCAdult(claimantInfo, ucHousehold);
         ucHousehold.addAdult(ucAdult);
 
-        Set<UCChild> ucChildren = createUCChildren(claimantInfo.getChildrenAgeInfo());
+        Set<UCChild> ucChildren = createUCChildren(claimantInfo.getChildrenInfo());
         ucHousehold.setChildren(ucChildren);
 
         ucHouseholdRepository.save(ucHousehold);
         return dwpHouseholdIdentifier;
     }
 
-    private Set<UCChild> createUCChildren(List<ChildAgeInfo> childrenAgeInfo) {
+    private Set<UCChild> createUCChildren(List<ChildInfo> childrenAgeInfo) {
         return childrenAgeInfo.stream()
                 .map(this::convertChildAgeInfoToUCChild)
                 .collect(Collectors.toSet());
     }
 
-    private UCChild convertChildAgeInfoToUCChild(ChildAgeInfo childAgeInfo) {
+    private UCChild convertChildAgeInfoToUCChild(ChildInfo childInfo) {
         return UCChild.builder()
-                .dateOfBirth(convertChildAgeInfoToDate(childAgeInfo))
+                .dateOfBirth(convertChildAgeInfoToDate(childInfo))
                 .build();
     }
 
@@ -127,11 +129,11 @@ public class ClaimantLoader {
                 .lastName(claimantInfo.getLastName())
                 .nino(claimantInfo.getNino())
                 .expectedDeliveryDate(claimantInfo.getExpectedDeliveryDate())
-                .childrenDob(createListOfChildrenDatesOfBirth(claimantInfo.getChildrenAgeInfo()))
+                .childrenDob(createListOfChildrenDatesOfBirth(claimantInfo.getChildrenInfo()))
                 .build();
     }
 
-    private PaymentCycle createPaymentCycleEndingYesterday(Claim claim, List<ChildAgeInfo> childrenAgeInfo) {
+    private PaymentCycle createPaymentCycleEndingYesterday(Claim claim, List<ChildInfo> childrenAgeInfo) {
         LocalDate cycleStartDate = LocalDate.now().minusDays(28);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 cycleStartDate,
@@ -143,6 +145,7 @@ public class ClaimantLoader {
                 .claim(claim)
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
+                .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .build();
         return paymentCycleRepository.save(paymentCycle);
     }
@@ -160,14 +163,15 @@ public class ClaimantLoader {
         paymentRepository.save(payment);
     }
 
-    private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildAgeInfo> childAgeInfo) {
-        return childAgeInfo.stream()
+    private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildInfo> childrenInfo) {
+        return childrenInfo.stream()
+                .filter(childInfo -> !childInfo.isExcludeFromExistingCycle())
                 .map(this::convertChildAgeInfoToDate)
                 .collect(Collectors.toList());
     }
 
-    private LocalDate convertChildAgeInfoToDate(ChildAgeInfo childAgeInfo) {
-        LocalDate childDateOfBirth = LocalDate.now().minus(childAgeInfo.getAge());
-        return childAgeInfo.getAt() == AgeAt.START_OF_NEXT_CYCLE ? childDateOfBirth.plusDays(28) : childDateOfBirth;
+    private LocalDate convertChildAgeInfoToDate(ChildInfo childInfo) {
+        LocalDate childDateOfBirth = LocalDate.now().minus(childInfo.getAge());
+        return childInfo.getAt() == AgeAt.START_OF_NEXT_CYCLE ? childDateOfBirth.plusDays(28) : childDateOfBirth;
     }
 }
