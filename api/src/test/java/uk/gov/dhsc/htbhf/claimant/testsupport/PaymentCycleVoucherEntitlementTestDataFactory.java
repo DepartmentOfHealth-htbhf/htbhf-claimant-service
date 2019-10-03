@@ -46,7 +46,7 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(
             LocalDate startDate, List<LocalDate> childrensDob) {
-        LocalDate birthdate = childrensDob.stream().max(LocalDate::compareTo).get();
+        LocalDate birthdate = getDateOfBirthOfYoungestChild(childrensDob);
         return PaymentCycleVoucherEntitlement.builder()
                 .backdatedVouchers((int) ChronoUnit.WEEKS.between(birthdate, startDate))
                 .voucherEntitlements(Arrays.asList(
@@ -56,6 +56,10 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                         aVoucherEntitlementMatchingChildren(startDate.plusWeeks(3), childrensDob)
                 ))
                 .build();
+    }
+
+    private static LocalDate getDateOfBirthOfYoungestChild(List<LocalDate> childrensDob) {
+        return childrensDob.stream().max(LocalDate::compareTo).get();
     }
 
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithPregnancyVouchers() {
