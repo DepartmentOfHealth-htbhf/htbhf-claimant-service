@@ -6,21 +6,19 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
-import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
-import uk.gov.dhsc.htbhf.claimant.message.MessageType;
-import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.*;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildSendNewCardSuccessEmailPayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
@@ -73,7 +71,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     }
 
     private void sendNewCardSuccessEmailMessage(PaymentCycle paymentCycle) {
-        EmailMessagePayload messagePayload = buildSendNewCardSuccessEmailPayload(paymentCycle);
+        EmailMessagePayload messagePayload = buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 

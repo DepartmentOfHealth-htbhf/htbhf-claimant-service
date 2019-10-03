@@ -9,6 +9,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 
 class PaymentCycleVoucherEntitlementTest {
@@ -146,6 +147,17 @@ class PaymentCycleVoucherEntitlementTest {
 
         LocalDate lastVoucherEntitlement = entitlement.getLastVoucherEntitlementForCycle().getEntitlementDate();
         assertThat(lastVoucherEntitlement).isEqualTo(minusOneWeek);
+    }
+
+    @Test
+    void shouldReturnCorrectBackdatedVouchersValue() {
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        int backdatedVouchers = 10;
+
+        PaymentCycleVoucherEntitlement result = new PaymentCycleVoucherEntitlement(asList(voucherEntitlement), backdatedVouchers);
+
+        int expected = 3100; // backdatedVouchers * VOUCHER_VALUE_IN_PENCE;
+        assertThat(result.getBackdatedVouchersValueInPence()).isEqualTo(expected);
     }
 
 }

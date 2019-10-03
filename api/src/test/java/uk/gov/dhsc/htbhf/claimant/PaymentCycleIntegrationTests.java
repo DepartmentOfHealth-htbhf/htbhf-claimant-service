@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -213,7 +212,6 @@ public class PaymentCycleIntegrationTests {
         assertThatPaymentEmailWasSent(newCycle);
     }
 
-    @Disabled("HTBHF-2028")
     @Test
     void shouldSendNewChildEmailWhenPaymentCycleIncludesBackdatedVouchers() throws JsonProcessingException, NotificationClientException {
         // setup some claim variables

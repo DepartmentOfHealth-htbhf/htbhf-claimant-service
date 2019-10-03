@@ -28,7 +28,7 @@ public class EmailPayloadAssertions {
      * @param nextPaymentDate      The next payment date to assert
      */
     public static void assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(Map<String, Object> emailPersonalisation, LocalDate nextPaymentDate) {
-        assertThat(emailPersonalisation).containsOnly(
+        assertThat(emailPersonalisation).contains(
                 entry("First_name", VALID_FIRST_NAME),
                 entry("Last_name", VALID_LAST_NAME),
                 entry("payment_amount", "£12.40"),
@@ -69,8 +69,8 @@ public class EmailPayloadAssertions {
                 entry("children_under_1_payment",
                         formatListEntry(voucherEntitlement.getVouchersForChildrenUnderOne(), "for children under 1")),
                 entry("children_under_4_payment",
-                        formatListEntry(voucherEntitlement.getVouchersForChildrenUnderOne(), "for children between 1 and 4")),
-                entry("backdated_payment", formatVoucherAmount(voucherEntitlement.getBackdatedVouchers())),
+                        formatListEntry(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(), "for children between 1 and 4")),
+                entry("backdated_amount", formatVoucherAmount(voucherEntitlement.getBackdatedVouchers())),
                 entry("next_payment_date", EMAIL_DATE_FORMATTER.format(paymentCycle.getCycleEndDate().plusDays(1)))
         );
     }

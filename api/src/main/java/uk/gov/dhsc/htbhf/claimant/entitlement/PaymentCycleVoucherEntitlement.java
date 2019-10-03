@@ -71,4 +71,9 @@ public class PaymentCycleVoucherEntitlement {
                 .max(comparing(VoucherEntitlement::getEntitlementDate))
                 .get();
     }
+
+    @JsonIgnore
+    public int getBackdatedVouchersValueInPence() {
+        return singleVoucherValueInPence * backdatedVouchers;
+    }
 }

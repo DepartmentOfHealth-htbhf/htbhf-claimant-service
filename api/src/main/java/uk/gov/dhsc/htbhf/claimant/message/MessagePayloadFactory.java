@@ -43,28 +43,20 @@ public class MessagePayloadFactory {
     }
 
     /**
-     * Builds the message payload required to send a new card email message. The email template has paremeterised values
+     * Builds the message payload required to send an email message. The email template has parameterised values
      * which are contained in the emailPersonalisation Map. All monetary amounts are formatted into pounds and the breakdown
      * of voucher payments has been detailed in a bullet point list - any vouchers which are missing are replaced with a
      * single blank line so that we don't have any empty bullet point in the email.
      *
      * @param paymentCycle The payment cycle with payment and voucher details.
+     * @param emailType The type of email to send.
      * @return The constructed payload.
      */
-    public static EmailMessagePayload buildSendNewCardSuccessEmailPayload(PaymentCycle paymentCycle) {
+    public static EmailMessagePayload buildEmailMessagePayload(PaymentCycle paymentCycle, EmailType emailType) {
         Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, paymentCycle.getVoucherEntitlement());
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.NEW_CARD)
-                .emailPersonalisation(emailPersonalisation)
-                .build();
-    }
-
-    public static EmailMessagePayload buildPaymentNotificationEmailPayload(PaymentCycle paymentCycle) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, paymentCycle.getVoucherEntitlement());
-        return EmailMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.PAYMENT)
+                .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
     }
@@ -89,6 +81,8 @@ public class MessagePayloadFactory {
         emailPersonalisation.put(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
         String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
         emailPersonalisation.put(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
+        String backdateAmount = convertPenceToPounds(voucherEntitlement.getBackdatedVouchersValueInPence());
+        emailPersonalisation.put(EmailTemplateKey.BACKDATED_AMOUNT.getTemplateKeyName(), backdateAmount);
         return emailPersonalisation;
     }
 
