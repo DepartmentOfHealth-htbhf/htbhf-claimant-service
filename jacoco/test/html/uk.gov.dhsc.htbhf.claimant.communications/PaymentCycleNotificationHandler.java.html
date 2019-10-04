@@ -7,6 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
 
@@ -14,19 +16,30 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmai
 @AllArgsConstructor
 public class PaymentCycleNotificationHandler {
 
-    private MessageQueueClient messageQueueClient;
-    private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
+    private final MessageQueueClient messageQueueClient;
+    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
-<span class="fc bfc" id="L21" title="All 2 branches covered.">        EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
-<span class="fc" id="L22">                ? buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)</span>
-<span class="fc" id="L23">                : buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);</span>
-<span class="fc" id="L24">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L25">        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);</span>
-<span class="fc" id="L26">    }</span>
+<span class="fc bfc" id="L24" title="All 2 branches covered.">        EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
+<span class="fc" id="L25">                ? buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)</span>
+<span class="fc" id="L26">                : buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);</span>
+<span class="fc" id="L27">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L28">        handleUpcomingBirthdayEmails(paymentCycle);</span>
+<span class="fc" id="L29">    }</span>
 
     private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {
-<span class="fc bfc" id="L29" title="All 2 branches covered.">        return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() &gt; 0;</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() &gt; 0;</span>
     }
+
+    private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
+<span class="fc" id="L36">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
+<span class="fc" id="L38">            upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+        }
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {</span>
+<span class="fc" id="L41">            upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);</span>
+        }
+<span class="fc" id="L43">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
