@@ -94,14 +94,18 @@ public class WiremockManager {
                         .withBody("Something went badly wrong")));
     }
 
-    public void assertThatGetBalanceRequestMadeForClaim(Payment payment) {
-        cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/balance")));
+    public void assertThatGetBalanceRequestMadeForClaim(String cardAccountId) {
+        cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + cardAccountId + "/balance")));
     }
 
     public void assertThatDepositFundsRequestMadeForClaim(Payment payment) throws JsonProcessingException {
         StringValuePattern expectedDepositBody = expectedDepositRequestBody(payment);
         cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/deposit"))
                 .withRequestBody(expectedDepositBody));
+    }
+
+    public void assertThatDepositFundsRequestNotMadeForClaim(String cardAccountId) {
+        cardServiceMock.verify(0, postRequestedFor(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit")));
     }
 
     public void assertThatNewCardRequestMadeForClaim(Claim claim) throws JsonProcessingException {
