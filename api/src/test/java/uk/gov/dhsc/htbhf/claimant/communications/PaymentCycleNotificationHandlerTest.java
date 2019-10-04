@@ -14,13 +14,18 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertThatEmailPayloadCorrectForBackdatedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
@@ -35,32 +40,82 @@ class PaymentCycleNotificationHandlerTest {
     private MessageQueueClient messageQueueClient;
     @Mock
     private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
+    @Mock
+    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    @Mock
+    private NextPaymentCycleSummary nextPaymentCycleSummary;
 
     @InjectMocks
     PaymentCycleNotificationHandler paymentCycleNotificationHandler;
 
     @Test
-    public void shouldSendEmailAndInvokeUpcomingBirthdayEmailHandler() {
+    public void shouldSendRegularPaymentEmailOnly() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
         Claim claim = paymentCycle.getClaim();
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
         verifyPaymentEmailNotificationSent(paymentCycle, claim);
-        verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
+        verifyZeroInteractions(upcomingBirthdayEmailHandler);
     }
 
     @Test
-    public void shouldSendNewChildFromPregnancyEmail() {
+    public void shouldSendNewChildFromPregnancyEmailOnly() {
         Claim claim = aClaimWithExpectedDeliveryDate(LocalDate.now().minusWeeks(8));
         PaymentCycleVoucherEntitlement voucherEntitlement =
                 aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), asList(LocalDate.now().minusWeeks(6)));
         PaymentCycle paymentCycle = aPaymentCycleWithCycleEntitlementAndClaim(voucherEntitlement, claim);
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
         verifyNewChildFromPregnancyEmailSent(paymentCycle, claim);
-        verify(upcomingBirthdayEmailHandler).handleUpcomingBirthdayEmails(paymentCycle);
+        verifyZeroInteractions(upcomingBirthdayEmailHandler);
+    }
+
+    @Test
+    public void shouldSendChildTurningOneEmail() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(true);
+
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+
+        verify(upcomingBirthdayEmailHandler).sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
+    }
+
+    @Test
+    public void shouldSendChildTurningFourEmail() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
+
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+
+        verify(upcomingBirthdayEmailHandler).sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
+    }
+
+    @Test
+    public void shouldSendChildTurningOneAndFourEmails() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(true);
+
+        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+
+        verify(upcomingBirthdayEmailHandler).sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        verify(upcomingBirthdayEmailHandler).sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
     }
 
     private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, Claim claim) {

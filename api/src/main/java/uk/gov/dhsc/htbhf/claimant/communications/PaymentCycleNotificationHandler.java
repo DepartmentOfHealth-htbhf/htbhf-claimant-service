@@ -7,6 +7,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
 
@@ -14,18 +16,29 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmai
 @AllArgsConstructor
 public class PaymentCycleNotificationHandler {
 
-    private MessageQueueClient messageQueueClient;
-    private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
+    private final MessageQueueClient messageQueueClient;
+    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
 
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
         EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
                 ? buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
                 : buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
+        handleUpcomingBirthdayEmails(paymentCycle);
     }
 
     private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {
         return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() > 0;
+    }
+
+    private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
+        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
+        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
+            upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        }
+        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
+            upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        }
     }
 }

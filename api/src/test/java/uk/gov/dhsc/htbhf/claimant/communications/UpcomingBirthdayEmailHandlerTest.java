@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
@@ -28,8 +27,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
@@ -51,8 +48,6 @@ class UpcomingBirthdayEmailHandlerTest {
     @Mock
     private MessageQueueClient messageQueueClient;
     @Mock
-    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
-    @Mock
     private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
     private UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
@@ -62,23 +57,20 @@ class UpcomingBirthdayEmailHandlerTest {
         upcomingBirthdayEmailHandler = new UpcomingBirthdayEmailHandler(
                 NUMBER_OF_CALCULATION_PERIODS,
                 messageQueueClient,
-                childDateOfBirthCalculator,
                 paymentCycleEntitlementCalculator);
     }
 
     @Test
     void shouldSendEmailForChildTurnsFourOnFirstDayOfNextCycle() {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
-        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has no vouchers for 1-4 year olds.
         List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
 
-        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 NOT_PREGNANT,
                 childrensDob,
@@ -93,16 +85,14 @@ class UpcomingBirthdayEmailHandlerTest {
     @Test
     void shouldSendEmailForChildTurnsFourInFirstWeekOfNextCycle() {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
-        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         //This entitlement specifically has one voucher for 1-4 year olds.
         List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
 
-        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 NOT_PREGNANT,
                 childrensDob,
@@ -117,15 +107,13 @@ class UpcomingBirthdayEmailHandlerTest {
     @Test
     void shouldSendEmailForChildTurnsOneOnFirstDayOfNextCycle() {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
-        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         List<LocalDate> childrensDob = List.of(TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
 
-        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 NOT_PREGNANT,
                 childrensDob,
@@ -140,15 +128,13 @@ class UpcomingBirthdayEmailHandlerTest {
     @Test
     void shouldSendEmailForChildTurnsOneInFirstWeekOfNextCycle() {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
-        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(nextPaymentCycleSummary);
         List<LocalDate> childrensDob = List.of(TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder().childrenDob(childrensDob).build();
 
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
+        upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
 
-        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 NOT_PREGNANT,
                 childrensDob,
@@ -158,17 +144,6 @@ class UpcomingBirthdayEmailHandlerTest {
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
         verifyChildTurnsOneEmailNotificationSentWhenChildTurnsOneInFirstWeekOfNextCycle(paymentCycle, payloadCaptor.getValue());
-    }
-
-    @Test
-    void shouldSendNoEmails() {
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(any())).willReturn(NextPaymentCycleSummary.NO_CHILDREN);
-
-        upcomingBirthdayEmailHandler.handleUpcomingBirthdayEmails(paymentCycle);
-
-        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(paymentCycle);
-        verifyZeroInteractions(paymentCycleEntitlementCalculator, messageQueueClient);
     }
 
     private void verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourOnFirstDayOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
