@@ -99,4 +99,14 @@ public class RepositoryMediator {
         return completedPaymentCycle;
     }
 
+    /**
+     * Loads the claim from the database with the given claim id.
+     *
+     * @param claimId The id of the claim
+     * @return The claim from the database
+     */
+    public Claim loadClaim(UUID claimId) {
+        return claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Unable to find claim with id: " + claimId.toString()));
+    }
+
 }

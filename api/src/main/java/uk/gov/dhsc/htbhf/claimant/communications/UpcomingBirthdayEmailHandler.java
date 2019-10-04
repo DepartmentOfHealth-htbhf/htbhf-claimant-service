@@ -64,7 +64,8 @@ public class UpcomingBirthdayEmailHandler {
     private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
         boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
-        EmailMessagePayload messagePayload = buildChildTurnsFourNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningFourInNextMonth);
+        EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
+                entitlement, multipleChildrenTurningFourInNextMonth, EmailType.CHILD_TURNS_FOUR);
         log.info("Sending email for child turns 4 for Payment Cycle after cycle with id: [{}]", paymentCycle.getId());
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
     }
@@ -72,31 +73,21 @@ public class UpcomingBirthdayEmailHandler {
     private void sendChildTurnsOneEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
         boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();
-        EmailMessagePayload messagePayload = buildChildTurnsOneNotificationEmailPayload(paymentCycle, entitlement, multipleChildrenTurningOneInNextMonth);
+        EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
+                entitlement, multipleChildrenTurningOneInNextMonth, EmailType.CHILD_TURNS_ONE);
         log.info("Sending email for child turns 1 for Payment Cycle after cycle with id: [{}]", paymentCycle.getId());
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
     }
 
-    private EmailMessagePayload buildChildTurnsFourNotificationEmailPayload(PaymentCycle paymentCycle,
-                                                                            PaymentCycleVoucherEntitlement entitlementNextMonth,
-                                                                            boolean multipleChildrenTurningFourInMonth) {
-        Map<String, Object> emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);
-        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningFourInMonth);
-        return EmailMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.CHILD_TURNS_FOUR)
-                .emailPersonalisation(emailPersonalisation)
-                .build();
-    }
-
-    private EmailMessagePayload buildChildTurnsOneNotificationEmailPayload(PaymentCycle paymentCycle,
+    private EmailMessagePayload buildChildTurnsAgeNotificationEmailPayload(PaymentCycle paymentCycle,
                                                                            PaymentCycleVoucherEntitlement entitlementNextMonth,
-                                                                           boolean multipleChildrenTurningOneInMonth) {
+                                                                           boolean multipleChildrenTurningOneInMonth,
+                                                                           EmailType emailType) {
         Map<String, Object> emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);
         emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningOneInMonth);
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
-                .emailType(EmailType.CHILD_TURNS_ONE)
+                .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
     }
