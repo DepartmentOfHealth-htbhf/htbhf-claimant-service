@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
@@ -62,6 +63,9 @@ public class ClaimantLoader {
     }
 
     private String createDWPHousehold(ClaimantInfo claimantInfo) {
+        Stream<UCHousehold> existingHouseholds = ucHouseholdRepository.findAllHouseholdsByAdultWithNino(claimantInfo.getNino());
+        ucHouseholdRepository.deleteAll(existingHouseholds.collect(Collectors.toList()));
+
         String dwpHouseholdIdentifier = UUID.randomUUID().toString();
         UCHousehold ucHousehold = UCHousehold.builder().householdIdentifier(dwpHouseholdIdentifier).build();
 
@@ -135,9 +139,10 @@ public class ClaimantLoader {
 
     private PaymentCycle createPaymentCycleEndingYesterday(Claim claim, List<ChildInfo> childrenAgeInfo) {
         LocalDate cycleStartDate = LocalDate.now().minusDays(28);
+        List<LocalDate> childrenDatesOfBirth = createListOfChildrenDatesOfBirth(childrenAgeInfo);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 cycleStartDate,
-                createListOfChildrenDatesOfBirth(childrenAgeInfo),
+                childrenDatesOfBirth,
                 claim.getClaimant().getExpectedDeliveryDate());
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .cycleStartDate(cycleStartDate)
@@ -146,6 +151,7 @@ public class ClaimantLoader {
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .childrenDob(childrenDatesOfBirth)
                 .build();
         return paymentCycleRepository.save(paymentCycle);
     }
