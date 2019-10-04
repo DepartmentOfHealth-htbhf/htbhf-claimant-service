@@ -16,6 +16,7 @@ import java.util.UUID;
 public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
+    private final QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus;
     private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;

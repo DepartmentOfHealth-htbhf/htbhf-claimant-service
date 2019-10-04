@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -97,7 +99,7 @@ class EligibilityAndEntitlementServiceTest {
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
 
-        assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
+        assertCorrectResult(result, ELIGIBLE, CONFIRMED, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
         verify(duplicateClaimChecker).checkForDuplicateClaimsFromHousehold(eligibilityResponse);
@@ -119,7 +121,7 @@ class EligibilityAndEntitlementServiceTest {
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
 
-        assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
+        assertCorrectResult(result, INELIGIBLE, CONFIRMED, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
         verify(duplicateClaimChecker).checkForDuplicateClaimsFromHousehold(eligibilityResponse);
@@ -142,7 +144,7 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision result =
                 eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
-        assertCorrectResult(result, ELIGIBLE, eligibilityResponse, voucherEntitlement);
+        assertCorrectResult(result, ELIGIBLE, CONFIRMED, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
@@ -165,7 +167,7 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision result =
                 eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
-        assertCorrectResult(result, INELIGIBLE, eligibilityResponse, voucherEntitlement);
+        assertCorrectResult(result, INELIGIBLE, CONFIRMED, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
@@ -177,10 +179,12 @@ class EligibilityAndEntitlementServiceTest {
 
     private void assertCorrectResult(EligibilityAndEntitlementDecision result,
                                      EligibilityStatus eligibilityStatus,
+                                     QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus,
                                      EligibilityResponse eligibilityResponse,
                                      PaymentCycleVoucherEntitlement voucherEntitlement) {
         assertThat(result).isNotNull();
         assertThat(result.getEligibilityStatus()).isEqualTo(eligibilityStatus);
+        assertThat(result.getQualifyingBenefitEligibilityStatus()).isEqualTo(qualifyingBenefitEligibilityStatus);
         assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
         assertThat(result.getDateOfBirthOfChildren()).isEqualTo(eligibilityResponse.getDateOfBirthOfChildren());
         assertThat(result.getDwpHouseholdIdentifier()).isEqualTo(eligibilityResponse.getDwpHouseholdIdentifier());
