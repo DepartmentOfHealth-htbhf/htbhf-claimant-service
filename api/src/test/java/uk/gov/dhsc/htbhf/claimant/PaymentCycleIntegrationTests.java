@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -21,6 +22,7 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,14 +42,12 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertTha
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FROM_PREGNANCY;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -58,6 +58,7 @@ public class PaymentCycleIntegrationTests {
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
+    private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
 
     @MockBean
     private NotificationClient notificationClient;
@@ -88,10 +89,9 @@ public class PaymentCycleIntegrationTests {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
         List<LocalDate> sixMonthOldAndThreeYearOld = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
-        int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
@@ -103,11 +103,11 @@ public class PaymentCycleIntegrationTests {
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
-        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
@@ -120,10 +120,9 @@ public class PaymentCycleIntegrationTests {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
         List<LocalDate> childTurningOneInFirstWeekOfNextPaymentCycle = singletonList(TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
-        int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningOneInFirstWeekOfNextPaymentCycle);
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
@@ -134,7 +133,7 @@ public class PaymentCycleIntegrationTests {
         // confirm card service called to make payment
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
@@ -148,10 +147,9 @@ public class PaymentCycleIntegrationTests {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
         List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD);
-        int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
@@ -162,7 +160,7 @@ public class PaymentCycleIntegrationTests {
         // confirm card service called to make payment
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
@@ -176,7 +174,6 @@ public class PaymentCycleIntegrationTests {
     void shouldRecoverFromErrorsToMakePaymentAndSendEmail() throws JsonProcessingException, NotificationClientException {
         String cardAccountId = UUID.randomUUID().toString();
         List<LocalDate> sixMonthOldAndThreeYearOld = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
-        int cardBalanceInPenceBeforeDeposit = 88;
 
         // all external endpoints will cause an error
         wiremockManager.stubErrorEligibilityResponse();
@@ -190,7 +187,7 @@ public class PaymentCycleIntegrationTests {
         invokeAllSchedulers();
         wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
         invokeAllSchedulers();
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         invokeAllSchedulers();
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         invokeAllSchedulers();
@@ -202,11 +199,11 @@ public class PaymentCycleIntegrationTests {
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                         LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
-        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
         assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         assertThatPaymentEmailWasSent(newCycle);
@@ -217,14 +214,13 @@ public class PaymentCycleIntegrationTests {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
         List<LocalDate> sixWeekOldAndThreeYearOld = asList(LocalDate.now().minusWeeks(6), THREE_YEAR_OLD);
-        int cardBalanceInPenceBeforeDeposit = 88;
 
         wiremockManager.stubSuccessfulEligibilityResponse(sixWeekOldAndThreeYearOld);
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, cardBalanceInPenceBeforeDeposit);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, asList(THREE_YEAR_OLD), LocalDate.now().minusWeeks(7));
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, singletonList(THREE_YEAR_OLD), LocalDate.now().minusWeeks(7));
 
         invokeAllSchedulers();
 
@@ -232,15 +228,43 @@ public class PaymentCycleIntegrationTests {
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement =
                 aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), sixWeekOldAndThreeYearOld);
-        assertPaymentCycleIsFullyPaid(newCycle, sixWeekOldAndThreeYearOld, cardBalanceInPenceBeforeDeposit, expectedVoucherEntitlement);
+        assertPaymentCycleIsFullyPaid(newCycle, sixWeekOldAndThreeYearOld, expectedVoucherEntitlement);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNewChildEmailWasSent(newCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Disabled("HTBHF-2185")
+    @Test
+    void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant() throws JsonProcessingException, NotificationClientException {
+        // setup some claim variables
+        String cardAccountId = UUID.randomUUID().toString();
+
+        wiremockManager.stubSuccessfulEligibilityResponse(Collections.emptyList());
+        stubNotificationEmailResponse();
+
+        //Previous PaymentCycle had a single child on it, not pregnant
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, singletonList(THREE_YEAR_OLD), null);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with no payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        //Should be a PaymentCycleVoucherEntitlement with no vouchers for each week
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
+        assertPaymentCycleHasNoPayment(newCycle, expectedVoucherEntitlement);
+
+        // confirm card service called to make payment
+        wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(newCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -260,19 +284,30 @@ public class PaymentCycleIntegrationTests {
     }
 
     private void assertPaymentCycleIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
-                                               int cardBalanceInPenceBeforeDeposit, PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
+                                               PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
         assertThat(paymentCycle.getChildrenDob()).isEqualTo(childrensDatesOfBirth);
         assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedVoucherEntitlement);
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.FULL_PAYMENT_MADE);
-        assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(cardBalanceInPenceBeforeDeposit);
+        assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         List<Payment> successfulPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.SUCCESS);
         assertThat(successfulPayments).hasSize(1);
         Payment payment = successfulPayments.iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
+    }
+
+    private void assertPaymentCycleHasNoPayment(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
+        assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
+        assertThat(paymentCycle.getChildrenDob()).isEmpty();
+        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedVoucherEntitlement);
+        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.INELIGIBLE);
+        assertThat(paymentCycle.getCardBalanceInPence()).isNull();
+        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(0);
+        assertThat(paymentCycle.getPayments()).isEmpty();
     }
 
     private void assertThatChildTurnsOneEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
@@ -310,6 +345,19 @@ public class PaymentCycleIntegrationTests {
                 .isEqualTo(formatVoucherAmount(newCycle.getVoucherEntitlement().getBackdatedVouchers()));
     }
 
+    private void assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()),
+                mapArgumentCaptor.capture(),
+                any(),
+                any());
+
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertThat(personalisationMap).hasSize(2);
+        assertNameEmailFields(newCycle, personalisationMap);
+    }
+
     private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsOnePersonalisationMap) {
         assertCommonEmailFields(currentCycle, childTurnsOnePersonalisationMap);
         assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
@@ -322,15 +370,15 @@ public class PaymentCycleIntegrationTests {
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
     }
 
-    private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsOnePersonalisationMap) {
-        assertCommonEmailFields(currentCycle, childTurnsOnePersonalisationMap);
-        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+    private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsFourPersonalisationMap) {
+        assertCommonEmailFields(currentCycle, childTurnsFourPersonalisationMap);
+        assertThat(childTurnsFourPersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // no children under one
-        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(childTurnsFourPersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // only one child will be under four
-        assertThat(childTurnsOnePersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+        assertThat(childTurnsFourPersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
-        assertThat(childTurnsOnePersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(childTurnsFourPersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
 
@@ -346,14 +394,18 @@ public class PaymentCycleIntegrationTests {
     }
 
     private void assertCommonEmailFields(PaymentCycle newCycle, Map personalisationMap) {
-        Claimant claimant = newCycle.getClaim().getClaimant();
-        assertThat(personalisationMap).isNotNull();
-        assertThat(personalisationMap.get(FIRST_NAME.getTemplateKeyName())).isEqualTo(claimant.getFirstName());
-        assertThat(personalisationMap.get(LAST_NAME.getTemplateKeyName())).isEqualTo(claimant.getLastName());
+        assertNameEmailFields(newCycle, personalisationMap);
         assertThat(personalisationMap.get(PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(newCycle.getVoucherEntitlement().getVouchersForPregnancy()));
         assertThat(personalisationMap.get(NEXT_PAYMENT_DATE.getTemplateKeyName())).asString()
                 .contains(newCycle.getCycleEndDate().plusDays(1).format(EMAIL_DATE_PATTERN));
+    }
+
+    private void assertNameEmailFields(PaymentCycle newCycle, Map personalisationMap) {
+        Claimant claimant = newCycle.getClaim().getClaimant();
+        assertThat(personalisationMap).isNotNull();
+        assertThat(personalisationMap.get(FIRST_NAME.getTemplateKeyName())).isEqualTo(claimant.getFirstName());
+        assertThat(personalisationMap.get(LAST_NAME.getTemplateKeyName())).isEqualTo(claimant.getLastName());
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(String cardAccountId, List<LocalDate> childrensDatesOfBirth, LocalDate expectedDeliveryDate) {
