@@ -97,15 +97,28 @@ public class EligibilityAndEntitlementService {
                                                             PaymentCycleVoucherEntitlement entitlement,
                                                             UUID existingClaimId) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);
+        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))
-                .voucherEntitlement(entitlement)
+                .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
                 .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
                 .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
                 .existingClaimId(existingClaimId)
                 .build();
+    }
+
+    /**
+     * We only return and store a voucher entitlement if the Claimant is ELIGIBLE.
+     *
+     * @param entitlement       Their entitlement
+     * @param eligibilityStatus The status to make the determination
+     * @return The voucher entitlement if they are ELIGIBLE else null
+     */
+    private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
+                                                                                             EligibilityStatus eligibilityStatus) {
+        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;
     }
 
     private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
