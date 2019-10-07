@@ -65,10 +65,10 @@ public class UpcomingBirthdayEmailHandler {
 
     private EmailMessagePayload buildChildTurnsAgeNotificationEmailPayload(PaymentCycle paymentCycle,
                                                                            PaymentCycleVoucherEntitlement entitlementNextMonth,
-                                                                           boolean multipleChildrenTurningOneInMonth,
+                                                                           boolean multipleChildrenTurningAgeInMonth,
                                                                            EmailType emailType) {
         Map<String, Object> emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);
-        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningOneInMonth);
+        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningAgeInMonth);
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(emailType)
