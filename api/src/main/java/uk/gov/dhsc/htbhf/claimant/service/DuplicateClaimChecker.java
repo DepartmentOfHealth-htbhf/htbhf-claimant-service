@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
@@ -13,19 +12,11 @@ public class DuplicateClaimChecker {
     private final ClaimRepository claimRepository;
 
     /**
-     * Determines the eligibility status for a given {@link EligibilityResponse}.
-     * The status is DUPLICATE if a live claim exists for the given dwp or hmrc household identifier,
-     * otherwise returns the eligibility status from the given eligibility response.
+     * Determines whether a live (new, active, pending or pending expiry) claim exists for the household identifier returned by the dwp or hmrc.
      * @param eligibilityResponse Eligibility response containing household identifiers.
-     * @return the eligibility status
+     * @return true if there is already a claim for either of the household identifiers.
      */
-    public EligibilityStatus checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        return eligibleClaimExistsForHousehold(eligibilityResponse)
-                ? EligibilityStatus.DUPLICATE
-                : eligibilityResponse.getEligibilityStatus();
-    }
-
-    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+    public boolean liveClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
         String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();
         boolean dwpClaimExists = dwpHouseholdIdentifier != null && claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);
 

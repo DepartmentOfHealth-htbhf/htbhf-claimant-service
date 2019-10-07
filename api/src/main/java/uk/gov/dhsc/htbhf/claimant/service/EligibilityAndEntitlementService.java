@@ -83,7 +83,8 @@ public class EligibilityAndEntitlementService {
     }
 
     private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
+        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : eligibilityResponse.getEligibilityStatus();
         return eligibilityResponse.toBuilder()
                 .eligibilityStatus(eligibilityStatus)
                 .build();
