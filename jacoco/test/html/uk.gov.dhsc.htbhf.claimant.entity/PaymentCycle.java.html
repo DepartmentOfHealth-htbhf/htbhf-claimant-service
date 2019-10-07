@@ -3,6 +3,7 @@
 import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -45,6 +46,10 @@ public class PaymentCycle extends VersionedEntity {
     @Enumerated(EnumType.STRING)
     private EligibilityStatus eligibilityStatus;
 
+    @Column(name = &quot;qualifying_benefit_eligibility_status&quot;)
+    @Enumerated(EnumType.STRING)
+    private QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus;
+
     @Column(name = &quot;voucher_entitlement_json&quot;)
     @Type(type = &quot;json&quot;)
     private PaymentCycleVoucherEntitlement voucherEntitlement;
@@ -74,13 +79,13 @@ public class PaymentCycle extends VersionedEntity {
     private PaymentCycleStatus paymentCycleStatus;
 
     public PaymentCycle addPayment(Payment payment) {
-<span class="fc" id="L77">        this.payments.add(payment);</span>
-<span class="fc" id="L78">        payment.setPaymentCycle(this);</span>
-<span class="fc" id="L79">        return this;</span>
+<span class="fc" id="L82">        this.payments.add(payment);</span>
+<span class="fc" id="L83">        payment.setPaymentCycle(this);</span>
+<span class="fc" id="L84">        return this;</span>
     }
 
     public Set&lt;Payment&gt; getPayments() {
-<span class="fc" id="L83">        return unmodifiableSet(payments);</span>
+<span class="fc" id="L88">        return unmodifiableSet(payments);</span>
     }
 
     /**
@@ -88,14 +93,14 @@ public class PaymentCycle extends VersionedEntity {
      * @param voucherEntitlement the entitlement to apply.
      */
     public void applyVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L91">        this.setVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
-<span class="fc" id="L93">            this.setTotalEntitlementAmountInPence(null);</span>
-<span class="fc" id="L94">            this.setTotalVouchers(null);</span>
+<span class="fc" id="L96">        this.setVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
+<span class="fc" id="L98">            this.setTotalEntitlementAmountInPence(null);</span>
+<span class="fc" id="L99">            this.setTotalVouchers(null);</span>
         } else {
-<span class="fc" id="L96">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
-<span class="fc" id="L97">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
+<span class="fc" id="L101">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L102">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
         }
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L104">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
