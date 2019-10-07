@@ -16,7 +16,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
 @Component
 @AllArgsConstructor
-public class ClaimEmailHandler {
+public class DetermineEntitlementNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
 
@@ -25,11 +25,24 @@ public class ClaimEmailHandler {
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 
+    public void sendNoChildrenOnFeedClaimNoLongerEligibleEmail(Claim claim) {
+        MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);
+        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+    }
+
     private EmailMessagePayload buildClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {
+        return buildNoLongerEligibleEmailPayload(claim, EmailType.CLAIM_NO_LONGER_ELIGIBLE);
+    }
+
+    private EmailMessagePayload buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {
+        return buildNoLongerEligibleEmailPayload(claim, EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);
+    }
+
+    private EmailMessagePayload buildNoLongerEligibleEmailPayload(Claim claim, EmailType emailType) {
         Map<String, Object> emailPersonalisation = createClaimNoLongerEligibleEmailPersonalisationMap(claim.getClaimant());
         return EmailMessagePayload.builder()
                 .claimId(claim.getId())
-                .emailType(EmailType.CLAIM_NO_LONGER_ELIGIBLE)
+                .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
     }

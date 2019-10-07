@@ -3,8 +3,11 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.communications.ClaimEmailHandler;
-import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.*;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
@@ -36,7 +39,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageQueueClient messageQueueClient;
 
-    private ClaimEmailHandler claimEmailHandler;
+    private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;
 
     @Override
     public MessageType supportsMessageType() {
@@ -83,7 +86,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         Claim claim = currentPaymentCycle.getClaim();
         claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
         claimRepository.save(claim);
-        claimEmailHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
     }
 
 }
