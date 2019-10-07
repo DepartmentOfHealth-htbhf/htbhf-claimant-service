@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
@@ -63,8 +62,8 @@ public class ClaimantLoader {
     }
 
     private String createDWPHousehold(ClaimantInfo claimantInfo) {
-        Stream<UCHousehold> existingHouseholds = ucHouseholdRepository.findAllHouseholdsByAdultWithNino(claimantInfo.getNino());
-        ucHouseholdRepository.deleteAll(existingHouseholds.collect(Collectors.toList()));
+        List<UCHousehold> existingHouseholds = ucHouseholdRepository.findAllHouseholdsByAdultWithNino(claimantInfo.getNino());
+        ucHouseholdRepository.deleteAll(existingHouseholds);
 
         String dwpHouseholdIdentifier = UUID.randomUUID().toString();
         UCHousehold ucHousehold = UCHousehold.builder().householdIdentifier(dwpHouseholdIdentifier).build();
