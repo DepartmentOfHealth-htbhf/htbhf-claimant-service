@@ -75,7 +75,7 @@ cf login -a ${CF_API} -u ${CF_USER} -p "${CF_PASS}" -s ${CF_SPACE} -o ${CF_ORG}
 
 And installed the `conduit` plugin:
 ```
-cf install-plugin conduit
+cf install-plugin -r CF-Community "conduit"
 ```
 To use the psql command line, run: (you will need to have `psql` installed - see https://www.postgresql.org/download/)
 ```

@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -52,6 +53,8 @@ class PaymentCycleServiceTest {
 
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
+        assertThat(result.getEligibilityStatus()).isNull();
+        assertThat(result.getQualifyingBenefitEligibilityStatus()).isNull();
         assertThat(result.getCycleStartDate()).isEqualTo(today);
         assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
     }
@@ -69,6 +72,7 @@ class PaymentCycleServiceTest {
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(result.getQualifyingBenefitEligibilityStatus()).isEqualTo(QualifyingBenefitEligibilityStatus.CONFIRMED);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
         assertThat(result.getCycleStartDate()).isEqualTo(today);
         assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
@@ -90,6 +94,7 @@ class PaymentCycleServiceTest {
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
         assertThat(result.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
+        assertThat(result.getQualifyingBenefitEligibilityStatus()).isEqualTo(QualifyingBenefitEligibilityStatus.CONFIRMED);
         assertThat(result.getPaymentCycleStatus()).isEqualTo(NEW);
         assertThat(result.getChildrenDob()).isEqualTo(datesOfBirth);
         assertThat(result.getExpectedDeliveryDate()).isNull();
@@ -160,13 +165,15 @@ class PaymentCycleServiceTest {
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
                 .dateOfBirthOfChildren(List.of(LocalDate.now().minusYears(1)))
                 .eligibilityStatus(EligibilityStatus.INELIGIBLE)
+                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.CONFIRMED)
                 .voucherEntitlement(voucherEntitlement)
                 .build();
 
         paymentCycleService.updatePaymentCycle(paymentCycle, decision);
 
         assertThat(paymentCycle.getId()).isEqualTo(paymentCycle.getId());
-        assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(decision.getEligibilityStatus());
+        assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(EligibilityStatus.INELIGIBLE);
+        assertThat(paymentCycle.getQualifyingBenefitEligibilityStatus()).isEqualTo(QualifyingBenefitEligibilityStatus.CONFIRMED);
         assertThat(paymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
         assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
         assertThat(paymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());

@@ -19,24 +19,41 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @ExtendWith(MockitoExtension.class)
-class ClaimEmailHandlerTest {
+class DetermineEntitlementNotificationHandlerTest {
 
     @Mock
     private MessageQueueClient messageQueueClient;
 
     @InjectMocks
-    private ClaimEmailHandler claimEmailHandler;
+    private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;
 
     @Test
     public void shouldPutClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
 
-        claimEmailHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
 
         ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
         EmailMessagePayload payload = argumentCaptor.getValue();
         assertThat(payload.getEmailType()).isEqualTo(EmailType.CLAIM_NO_LONGER_ELIGIBLE);
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getEmailPersonalisation())
+                .containsOnly(
+                        entry("First_name", claim.getClaimant().getFirstName()),
+                        entry("Last_name", claim.getClaimant().getLastName()));
+    }
+
+    @Test
+    public void shouldPutNoChildrenOnFeedClaimNoLongerEligibleMessageOnQueue() {
+        Claim claim = aValidClaim();
+
+        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+
+        ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
+        verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
+        EmailMessagePayload payload = argumentCaptor.getValue();
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getEmailPersonalisation())
                 .containsOnly(
