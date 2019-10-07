@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.creator.model.ClaimantInfo;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
@@ -151,6 +152,7 @@ public class ClaimantLoader {
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
+                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.CONFIRMED)
                 .childrenDob(childrenDatesOfBirth)
                 .build();
         return paymentCycleRepository.save(paymentCycle);

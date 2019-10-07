@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
@@ -51,7 +52,7 @@ public class PaymentCycleService {
      * Creates a new payment cycle, saving it in the database.
      * The cycle end date is set to the start date plus the payment cycle duration time.
      * The expected due date is set only if the voucher entitlement contains pregnancy vouchers.
-     * EligibilityStatus is set to ELIGIBLE.
+     * EligibilityStatus is set to ELIGIBLE, QualifyingBenefitEligibilityStatus to CONFIRMED.
      *
      * @param claim                  claim to create a payment cycle for
      * @param cycleStartDate         the start date of the new payment cycle
@@ -69,6 +70,7 @@ public class PaymentCycleService {
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .eligibilityStatus(ELIGIBLE)
+                .qualifyingBenefitEligibilityStatus(CONFIRMED)
                 .childrenDob(datesOfBirthOfChildren)
                 .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))
                 .build();
@@ -110,6 +112,7 @@ public class PaymentCycleService {
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
+        paymentCycle.setQualifyingBenefitEligibilityStatus(decision.getQualifyingBenefitEligibilityStatus());
         paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
         PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
