@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
@@ -30,38 +29,23 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
  */
 @Component
 @Slf4j
-@SuppressWarnings("PMD.TooManyMethods")
 public class UpcomingBirthdayEmailHandler {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     private final Integer numberOfCalculationPeriods;
     private final MessageQueueClient messageQueueClient;
-    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
     public UpcomingBirthdayEmailHandler(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
                                         MessageQueueClient messageQueueClient,
-                                        ChildDateOfBirthCalculator childDateOfBirthCalculator,
                                         PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
         this.messageQueueClient = messageQueueClient;
-        this.childDateOfBirthCalculator = childDateOfBirthCalculator;
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
     }
 
-    public void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
-        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
-        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
-            sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
-        }
-
-        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-            sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
-        }
-    }
-
-    private void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+    public void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
         boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
         EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
@@ -70,7 +54,7 @@ public class UpcomingBirthdayEmailHandler {
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
     }
 
-    private void sendChildTurnsOneEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+    public void sendChildTurnsOneEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
         PaymentCycleVoucherEntitlement entitlement = determineEntitlementForNextCycle(paymentCycle);
         boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();
         EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
