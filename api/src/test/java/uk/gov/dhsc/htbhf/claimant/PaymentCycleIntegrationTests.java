@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
@@ -260,6 +261,9 @@ public class PaymentCycleIntegrationTests {
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
         assertPaymentCycleHasNoPayment(newCycle, expectedVoucherEntitlement);
 
+        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
+        assertThat(updatedClaim.getClaimStatus()).isEqualTo(ClaimStatus.PENDING_EXPIRY);
+
         // confirm card service called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
 
@@ -358,27 +362,27 @@ public class PaymentCycleIntegrationTests {
         assertNameEmailFields(newCycle, personalisationMap);
     }
 
-    private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsOnePersonalisationMap) {
-        assertCommonEmailFields(currentCycle, childTurnsOnePersonalisationMap);
-        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+    private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
+        assertCommonEmailFields(currentCycle, personalisationMap);
+        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // child is turning one in the next payment cycle, so no vouchers going forward
-        assertThat(childTurnsOnePersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
-        assertThat(childTurnsOnePersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // two vouchers in first week plus one for weeks two, three and four
-        assertThat(childTurnsOnePersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
     }
 
-    private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map childTurnsFourPersonalisationMap) {
-        assertCommonEmailFields(currentCycle, childTurnsFourPersonalisationMap);
-        assertThat(childTurnsFourPersonalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+    private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
+        assertCommonEmailFields(currentCycle, personalisationMap);
+        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // no children under one
-        assertThat(childTurnsFourPersonalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // only one child will be under four
-        assertThat(childTurnsFourPersonalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
-        assertThat(childTurnsFourPersonalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
 
