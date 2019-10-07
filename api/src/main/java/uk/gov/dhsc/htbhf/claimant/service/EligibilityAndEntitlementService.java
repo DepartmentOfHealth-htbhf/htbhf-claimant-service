@@ -54,8 +54,13 @@ public class EligibilityAndEntitlementService {
         if (!liveClaimsWithNino.isEmpty()) {
             return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
         }
-        EligibilityResponse potentialDuplicateResponse = checkForDuplicateClaimsFromHousehold(eligibilityResponse);
-        return buildDecision(potentialDuplicateResponse, entitlement);
+
+        EligibilityAndEntitlementDecision decision = buildDecision(eligibilityResponse, entitlement);
+        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
+        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : decision.getEligibilityStatus();
+        return decision.toBuilder()
+                .eligibilityStatus(eligibilityStatus)
+                .build();
     }
 
     /**
@@ -80,14 +85,6 @@ public class EligibilityAndEntitlementService {
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
         return buildDecision(eligibilityResponse, entitlement);
-    }
-
-    private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
-        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : eligibilityResponse.getEligibilityStatus();
-        return eligibilityResponse.toBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .build();
     }
 
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {

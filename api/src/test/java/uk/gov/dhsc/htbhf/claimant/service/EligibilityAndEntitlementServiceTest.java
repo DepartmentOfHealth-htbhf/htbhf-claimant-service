@@ -35,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -198,6 +199,22 @@ class EligibilityAndEntitlementServiceTest {
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
         verifyZeroInteractions(duplicateClaimChecker, claimRepository);
+    }
+
+    @Test
+    void shouldReturnDuplicateForExistingHousehold() {
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        Claimant claimant = aValidClaimant();
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse)).willReturn(true);
+
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+
+        assertCorrectResult(result, DUPLICATE, CONFIRMED, eligibilityResponse, voucherEntitlement);
+        verify(client).checkEligibility(claimant);
     }
 
     private void assertCorrectResult(EligibilityAndEntitlementDecision result,
