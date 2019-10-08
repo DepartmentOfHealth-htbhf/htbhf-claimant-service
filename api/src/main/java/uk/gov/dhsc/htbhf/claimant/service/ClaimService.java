@@ -62,7 +62,7 @@ public class ClaimService {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
             if (claimExistsAndIsEligible(decision)) {
-                Claim claim = findClaim(decision.getExistingClaimId());
+                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
@@ -109,11 +109,6 @@ public class ClaimService {
 
     private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
         return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
-    }
-
-    private Claim findClaim(UUID claimId) {
-        Optional<Claim> optionalClaim = claimRepository.findById(claimId);
-        return optionalClaim.orElseThrow(() -> new IllegalStateException("Unable to find claim with id " + claimId));
     }
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {

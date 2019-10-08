@@ -134,6 +134,17 @@ class PaymentCycleServiceTest {
     }
 
     @Test
+    void shouldReturnNullForExpectedDeliveryDateIfVoucherEntitlementIsNull() {
+        LocalDate expectedDeliveryDate = LocalDate.now().minusMonths(6);
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycleVoucherEntitlement voucherEntitlement = null;
+
+        LocalDate result = paymentCycleService.getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
     void shouldUpdatePaymentCycleWithStatusAndCardBalance() {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .paymentCycleStatus(NEW)

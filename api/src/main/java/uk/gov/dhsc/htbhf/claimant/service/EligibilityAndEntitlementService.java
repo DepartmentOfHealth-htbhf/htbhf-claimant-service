@@ -54,8 +54,13 @@ public class EligibilityAndEntitlementService {
         if (!liveClaimsWithNino.isEmpty()) {
             return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
         }
-        EligibilityResponse potentialDuplicateResponse = checkForDuplicateClaimsFromHousehold(eligibilityResponse);
-        return buildDecision(potentialDuplicateResponse, entitlement);
+
+        EligibilityAndEntitlementDecision decision = buildDecision(eligibilityResponse, entitlement);
+        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
+        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : decision.getEligibilityStatus();
+        return decision.toBuilder()
+                .eligibilityStatus(eligibilityStatus)
+                .build();
     }
 
     /**
@@ -82,13 +87,6 @@ public class EligibilityAndEntitlementService {
         return buildDecision(eligibilityResponse, entitlement);
     }
 
-    private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-        EligibilityStatus eligibilityStatus = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(eligibilityResponse);
-        return eligibilityResponse.toBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .build();
-    }
-
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
         return buildDecision(eligibilityResponse, entitlement, null);
     }
@@ -97,15 +95,28 @@ public class EligibilityAndEntitlementService {
                                                             PaymentCycleVoucherEntitlement entitlement,
                                                             UUID existingClaimId) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);
+        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))
-                .voucherEntitlement(entitlement)
+                .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
                 .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
                 .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
                 .existingClaimId(existingClaimId)
                 .build();
+    }
+
+    /**
+     * We only return and store a voucher entitlement if the Claimant is ELIGIBLE.
+     *
+     * @param entitlement       Their entitlement
+     * @param eligibilityStatus The status to make the determination
+     * @return The voucher entitlement if they are ELIGIBLE else null
+     */
+    private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
+                                                                                             EligibilityStatus eligibilityStatus) {
+        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;
     }
 
     private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
