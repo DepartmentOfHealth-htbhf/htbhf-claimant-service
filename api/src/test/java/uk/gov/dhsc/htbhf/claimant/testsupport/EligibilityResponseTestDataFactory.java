@@ -27,6 +27,10 @@ public class EligibilityResponseTestDataFactory {
         return aValidEligibilityResponseBuilder().eligibilityStatus(eligibilityStatus).build();
     }
 
+    public static EligibilityResponse anEligibilityResponseWithChildrenAndStatus(List<ChildDTO> children, EligibilityStatus eligibilityStatus) {
+        return aValidEligibilityResponseBuilder().children(children).eligibilityStatus(eligibilityStatus).build();
+    }
+
     public static EligibilityResponse anEligibilityResponseWithDwpHouseholdIdentifier(String dwpHouseholdIdentifier) {
         return aValidEligibilityResponseBuilder().dwpHouseholdIdentifier(dwpHouseholdIdentifier).build();
     }

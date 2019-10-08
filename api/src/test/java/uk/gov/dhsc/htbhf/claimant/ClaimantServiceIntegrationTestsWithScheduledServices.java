@@ -80,7 +80,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         List<LocalDate> childrenDob = claimant.getChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
-        wiremockManager.stubSuccessfulNewCardResponse(claimant, cardAccountId);
+        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
@@ -122,7 +122,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
 
         // invoke all schedulers multiple times, fixing the next error in turn each time
         invokeAllSchedulers();
-        wiremockManager.stubSuccessfulNewCardResponse(claimant, cardAccountId);
+        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
         invokeAllSchedulers();
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         invokeAllSchedulers();

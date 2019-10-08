@@ -10,9 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +24,13 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
 
 @Component
 public class WiremockManager {
+    private static final String V1_ELIGIBILITY_URL = "/v1/eligibility";
+    private static final String V1_CARDS_URL = "/v1/cards";
     private WireMockServer eligibilityServiceMock;
     private WireMockServer cardServiceMock;
 
@@ -46,11 +49,17 @@ public class WiremockManager {
 
     public void stubSuccessfulEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildren(childrenWithBirthdates(childrensDateOfBirth));
-        eligibilityServiceMock.stubFor(post(urlEqualTo("/v1/eligibility")).willReturn(jsonResponse(eligibilityResponse)));
+        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(jsonResponse(eligibilityResponse)));
     }
 
-    public void stubErrorEligibilityResponse() throws JsonProcessingException {
-        eligibilityServiceMock.stubFor(post(urlEqualTo("/v1/eligibility")).willReturn(aResponse()
+    public void stubIneligibleEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildrenAndStatus(childrenWithBirthdates(childrensDateOfBirth),
+                EligibilityStatus.INELIGIBLE);
+        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(jsonResponse(eligibilityResponse)));
+    }
+
+    public void stubErrorEligibilityResponse() {
+        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(aResponse()
                 .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .withBody("Something went badly wrong")));
     }
@@ -60,7 +69,7 @@ public class WiremockManager {
                 .willReturn(jsonResponse(aValidDepositFundsResponse())));
     }
 
-    public void stubErrorDepositResponse(String cardAccountId) throws JsonProcessingException {
+    public void stubErrorDepositResponse(String cardAccountId) {
         cardServiceMock.stubFor(post(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -72,23 +81,23 @@ public class WiremockManager {
                 .willReturn(jsonResponse(aValidCardBalanceResponse(cardBalanceInPenceBeforeDeposit))));
     }
 
-    public void stubErrorCardBalanceResponse(String cardAccountId) throws JsonProcessingException {
+    public void stubErrorCardBalanceResponse(String cardAccountId) {
         cardServiceMock.stubFor(get(urlEqualTo("/v1/cards/" + cardAccountId + "/balance"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .withBody("Something went badly wrong")));
     }
 
-    public void stubSuccessfulNewCardResponse(ClaimantDTO claimant, String cardAccountId) throws JsonProcessingException {
-        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards"))
+    public void stubSuccessfulNewCardResponse(String cardAccountId) throws JsonProcessingException {
+        cardServiceMock.stubFor(post(urlEqualTo(V1_CARDS_URL))
                 .willReturn(aResponse().withStatus(HttpStatus.CREATED.value())
                         .withHeader("Content-Type", "application/json")
                         .withBody(objectMapper.writeValueAsString(aCardResponse(cardAccountId)))
                 ));
     }
 
-    public void stubErrorNewCardResponse() throws JsonProcessingException {
-        cardServiceMock.stubFor(post(urlEqualTo("/v1/cards"))
+    public void stubErrorNewCardResponse() {
+        cardServiceMock.stubFor(post(urlEqualTo(V1_CARDS_URL))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                         .withBody("Something went badly wrong")));
@@ -110,7 +119,7 @@ public class WiremockManager {
 
     public void assertThatNewCardRequestMadeForClaim(Claim claim) throws JsonProcessingException {
         StringValuePattern expectedCardRequestBody = equalToJson(objectMapper.writeValueAsString(aCardRequest(claim)));
-        cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards")).withRequestBody(expectedCardRequestBody));
+        cardServiceMock.verify(postRequestedFor(urlEqualTo(V1_CARDS_URL)).withRequestBody(expectedCardRequestBody));
     }
 
     private StringValuePattern expectedDepositRequestBody(Payment payment) throws JsonProcessingException {
