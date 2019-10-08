@@ -15,6 +15,9 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANC
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 
+/**
+ * Responsible for sending messages related to claims (new or updated).
+ */
 @Component
 @RequiredArgsConstructor
 public class ClaimMessageSender {
@@ -27,7 +30,7 @@ public class ClaimMessageSender {
     }
 
     public void sendAdditionalPaymentMessage(Claim claim) {
-        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claim.getId()).build();
+        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.withClaimId(claim.getId());
         messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);
     }
 

@@ -24,7 +24,6 @@ import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -300,8 +299,7 @@ class ClaimServiceTest {
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
-        List<String> updatedFields = singletonList(EXPECTED_DELIVERY_DATE.getFieldName());
-        assertThat(result.getUpdatedFields()).isEqualTo(updatedFields);
+        assertThat(result.getUpdatedFields()).containsExactly(EXPECTED_DELIVERY_DATE.getFieldName());
         verify(claimMessageSender).sendAdditionalPaymentMessage(existingClaim);
     }
 

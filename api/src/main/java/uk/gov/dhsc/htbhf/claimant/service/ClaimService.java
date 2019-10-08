@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -53,17 +54,18 @@ public class ClaimService {
     private ClaimResult processClaimRequest(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
+            VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
             if (decision.claimExistsAndIsEligible()) {
                 Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
-                return ClaimResult.withEntitlementAndUpdatedFields(claim, decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle(), updatedFields);
+                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
             }
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 claimMessageSender.sendNewCardMessage(claim, decision);
-                return ClaimResult.withEntitlement(claim, decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle());
+                return ClaimResult.withEntitlement(claim, weeklyEntitlement);
             }
 
             return ClaimResult.withNoEntitlement(claim);
