@@ -4,10 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -58,6 +55,12 @@ public class MessagePayloadFactory {
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
+                .build();
+    }
+
+    public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim) {
+        return ReportClaimMessagePayload.builder()
+                .claimId(claim.getId())
                 .build();
     }
 

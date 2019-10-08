@@ -4,10 +4,7 @@ import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
@@ -99,5 +97,14 @@ class MessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
         assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(payload.getEmailPersonalisation(), endDate.plusDays(1));
+    }
+
+    @Test
+    void shouldBuildReportClaimMessagePayload() {
+        Claim claim = aValidClaim();
+
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim);
+
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
     }
 }
