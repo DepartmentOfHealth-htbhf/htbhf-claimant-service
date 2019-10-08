@@ -13,7 +13,7 @@ public class ReportClaimMessageProcessor implements MessageTypeProcessor {
 
     @Override
     public MessageStatus processMessage(Message message) {
-        // TODO DW HTBHF-2412 Fetch location data for a claim and report the claim.
+        // TODO DW HTBHF-2009 Fetch location data for a claim and report the claim.
         return null;
     }
 
