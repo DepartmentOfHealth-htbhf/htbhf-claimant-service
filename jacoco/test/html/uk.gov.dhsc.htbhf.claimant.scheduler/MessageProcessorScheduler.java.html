@@ -28,7 +28,7 @@ public class MessageProcessorScheduler {
 
     private final MessageProcessor messageProcessor;
 
-    @Scheduled(cron = EVERY_30_SECONDS) 
+    @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
             name = &quot;Process ADDITIONAL_PREGNANCY_PAYMENT messages&quot;,
             lockAtLeastForString = FIFTEEN_SECONDS,
@@ -87,5 +87,15 @@ public class MessageProcessorScheduler {
     public void processPaymentMessages() {
 <span class="fc" id="L88">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
 <span class="fc" id="L89">    }</span>
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = &quot;Process REPORT_CLAIM messages&quot;,
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_CLAIM&quot;)
+    public void processReportClaimMessages() {
+<span class="fc" id="L98">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
+<span class="fc" id="L99">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
