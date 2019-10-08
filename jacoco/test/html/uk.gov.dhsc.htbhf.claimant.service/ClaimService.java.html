@@ -10,8 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
-import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -26,13 +25,15 @@ import java.util.*;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
-<span class="fc" id="L35">@Slf4j</span>
+<span class="fc" id="L36">@Slf4j</span>
 @RequiredArgsConstructor
 @SuppressWarnings(&quot;PMD.TooManyMethods&quot;)
 public class ClaimService {
@@ -42,7 +43,7 @@ public class ClaimService {
     private final EventAuditor eventAuditor;
     private final MessageQueueClient messageQueueClient;
 
-<span class="fc" id="L45">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
+<span class="fc" id="L46">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
             EligibilityStatus.PENDING, ClaimStatus.PENDING,
             EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
@@ -52,129 +53,139 @@ public class ClaimService {
     );
 
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
+<span class="fc" id="L56">        ClaimResult claimResult = processClaimRequest(claimRequest);</span>
+<span class="fc" id="L57">        sendReportClaimMessage(claimResult.getClaim());</span>
+<span class="fc" id="L58">        return claimResult;</span>
+    }
 
+    private ClaimResult processClaimRequest(ClaimRequest claimRequest) {
         try {
-<span class="fc" id="L57">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">            if (claimExistsAndIsEligible(decision)) {</span>
-<span class="fc" id="L59">                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());</span>
-<span class="fc" id="L60">                List&lt;String&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
-<span class="fc" id="L61">                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);</span>
-<span class="fc" id="L62">                return createResult(claim, decision.getVoucherEntitlement(), updatedFields);</span>
+<span class="fc" id="L63">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            if (claimExistsAndIsEligible(decision)) {</span>
+<span class="fc" id="L65">                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());</span>
+<span class="fc" id="L66">                List&lt;String&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
+<span class="fc" id="L67">                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);</span>
+<span class="fc" id="L68">                return createResult(claim, decision.getVoucherEntitlement(), updatedFields);</span>
             }
 
-<span class="fc" id="L65">            Claim claim = createAndSaveClaim(claimRequest, decision);</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
-<span class="fc" id="L67">                sendNewCardMessage(claim, decision);</span>
-<span class="fc" id="L68">                return createResult(claim, decision.getVoucherEntitlement());</span>
+<span class="fc" id="L71">            Claim claim = createAndSaveClaim(claimRequest, decision);</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
+<span class="fc" id="L73">                sendNewCardMessage(claim, decision);</span>
+<span class="fc" id="L74">                return createResult(claim, decision.getVoucherEntitlement());</span>
             }
 
-<span class="fc" id="L71">            return createResult(claim);</span>
-<span class="fc" id="L72">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L73">            handleFailedClaim(claimRequest, e);</span>
-<span class="fc" id="L74">            throw e;</span>
+<span class="fc" id="L77">            return createResult(claim);</span>
+<span class="fc" id="L78">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L79">            handleFailedClaim(claimRequest, e);</span>
+<span class="fc" id="L80">            throw e;</span>
         }
     }
 
+    private void sendReportClaimMessage(Claim claim) {
+<span class="fc" id="L85">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim);</span>
+<span class="fc" id="L86">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
+<span class="fc" id="L87">    }</span>
+
     private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List&lt;String&gt; updatedFields) {
-<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">                &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {</span>
-<span class="fc" id="L81">            AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claim.getId()).build();</span>
-<span class="fc" id="L82">            messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">                &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {</span>
+<span class="fc" id="L92">            AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claim.getId()).build();</span>
+<span class="fc" id="L93">            messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
         }
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L95">    }</span>
 
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
-<span class="fc" id="L87">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
-<span class="fc" id="L88">        Claim claim = buildClaim(claimRequest, decision);</span>
-<span class="fc" id="L89">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
-<span class="fc" id="L90">        FailureEvent failureEvent = FailureEvent.builder()</span>
-<span class="fc" id="L91">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
-<span class="fc" id="L92">                .failedEvent(newClaimEvent)</span>
-<span class="fc" id="L93">                .exception(e)</span>
-<span class="fc" id="L94">                .build();</span>
-<span class="fc" id="L95">        eventAuditor.auditFailedEvent(failureEvent);</span>
-<span class="fc" id="L96">        claimRepository.save(claim);</span>
-<span class="fc" id="L97">    }</span>
+<span class="fc" id="L98">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
+<span class="fc" id="L99">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L100">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L101">        FailureEvent failureEvent = FailureEvent.builder()</span>
+<span class="fc" id="L102">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
+<span class="fc" id="L103">                .failedEvent(newClaimEvent)</span>
+<span class="fc" id="L104">                .exception(e)</span>
+<span class="fc" id="L105">                .build();</span>
+<span class="fc" id="L106">        eventAuditor.auditFailedEvent(failureEvent);</span>
+<span class="fc" id="L107">        claimRepository.save(claim);</span>
+<span class="fc" id="L108">    }</span>
 
     private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
-<span class="fc bfc" id="L100" title="All 4 branches covered.">        return decision.getExistingClaimId() != null &amp;&amp; decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;</span>
+<span class="fc bfc" id="L111" title="All 4 branches covered.">        return decision.getExistingClaimId() != null &amp;&amp; decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;</span>
     }
 
     private List&lt;String&gt; updateClaim(Claim claim, Claimant claimant) {
-<span class="fc" id="L104">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
-<span class="fc" id="L105">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
-<span class="fc" id="L106">        claimRepository.save(claim);</span>
-<span class="fc" id="L107">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
-<span class="fc" id="L108">        return updatedFields;</span>
+<span class="fc" id="L115">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
+<span class="fc" id="L116">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
+<span class="fc" id="L117">        claimRepository.save(claim);</span>
+<span class="fc" id="L118">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
+<span class="fc" id="L119">        return updatedFields;</span>
     }
 
     private List&lt;String&gt; updateClaimantFields(Claim claim, Claimant claimant) {
-<span class="fc" id="L112">        Claimant originalClaimant = claim.getClaimant();</span>
-<span class="fc" id="L113">        List&lt;String&gt; updatedFields = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L114" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
-<span class="fc" id="L116">                field.updateOriginal(originalClaimant, claimant);</span>
-<span class="fc" id="L117">                updatedFields.add(field.getFieldName());</span>
+<span class="fc" id="L123">        Claimant originalClaimant = claim.getClaimant();</span>
+<span class="fc" id="L124">        List&lt;String&gt; updatedFields = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
+<span class="fc" id="L127">                field.updateOriginal(originalClaimant, claimant);</span>
+<span class="fc" id="L128">                updatedFields.add(field.getFieldName());</span>
             }
         }
-<span class="fc" id="L120">        return updatedFields;</span>
+<span class="fc" id="L131">        return updatedFields;</span>
     }
 
     private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L124">        Claim claim = buildClaim(claimRequest, decision);</span>
-<span class="fc" id="L125">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L126">        claimRepository.save(claim);</span>
-<span class="fc" id="L127">        eventAuditor.auditNewClaim(claim);</span>
-<span class="fc" id="L128">        return claim;</span>
+<span class="fc" id="L135">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L136">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L137">        claimRepository.save(claim);</span>
+<span class="fc" id="L138">        eventAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L139">        return claim;</span>
     }
 
     private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L132">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
-<span class="fc" id="L133">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
-<span class="fc" id="L134">    }</span>
+<span class="fc" id="L143">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L144">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
+<span class="fc" id="L145">    }</span>
 
     @SuppressFBWarnings(value = &quot;SECMD5&quot;,
             justification = &quot;Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption&quot;)
     private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L139">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
-<span class="fc" id="L140">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
-<span class="fc" id="L141">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
-<span class="fc" id="L143">        return Claim.builder()</span>
-<span class="fc" id="L144">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L145">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L146">                .eligibilityStatus(decision.getEligibilityStatus())</span>
-<span class="fc" id="L147">                .eligibilityStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L148">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L149">                .claimStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L150">                .claimant(claimRequest.getClaimant())</span>
-<span class="fc" id="L151">                .deviceFingerprint(deviceFingerprint)</span>
-<span class="fc" id="L152">                .deviceFingerprintHash(fingerprintHash)</span>
-<span class="fc" id="L153">                .webUIVersion(claimRequest.getWebUIVersion())</span>
-<span class="fc" id="L154">                .build();</span>
+<span class="fc" id="L150">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
+<span class="fc" id="L151">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
+<span class="fc" id="L152">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
+<span class="fc" id="L154">        return Claim.builder()</span>
+<span class="fc" id="L155">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L156">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L157">                .eligibilityStatus(decision.getEligibilityStatus())</span>
+<span class="fc" id="L158">                .eligibilityStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L159">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L160">                .claimStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L161">                .claimant(claimRequest.getClaimant())</span>
+<span class="fc" id="L162">                .deviceFingerprint(deviceFingerprint)</span>
+<span class="fc" id="L163">                .deviceFingerprintHash(fingerprintHash)</span>
+<span class="fc" id="L164">                .webUIVersion(claimRequest.getWebUIVersion())</span>
+<span class="fc" id="L165">                .build();</span>
     }
 
     private ClaimResult createResult(Claim claim) {
-<span class="fc" id="L158">        return ClaimResult.builder()</span>
-<span class="fc" id="L159">                .claim(claim)</span>
-<span class="fc" id="L160">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L161">                .build();</span>
+<span class="fc" id="L169">        return ClaimResult.builder()</span>
+<span class="fc" id="L170">                .claim(claim)</span>
+<span class="fc" id="L171">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L172">                .build();</span>
     }
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L165">        return createResult(claim, voucherEntitlement, null);</span>
+<span class="fc" id="L176">        return createResult(claim, voucherEntitlement, null);</span>
     }
 
     private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement, List&lt;String&gt; updatedFields) {
-<span class="fc" id="L169">        VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();</span>
-<span class="fc bfc" id="L170" title="All 2 branches covered.">        boolean claimUpdated = updatedFields != null;</span>
+<span class="fc" id="L180">        VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        boolean claimUpdated = updatedFields != null;</span>
 
-<span class="fc" id="L172">        return ClaimResult.builder()</span>
-<span class="fc" id="L173">                .claim(claim)</span>
-<span class="fc" id="L174">                .voucherEntitlement(Optional.of(firstVoucherEntitlement))</span>
-<span class="fc" id="L175">                .updatedFields(updatedFields)</span>
-<span class="fc" id="L176">                .claimUpdated(claimUpdated)</span>
-<span class="fc" id="L177">                .build();</span>
+<span class="fc" id="L183">        return ClaimResult.builder()</span>
+<span class="fc" id="L184">                .claim(claim)</span>
+<span class="fc" id="L185">                .voucherEntitlement(Optional.of(firstVoucherEntitlement))</span>
+<span class="fc" id="L186">                .updatedFields(updatedFields)</span>
+<span class="fc" id="L187">                .claimUpdated(claimUpdated)</span>
+<span class="fc" id="L188">                .build();</span>
     }
 
 }
