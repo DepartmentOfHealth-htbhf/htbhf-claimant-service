@@ -106,7 +106,7 @@ public class RepositoryMediator {
      * @return The claim from the database
      */
     public Claim loadClaim(UUID claimId) {
-        return claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Unable to find claim with id: " + claimId.toString()));
+        return claimRepository.findClaim(claimId);
     }
 
 }

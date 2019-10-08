@@ -33,26 +33,25 @@ class DuplicateClaimCheckerTest {
             "true, false",
             "false, true"
     })
-    void shouldReturnDuplicateStatusForMatchingHouseholds(boolean matchingDwpHouseholdIdentifier, boolean matchingHmrcHouseholdIdentifier) {
+    void shouldReturnTrueForMatchingHouseholds(boolean matchingDwpHouseholdIdentifier, boolean matchingHmrcHouseholdIdentifier) {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(matchingDwpHouseholdIdentifier);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(matchingHmrcHouseholdIdentifier);
 
-        EligibilityStatus status = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(null));
+        boolean result = duplicateClaimChecker.liveClaimExistsForHousehold(anEligibilityResponseWithStatus(null));
 
-        assertThat(status).isEqualTo(EligibilityStatus.DUPLICATE);
+        assertThat(result).isTrue();
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
         verify(claimRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
     @Test
-    void shouldReturnStatusFromEligibilityServiceWhenNoMatchingHousehold() {
-        EligibilityStatus status = EligibilityStatus.PENDING;
+    void shouldReturnFalseWhenNoMatchingHousehold() {
         given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
         given(claimRepository.liveClaimExistsForHmrcHousehold(anyString())).willReturn(false);
 
-        EligibilityStatus result = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(anEligibilityResponseWithStatus(status));
+        boolean result = duplicateClaimChecker.liveClaimExistsForHousehold(anEligibilityResponseWithStatus(EligibilityStatus.ELIGIBLE));
 
-        assertThat(result).isEqualTo(status);
+        assertThat(result).isFalse();
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
         verify(claimRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
     }
