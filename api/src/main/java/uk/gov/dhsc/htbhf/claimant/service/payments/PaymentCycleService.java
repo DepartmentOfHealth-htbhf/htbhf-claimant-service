@@ -90,7 +90,7 @@ public class PaymentCycleService {
     }
 
     public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return voucherEntitlement.getVouchersForPregnancy() > 0 ? claim.getClaimant().getExpectedDeliveryDate() : null;
+        return (voucherEntitlement != null && voucherEntitlement.getVouchersForPregnancy() > 0) ? claim.getClaimant().getExpectedDeliveryDate() : null;
     }
 
     /**
