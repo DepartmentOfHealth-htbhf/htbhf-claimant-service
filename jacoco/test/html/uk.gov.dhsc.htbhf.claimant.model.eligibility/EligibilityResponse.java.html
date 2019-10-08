@@ -14,7 +14,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 @Data
-@Builder(toBuilder = true)
+@Builder
 @AllArgsConstructor
 public class EligibilityResponse {
 

@@ -54,8 +54,13 @@ public class EligibilityAndEntitlementService {
 <span class="fc bfc" id="L54" title="All 2 branches covered.">        if (!liveClaimsWithNino.isEmpty()) {</span>
 <span class="fc" id="L55">            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));</span>
         }
-<span class="fc" id="L57">        EligibilityResponse potentialDuplicateResponse = checkForDuplicateClaimsFromHousehold(eligibilityResponse);</span>
-<span class="fc" id="L58">        return buildDecision(potentialDuplicateResponse, entitlement);</span>
+
+<span class="fc" id="L58">        EligibilityAndEntitlementDecision decision = buildDecision(eligibilityResponse, entitlement);</span>
+<span class="fc" id="L59">        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : decision.getEligibilityStatus();</span>
+<span class="fc" id="L61">        return decision.toBuilder()</span>
+<span class="fc" id="L62">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L63">                .build();</span>
     }
 
     /**
@@ -73,47 +78,40 @@ public class EligibilityAndEntitlementService {
             Claimant claimant,
             LocalDate cycleStartDate,
             PaymentCycle previousCycle) {
-<span class="fc" id="L76">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
-<span class="fc" id="L77">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L78">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
-<span class="fc" id="L79">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
+<span class="fc" id="L81">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L82">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L83">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
+<span class="fc" id="L84">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
                 cycleStartDate,
-<span class="fc" id="L81">                previousCycle.getVoucherEntitlement());</span>
-<span class="fc" id="L82">        return buildDecision(eligibilityResponse, entitlement);</span>
-    }
-
-    private EligibilityResponse checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-<span class="fc" id="L86">        EligibilityStatus eligibilityStatus = duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(eligibilityResponse);</span>
-<span class="fc" id="L87">        return eligibilityResponse.toBuilder()</span>
-<span class="fc" id="L88">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L89">                .build();</span>
+<span class="fc" id="L86">                previousCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L87">        return buildDecision(eligibilityResponse, entitlement);</span>
     }
 
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
-<span class="fc" id="L93">        return buildDecision(eligibilityResponse, entitlement, null);</span>
+<span class="fc" id="L91">        return buildDecision(eligibilityResponse, entitlement, null);</span>
     }
 
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
                                                             PaymentCycleVoucherEntitlement entitlement,
                                                             UUID existingClaimId) {
-<span class="fc" id="L99">        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);</span>
-<span class="fc" id="L100">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L101">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L102">                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))</span>
-<span class="fc" id="L103">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L104">                .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())</span>
-<span class="fc" id="L105">                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L106">                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L107">                .existingClaimId(existingClaimId)</span>
-<span class="fc" id="L108">                .build();</span>
+<span class="fc" id="L97">        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);</span>
+<span class="fc" id="L98">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L99">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L100">                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))</span>
+<span class="fc" id="L101">                .voucherEntitlement(entitlement)</span>
+<span class="fc" id="L102">                .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())</span>
+<span class="fc" id="L103">                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L104">                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L105">                .existingClaimId(existingClaimId)</span>
+<span class="fc" id="L106">                .build();</span>
     }
 
     private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
                                                          PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc bfc" id="L113" title="All 4 branches covered.">        if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
-<span class="fc" id="L114">            return EligibilityStatus.INELIGIBLE;</span>
+<span class="fc bfc" id="L111" title="All 4 branches covered.">        if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
+<span class="fc" id="L112">            return EligibilityStatus.INELIGIBLE;</span>
         }
-<span class="fc" id="L116">        return response.getEligibilityStatus();</span>
+<span class="fc" id="L114">        return response.getEligibilityStatus();</span>
     }
 
 }

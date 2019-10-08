@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 @Service
 @AllArgsConstructor
@@ -13,26 +12,18 @@ public class DuplicateClaimChecker {
     private final ClaimRepository claimRepository;
 
     /**
-     * Determines the eligibility status for a given {@link EligibilityResponse}.
-     * The status is DUPLICATE if a live claim exists for the given dwp or hmrc household identifier,
-     * otherwise returns the eligibility status from the given eligibility response.
+     * Determines whether a live (new, active, pending or pending expiry) claim exists for the household identifier returned by the dwp or hmrc.
      * @param eligibilityResponse Eligibility response containing household identifiers.
-     * @return the eligibility status
+     * @return true if there is already a claim for either of the household identifiers.
      */
-    public EligibilityStatus checkForDuplicateClaimsFromHousehold(EligibilityResponse eligibilityResponse) {
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        return eligibleClaimExistsForHousehold(eligibilityResponse)</span>
-<span class="fc" id="L24">                ? EligibilityStatus.DUPLICATE</span>
-<span class="fc" id="L25">                : eligibilityResponse.getEligibilityStatus();</span>
-    }
+    public boolean liveClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
+<span class="fc" id="L20">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
+<span class="pc bpc" id="L21" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
 
-    private boolean eligibleClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
-<span class="fc" id="L29">        String dwpHouseholdIdentifier = eligibilityResponse.getDwpHouseholdIdentifier();</span>
-<span class="pc bpc" id="L30" title="1 of 4 branches missed.">        boolean dwpClaimExists = dwpHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+<span class="fc" id="L23">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
+<span class="pc bpc" id="L24" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
 
-<span class="fc" id="L32">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
-<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
-
-<span class="fc bfc" id="L35" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
+<span class="fc bfc" id="L26" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
