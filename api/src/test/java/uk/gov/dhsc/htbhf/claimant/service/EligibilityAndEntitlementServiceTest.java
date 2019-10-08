@@ -35,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -92,11 +93,33 @@ class EligibilityAndEntitlementServiceTest {
     }
 
     @Test
+    void shouldReturnIneligibleWhenEligibilityServiceReportsIneligible() {
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(INELIGIBLE);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        Claimant claimant = aValidClaimant();
+
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+
+        assertCorrectIneligibleResultWithNoVoucherEntitlement(result, NOT_CONFIRMED, eligibilityResponse);
+        verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
+        verify(client).checkEligibility(claimant);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
+        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
+                Optional.ofNullable(claimant.getExpectedDeliveryDate()),
+                eligibilityResponse.getDateOfBirthOfChildren(),
+                LocalDate.now());
+    }
+
+    @Test
     void shouldReturnEligibleWhenNotDuplicateAndEligibleWithVouchers() {
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
-        given(duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(any())).willReturn(ELIGIBLE);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
@@ -106,7 +129,7 @@ class EligibilityAndEntitlementServiceTest {
         assertCorrectEligibleResult(result, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
-        verify(duplicateClaimChecker).checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
@@ -120,7 +143,7 @@ class EligibilityAndEntitlementServiceTest {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
-        given(duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(any())).willReturn(ELIGIBLE);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
@@ -128,7 +151,7 @@ class EligibilityAndEntitlementServiceTest {
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, CONFIRMED, eligibilityResponse);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
-        verify(duplicateClaimChecker).checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
@@ -142,7 +165,7 @@ class EligibilityAndEntitlementServiceTest {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
-        given(duplicateClaimChecker.checkForDuplicateClaimsFromHousehold(any())).willReturn(INELIGIBLE);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
@@ -150,7 +173,7 @@ class EligibilityAndEntitlementServiceTest {
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, NOT_CONFIRMED, eligibilityResponse);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
         verify(client).checkEligibility(claimant);
-        verify(duplicateClaimChecker).checkForDuplicateClaimsFromHousehold(eligibilityResponse);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
@@ -202,6 +225,22 @@ class EligibilityAndEntitlementServiceTest {
     }
 
     @Test
+    void shouldReturnDuplicateForExistingHousehold() {
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
+        given(claimRepository.findLiveClaimsWithNino(any())).willReturn(emptyList());
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        Claimant claimant = aValidClaimant();
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse)).willReturn(true);
+
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+
+        assertCorrectDuplicateResult(result, eligibilityResponse, voucherEntitlement);
+        verify(client).checkEligibility(claimant);
+    }
+
+    @Test
     void shouldReturnIneligibleForExistingClaimantThatBecomesIneligibleWithDwp() {
         Claimant claimant = aValidClaimant();
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(INELIGIBLE);
@@ -227,6 +266,13 @@ class EligibilityAndEntitlementServiceTest {
                                              EligibilityResponse eligibilityResponse,
                                              PaymentCycleVoucherEntitlement voucherEntitlement) {
         assertDecisionResultCorrectApartFromVoucherEntitlement(result, ELIGIBLE, CONFIRMED, eligibilityResponse);
+        assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
+    }
+
+    private void assertCorrectDuplicateResult(EligibilityAndEntitlementDecision result,
+                                             EligibilityResponse eligibilityResponse,
+                                             PaymentCycleVoucherEntitlement voucherEntitlement) {
+        assertDecisionResultCorrectApartFromVoucherEntitlement(result, DUPLICATE, CONFIRMED, eligibilityResponse);
         assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
     }
 
