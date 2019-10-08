@@ -7,7 +7,9 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
 /**
  * JPA repository for the Claim table.
@@ -41,11 +43,17 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
     List&lt;UUID&gt; getNewClaimIds();
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L44" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L48" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
+
+    default Claim findClaim(UUID claimId) {
+<span class="fc" id="L54">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
+<span class="fc" id="L55">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+    }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
