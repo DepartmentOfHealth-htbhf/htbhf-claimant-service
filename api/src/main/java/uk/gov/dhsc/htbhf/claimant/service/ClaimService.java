@@ -54,17 +54,18 @@ public class ClaimService {
     private ClaimResult processClaimRequest(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
-            VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
             if (decision.claimExistsAndIsEligible()) {
                 Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
+                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
             }
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 claimMessageSender.sendNewCardMessage(claim, decision);
+                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement);
             }
 
