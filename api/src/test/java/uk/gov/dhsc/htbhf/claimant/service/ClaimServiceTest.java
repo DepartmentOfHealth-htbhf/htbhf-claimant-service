@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -42,9 +43,11 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
@@ -113,6 +116,7 @@ class ClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
+        verifyReportClaimMessageSent(result.getClaim());
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -149,7 +153,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(claimRepository).save(actualClaim);
         verify(eventAuditor).auditNewClaim(actualClaim);
-        verifyZeroInteractions(messageQueueClient);
+        verifyOnlyReportClaimMessageSent(actualClaim);
     }
 
     @Test
@@ -203,6 +207,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
+            verifyReportClaimMessageSent(result.getClaim());
         }
     }
 
@@ -233,7 +238,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
-        verifyZeroInteractions(messageQueueClient);
+        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -264,7 +269,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
-        verifyZeroInteractions(messageQueueClient);
+        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -327,7 +332,7 @@ class ClaimServiceTest {
         //then
         assertThat(result.getClaimUpdated()).isTrue();
         assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
-        verifyZeroInteractions(messageQueueClient);
+        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -480,7 +485,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyZeroInteractions(messageQueueClient);
+        verifyOnlyReportClaimMessageSent(result.getClaim());
     }
 
     /**
@@ -508,6 +513,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
+        verifyZeroInteractions(messageQueueClient);
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
@@ -531,5 +537,17 @@ class ClaimServiceTest {
                 .datesOfBirthOfChildren(datesOfBirth)
                 .build();
         verify(messageQueueClient).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
+    }
+
+    private void verifyReportClaimMessageSent(Claim claim) {
+        ReportClaimMessagePayload expectedPayload = ReportClaimMessagePayload.builder()
+                .claimId(claim.getId())
+                .build();
+        verify(messageQueueClient).sendMessage(expectedPayload, REPORT_CLAIM);
+    }
+
+    private void verifyOnlyReportClaimMessageSent(Claim actualClaim) {
+        verifyReportClaimMessageSent(actualClaim);
+        verifyNoMoreInteractions(messageQueueClient);
     }
 }
