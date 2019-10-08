@@ -28,4 +28,8 @@ public class EligibilityAndEntitlementDecision {
                 .eligibilityStatus(eligibilityStatus)
                 .build();
     }
+
+    public boolean claimExistsAndIsEligible() {
+        return existingClaimId != null && eligibilityStatus == EligibilityStatus.ELIGIBLE;
+    }
 }

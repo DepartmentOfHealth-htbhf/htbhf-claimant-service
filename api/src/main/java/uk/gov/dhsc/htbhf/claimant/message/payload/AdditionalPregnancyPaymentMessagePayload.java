@@ -9,4 +9,8 @@ import java.util.UUID;
 @Builder
 public class AdditionalPregnancyPaymentMessagePayload implements MessagePayload {
     private UUID claimId;
+
+    public static AdditionalPregnancyPaymentMessagePayload withClaimId(UUID claimId) {
+        return new AdditionalPregnancyPaymentMessagePayload(claimId);
+    }
 }

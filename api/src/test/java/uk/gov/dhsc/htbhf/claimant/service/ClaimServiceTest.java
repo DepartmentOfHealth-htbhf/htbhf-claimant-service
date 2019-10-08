@@ -14,10 +14,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
-import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -28,7 +24,6 @@ import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,9 +40,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
@@ -83,7 +75,7 @@ class ClaimServiceTest {
     EventAuditor eventAuditor;
 
     @Mock
-    MessageQueueClient messageQueueClient;
+    ClaimMessageSender claimMessageSender;
 
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
@@ -115,8 +107,8 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
-        verifyReportClaimMessageSent(result.getClaim());
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -176,7 +168,8 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
     }
 
     /**
@@ -206,8 +199,8 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
-            verifyCreateNewCardMessageSent(result, entitlement, decision.getDateOfBirthOfChildren());
-            verifyReportClaimMessageSent(result.getClaim());
+            verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+            verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
         }
     }
 
@@ -306,9 +299,8 @@ class ClaimServiceTest {
 
         //then
         assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
-        AdditionalPregnancyPaymentMessagePayload expectedPayload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(existingClaimId).build();
-        verify(messageQueueClient).sendMessage(expectedPayload, ADDITIONAL_PREGNANCY_PAYMENT);
+        assertThat(result.getUpdatedFields()).containsExactly(EXPECTED_DELIVERY_DATE.getFieldName());
+        verify(claimMessageSender).sendAdditionalPaymentMessage(existingClaim);
     }
 
     @Test
@@ -513,7 +505,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
-        verifyZeroInteractions(messageQueueClient);
+        verifyZeroInteractions(claimMessageSender);
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
@@ -530,24 +522,8 @@ class ClaimServiceTest {
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
     }
 
-    private void verifyCreateNewCardMessageSent(ClaimResult result, PaymentCycleVoucherEntitlement voucherEntitlement, List<LocalDate> datesOfBirth) {
-        NewCardRequestMessagePayload newCardRequestMessagePayload = NewCardRequestMessagePayload.builder()
-                .claimId(result.getClaim().getId())
-                .voucherEntitlement(voucherEntitlement)
-                .datesOfBirthOfChildren(datesOfBirth)
-                .build();
-        verify(messageQueueClient).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
-    }
-
-    private void verifyReportClaimMessageSent(Claim claim) {
-        ReportClaimMessagePayload expectedPayload = ReportClaimMessagePayload.builder()
-                .claimId(claim.getId())
-                .build();
-        verify(messageQueueClient).sendMessage(expectedPayload, REPORT_CLAIM);
-    }
-
-    private void verifyOnlyReportClaimMessageSent(Claim actualClaim) {
-        verifyReportClaimMessageSent(actualClaim);
-        verifyNoMoreInteractions(messageQueueClient);
+    private void verifyOnlyReportClaimMessageSent(Claim claim) {
+        verify(claimMessageSender).sendReportClaimMessage(claim);
+        verifyNoMoreInteractions(claimMessageSender);
     }
 }

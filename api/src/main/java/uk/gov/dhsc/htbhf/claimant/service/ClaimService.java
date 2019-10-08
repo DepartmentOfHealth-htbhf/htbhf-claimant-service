@@ -5,12 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
-import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -21,27 +18,23 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@SuppressWarnings("PMD.TooManyMethods")
 public class ClaimService {
 
     private final ClaimRepository claimRepository;
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
-    private final MessageQueueClient messageQueueClient;
+    private final ClaimMessageSender claimMessageSender;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -54,43 +47,37 @@ public class ClaimService {
 
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
         ClaimResult claimResult = processClaimRequest(claimRequest);
-        sendReportClaimMessage(claimResult.getClaim());
+        claimMessageSender.sendReportClaimMessage(claimResult.getClaim());
         return claimResult;
     }
 
     private ClaimResult processClaimRequest(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
-            if (claimExistsAndIsEligible(decision)) {
+            VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
+            if (decision.claimExistsAndIsEligible()) {
                 Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
                 List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
-                return createResult(claim, decision.getVoucherEntitlement(), updatedFields);
+                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
             }
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                sendNewCardMessage(claim, decision);
-                return createResult(claim, decision.getVoucherEntitlement());
+                claimMessageSender.sendNewCardMessage(claim, decision);
+                return ClaimResult.withEntitlement(claim, weeklyEntitlement);
             }
 
-            return createResult(claim);
+            return ClaimResult.withNoEntitlement(claim);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
             throw e;
         }
     }
 
-    private void sendReportClaimMessage(Claim claim) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim);
-        messageQueueClient.sendMessage(payload, REPORT_CLAIM);
-    }
-
     private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<String> updatedFields) {
-        if (claim.getClaimant().getExpectedDeliveryDate() != null
-                && updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {
-            AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.builder().claimId(claim.getId()).build();
-            messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);
+        if (claim.getClaimant().getExpectedDeliveryDate() != null && updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {
+            claimMessageSender.sendAdditionalPaymentMessage(claim);
         }
     }
 
@@ -105,10 +92,6 @@ public class ClaimService {
                 .build();
         eventAuditor.auditFailedEvent(failureEvent);
         claimRepository.save(claim);
-    }
-
-    private boolean claimExistsAndIsEligible(EligibilityAndEntitlementDecision decision) {
-        return decision.getExistingClaimId() != null && decision.getEligibilityStatus() == EligibilityStatus.ELIGIBLE;
     }
 
     private List<String> updateClaim(Claim claim, Claimant claimant) {
@@ -139,11 +122,6 @@ public class ClaimService {
         return claim;
     }
 
-    private void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());
-        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);
-    }
-
     @SuppressFBWarnings(value = "SECMD5",
             justification = "Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption")
     private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
@@ -162,29 +140,6 @@ public class ClaimService {
                 .deviceFingerprint(deviceFingerprint)
                 .deviceFingerprintHash(fingerprintHash)
                 .webUIVersion(claimRequest.getWebUIVersion())
-                .build();
-    }
-
-    private ClaimResult createResult(Claim claim) {
-        return ClaimResult.builder()
-                .claim(claim)
-                .voucherEntitlement(Optional.empty())
-                .build();
-    }
-
-    private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return createResult(claim, voucherEntitlement, null);
-    }
-
-    private ClaimResult createResult(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement, List<String> updatedFields) {
-        VoucherEntitlement firstVoucherEntitlement = voucherEntitlement.getFirstVoucherEntitlementForCycle();
-        boolean claimUpdated = updatedFields != null;
-
-        return ClaimResult.builder()
-                .claim(claim)
-                .voucherEntitlement(Optional.of(firstVoucherEntitlement))
-                .updatedFields(updatedFields)
-                .claimUpdated(claimUpdated)
                 .build();
     }
 
