@@ -17,18 +17,25 @@ public class PostcodeDataCodes {
 
     @JsonProperty("admin_district")
     private String adminDistrict;
+
     @JsonProperty("admin_county")
     private String adminCounty;
+
     @JsonProperty("admin_ward")
     private String adminWard;
+
     @JsonProperty("parish")
     private String parish;
+
     @JsonProperty("parliamentary_constituency")
     private String parliamentaryConstituency;
+
     @JsonProperty("ccg")
     private String ccg;
+
     @JsonProperty("ced")
     private String ced;
+
     @JsonProperty("nuts")
     private String nuts;
 }

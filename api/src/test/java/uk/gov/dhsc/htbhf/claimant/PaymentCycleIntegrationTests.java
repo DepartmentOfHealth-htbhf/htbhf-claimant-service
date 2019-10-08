@@ -2,10 +2,10 @@ package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
@@ -23,12 +24,13 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,7 +50,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -199,7 +200,7 @@ public class PaymentCycleIntegrationTests {
         // confirm each error was recovered from, and the payment made successfully
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
-                        LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
+                LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
         assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
@@ -247,29 +248,75 @@ public class PaymentCycleIntegrationTests {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
 
-        wiremockManager.stubSuccessfulEligibilityResponse(Collections.emptyList());
+        List<LocalDate> currentPaymentCycleChildrenDobs = emptyList();
+        List<LocalDate> previousPaymentCycleChildrenDobs = singletonList(THREE_YEAR_OLD);
+        wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
         stubNotificationEmailResponse();
 
         //Previous PaymentCycle had a single child on it, not pregnant
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, singletonList(THREE_YEAR_OLD), null);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, previousPaymentCycleChildrenDobs, null);
 
         invokeAllSchedulers();
 
         // confirm new payment cycle created with no payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        //Should be a PaymentCycleVoucherEntitlement with no vouchers for each week
-        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
-        assertPaymentCycleHasNoPayment(newCycle, expectedVoucherEntitlement);
+        assertPaymentCycleWithNoPayment(newCycle, currentPaymentCycleChildrenDobs);
 
-        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
-        assertThat(updatedClaim.getClaimStatus()).isEqualTo(ClaimStatus.PENDING_EXPIRY);
+        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
 
-        // confirm card service called to make payment
+        // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(newCycle);
         verifyNoMoreInteractions(notificationClient);
+    }
+
+    @DisplayName("Integration test for HTBHF-1757 status set to Pending Expiry and email sent to Claimant who has a child in current cycle, "
+            + "pregnancy irrelevant, testing both with children in previous cycle and without")
+    @ParameterizedTest(name = "DOB previous cycle={0}, DOB current cycle={1}")
+    @MethodSource("provideChildrenDobForTest")
+    void shouldTestClaimantBecomingIneligible(List<LocalDate> previousCycleChildrenDobs,
+                                              List<LocalDate> currentCycleChildrenDobs) throws JsonProcessingException, NotificationClientException {
+        // setup some claim variables
+        String cardAccountId = UUID.randomUUID().toString();
+        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(1);
+
+        wiremockManager.stubIneligibleEligibilityResponse(currentCycleChildrenDobs);
+        stubNotificationEmailResponse();
+
+        //Create previous PaymentCycle
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, previousCycleChildrenDobs, expectedDeliveryDate);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with no payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertPaymentCycleWithNoPayment(newCycle, currentCycleChildrenDobs);
+
+        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+
+        // confirm card service not called to make payment
+        wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatClaimNoLongerEligibleEmailWasSent(newCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    //First argument is the previous cycle, second argument is the current cycle
+    private static Stream<Arguments> provideChildrenDobForTest() {
+        return Stream.of(
+                Arguments.of(singletonList(THREE_YEAR_OLD), singletonList(THREE_YEAR_OLD)),
+                Arguments.of(emptyList(), singletonList(THREE_YEAR_OLD)),
+                Arguments.of(singletonList(THREE_YEAR_OLD), emptyList()),
+                Arguments.of(emptyList(), emptyList())
+        );
+    }
+
+    private void assertStatusOnClaim(Claim claim, ClaimStatus expectedClaimStatus) {
+        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
+        assertThat(updatedClaim.getClaimStatus()).isEqualTo(expectedClaimStatus);
     }
 
     private void stubNotificationEmailResponse() throws NotificationClientException {
@@ -303,14 +350,14 @@ public class PaymentCycleIntegrationTests {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
-    private void assertPaymentCycleHasNoPayment(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement expectedVoucherEntitlement) {
+    private void assertPaymentCycleWithNoPayment(PaymentCycle paymentCycle, List<LocalDate> childrenDob) {
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
-        assertThat(paymentCycle.getChildrenDob()).isEmpty();
-        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedVoucherEntitlement);
+        assertThat(paymentCycle.getChildrenDob()).isEqualTo(childrenDob);
+        assertThat(paymentCycle.getVoucherEntitlement()).isNull();
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.INELIGIBLE);
         assertThat(paymentCycle.getCardBalanceInPence()).isNull();
-        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(0);
+        assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isNull();
         assertThat(paymentCycle.getPayments()).isEmpty();
     }
 
@@ -350,9 +397,18 @@ public class PaymentCycleIntegrationTests {
     }
 
     private void assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+        assertThatNoLongerEligibleEmailWasSent(newCycle, NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);
+    }
+
+    private void assertThatClaimNoLongerEligibleEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+        assertThatNoLongerEligibleEmailWasSent(newCycle, CLAIM_NO_LONGER_ELIGIBLE);
+    }
+
+    private void assertThatNoLongerEligibleEmailWasSent(PaymentCycle newCycle, EmailType emailType) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
-                eq(NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()),
+                eq(emailType.getTemplateId()),
+                eq(newCycle.getClaim().getClaimant().getEmailAddress()),
                 mapArgumentCaptor.capture(),
                 any(),
                 any());
