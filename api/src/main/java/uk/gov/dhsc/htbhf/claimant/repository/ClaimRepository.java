@@ -7,7 +7,9 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
 /**
  * JPA repository for the Claim table.
@@ -47,4 +49,10 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
         return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;
     }
+
+    default Claim findClaim(UUID claimId) {
+        Optional<Claim> optionalClaim = findById(claimId);
+        return optionalClaim.orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
+    }
+
 }
