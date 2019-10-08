@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityNotFoundException;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -217,7 +218,7 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -229,7 +230,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         assertThat(result.getClaim().getClaimant().getLastName()).isEqualTo(newClaimant.getLastName());
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
-        verify(claimRepository).findById(existingClaimId);
+        verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
         verifyZeroInteractions(messageQueueClient);
@@ -248,7 +249,7 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -260,7 +261,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
-        verify(claimRepository).findById(existingClaimId);
+        verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
         verifyZeroInteractions(messageQueueClient);
@@ -292,7 +293,7 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -317,7 +318,7 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -342,7 +343,7 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.of(existingClaim));
+        given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -433,16 +434,16 @@ class ClaimServiceTest {
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
                 .build());
-        given(claimRepository.findById(any())).willReturn(Optional.empty());
+        EntityNotFoundException expectedException = new EntityNotFoundException("Not found");
+        given(claimRepository.findClaim(any())).willThrow(expectedException);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        IllegalStateException exception = catchThrowableOfType(
-                () -> claimService.createOrUpdateClaim(request), IllegalStateException.class);
+        EntityNotFoundException exception = catchThrowableOfType(
+                () -> claimService.createOrUpdateClaim(request), EntityNotFoundException.class);
 
         //then
-        assertThat(exception).isNotNull();
-        assertThat(exception.getMessage()).contains(existingClaimId.toString());
+        assertThat(exception).isEqualTo(expectedException);
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(claimArgumentCaptor.capture());
         assertClaimCorrectForAudit(claimArgumentCaptor, newClaimant);

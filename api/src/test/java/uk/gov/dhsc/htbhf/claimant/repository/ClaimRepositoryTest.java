@@ -295,4 +295,31 @@ class ClaimRepositoryTest {
         assertThat(changes.size()).isEqualTo(1);
         assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'addressLine1' value changed from 'Flat b' to 'test' }");
     }
+
+    @Test
+    void shouldReturnExistingClaim() {
+        //Given
+        Claim claim = aValidClaim();
+        claimRepository.save(claim);
+
+        //When
+        Claim result = claimRepository.findClaim(claim.getId());
+
+        //Then
+        assertThat(result).isEqualTo(claim);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenClaimDoesNotExist() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+
+        //When
+        Throwable thrown = catchThrowable(() -> claimRepository.findClaim(claimId));
+
+        //Then
+        assertThat(thrown).isInstanceOf(RuntimeException.class); // spring wraps the EntityNotFoundException
+        assertThat(thrown.getMessage()).contains(claimId.toString());
+    }
+
 }
