@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -17,15 +16,11 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 public class EligibilityAndEntitlementTestDataFactory {
 
     public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
-        return aValidDecisionBuilder().eligibilityStatus(eligibilityStatus).build();
-    }
-
-    public static EligibilityAndEntitlementDecision aDecisionWithStatusAndEntitlement(EligibilityStatus eligibilityStatus,
-                                                                                      PaymentCycleVoucherEntitlement entitlement) {
-        return aValidDecisionBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .voucherEntitlement(entitlement)
-                .build();
+        EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
+        if (eligibilityStatus != ELIGIBLE) {
+            builder.voucherEntitlement(null);
+        }
+        return builder.build();
     }
 
     public static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidDecisionBuilder() {

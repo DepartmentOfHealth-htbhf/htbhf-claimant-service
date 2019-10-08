@@ -10,7 +10,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -29,7 +28,6 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
@@ -50,7 +48,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
@@ -85,9 +82,7 @@ class ClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
@@ -153,9 +148,7 @@ class ClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
@@ -183,10 +176,7 @@ class ClaimServiceTest {
     void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
         //given
         Claimant claimant = aValidClaimant();
-        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(eligibilityStatus, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(eligibilityStatus);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
@@ -356,10 +346,7 @@ class ClaimServiceTest {
     void shouldHandleNullDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(null)
@@ -379,10 +366,7 @@ class ClaimServiceTest {
     void shouldHandleEmptyDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(emptyMap())
@@ -402,10 +386,7 @@ class ClaimServiceTest {
     void shouldHandleNullWebUIVersion() {
         //given
         Claimant claimant = aValidClaimant();
-        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        VoucherEntitlement secondVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now().plusWeeks(1));
-        var entitlement = new PaymentCycleVoucherEntitlement(asList(firstVoucherEntitlement, secondVoucherEntitlement));
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndEntitlement(ELIGIBLE, entitlement);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .webUIVersion(null)
