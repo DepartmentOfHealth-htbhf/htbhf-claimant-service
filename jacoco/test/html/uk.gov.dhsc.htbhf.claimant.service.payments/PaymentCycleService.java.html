@@ -90,7 +90,7 @@ public class PaymentCycleService {
 <span class="fc" id="L90">    }</span>
 
     public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc bfc" id="L93" title="All 2 branches covered.">        return voucherEntitlement.getVouchersForPregnancy() &gt; 0 ? claim.getClaimant().getExpectedDeliveryDate() : null;</span>
+<span class="fc bfc" id="L93" title="All 4 branches covered.">        return (voucherEntitlement != null &amp;&amp; voucherEntitlement.getVouchersForPregnancy() &gt; 0) ? claim.getClaimant().getExpectedDeliveryDate() : null;</span>
     }
 
     /**

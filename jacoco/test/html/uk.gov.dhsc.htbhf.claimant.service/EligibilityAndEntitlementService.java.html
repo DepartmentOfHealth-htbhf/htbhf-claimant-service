@@ -95,23 +95,36 @@ public class EligibilityAndEntitlementService {
                                                             PaymentCycleVoucherEntitlement entitlement,
                                                             UUID existingClaimId) {
 <span class="fc" id="L97">        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);</span>
-<span class="fc" id="L98">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L99">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L100">                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))</span>
-<span class="fc" id="L101">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L102">                .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())</span>
-<span class="fc" id="L103">                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L104">                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L105">                .existingClaimId(existingClaimId)</span>
-<span class="fc" id="L106">                .build();</span>
+<span class="fc" id="L98">        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);</span>
+<span class="fc" id="L99">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L100">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L101">                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))</span>
+<span class="fc" id="L102">                .voucherEntitlement(voucherEntitlement)</span>
+<span class="fc" id="L103">                .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())</span>
+<span class="fc" id="L104">                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L105">                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L106">                .existingClaimId(existingClaimId)</span>
+<span class="fc" id="L107">                .build();</span>
+    }
+
+    /**
+     * We only return and store a voucher entitlement if the Claimant is ELIGIBLE.
+     *
+     * @param entitlement       Their entitlement
+     * @param eligibilityStatus The status to make the determination
+     * @return The voucher entitlement if they are ELIGIBLE else null
+     */
+    private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
+                                                                                             EligibilityStatus eligibilityStatus) {
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;</span>
     }
 
     private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
                                                          PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc bfc" id="L111" title="All 4 branches covered.">        if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
-<span class="fc" id="L112">            return EligibilityStatus.INELIGIBLE;</span>
+<span class="fc bfc" id="L124" title="All 4 branches covered.">        if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
+<span class="fc" id="L125">            return EligibilityStatus.INELIGIBLE;</span>
         }
-<span class="fc" id="L114">        return response.getEligibilityStatus();</span>
+<span class="fc" id="L127">        return response.getEligibilityStatus();</span>
     }
 
 }
