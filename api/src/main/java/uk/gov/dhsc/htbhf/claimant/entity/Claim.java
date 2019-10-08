@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
@@ -55,6 +56,10 @@ public class Claim extends VersionedEntity {
 
     @Column(name = "web_ui_version")
     private String webUIVersion;
+
+    @Column(name = "postcode_data_json")
+    @Type(type = "json")
+    private PostcodeData postcodeData;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
