@@ -28,7 +28,7 @@ public class MessageProcessorScheduler {
 
     private final MessageProcessor messageProcessor;
 
-    @Scheduled(cron = EVERY_30_SECONDS) 
+    @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
             name = "Process ADDITIONAL_PREGNANCY_PAYMENT messages",
             lockAtLeastForString = FIFTEEN_SECONDS,
@@ -86,5 +86,15 @@ public class MessageProcessorScheduler {
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:MAKE_PAYMENT")
     public void processPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);
+    }
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = "Process REPORT_CLAIM messages",
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REPORT_CLAIM")
+    public void processReportClaimMessages() {
+        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);
     }
 }
