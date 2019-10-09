@@ -60,7 +60,10 @@ public class PaymentCycleIntegrationTests {
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
+    private static final List<LocalDate> SINGLE_THREE_YEAR_OLD = singletonList(THREE_YEAR_OLD);
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
+    private static final LocalDate DUE_DATE_IN_4_MONTHS = LocalDate.now().plusMonths(4);
+    private static final LocalDate NOT_PREGNANT = null;
 
     @MockBean
     private NotificationClient notificationClient;
@@ -97,7 +100,7 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, LocalDate.now().plusMonths(4));
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, DUE_DATE_IN_4_MONTHS);
 
         invokeAllSchedulers();
 
@@ -128,7 +131,7 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, childTurningOneInFirstWeekOfNextPaymentCycle, null);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, childTurningOneInFirstWeekOfNextPaymentCycle, NOT_PREGNANT);
 
         invokeAllSchedulers();
 
@@ -155,7 +158,7 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, childTurningFourInFirstWeekOfNextPaymentCycle, null);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, childTurningFourInFirstWeekOfNextPaymentCycle, NOT_PREGNANT);
 
         invokeAllSchedulers();
 
@@ -183,7 +186,7 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.stubErrorDepositResponse(cardAccountId);
         stubNotificationEmailError();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, LocalDate.now().plusMonths(4));
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, sixMonthOldAndThreeYearOld, DUE_DATE_IN_4_MONTHS);
 
         // invoke all schedulers multiple times, fixing the next error in turn each time
         invokeAllSchedulers();
@@ -200,7 +203,7 @@ public class PaymentCycleIntegrationTests {
         // confirm each error was recovered from, and the payment made successfully
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
-                LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
+                LocalDate.now(), sixMonthOldAndThreeYearOld, DUE_DATE_IN_4_MONTHS);
         assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
         assertThatPaymentCycleHasFailedPayments(newCycle, 2);
 
@@ -222,7 +225,7 @@ public class PaymentCycleIntegrationTests {
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
 
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, singletonList(THREE_YEAR_OLD), LocalDate.now().minusWeeks(7));
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, SINGLE_THREE_YEAR_OLD, LocalDate.now().minusWeeks(7));
 
         invokeAllSchedulers();
 
@@ -242,6 +245,8 @@ public class PaymentCycleIntegrationTests {
         verifyNoMoreInteractions(notificationClient);
     }
 
+    @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP has said they are eligible but have returned no children on record, "
+            + "status should be set to Pending Expiry and email sent to Claimant")
     @Disabled("HTBHF-2185")
     @Test
     void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant() throws JsonProcessingException, NotificationClientException {
@@ -249,12 +254,11 @@ public class PaymentCycleIntegrationTests {
         String cardAccountId = UUID.randomUUID().toString();
 
         List<LocalDate> currentPaymentCycleChildrenDobs = emptyList();
-        List<LocalDate> previousPaymentCycleChildrenDobs = singletonList(THREE_YEAR_OLD);
+        List<LocalDate> previousPaymentCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
         wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
         stubNotificationEmailResponse();
 
-        //Previous PaymentCycle had a single child on it, not pregnant
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, previousPaymentCycleChildrenDobs, null);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, previousPaymentCycleChildrenDobs, NOT_PREGNANT);
 
         invokeAllSchedulers();
 
@@ -274,13 +278,13 @@ public class PaymentCycleIntegrationTests {
 
     @DisplayName("Integration test for HTBHF-1757 status set to Pending Expiry and email sent to Claimant who has a child in current cycle, "
             + "pregnancy irrelevant, testing both with children in previous cycle and without")
-    @ParameterizedTest(name = "DOB previous cycle={0}, DOB current cycle={1}")
+    @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}")
     @MethodSource("provideChildrenDobForTest")
     void shouldTestClaimantBecomingIneligible(List<LocalDate> previousCycleChildrenDobs,
-                                              List<LocalDate> currentCycleChildrenDobs) throws JsonProcessingException, NotificationClientException {
+                                              List<LocalDate> currentCycleChildrenDobs,
+                                              LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
         // setup some claim variables
         String cardAccountId = UUID.randomUUID().toString();
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(1);
 
         wiremockManager.stubIneligibleEligibilityResponse(currentCycleChildrenDobs);
         stubNotificationEmailResponse();
@@ -304,13 +308,14 @@ public class PaymentCycleIntegrationTests {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    //First argument is the previous cycle, second argument is the current cycle
+    //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date.
     private static Stream<Arguments> provideChildrenDobForTest() {
         return Stream.of(
-                Arguments.of(singletonList(THREE_YEAR_OLD), singletonList(THREE_YEAR_OLD)),
-                Arguments.of(emptyList(), singletonList(THREE_YEAR_OLD)),
-                Arguments.of(singletonList(THREE_YEAR_OLD), emptyList()),
-                Arguments.of(emptyList(), emptyList())
+                Arguments.of(SINGLE_THREE_YEAR_OLD, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
+                Arguments.of(emptyList(), SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), DUE_DATE_IN_4_MONTHS),
+                Arguments.of(emptyList(), emptyList(), DUE_DATE_IN_4_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), NOT_PREGNANT)
         );
     }
 
