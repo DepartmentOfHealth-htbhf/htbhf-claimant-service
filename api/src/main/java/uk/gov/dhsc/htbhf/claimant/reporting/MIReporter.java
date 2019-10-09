@@ -7,6 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 public class MIReporter {
 
     public void reportClaim(Claim claim) {
-        // todo HTBHF-2418
+        // TODO DW HTBHF-2418 Populate the claim with post code data and report claim to google analytics
     }
 }
