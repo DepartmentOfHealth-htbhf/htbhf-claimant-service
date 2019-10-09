@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -17,10 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
@@ -106,20 +102,40 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
     }
 
-    @Disabled("HTBHF-2418 re-enable when postcode lookup is implemented")
     @Test
-    void shouldUpdateSuccessfulClaimWithPostcodeData() throws JsonProcessingException, NotificationClientException {
+    void shouldUpdateSuccessfulClaimWithPostcodeData() throws JsonProcessingException {
         ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimant = claimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
-        wiremockManager.stubSuccessfulPostcodesIoResponse(postcode);
+        PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
+        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
+        wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
-        invokeAllSchedulers();
+        messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
-        assertThat(claim.getPostcodeData()).isEqualTo(aPostcodeDataObjectForPostcode(postcode));
+        assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
+        wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);
+    }
+
+    @Test
+    void shouldUpdateSuccessfulClaimWhenPostcodesIOReturnsPostcodeNotFound() throws JsonProcessingException {
+        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = claimDTO.getClaimant();
+        String postcode = claimant.getAddress().getPostcode();
+        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
+        wiremockManager.stubNotFoundPostcodesIOResponse(postcode);
+
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        messageProcessorScheduler.processReportClaimMessages();
+
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getPostcodeData()).isEqualTo(PostcodeData.NOT_FOUND);
         wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);
     }
 
@@ -150,7 +166,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         Mockito.reset(notificationClient); // necessary to clear the error and the count of attempts to send an email
         stubNotificationEmailResponse();
         invokeAllSchedulers();
-        wiremockManager.stubSuccessfulPostcodesIoResponse(postcode);
+        PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
+        wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
         invokeAllSchedulers();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -166,14 +183,12 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         Payment payment = successfulPayments.iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
         assertThatPaymentCycleHasFailedPayments(paymentCycle, 1);
-        // todo: HTBHF-2418 un-comment when postcode lookup is implemented
-        //  assertThat(claim.getPostcodeData()).isEqualTo(aPostcodeDataObjectForPostcode(postcode));
+        assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
 
         assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
-        // todo: HTBHF-2418 un-comment when postcode lookup is implemented
-        //  wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);
+        wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);
     }
 
     private void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
@@ -211,6 +226,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         messageProcessorScheduler.processCreateNewCardMessages();
         messageProcessorScheduler.processFirstPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processReportClaimMessages();
     }
 
 }
