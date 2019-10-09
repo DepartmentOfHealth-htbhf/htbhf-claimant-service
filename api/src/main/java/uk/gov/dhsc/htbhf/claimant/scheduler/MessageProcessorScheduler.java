@@ -22,7 +22,7 @@ import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 @Component
 public class MessageProcessorScheduler {
 
-    private static final String EVERY_30_SECONDS = "*/30 * * * * *";
+    private static final String EVERY_30_SECONDS = "*/z * * * * *";
     private static final String ONE_HOUR = "PT60M";
     private static final String FIFTEEN_SECONDS = "PT15S";
 

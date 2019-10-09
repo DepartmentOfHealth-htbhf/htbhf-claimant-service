@@ -17,6 +17,8 @@ import lombok.Data;
 @SuppressWarnings("PMD.TooManyFields")
 public class PostcodeData {
 
+    private static final String NOT_FOUND_STRING = "NOT_FOUND";
+
     @JsonProperty("postcode")
     private String postcode;
 
@@ -88,4 +90,35 @@ public class PostcodeData {
 
     @JsonProperty("codes")
     private PostcodeDataCodes codes;
+
+    public static final PostcodeData NOT_FOUND = PostcodeData.builder()
+            .adminWard(NOT_FOUND_STRING)
+            .adminCounty(NOT_FOUND_STRING)
+            .adminDistrict(NOT_FOUND_STRING)
+            .parliamentaryConstituency(NOT_FOUND_STRING)
+            .postcode(NOT_FOUND_STRING)
+            .ccg(NOT_FOUND_STRING)
+            .ced(NOT_FOUND_STRING)
+            .country(NOT_FOUND_STRING)
+            .europeanElectoralRegion(NOT_FOUND_STRING)
+            .incode(NOT_FOUND_STRING)
+            .outcode(NOT_FOUND_STRING)
+            .lsoa(NOT_FOUND_STRING)
+            .msoa(NOT_FOUND_STRING)
+            .nhsHa(NOT_FOUND_STRING)
+            .nuts(NOT_FOUND_STRING)
+            .parish(NOT_FOUND_STRING)
+            .primaryCareTrust(NOT_FOUND_STRING)
+            .region(NOT_FOUND_STRING)
+            .codes(PostcodeDataCodes.builder()
+                    .parliamentaryConstituency(NOT_FOUND_STRING)
+                    .adminWard(NOT_FOUND_STRING)
+                    .adminCounty(NOT_FOUND_STRING)
+                    .adminDistrict(NOT_FOUND_STRING)
+                    .ccg(NOT_FOUND_STRING)
+                    .ced(NOT_FOUND_STRING)
+                    .nuts(NOT_FOUND_STRING)
+                    .parish(NOT_FOUND_STRING)
+                    .build())
+            .build();
 }

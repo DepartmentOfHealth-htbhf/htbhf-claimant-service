@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -17,7 +19,6 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.okForJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
@@ -27,7 +28,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 
 @Component
 public class WiremockManager {
@@ -109,9 +109,17 @@ public class WiremockManager {
                         .withBody("Something went badly wrong")));
     }
 
-    public void stubSuccessfulPostcodesIoResponse(String postcode) {
+    public void stubSuccessfulPostcodesIoResponse(String postcode, PostcodeData postcodeData) throws JsonProcessingException {
+        PostcodeDataResponse postcodeDataResponse = new PostcodeDataResponse(postcodeData);
         postcodesMock.stubFor(get(urlEqualTo(getPostcodeUrl(postcode)))
-                .willReturn(okForJson(aPostcodeDataObjectForPostcode(postcode))));
+                .willReturn(aResponse().withStatus(HttpStatus.OK.value())
+                .withHeader("Content-Type", "application/json")
+                .withBody(objectMapper.writeValueAsString(postcodeDataResponse))));
+    }
+
+    public void stubNotFoundPostcodesIOResponse(String postcode) {
+        postcodesMock.stubFor(get(urlEqualTo(getPostcodeUrl(postcode)))
+                .willReturn(notFound()));
     }
 
     public void stubErrorPostcodesIoResponse(String postcode) {

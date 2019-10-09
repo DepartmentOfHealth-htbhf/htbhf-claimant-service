@@ -11,6 +11,7 @@ public class TestConstants {
     public static final String VALID_ADDRESS_LINE_1 = "Flat b";
     public static final String VALID_ADDRESS_LINE_2 = "123 Fake street";
     public static final String VALID_TOWN_OR_CITY = "Springfield";
+    public static final String VALID_COUNTY = "Devon";
     public static final String VALID_POSTCODE = "AA1 1AA";
     public static final String VALID_PHONE_NUMBER = "+447123456789";
     public static final String VALID_EMAIL_ADDRESS = "test@email.com";
