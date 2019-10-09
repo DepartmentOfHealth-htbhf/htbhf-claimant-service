@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.okForJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
@@ -26,13 +27,16 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 
 @Component
 public class WiremockManager {
     private static final String V1_ELIGIBILITY_URL = "/v1/eligibility";
     private static final String V1_CARDS_URL = "/v1/cards";
+    private static final String POSTCODES_URL = "/postcodes/";
     private WireMockServer eligibilityServiceMock;
     private WireMockServer cardServiceMock;
+    private WireMockServer postcodesMock;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -40,11 +44,13 @@ public class WiremockManager {
     public void startWireMock() {
         eligibilityServiceMock = startWireMockServer(8100);
         cardServiceMock = startWireMockServer(8140);
+        postcodesMock = startWireMockServer(8120);
     }
 
     public void stopWireMock() {
         eligibilityServiceMock.stop();
         cardServiceMock.stop();
+        postcodesMock.stop();
     }
 
     public void stubSuccessfulEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
@@ -103,23 +109,41 @@ public class WiremockManager {
                         .withBody("Something went badly wrong")));
     }
 
+    public void stubSuccessfulPostcodesIoResponse(String postcode) {
+        postcodesMock.stubFor(get(urlEqualTo(getPostcodeUrl(postcode)))
+                .willReturn(okForJson(aPostcodeDataObjectForPostcode(postcode))));
+    }
+
+    public void stubErrorPostcodesIoResponse(String postcode) {
+        postcodesMock.stubFor(get(urlEqualTo(getPostcodeUrl(postcode)))
+                .willReturn(serverError()));
+    }
+
+    private String getPostcodeUrl(String postcode) {
+        return POSTCODES_URL + postcode.toUpperCase().replace(" ", "");
+    }
+
     public void assertThatGetBalanceRequestMadeForClaim(String cardAccountId) {
         cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + cardAccountId + "/balance")));
     }
 
-    public void assertThatDepositFundsRequestMadeForClaim(Payment payment) throws JsonProcessingException {
+    public void assertThatDepositFundsRequestMadeForPayment(Payment payment) throws JsonProcessingException {
         StringValuePattern expectedDepositBody = expectedDepositRequestBody(payment);
         cardServiceMock.verify(postRequestedFor(urlEqualTo("/v1/cards/" + payment.getCardAccountId() + "/deposit"))
                 .withRequestBody(expectedDepositBody));
     }
 
-    public void assertThatDepositFundsRequestNotMadeForClaim(String cardAccountId) {
+    public void assertThatDepositFundsRequestNotMadeForCard(String cardAccountId) {
         cardServiceMock.verify(0, postRequestedFor(urlEqualTo("/v1/cards/" + cardAccountId + "/deposit")));
     }
 
     public void assertThatNewCardRequestMadeForClaim(Claim claim) throws JsonProcessingException {
         StringValuePattern expectedCardRequestBody = equalToJson(objectMapper.writeValueAsString(aCardRequest(claim)));
         cardServiceMock.verify(postRequestedFor(urlEqualTo(V1_CARDS_URL)).withRequestBody(expectedCardRequestBody));
+    }
+
+    public void assertThatPostcodeDataRetrievedForPostcode(String postcode) {
+        postcodesMock.verify(getRequestedFor(urlEqualTo(getPostcodeUrl(postcode))));
     }
 
     private StringValuePattern expectedDepositRequestBody(Payment payment) throws JsonProcessingException {

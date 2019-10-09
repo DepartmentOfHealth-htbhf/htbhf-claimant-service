@@ -23,6 +23,9 @@ public class PostcodeData {
     @JsonProperty("quality")
     private Integer quality;
 
+    @JsonProperty("eastings")
+    private Integer eastings;
+
     @JsonProperty("northings")
     private Integer northings;
 
