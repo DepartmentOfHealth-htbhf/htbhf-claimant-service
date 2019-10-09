@@ -24,7 +24,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
@@ -54,13 +53,16 @@ public class WiremockManager {
     }
 
     public void stubSuccessfulEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildren(childrenWithBirthdates(childrensDateOfBirth));
-        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(jsonResponse(eligibilityResponse)));
+        stubEligibilityResponse(childrensDateOfBirth, EligibilityStatus.ELIGIBLE);
     }
 
     public void stubIneligibleEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
+        stubEligibilityResponse(childrensDateOfBirth, EligibilityStatus.INELIGIBLE);
+    }
+
+    public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityStatus eligibilityStatus) throws JsonProcessingException {
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildrenAndStatus(childrenWithBirthdates(childrensDateOfBirth),
-                EligibilityStatus.INELIGIBLE);
+                eligibilityStatus);
         eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(jsonResponse(eligibilityResponse)));
     }
 
