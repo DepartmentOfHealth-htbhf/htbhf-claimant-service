@@ -113,7 +113,7 @@ public class PaymentCycleIntegrationTests {
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle);
@@ -139,7 +139,7 @@ public class PaymentCycleIntegrationTests {
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(currentCycle);
@@ -166,7 +166,7 @@ public class PaymentCycleIntegrationTests {
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(currentCycle);
@@ -209,7 +209,7 @@ public class PaymentCycleIntegrationTests {
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         assertThatPaymentEmailWasSent(newCycle);
     }
@@ -238,7 +238,7 @@ public class PaymentCycleIntegrationTests {
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForClaim(payment);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNewChildEmailWasSent(newCycle);
@@ -269,7 +269,7 @@ public class PaymentCycleIntegrationTests {
         assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
 
         // confirm card service not called to make payment
-        wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(cardAccountId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(newCycle);
@@ -301,7 +301,7 @@ public class PaymentCycleIntegrationTests {
         assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
 
         // confirm card service not called to make payment
-        wiremockManager.assertThatDepositFundsRequestNotMadeForClaim(cardAccountId);
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(cardAccountId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimNoLongerEligibleEmailWasSent(newCycle);
