@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
@@ -35,10 +37,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
@@ -306,6 +305,38 @@ public class PaymentCycleIntegrationTests {
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimNoLongerEligibleEmailWasSent(newCycle);
         verifyNoMoreInteractions(notificationClient);
+    }
+
+    @DisplayName("Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, "
+            + "not pregnant, children over 4 present in previous cycle")
+    @ParameterizedTest(name = "Eligibility status={0}")
+    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+    @Disabled("HTBHF-2182")
+    void shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+        // setup some claim variables
+        String cardAccountId = UUID.randomUUID().toString();
+
+        LocalDate childTurnedFourInLastCycle = LocalDate.now().minusYears(4).minusWeeks(2);
+        List<LocalDate> previousCycleChildrenDobs = singletonList(childTurnedFourInLastCycle);
+        //DWP will not return children over 4 in response
+        wiremockManager.stubEligibilityResponse(emptyList(), eligibilityStatus);
+
+        //Create previous PaymentCycle
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(cardAccountId, previousCycleChildrenDobs, NOT_PREGNANT);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with no payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertPaymentCycleWithNoPayment(newCycle, emptyList());
+
+        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+
+        // confirm card service not called to make payment
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(cardAccountId);
+
+        // confirm no emails sent to claimant
+        verifyZeroInteractions(notificationClient);
     }
 
     //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date.

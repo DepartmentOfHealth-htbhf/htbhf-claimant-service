@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.PostcodesClientException;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -49,7 +50,6 @@ public class MIReporter {
                 log.error("No postcode data found for postcode {} on claim {}", postcode, claim.getId());
                 return PostcodeData.NOT_FOUND;
             }
-
             throw e;
         }
     }
@@ -58,7 +58,7 @@ public class MIReporter {
         if (response == null || response.getPostcodeData() == null) {
             String errorMessage = "Received null response from postcodes.io for postcode " + postcode + " on claim " + claim.getId();
             log.error(errorMessage);
-            throw new NullPointerException(errorMessage);
+            throw new PostcodesClientException(errorMessage);
         }
 
         return response.getPostcodeData();

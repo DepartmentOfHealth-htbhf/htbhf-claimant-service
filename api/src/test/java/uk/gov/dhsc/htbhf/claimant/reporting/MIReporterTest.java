@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.PostcodesClientException;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -104,7 +105,7 @@ class MIReporterTest {
         PostcodeDataResponse response = new PostcodeDataResponse(null);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willReturn(response);
 
-        NullPointerException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), NullPointerException.class);
+        PostcodesClientException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesClientException.class);
 
         assertThat(exception).isNotNull();
         assertThat(claim.getPostcodeData()).isNull();
