@@ -115,26 +115,35 @@ public class MessageContextLoader {
 <span class="fc" id="L115">                .build();</span>
     }
 
+    public ReportClaimMessageContext loadReportClaimMessageContext(Message message) {
+<span class="fc" id="L119">        ReportClaimMessagePayload payload = payloadMapper.getPayload(message, ReportClaimMessagePayload.class);</span>
+<span class="fc" id="L120">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+
+<span class="fc" id="L122">        return ReportClaimMessageContext.builder()</span>
+<span class="fc" id="L123">                .claim(claim)</span>
+<span class="fc" id="L124">                .build();</span>
+    }
+
     private Claim getAndCheckClaim(UUID claimId) {
-<span class="fc" id="L119">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
-<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
-<span class="nc" id="L121">            logAndThrowException(&quot;claim&quot;, claimId);</span>
+<span class="fc" id="L128">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
+<span class="nc" id="L130">            logAndThrowException(&quot;claim&quot;, claimId);</span>
         }
-<span class="fc" id="L123">        return claim.get();</span>
+<span class="fc" id="L132">        return claim.get();</span>
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {
-<span class="fc" id="L127">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
-<span class="nc" id="L129">            logAndThrowException(cycleName, paymentCycleId);</span>
+<span class="fc" id="L136">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
+<span class="nc" id="L138">            logAndThrowException(cycleName, paymentCycleId);</span>
         }
-<span class="fc" id="L131">        return paymentCycle.get();</span>
+<span class="fc" id="L140">        return paymentCycle.get();</span>
     }
 
     private void logAndThrowException(String fieldName, UUID uuid) {
-<span class="fc" id="L135">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
-<span class="fc" id="L136">        log.error(errorMessage);</span>
-<span class="fc" id="L137">        throw new MessageProcessingException(errorMessage);</span>
+<span class="fc" id="L144">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
+<span class="fc" id="L145">        log.error(errorMessage);</span>
+<span class="fc" id="L146">        throw new MessageProcessingException(errorMessage);</span>
     }
 
 }

@@ -1,25 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReportClaimMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">ReportClaimMessageProcessor.java</span></div><h1>ReportClaimMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
 
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
+import uk.gov.dhsc.htbhf.claimant.reporting.MIReporter;
 
 /**
  * Responsible for reporting new and updated claims for MI reporting purposes.
  * Fetches location data for a claim if it doesn't already exist, then reports the claim.
  */
-<span class="nc" id="L12">public class ReportClaimMessageProcessor implements MessageTypeProcessor {</span>
+@Component
+@AllArgsConstructor
+public class ReportClaimMessageProcessor implements MessageTypeProcessor {
+
+    private final MIReporter miReporter;
+    private final MessageContextLoader messageContextLoader;
 
     @Override
     public MessageStatus processMessage(Message message) {
-        // TODO DW HTBHF-2009 Fetch location data for a claim and report the claim.
-<span class="nc" id="L17">        return null;</span>
+<span class="fc" id="L26">        ReportClaimMessageContext context = messageContextLoader.loadReportClaimMessageContext(message);</span>
+<span class="fc" id="L27">        miReporter.reportClaim(context.getClaim());</span>
+<span class="fc" id="L28">        return MessageStatus.COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="nc" id="L22">        return MessageType.REPORT_CLAIM;</span>
+<span class="fc" id="L33">        return MessageType.REPORT_CLAIM;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
