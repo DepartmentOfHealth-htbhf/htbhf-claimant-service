@@ -11,7 +11,9 @@ public enum EmailType {
     CHILD_TURNS_ONE("a1a46ff3-3371-449e-bad6-571ab4e20286"),
     NEW_CHILD_FROM_PREGNANCY("8d160350-ebdc-4315-a2cf-3b5f5eccb875"),
     CLAIM_NO_LONGER_ELIGIBLE("2c69f4ae-3f42-4e71-b305-247c23affb44"),
-    NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE("8be94eb0-5cd0-4191-8b99-9190f80bcc53");
+    NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE("8be94eb0-5cd0-4191-8b99-9190f80bcc53"),
+    // TODO HTBHF-1296 add template ID when it exists in Notify
+    CLAIM_CLOSED("");
 
     private String templateId;
 
