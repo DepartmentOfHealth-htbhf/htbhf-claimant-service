@@ -13,6 +13,10 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+/**
+ * Responsible for reporting 'events' to Google Analytics (events including new claims and payments made, etc).
+ * Also responsible for obtaining postcode data used to provide location info when reporting events.
+ */
 @Component
 @Slf4j
 public class MIReporter {
