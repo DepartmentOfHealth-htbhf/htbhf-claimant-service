@@ -404,4 +404,24 @@ class MessageContextLoaderTest {
         verifyZeroInteractions(paymentCycleRepository);
     }
 
+    @Test
+    void shouldSuccessfullyLoadReportClaimMessageContext() {
+        //Given
+        Claim claim = aValidClaim();
+        Message message = aValidMessageWithType(REPORT_CLAIM);
+        ReportClaimMessagePayload payload = ReportClaimMessagePayload.builder()
+                .claimId(claim.getId())
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(payloadMapper.getPayload(message, ReportClaimMessagePayload.class)).willReturn(payload);
+
+        //When
+        ReportClaimMessageContext context = loader.loadReportClaimMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
+        verify(claimRepository).findById(claim.getId());
+        verifyZeroInteractions(paymentCycleRepository);
+    }
 }

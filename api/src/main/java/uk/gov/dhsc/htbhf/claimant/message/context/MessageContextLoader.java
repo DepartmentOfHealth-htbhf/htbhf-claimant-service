@@ -115,6 +115,15 @@ public class MessageContextLoader {
                 .build();
     }
 
+    public ReportClaimMessageContext loadReportClaimMessageContext(Message message) {
+        ReportClaimMessagePayload payload = payloadMapper.getPayload(message, ReportClaimMessagePayload.class);
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+
+        return ReportClaimMessageContext.builder()
+                .claim(claim)
+                .build();
+    }
+
     private Claim getAndCheckClaim(UUID claimId) {
         Optional<Claim> claim = claimRepository.findById(claimId);
         if (claim.isEmpty()) {
