@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.exception.PostcodesClientException;
+import uk.gov.dhsc.htbhf.claimant.exception.PostcodesIoClientException;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -89,7 +89,7 @@ class MIReporterTest {
         HttpClientErrorException expectedException = new HttpClientErrorException(INTERNAL_SERVER_ERROR);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willThrow(expectedException);
 
-        PostcodesClientException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesClientException.class);
+        PostcodesIoClientException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesIoClientException.class);
 
         assertThat(actualException).isNotNull();
         assertThat(actualException.getCause()).isEqualTo(expectedException);
@@ -106,7 +106,7 @@ class MIReporterTest {
         PostcodeDataResponse response = new PostcodeDataResponse(null);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willReturn(response);
 
-        PostcodesClientException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesClientException.class);
+        PostcodesIoClientException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesIoClientException.class);
 
         assertThat(exception).isNotNull();
         assertThat(claim.getPostcodeData()).isNull();
