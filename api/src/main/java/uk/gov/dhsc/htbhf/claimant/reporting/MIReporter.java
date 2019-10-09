@@ -6,12 +6,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.PostcodesIoClientException;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
+/**
+ * Responsible for reporting 'events' to Google Analytics (events including new claims and payments made, etc).
+ * Also responsible for obtaining postcode data used to provide location info when reporting events.
+ */
 @Component
 @Slf4j
 public class MIReporter {
@@ -39,7 +44,7 @@ public class MIReporter {
     }
 
     private PostcodeData getPostcodeData(Claim claim) {
-        String postcode = claim.getClaimant().getAddress().getPostcode().replace(" ", "");
+        String postcode = getPostcodeWithoutSpace(claim);
 
         try {
             PostcodeDataResponse response = restTemplate.getForObject(postcodesUri + postcode, PostcodeDataResponse.class);
@@ -49,16 +54,17 @@ public class MIReporter {
                 log.error("No postcode data found for postcode {} on claim {}", postcode, claim.getId());
                 return PostcodeData.NOT_FOUND;
             }
-
-            throw e;
+            throw new PostcodesIoClientException("Unsuccessful call to postcodes.io for postcode " + postcode + " on claim " + claim.getId(), e);
         }
+    }
+
+    private String getPostcodeWithoutSpace(Claim claim) {
+        return claim.getClaimant().getAddress().getPostcode().replace(" ", "");
     }
 
     private PostcodeData getPostcodeDataFromResponse(PostcodeDataResponse response, Claim claim, String postcode) {
         if (response == null || response.getPostcodeData() == null) {
-            String errorMessage = "Received null response from postcodes.io for postcode " + postcode + " on claim " + claim.getId();
-            log.error(errorMessage);
-            throw new NullPointerException(errorMessage);
+            throw new PostcodesIoClientException("Received null response from postcodes.io for postcode " + postcode + " on claim " + claim.getId());
         }
 
         return response.getPostcodeData();

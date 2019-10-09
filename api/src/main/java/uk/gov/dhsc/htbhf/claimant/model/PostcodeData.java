@@ -91,6 +91,9 @@ public class PostcodeData {
     @JsonProperty("codes")
     private PostcodeDataCodes codes;
 
+    /**
+     * NOT_FOUND constants used for each field as google analytics requires reported fields to have a value.
+     */
     public static final PostcodeData NOT_FOUND = PostcodeData.builder()
             .adminWard(NOT_FOUND_STRING)
             .adminCounty(NOT_FOUND_STRING)

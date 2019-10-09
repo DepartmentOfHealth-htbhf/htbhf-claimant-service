@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.PostcodesIoClientException;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -21,14 +22,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
 
 @ExtendWith(MockitoExtension.class)
 class MIReporterTest {
 
-    private static final String POSTCODES_IO_BASE_URI = "http://localhost:8120/";
+    private static final String POSTCODES_IO_BASE_URI = "http://localhost:8120";
     private static final String POSTCODES_IO_PATH = "/postcodes/";
 
     @Mock
@@ -45,7 +46,7 @@ class MIReporterTest {
 
     @Test
     void shouldGetPostcodeDataAndSaveToClaim() {
-        Claim claim = aValidClaimBuilder().postcodeData(null).build();
+        Claim claim = aClaimWithPostcodeData(null);
         String postcode = claim.getClaimant().getAddress().getPostcode();
         PostcodeDataResponse response = createPostcodeData(postcode);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willReturn(response);
@@ -60,17 +61,16 @@ class MIReporterTest {
     @Test
     void shouldNotGetPostcodeDataOrUpdateClaimWhenPostcodeDataExists() {
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(VALID_POSTCODE);
-        Claim claim = aValidClaimBuilder().postcodeData(postcodeData).build();
+        Claim claim = aClaimWithPostcodeData(postcodeData);
 
         miReporter.reportClaim(claim);
 
-        verifyZeroInteractions(restTemplate);
-        verifyZeroInteractions(claimRepository);
+        verifyZeroInteractions(restTemplate, claimRepository);
     }
 
     @Test
     void shouldSaveNotFoundPostcodeDataWhenPostcodeNotFound() {
-        Claim claim = aValidClaimBuilder().postcodeData(null).build();
+        Claim claim = aClaimWithPostcodeData(null);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willThrow(new HttpClientErrorException(NOT_FOUND));
 
         miReporter.reportClaim(claim);
@@ -83,14 +83,15 @@ class MIReporterTest {
 
     @Test
     void shouldRethrowErrorWhenUnableToCallPostcodesIo() {
-        Claim claim = aValidClaimBuilder().postcodeData(null).build();
+        Claim claim = aClaimWithPostcodeData(null);
         String postcode = claim.getClaimant().getAddress().getPostcode();
         HttpClientErrorException expectedException = new HttpClientErrorException(INTERNAL_SERVER_ERROR);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willThrow(expectedException);
 
-        HttpClientErrorException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), HttpClientErrorException.class);
+        PostcodesIoClientException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesIoClientException.class);
 
-        assertThat(actualException).isEqualTo(expectedException);
+        assertThat(actualException).isNotNull();
+        assertThat(actualException.getCause()).isEqualTo(expectedException);
         assertThat(claim.getPostcodeData()).isNull();
 
         verify(restTemplate).getForObject(getExpectedPostcodeUrl(postcode), PostcodeDataResponse.class);
@@ -99,12 +100,12 @@ class MIReporterTest {
 
     @Test
     void shouldThrowExceptionIfPostcodeDataResponseIsNull() {
-        Claim claim = aValidClaimBuilder().postcodeData(null).build();
+        Claim claim = aClaimWithPostcodeData(null);
         String postcode = claim.getClaimant().getAddress().getPostcode();
         PostcodeDataResponse response = new PostcodeDataResponse(null);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willReturn(response);
 
-        NullPointerException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), NullPointerException.class);
+        PostcodesIoClientException exception = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesIoClientException.class);
 
         assertThat(exception).isNotNull();
         assertThat(claim.getPostcodeData()).isNull();
