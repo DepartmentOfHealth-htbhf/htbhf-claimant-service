@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -12,22 +11,19 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
 
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertThatEmailPayloadCorrectForBackdatedPayment;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FROM_PREGNANCY;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -44,6 +40,8 @@ class PaymentCycleNotificationHandlerTest {
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
     @Mock
     private NextPaymentCycleSummary nextPaymentCycleSummary;
+    @Mock
+    private EmailPayloadFactory emailPayloadFactory;
 
     @InjectMocks
     PaymentCycleNotificationHandler paymentCycleNotificationHandler;
@@ -54,11 +52,12 @@ class PaymentCycleNotificationHandlerTest {
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
-        Claim claim = paymentCycle.getClaim();
+        EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
+        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
-        verifyPaymentEmailNotificationSent(paymentCycle, claim);
+        verifyPaymentEmailNotificationSent(paymentCycle, emailMessagePayload);
         verifyZeroInteractions(upcomingBirthdayEmailHandler);
     }
 
@@ -71,10 +70,12 @@ class PaymentCycleNotificationHandlerTest {
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
+        EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
+        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
-        verifyNewChildFromPregnancyEmailSent(paymentCycle, claim);
+        verifyNewChildFromPregnancyEmailSent(paymentCycle, emailMessagePayload);
         verifyZeroInteractions(upcomingBirthdayEmailHandler);
     }
 
@@ -110,6 +111,8 @@ class PaymentCycleNotificationHandlerTest {
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(true);
+        EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
+        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
@@ -118,35 +121,13 @@ class PaymentCycleNotificationHandlerTest {
         verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
     }
 
-    private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, Claim claim) {
-        ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
-
-        assertThat(payloadCaptor.getAllValues()).hasSize(1);
-        assertThat(payloadCaptor.getValue()).isInstanceOf(EmailMessagePayload.class);
-        verifyPaymentEmail(paymentCycle, claim, payloadCaptor.getValue());
+    private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
+        verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
+        verify(emailPayloadFactory).buildEmailMessagePayload(paymentCycle, PAYMENT);
     }
 
-    private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, Claim claim) {
-        ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
-
-        assertThat(payloadCaptor.getAllValues()).hasSize(1);
-        assertThat(payloadCaptor.getValue()).isInstanceOf(EmailMessagePayload.class);
-
-        EmailMessagePayload payload = (EmailMessagePayload) payloadCaptor.getValue();
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CHILD_FROM_PREGNANCY);
-        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-
-        assertThatEmailPayloadCorrectForBackdatedPayment(payload.getEmailPersonalisation(), paymentCycle);
-
+    private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
+        verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
+        verify(emailPayloadFactory).buildEmailMessagePayload(paymentCycle, NEW_CHILD_FROM_PREGNANCY);
     }
-
-    private void verifyPaymentEmail(PaymentCycle paymentCycle, Claim claim, MessagePayload messagePayload) {
-        EmailMessagePayload payload = (EmailMessagePayload) messagePayload;
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
-        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), paymentCycle.getCycleEndDate().plusDays(1));
-    }
-
 }

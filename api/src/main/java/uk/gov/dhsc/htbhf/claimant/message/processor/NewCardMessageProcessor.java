@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.communications.EmailPayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -17,7 +18,6 @@ import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -39,6 +39,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     private MessageContextLoader messageContextLoader;
     private PaymentCycleService paymentCycleService;
     private MessageQueueClient messageQueueClient;
+    private EmailPayloadFactory emailPayloadFactory;
 
     @Override
     public MessageType supportsMessageType() {
@@ -71,7 +72,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     }
 
     private void sendNewCardSuccessEmailMessage(PaymentCycle paymentCycle) {
-        EmailMessagePayload messagePayload = buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload messagePayload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 

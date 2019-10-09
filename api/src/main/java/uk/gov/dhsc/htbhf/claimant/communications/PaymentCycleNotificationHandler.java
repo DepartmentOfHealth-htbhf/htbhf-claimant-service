@@ -10,8 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildEmailMessagePayload;
-
 @Component
 @AllArgsConstructor
 public class PaymentCycleNotificationHandler {
@@ -19,11 +17,12 @@ public class PaymentCycleNotificationHandler {
     private final MessageQueueClient messageQueueClient;
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
+    private final EmailPayloadFactory emailPayloadFactory;
 
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
         EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
-                ? buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
-                : buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
+                ? emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
+                : emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
         handleUpcomingBirthdayEmails(paymentCycle);
     }
