@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -51,6 +52,12 @@ public class ClaimTestDataFactory {
     public static Claim aClaimWithClaimant(Claimant claimant) {
         return aValidClaimBuilder()
                 .claimant(claimant)
+                .build();
+    }
+
+    public static Claim aClaimWithPostcodeData(PostcodeData postcodeData) {
+        return aValidClaimBuilder()
+                .postcodeData(postcodeData)
                 .build();
     }
 

@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
+
 public class AddressTestDataFactory {
 
     public static Address aValidAddress() {
@@ -30,10 +32,10 @@ public class AddressTestDataFactory {
 
     public static Address.AddressBuilder aValidAddressBuilder() {
         return Address.builder()
-                .addressLine1("Flat b")
-                .addressLine2("123 Fake street")
-                .townOrCity("Springfield")
-                .county("Devon")
-                .postcode("AA1 1AA");
+                .addressLine1(VALID_ADDRESS_LINE_1)
+                .addressLine2(VALID_ADDRESS_LINE_2)
+                .townOrCity(VALID_TOWN_OR_CITY)
+                .county(VALID_COUNTY)
+                .postcode(VALID_POSTCODE);
     }
 }
