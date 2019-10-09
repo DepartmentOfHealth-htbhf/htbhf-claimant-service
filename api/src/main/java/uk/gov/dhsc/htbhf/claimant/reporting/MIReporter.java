@@ -50,15 +50,13 @@ public class MIReporter {
                 log.error("No postcode data found for postcode {} on claim {}", postcode, claim.getId());
                 return PostcodeData.NOT_FOUND;
             }
-            throw e;
+            throw new PostcodesClientException("Unsuccessful call to postcodes.io for postcode " + postcode + " on claim " + claim.getId(), e);
         }
     }
 
     private PostcodeData getPostcodeDataFromResponse(PostcodeDataResponse response, Claim claim, String postcode) {
         if (response == null || response.getPostcodeData() == null) {
-            String errorMessage = "Received null response from postcodes.io for postcode " + postcode + " on claim " + claim.getId();
-            log.error(errorMessage);
-            throw new PostcodesClientException(errorMessage);
+            throw new PostcodesClientException("Received null response from postcodes.io for postcode " + postcode + " on claim " + claim.getId());
         }
 
         return response.getPostcodeData();

@@ -10,4 +10,8 @@ public class PostcodesClientException extends RuntimeException {
     public PostcodesClientException(String message) {
         super(message);
     }
+
+    public PostcodesClientException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

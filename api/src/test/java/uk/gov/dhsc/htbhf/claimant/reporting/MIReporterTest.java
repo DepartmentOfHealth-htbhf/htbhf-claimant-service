@@ -89,9 +89,10 @@ class MIReporterTest {
         HttpClientErrorException expectedException = new HttpClientErrorException(INTERNAL_SERVER_ERROR);
         given(restTemplate.getForObject(anyString(), eq(PostcodeDataResponse.class))).willThrow(expectedException);
 
-        HttpClientErrorException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), HttpClientErrorException.class);
+        PostcodesClientException actualException = catchThrowableOfType(() -> miReporter.reportClaim(claim), PostcodesClientException.class);
 
-        assertThat(actualException).isEqualTo(expectedException);
+        assertThat(actualException).isNotNull();
+        assertThat(actualException.getCause()).isEqualTo(expectedException);
         assertThat(claim.getPostcodeData()).isNull();
 
         verify(restTemplate).getForObject(getExpectedPostcodeUrl(postcode), PostcodeDataResponse.class);
