@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostcodeData.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.model</a> &gt; <span class="el_source">PostcodeData.java</span></div><h1>PostcodeData.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+
+/**
+ * Class representing postcode data as returned from postcodes.io.
+ * See http://postcodes.io/docs for api documentation.
+ */
+@Data
+@Builder
+@AllArgsConstructor(onConstructor_ = {@JsonCreator})
+@SuppressWarnings(&quot;PMD.TooManyFields&quot;)
+public class PostcodeData {
+
+    private static final String NOT_FOUND_STRING = &quot;NOT_FOUND&quot;;
+
+    @JsonProperty(&quot;postcode&quot;)
+    private String postcode;
+
+    @JsonProperty(&quot;quality&quot;)
+    private Integer quality;
+
+    @JsonProperty(&quot;eastings&quot;)
+    private Integer eastings;
+
+    @JsonProperty(&quot;northings&quot;)
+    private Integer northings;
+
+    @JsonProperty(&quot;country&quot;)
+    private String country;
+
+    @JsonProperty(&quot;nhs_ha&quot;)
+    private String nhsHa;
+
+    @JsonProperty(&quot;longitude&quot;)
+    private Double longitude;
+
+    @JsonProperty(&quot;latitude&quot;)
+    private Double latitude;
+
+    @JsonProperty(&quot;european_electoral_region&quot;)
+    private String europeanElectoralRegion;
+
+    @JsonProperty(&quot;primary_care_trust&quot;)
+    private String primaryCareTrust;
+
+    @JsonProperty(&quot;region&quot;)
+    private String region;
+
+    @JsonProperty(&quot;lsoa&quot;)
+    private String lsoa;
+
+    @JsonProperty(&quot;msoa&quot;)
+    private String msoa;
+
+    @JsonProperty(&quot;incode&quot;)
+    private String incode;
+
+    @JsonProperty(&quot;outcode&quot;)
+    private String outcode;
+
+    @JsonProperty(&quot;parliamentary_constituency&quot;)
+    private String parliamentaryConstituency;
+
+    @JsonProperty(&quot;admin_district&quot;)
+    private String adminDistrict;
+
+    @JsonProperty(&quot;parish&quot;)
+    private String parish;
+
+    @JsonProperty(&quot;admin_county&quot;)
+    private String adminCounty;
+
+    @JsonProperty(&quot;admin_ward&quot;)
+    private String adminWard;
+
+    @JsonProperty(&quot;ced&quot;)
+    private String ced;
+
+    @JsonProperty(&quot;ccg&quot;)
+    private String ccg;
+
+    @JsonProperty(&quot;nuts&quot;)
+    private String nuts;
+
+    @JsonProperty(&quot;codes&quot;)
+    private PostcodeDataCodes codes;
+
+    /**
+     * NOT_FOUND constants used for each field as google analytics requires reported fields to have a value.
+     */
+<span class="fc" id="L97">    public static final PostcodeData NOT_FOUND = PostcodeData.builder()</span>
+<span class="fc" id="L98">            .adminWard(NOT_FOUND_STRING)</span>
+<span class="fc" id="L99">            .adminCounty(NOT_FOUND_STRING)</span>
+<span class="fc" id="L100">            .adminDistrict(NOT_FOUND_STRING)</span>
+<span class="fc" id="L101">            .parliamentaryConstituency(NOT_FOUND_STRING)</span>
+<span class="fc" id="L102">            .postcode(NOT_FOUND_STRING)</span>
+<span class="fc" id="L103">            .ccg(NOT_FOUND_STRING)</span>
+<span class="fc" id="L104">            .ced(NOT_FOUND_STRING)</span>
+<span class="fc" id="L105">            .country(NOT_FOUND_STRING)</span>
+<span class="fc" id="L106">            .europeanElectoralRegion(NOT_FOUND_STRING)</span>
+<span class="fc" id="L107">            .incode(NOT_FOUND_STRING)</span>
+<span class="fc" id="L108">            .outcode(NOT_FOUND_STRING)</span>
+<span class="fc" id="L109">            .lsoa(NOT_FOUND_STRING)</span>
+<span class="fc" id="L110">            .msoa(NOT_FOUND_STRING)</span>
+<span class="fc" id="L111">            .nhsHa(NOT_FOUND_STRING)</span>
+<span class="fc" id="L112">            .nuts(NOT_FOUND_STRING)</span>
+<span class="fc" id="L113">            .parish(NOT_FOUND_STRING)</span>
+<span class="fc" id="L114">            .primaryCareTrust(NOT_FOUND_STRING)</span>
+<span class="fc" id="L115">            .region(NOT_FOUND_STRING)</span>
+<span class="fc" id="L116">            .codes(PostcodeDataCodes.builder()</span>
+<span class="fc" id="L117">                    .parliamentaryConstituency(NOT_FOUND_STRING)</span>
+<span class="fc" id="L118">                    .adminWard(NOT_FOUND_STRING)</span>
+<span class="fc" id="L119">                    .adminCounty(NOT_FOUND_STRING)</span>
+<span class="fc" id="L120">                    .adminDistrict(NOT_FOUND_STRING)</span>
+<span class="fc" id="L121">                    .ccg(NOT_FOUND_STRING)</span>
+<span class="fc" id="L122">                    .ced(NOT_FOUND_STRING)</span>
+<span class="fc" id="L123">                    .nuts(NOT_FOUND_STRING)</span>
+<span class="fc" id="L124">                    .parish(NOT_FOUND_STRING)</span>
+<span class="fc" id="L125">                    .build())</span>
+<span class="fc" id="L126">            .build();</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
