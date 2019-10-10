@@ -43,6 +43,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     private static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
+    private static final List<LocalDate> TWO_CHILDREN = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
+    private static final List<LocalDate> NO_CHILDREN = emptyList();
     private static final List<LocalDate> SINGLE_THREE_YEAR_OLD = singletonList(THREE_YEAR_OLD);
     private static final LocalDate CHILD_TURNED_FOUR_IN_LAST_CYCLE = LocalDate.now().minusYears(4).minusWeeks(2);
     private static final List<LocalDate> SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE = singletonList(CHILD_TURNED_FOUR_IN_LAST_CYCLE);
@@ -51,24 +53,45 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
 
-    @Test
-    void shouldCreatePaymentCycleMakePaymentAndSendEmail() throws JsonProcessingException, NotificationClientException {
-        List<LocalDate> sixMonthOldAndThreeYearOld = asList(SIX_MONTH_OLD, THREE_YEAR_OLD);
+    @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
+    @MethodSource("provideArgumentsForActiveClaimTests")
+    void shouldCreatePaymentCycleMakePaymentAndSendEmail(List<LocalDate> previousPaymentCycleChildrenDobs,
+                                                         List<LocalDate> currentPaymentCycleChildrenDobs)
+            throws JsonProcessingException, NotificationClientException {
+        testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus.ACTIVE, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+    }
 
-        wiremockManager.stubSuccessfulEligibilityResponse(sixMonthOldAndThreeYearOld);
+    //TODO MRS 10/10/2019: When these tests are enabled, we may be able to refactor back into a single parameterised test
+    @Disabled("HTBHF-1758")
+    @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
+    @MethodSource("provideArgumentsForActiveClaimTests")
+    void shouldCreatePaymentCycleMakePaymentAndSendEmailForPendingExpiryStatus(List<LocalDate> previousPaymentCycleChildrenDobs,
+                                                                               List<LocalDate> currentPaymentCycleChildrenDobs)
+            throws JsonProcessingException, NotificationClientException {
+        testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus.PENDING_EXPIRY, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+    }
+
+    private void testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus previousCycleClaimStatus,
+                                                          List<LocalDate> previousPaymentCycleChildrenDobs,
+                                                          List<LocalDate> currentPaymentCycleChildrenDobs)
+            throws JsonProcessingException, NotificationClientException {
+
+        wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
 
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(sixMonthOldAndThreeYearOld, DUE_DATE_IN_4_MONTHS);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(previousCycleClaimStatus, previousPaymentCycleChildrenDobs, DUE_DATE_IN_4_MONTHS);
 
         invokeAllSchedulers();
 
         // confirm new payment cycle created with a payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
-                LocalDate.now(), sixMonthOldAndThreeYearOld, claim.getClaimant().getExpectedDeliveryDate());
-        assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
+                LocalDate.now(), currentPaymentCycleChildrenDobs, claim.getClaimant().getExpectedDeliveryDate());
+        assertPaymentCycleIsFullyPaid(newCycle, currentPaymentCycleChildrenDobs, expectedVoucherEntitlement);
+
+        assertStatusOnClaim(claim, ClaimStatus.ACTIVE);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
@@ -356,23 +379,33 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static Stream<Arguments> provideArgumentsForClaimantBecomingIneligibleTest() {
         return Stream.of(
                 Arguments.of(SINGLE_THREE_YEAR_OLD, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(emptyList(), SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), DUE_DATE_IN_4_MONTHS),
-                Arguments.of(emptyList(), emptyList(), DUE_DATE_IN_4_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), NOT_PREGNANT)
+                Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
+                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT)
+        );
+    }
+
+    //First argument is the children's dobs in previous cycle, second argument is children's dobs in current cycle
+    private static Stream<Arguments> provideArgumentsForActiveClaimTests() {
+        return Stream.of(
+                Arguments.of(TWO_CHILDREN, TWO_CHILDREN),
+                Arguments.of(NO_CHILDREN, TWO_CHILDREN),
+                Arguments.of(TWO_CHILDREN, NO_CHILDREN),
+                Arguments.of(NO_CHILDREN, NO_CHILDREN)
         );
     }
 
     //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date, fourth is the eligibility status.
     private static Stream<Arguments> provideArgumentsForTestingPendingExpiryClaim() {
         return Stream.of(
-                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), DUE_DATE_IN_4_MONTHS, INELIGIBLE),
-                Arguments.of(emptyList(), SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS, INELIGIBLE),
-                Arguments.of(emptyList(), emptyList(), DUE_DATE_IN_4_MONTHS, INELIGIBLE),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), NOT_PREGNANT, ELIGIBLE),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), NOT_PREGNANT, INELIGIBLE),
-                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, emptyList(), NOT_PREGNANT, ELIGIBLE),
-                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, emptyList(), NOT_PREGNANT, INELIGIBLE)
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, DUE_DATE_IN_4_MONTHS, INELIGIBLE),
+                Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS, INELIGIBLE),
+                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS, INELIGIBLE),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, ELIGIBLE),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE),
+                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, ELIGIBLE),
+                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE)
         );
     }
 
@@ -418,6 +451,10 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     private Claim createActiveClaimWithPaymentCycleEndingYesterday(List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
         return createClaimWithPaymentCycleEndingYesterday(ClaimStatus.ACTIVE, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
+    }
+
+    private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus, List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
+        return createClaimWithPaymentCycleEndingYesterday(claimStatus, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus,
