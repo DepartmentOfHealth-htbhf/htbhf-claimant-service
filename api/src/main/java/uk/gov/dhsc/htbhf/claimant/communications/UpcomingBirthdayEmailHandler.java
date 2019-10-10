@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -14,14 +13,13 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.formatPaymentAmountSummary;
-import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
+import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.formatPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.MULTIPLE_CHILDREN;
 
 /**
  * Component responsible for determining if any additional emails need to be sent out in addition to
@@ -31,18 +29,19 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 @Slf4j
 public class UpcomingBirthdayEmailHandler {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
-
     private final Integer numberOfCalculationPeriods;
     private final MessageQueueClient messageQueueClient;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
+    private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     public UpcomingBirthdayEmailHandler(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
                                         MessageQueueClient messageQueueClient,
-                                        PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
+                                        PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator,
+                                        EmailMessagePayloadFactory emailMessagePayloadFactory) {
         this.numberOfCalculationPeriods = numberOfCalculationPeriods;
         this.messageQueueClient = messageQueueClient;
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
+        this.emailMessagePayloadFactory = emailMessagePayloadFactory;
     }
 
     public void sendChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
@@ -77,23 +76,10 @@ public class UpcomingBirthdayEmailHandler {
     }
 
     private Map<String, Object> createEmailPersonalisationMapForNextCycle(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        Claimant claimant = paymentCycle.getClaim().getClaimant();
-        Map<String, Object> emailPersonalisation = new HashMap<>();
-        emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
-        emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence()));
-        emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummaryForNextCycle(voucherEntitlement));
+        Map<String, Object> emailPersonalisation = emailMessagePayloadFactory.createCommonEmailPersonalisationMap(paymentCycle, voucherEntitlement);
         emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummaryForNextCycle(voucherEntitlement));
         emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummaryForNextCycle(voucherEntitlement));
-        emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmountForNextCycle(voucherEntitlement));
-        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
-        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
         return emailPersonalisation;
-    }
-
-    private String getRegularPaymentAmountForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        int totalVouchersForRegularPayment = voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfCalculationPeriods;
-        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private String buildUnder4PaymentSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
@@ -112,21 +98,6 @@ public class UpcomingBirthdayEmailHandler {
                 "\n* %s for children under 1",
                 totalVouchersForChildrenUnderOne,
                 voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private String buildPregnancyPaymentAmountSummaryForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return formatPaymentAmountSummary(
-                "\n* %s for a pregnancy",
-                voucherEntitlement.getVouchersForPregnancy(),
-                voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private String formatRegularPaymentAmount(int numberOfVouchers, int voucherAmountInPence) {
-        if (numberOfVouchers == 0) {
-            return "";
-        }
-        int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return convertPenceToPounds(totalAmount);
     }
 
     private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {

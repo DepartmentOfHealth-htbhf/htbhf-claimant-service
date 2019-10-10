@@ -187,6 +187,8 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenUnderOne()));
         assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
+        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(entitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4));
     }
 
     private void assertCommonPaymentEmailFields(PaymentCycle newCycle, Map personalisationMap) {
