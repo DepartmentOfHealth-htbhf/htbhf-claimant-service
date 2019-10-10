@@ -13,7 +13,7 @@ public enum EmailType {
     CLAIM_NO_LONGER_ELIGIBLE("2c69f4ae-3f42-4e71-b305-247c23affb44"),
     NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE("8be94eb0-5cd0-4191-8b99-9190f80bcc53"),
     // TODO HTBHF-1296 add template ID when it exists in Notify
-    CLAIM_CLOSED("");
+    CLAIM_CLOSED("TODO");
 
     private String templateId;
 
