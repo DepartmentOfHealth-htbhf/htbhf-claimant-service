@@ -286,7 +286,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     @Disabled("HTBHF-1296")
     @DisplayName("Integration test for HTBHF-1296 status set to Expired after 16 weeks Pending Expiry and email sent to say the claim has closed")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
-    @MethodSource("provideArgumentForClaimBecomingExpiredAfter16WeeksTest")
+    @MethodSource("provideArgumentsForTestingPendingExpiryClaim")
     void shouldTestClaimBecomingExpiredAfter16WeeksPendingExpiry(List<LocalDate> previousCycleChildrenDobs,
                                                                  List<LocalDate> currentCycleChildrenDobs,
                                                                  LocalDate expectedDeliveryDate,
@@ -319,6 +319,39 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
+    @Disabled("HTBHF-1296")
+    @DisplayName("Integration test for HTBHF-1296 status remaining Pending Expiry if less than 16 weeks since becoming Pending Expiry. No emails are sent")
+    @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
+    @MethodSource("provideArgumentsForTestingPendingExpiryClaim")
+    void shouldTestClaimRemainingPendingExpiryIfLessThan16Weeks(List<LocalDate> previousCycleChildrenDobs,
+                                                                List<LocalDate> currentCycleChildrenDobs,
+                                                                LocalDate expectedDeliveryDate,
+                                                                EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+
+        wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityStatus);
+
+        // create previous PaymentCycle
+        LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(2);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(ClaimStatus.PENDING_EXPIRY,
+                claimStatusTimestamp,
+                previousCycleChildrenDobs,
+                expectedDeliveryDate);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with no payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertPaymentCycleWithNoPayment(newCycle, currentCycleChildrenDobs);
+
+        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+
+        // confirm card service not called to make payment
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        // confirm notify component not invoked as no emails sent
+        verifyZeroInteractions(notificationClient);
+    }
+
     //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date.
     private static Stream<Arguments> provideArgumentsForClaimantBecomingIneligibleTest() {
         return Stream.of(
@@ -331,7 +364,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date, fourth is the eligibility status.
-    private static Stream<Arguments> provideArgumentForClaimBecomingExpiredAfter16WeeksTest() {
+    private static Stream<Arguments> provideArgumentsForTestingPendingExpiryClaim() {
         return Stream.of(
                 Arguments.of(SINGLE_THREE_YEAR_OLD, emptyList(), DUE_DATE_IN_4_MONTHS, INELIGIBLE),
                 Arguments.of(emptyList(), SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS, INELIGIBLE),
