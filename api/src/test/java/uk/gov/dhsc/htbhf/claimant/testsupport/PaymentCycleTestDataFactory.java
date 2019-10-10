@@ -65,7 +65,7 @@ public class PaymentCycleTestDataFactory {
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .cycleEndDate(endDate)
-                .totalEntitlementAmountInPence(1240)
+                .totalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence())
                 .totalVouchers(4)
                 .childrenDob(emptyList())
                 .build();
