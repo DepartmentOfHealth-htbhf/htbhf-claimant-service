@@ -131,7 +131,7 @@ class UpcomingBirthdayEmailHandlerTest {
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
         verify(emailMessagePayloadFactory).createCommonEmailPersonalisationMap(paymentCycle, nextEntitlement);
-        verifyChildTurnsOneEmailNotificationSentWhenChildTurnsFourOneFirstDayfNextCycle(paymentCycle, payloadCaptor.getValue());
+        verifyChildTurnsOneEmailNotificationSentWhenChildTurnsFourOneFirstDayOfNextCycle(paymentCycle, payloadCaptor.getValue());
     }
 
     @Test
@@ -160,36 +160,7 @@ class UpcomingBirthdayEmailHandlerTest {
     private void verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourOnFirstDayOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
         assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadWhenChildTurnsFourOnFirstDayOfNextCycle(
-                payload.getEmailPersonalisation()
-        );
-    }
-
-    private void verifyChildTurnsOneEmailNotificationSentWhenChildTurnsFourOneFirstDayfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_ONE);
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadWhenChildTurnsOneOnFirstDayOfNextCycle(
-                payload.getEmailPersonalisation()
-        );
-    }
-
-    private void verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInFirstWeekOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadWhenChildTurnsFourInFirstWeekOfNextCycle(
-                payload.getEmailPersonalisation()
-        );
-    }
-
-    private void verifyChildTurnsOneEmailNotificationSentWhenChildTurnsOneInFirstWeekOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_ONE);
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertEmailPayloadWhenChildTurnsOneInFirstWeekOfNextCycle(
-                payload.getEmailPersonalisation()
-        );
-    }
-
-    private void assertEmailPayloadWhenChildTurnsFourOnFirstDayOfNextCycle(Map<String, Object> emailPersonalisation) {
+        Map<String, Object> emailPersonalisation = payload.getEmailPersonalisation();
         assertThat(emailPersonalisation).contains(
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),
                 entry("children_under_4_payment", ""),
@@ -198,7 +169,10 @@ class UpcomingBirthdayEmailHandlerTest {
         assertThat(emailPersonalisation).containsAllEntriesOf(COMMON_EMAIL_MAP);
     }
 
-    private void assertEmailPayloadWhenChildTurnsOneOnFirstDayOfNextCycle(Map<String, Object> emailPersonalisation) {
+    private void verifyChildTurnsOneEmailNotificationSentWhenChildTurnsFourOneFirstDayOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_ONE);
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        Map<String, Object> emailPersonalisation = payload.getEmailPersonalisation();
         assertThat(emailPersonalisation).contains(
                 entry("children_under_1_payment", ""),
                 entry("children_under_4_payment", "\n* £12.40 for children between 1 and 4"),
@@ -207,7 +181,10 @@ class UpcomingBirthdayEmailHandlerTest {
         assertThat(emailPersonalisation).containsAllEntriesOf(COMMON_EMAIL_MAP);
     }
 
-    private void assertEmailPayloadWhenChildTurnsFourInFirstWeekOfNextCycle(Map<String, Object> emailPersonalisation) {
+    private void verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInFirstWeekOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        Map<String, Object> emailPersonalisation = payload.getEmailPersonalisation();
         assertThat(emailPersonalisation).contains(
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),
                 entry("children_under_4_payment", ""),
@@ -216,7 +193,10 @@ class UpcomingBirthdayEmailHandlerTest {
         assertThat(emailPersonalisation).containsAllEntriesOf(COMMON_EMAIL_MAP);
     }
 
-    private void assertEmailPayloadWhenChildTurnsOneInFirstWeekOfNextCycle(Map<String, Object> emailPersonalisation) {
+    private void verifyChildTurnsOneEmailNotificationSentWhenChildTurnsOneInFirstWeekOfNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_ONE);
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        Map<String, Object> emailPersonalisation = payload.getEmailPersonalisation();
         assertThat(emailPersonalisation).contains(
                 entry("children_under_1_payment", ""),
                 entry("children_under_4_payment", "\n* £12.40 for children between 1 and 4"),
