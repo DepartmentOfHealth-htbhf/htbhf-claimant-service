@@ -22,7 +22,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 
 class EmailMessagePayloadFactoryTest {
 
-    private EmailMessagePayloadFactory emailMessagePayloadFactory = new EmailMessagePayloadFactory();
+    private static final Integer NUMBER_OF_CALCULATION_PERIODS = 4;
+
+    private EmailMessagePayloadFactory emailMessagePayloadFactory = new EmailMessagePayloadFactory(NUMBER_OF_CALCULATION_PERIODS);
 
     @Test
     void shouldBuildSendNewCardSuccessEmailPayloadWithAllPaymentTypes() {

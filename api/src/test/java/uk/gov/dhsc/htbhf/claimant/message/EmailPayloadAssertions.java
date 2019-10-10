@@ -71,7 +71,8 @@ public class EmailPayloadAssertions {
                 entry("children_under_4_payment",
                         formatListEntry(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(), "for children between 1 and 4")),
                 entry("backdated_amount", formatVoucherAmount(voucherEntitlement.getBackdatedVouchers())),
-                entry("next_payment_date", EMAIL_DATE_FORMATTER.format(paymentCycle.getCycleEndDate().plusDays(1)))
+                entry("next_payment_date", EMAIL_DATE_FORMATTER.format(paymentCycle.getCycleEndDate().plusDays(1))),
+                entry("regular_payment", formatVoucherAmount(voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4))
         );
     }
 

@@ -3,12 +3,12 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.*;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 
 import java.time.LocalDate;
 import java.util.List;
-
-import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Factory object for building message payloads for emails.
@@ -38,13 +38,4 @@ public class MessagePayloadFactory {
                 .claimId(claim.getId())
                 .build();
     }
-
-    public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-        if (numberOfVouchers == 0) {
-            return "";
-        }
-        int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));
-    }
-
 }

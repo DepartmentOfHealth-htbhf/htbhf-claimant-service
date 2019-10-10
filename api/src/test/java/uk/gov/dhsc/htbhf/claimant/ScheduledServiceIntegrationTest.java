@@ -76,11 +76,18 @@ abstract class ScheduledServiceIntegrationTest {
         when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenThrow(new NotificationClientException("Something went wrong"));
     }
 
-    void assertThatChildTurnsOneEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
+    void assertThatChildTurnsOneInFirstWeekEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
                 eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
-        assertChildTurnsOneEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
+        assertChildTurnsOneInFirstWeekEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
+    }
+
+    void assertThatChildTurnsOneOnFirstDayEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(CHILD_TURNS_ONE.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
+        assertChildTurnsOneOnFirstDayEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
     void assertThatChildTurnsFourEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
@@ -154,7 +161,7 @@ abstract class ScheduledServiceIntegrationTest {
         assertNameEmailFields(claim, personalisationMap);
     }
 
-    private void assertChildTurnsOneEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
+    private void assertChildTurnsOneInFirstWeekEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
         assertCommonPaymentEmailFields(currentCycle, personalisationMap);
         assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // child is turning one in the next payment cycle, so no vouchers going forward
@@ -162,6 +169,18 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // two vouchers in first week plus one for weeks two, three and four
+        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
+    }
+
+    private void assertChildTurnsOneOnFirstDayEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
+        assertCommonPaymentEmailFields(currentCycle, personalisationMap);
+        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(0)); // child is turning one in the next payment cycle, so no vouchers going forward
+        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(4)); // one voucher each week
         assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
     }
@@ -187,6 +206,8 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenUnderOne()));
         assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
+        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(entitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4));
     }
 
     private void assertCommonPaymentEmailFields(PaymentCycle newCycle, Map personalisationMap) {
