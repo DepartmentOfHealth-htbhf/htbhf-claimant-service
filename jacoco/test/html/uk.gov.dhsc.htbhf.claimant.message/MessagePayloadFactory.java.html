@@ -3,12 +3,12 @@
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.*;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 
 import java.time.LocalDate;
 import java.util.List;
-
-import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Factory object for building message payloads for emails.
@@ -38,14 +38,5 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
 <span class="fc" id="L38">                .claimId(claim.getId())</span>
 <span class="fc" id="L39">                .build();</span>
     }
-
-    public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (numberOfVouchers == 0) {</span>
-<span class="fc" id="L44">            return &quot;&quot;;</span>
-        }
-<span class="fc" id="L46">        int totalAmount = numberOfVouchers * voucherAmountInPence;</span>
-<span class="fc" id="L47">        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));</span>
-    }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
