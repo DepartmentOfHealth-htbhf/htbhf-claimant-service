@@ -39,6 +39,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     private static final LocalDate START_OF_NEXT_CYCLE = LocalDate.now().plusDays(28);
+    private static final LocalDate TURNS_ONE_ON_FIRST_DAY_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1);
     private static final LocalDate TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1).plusDays(4);
     private static final LocalDate TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4).plusDays(4);
     private static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
@@ -101,7 +102,32 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(currentCycle);
-        assertThatChildTurnsOneEmailWasSent(currentCycle);
+        assertThatChildTurnsOneInFirstWeekEmailWasSent(currentCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
+    void shouldSendEmailsWhenChildTurnsOneOnFirstDayOfNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
+        List<LocalDate> childTurningOneOnFirstDayOfNextPaymentCycle = singletonList(TURNS_ONE_ON_FIRST_DAY_OF_NEXT_PAYMENT_CYCLE);
+
+        wiremockManager.stubSuccessfulEligibilityResponse(childTurningOneOnFirstDayOfNextPaymentCycle);
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningOneOnFirstDayOfNextPaymentCycle, NOT_PREGNANT);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to make payment
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        Payment payment = currentCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatChildTurnsOneOnFirstDayEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -401,6 +427,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         repositoryMediator.createAndSavePaymentCycle(claim, LocalDate.now().minusDays(28), childrensDateOfBirth);
         return claim;
     }
+
 }
 
 
