@@ -41,6 +41,8 @@ public class MIReporter {
             claim.setPostcodeData(postcodeData);
             claimRepository.save(claim);
         }
+
+
     }
 
     private PostcodeData getPostcodeData(Claim claim) {
