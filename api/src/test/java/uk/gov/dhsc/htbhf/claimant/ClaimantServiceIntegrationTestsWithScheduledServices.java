@@ -1,75 +1,36 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.entity.*;
-import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.model.*;
-import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
-import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
-import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
-import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
-import uk.gov.service.notify.SendEmailResponse;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-@AutoConfigureEmbeddedDatabase
-public class ClaimantServiceIntegrationTestsWithScheduledServices {
-
-    @MockBean
-    private NotificationClient notificationClient;
-    private SendEmailResponse sendEmailResponse = mock(SendEmailResponse.class);
-
-    @Autowired
-    private MessageProcessorScheduler messageProcessorScheduler;
-    @Autowired
-    private RepositoryMediator repositoryMediator;
-    @Autowired
-    private WiremockManager wiremockManager;
+public class ClaimantServiceIntegrationTestsWithScheduledServices extends ScheduledServiceIntegrationTest {
 
     @Autowired
     TestRestTemplate restTemplate;
-
-    @BeforeEach
-    void setup() {
-        wiremockManager.startWireMock();
-    }
-
-    @AfterEach
-    void tearDown() {
-        repositoryMediator.deleteAllEntities();
-        wiremockManager.stopWireMock();
-    }
 
     @Test
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
@@ -189,37 +150,6 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices {
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);
-    }
-
-    private void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
-        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(notificationClient).sendEmail(
-                eq(EmailType.NEW_CARD.getTemplateId()), eq(claim.getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
-
-        Map personalisationMap = mapArgumentCaptor.getValue();
-        assertThat(personalisationMap).isNotNull();
-        Claimant claimant = claim.getClaimant();
-        PaymentCycleVoucherEntitlement entitlement = paymentCycle.getVoucherEntitlement();
-        assertThat(personalisationMap.get(EmailTemplateKey.FIRST_NAME.getTemplateKeyName())).isEqualTo(claimant.getFirstName());
-        assertThat(personalisationMap.get(EmailTemplateKey.LAST_NAME.getTemplateKeyName())).isEqualTo(claimant.getLastName());
-        assertThat(personalisationMap.get(EmailTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName()))
-                .isEqualTo(formatVoucherAmount(paymentCycle.getTotalVouchers()));
-        assertThat(personalisationMap.get(EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(entitlement.getVouchersForChildrenUnderOne()));
-        assertThat(personalisationMap.get(EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
-        assertThat(personalisationMap.get(EmailTemplateKey.PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(entitlement.getVouchersForPregnancy()));
-        assertThat(personalisationMap.get(EmailTemplateKey.NEXT_PAYMENT_DATE.getTemplateKeyName())).asString()
-                .contains(paymentCycle.getCycleEndDate().plusDays(1).format(EMAIL_DATE_PATTERN));
-    }
-
-    private void stubNotificationEmailResponse() throws NotificationClientException {
-        when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenReturn(sendEmailResponse);
-    }
-
-    private void stubNotificationEmailError() throws NotificationClientException {
-        when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenThrow(new NotificationClientException("Something went wrong"));
     }
 
     private void invokeAllSchedulers() {
