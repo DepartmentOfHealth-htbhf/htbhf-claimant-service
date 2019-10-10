@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.communications.EmailPayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -39,7 +39,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     private MessageContextLoader messageContextLoader;
     private PaymentCycleService paymentCycleService;
     private MessageQueueClient messageQueueClient;
-    private EmailPayloadFactory emailPayloadFactory;
+    private EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     @Override
     public MessageType supportsMessageType() {
@@ -72,7 +72,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     }
 
     private void sendNewCardSuccessEmailMessage(PaymentCycle paymentCycle) {
-        EmailMessagePayload messagePayload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 

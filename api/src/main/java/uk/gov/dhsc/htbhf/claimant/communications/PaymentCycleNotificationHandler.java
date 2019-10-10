@@ -17,12 +17,12 @@ public class PaymentCycleNotificationHandler {
     private final MessageQueueClient messageQueueClient;
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
-    private final EmailPayloadFactory emailPayloadFactory;
+    private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
         EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
-                ? emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
-                : emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
+                ? emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
+                : emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
         handleUpcomingBirthdayEmails(paymentCycle);
     }

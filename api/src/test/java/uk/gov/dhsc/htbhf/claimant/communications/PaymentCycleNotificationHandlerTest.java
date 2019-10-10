@@ -41,7 +41,7 @@ class PaymentCycleNotificationHandlerTest {
     @Mock
     private NextPaymentCycleSummary nextPaymentCycleSummary;
     @Mock
-    private EmailPayloadFactory emailPayloadFactory;
+    private EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     @InjectMocks
     PaymentCycleNotificationHandler paymentCycleNotificationHandler;
@@ -53,7 +53,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
-        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
@@ -71,7 +71,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
-        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
@@ -112,7 +112,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(true);
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
-        given(emailPayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
         paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
 
@@ -123,11 +123,11 @@ class PaymentCycleNotificationHandlerTest {
 
     private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
         verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
-        verify(emailPayloadFactory).buildEmailMessagePayload(paymentCycle, PAYMENT);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, PAYMENT);
     }
 
     private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
         verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
-        verify(emailPayloadFactory).buildEmailMessagePayload(paymentCycle, NEW_CHILD_FROM_PREGNANCY);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, NEW_CHILD_FROM_PREGNANCY);
     }
 }

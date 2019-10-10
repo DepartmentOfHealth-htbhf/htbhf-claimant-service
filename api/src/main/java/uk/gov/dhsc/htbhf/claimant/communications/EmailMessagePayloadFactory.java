@@ -22,7 +22,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
  * single blank line so that we don't have any empty bullet point in the email.
  */
 @Component
-public class EmailPayloadFactory {
+public class EmailMessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
 

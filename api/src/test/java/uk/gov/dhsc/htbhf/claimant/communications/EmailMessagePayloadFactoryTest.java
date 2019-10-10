@@ -20,9 +20,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
-class EmailPayloadFactoryTest {
+class EmailMessagePayloadFactoryTest {
 
-    private EmailPayloadFactory emailPayloadFactory = new EmailPayloadFactory();
+    private EmailMessagePayloadFactory emailMessagePayloadFactory = new EmailMessagePayloadFactory();
 
     @Test
     void shouldBuildSendNewCardSuccessEmailPayloadWithAllPaymentTypes() {
@@ -30,7 +30,7 @@ class EmailPayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
 
-        EmailMessagePayload payload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
@@ -43,7 +43,7 @@ class EmailPayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithPregnancyVouchersOnly(startDate, endDate);
 
-        EmailMessagePayload payload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
@@ -56,7 +56,7 @@ class EmailPayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
 
-        EmailMessagePayload payload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
@@ -69,7 +69,7 @@ class EmailPayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithPregnancyVouchersOnly(startDate, endDate);
 
-        EmailMessagePayload payload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
@@ -83,7 +83,7 @@ class EmailPayloadFactoryTest {
                 aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(LocalDate.now(), asList(LocalDate.now().minusWeeks(6)));
         PaymentCycle paymentCycle = aPaymentCycleWithCycleEntitlementAndClaim(voucherEntitlement, claim);
 
-        EmailMessagePayload payload = emailPayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CHILD_FROM_PREGNANCY);
