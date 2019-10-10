@@ -29,19 +29,19 @@ public class EmailMessagePayloadFactory {
     private final Integer numberOfCalculationPeriods;
 
     public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-        if (numberOfVouchers == 0) {
-            return "";
-        }
-        int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return String.format(summaryTemplate, convertPenceToPounds(totalAmount));
+        return formatPaymentAmount(summaryTemplate, numberOfVouchers, voucherAmountInPence);
     }
 
     public static String formatRegularPaymentAmount(int numberOfVouchers, int voucherAmountInPence) {
+        return formatPaymentAmount("%s", numberOfVouchers, voucherAmountInPence);
+    }
+
+    private static String formatPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
         if (numberOfVouchers == 0) {
             return "";
         }
         int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return convertPenceToPounds(totalAmount);
+        return String.format(template, convertPenceToPounds(totalAmount));
     }
 
     public EmailMessagePayloadFactory(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods) {
