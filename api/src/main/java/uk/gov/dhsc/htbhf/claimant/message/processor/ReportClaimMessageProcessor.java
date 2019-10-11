@@ -24,7 +24,7 @@ public class ReportClaimMessageProcessor implements MessageTypeProcessor {
     @Override
     public MessageStatus processMessage(Message message) {
         ReportClaimMessageContext context = messageContextLoader.loadReportClaimMessageContext(message);
-        miReporter.reportClaim(context.getClaim());
+        miReporter.reportClaim(context);
         return MessageStatus.COMPLETED;
     }
 
