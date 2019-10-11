@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
@@ -41,6 +42,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;
 
+    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
     @Override
     public MessageType supportsMessageType() {
         return DETERMINE_ENTITLEMENT;
@@ -57,24 +60,33 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);
-        Claimant claimant = messageContext.getClaim().getClaimant();
+        Claim claim = messageContext.getClaim();
         PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
         EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(
-                claimant,
+                claim.getClaimant(),
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
         paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
+        handleDecision(claim, currentPaymentCycle, decision);
+        return COMPLETED;
+    }
 
+    private void handleDecision(Claim claim, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
+        } else if (decision.noChildrenPresentInCurrentCycle() && claimantIsNotPregnant(claim.getClaimant(), currentPaymentCycle)) {
+            handleNoLongerEligibleForScheme(claim);
         } else {
-            handleNonEligibleClaim(currentPaymentCycle);
+            handleNonEligibleQualifyingBenefitStatusClaim(claim);
         }
+    }
 
-        return COMPLETED;
+    private boolean claimantIsNotPregnant(Claimant claimant, PaymentCycle currentPaymentCycle) {
+        return claimant.getExpectedDeliveryDate() == null
+                || !pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), currentPaymentCycle.getCycleStartDate());
     }
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {
@@ -82,11 +94,19 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
-    private void handleNonEligibleClaim(PaymentCycle currentPaymentCycle) {
-        Claim claim = currentPaymentCycle.getClaim();
-        claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);
-        claimRepository.save(claim);
+    private void handleNonEligibleQualifyingBenefitStatusClaim(Claim claim) {
+        updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+    }
+
+    private void handleNoLongerEligibleForScheme(Claim claim) {
+        updateClaimStatus(claim, ClaimStatus.EXPIRED);
+        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+    }
+
+    private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
+        claim.setClaimStatus(claimStatus);
+        claimRepository.save(claim);
     }
 
 }

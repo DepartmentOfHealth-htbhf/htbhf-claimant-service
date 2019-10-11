@@ -248,8 +248,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP has said they are eligible but have returned no children on record, "
-            + "status should be set to Pending Expiry and email sent to Claimant")
-    @Disabled("HTBHF-2185")
+            + "status should be set to Expired and email sent to Claimant")
     @Test
     void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant() throws JsonProcessingException, NotificationClientException {
         List<LocalDate> currentPaymentCycleChildrenDobs = emptyList();
@@ -265,7 +264,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertPaymentCycleWithNoPayment(newCycle, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -407,8 +406,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
                 Arguments.of(SINGLE_THREE_YEAR_OLD, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
                 Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
                 Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT)
+                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS)
         );
     }
 
