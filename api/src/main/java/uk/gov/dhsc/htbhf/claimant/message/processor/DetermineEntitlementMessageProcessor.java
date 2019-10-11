@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.*;
@@ -77,16 +76,19 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private void handleDecision(Claim claim, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
-        } else if (decision.noChildrenPresentInCurrentCycle() && claimantIsNotPregnant(claim.getClaimant(), currentPaymentCycle)) {
+        } else if (decision.noChildrenPresentInCurrentCycle() && claimantIsNotPregnant(claim, currentPaymentCycle)) {
             handleNoLongerEligibleForScheme(claim);
         } else {
             handleNonEligibleQualifyingBenefitStatusClaim(claim);
         }
     }
 
-    private boolean claimantIsNotPregnant(Claimant claimant, PaymentCycle currentPaymentCycle) {
-        return claimant.getExpectedDeliveryDate() == null
-                || !pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), currentPaymentCycle.getCycleStartDate());
+    //Use the PregnancyEntitlementCalculator to check that the claimant is either not pregnant or their pregnancy date is
+    //considered too far in the past.
+    private boolean claimantIsNotPregnant(Claim claim, PaymentCycle currentPaymentCycle) {
+        return !pregnancyEntitlementCalculator.isEntitledToVoucher(
+                claim.getClaimant().getExpectedDeliveryDate(),
+                currentPaymentCycle.getCycleStartDate());
     }
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {

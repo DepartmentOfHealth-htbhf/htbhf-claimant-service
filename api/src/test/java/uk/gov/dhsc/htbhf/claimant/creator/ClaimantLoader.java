@@ -81,6 +81,7 @@ public class ClaimantLoader {
         return dwpHouseholdIdentifier;
     }
 
+    @SuppressWarnings("PMD.OnlyOneReturn")
     private Set<UCChild> createUCChildren(List<ChildInfo> childrenAgeInfo) {
         if (childrenAgeInfo != null) {
             return childrenAgeInfo.stream()
@@ -175,6 +176,7 @@ public class ClaimantLoader {
         paymentRepository.save(payment);
     }
 
+    @SuppressWarnings("PMD.OnlyOneReturn")
     private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildInfo> childrenInfo) {
         if (childrenInfo != null) {
             return childrenInfo.stream()

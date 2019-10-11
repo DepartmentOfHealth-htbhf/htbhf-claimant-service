@@ -49,7 +49,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 class DetermineEntitlementMessageProcessorTest {
 
     private static final LocalDate EXPECTED_DELIVERY_DATE = LocalDate.now().plusMonths(2);
-    private static final LocalDate EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST = LocalDate.now().minusWeeks(8);
     private static final LocalDate NOT_PREGNANT = null;
 
     @Mock
@@ -100,9 +99,9 @@ class DetermineEntitlementMessageProcessorTest {
     }
 
     @Test
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenEligibleWithNoChildrenAndExpectedDeliveryDateTooFarInPast() {
+    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenEligibleWithNoChildrenAndNotPregnant() {
         //Given
-        DetermineEntitlementMessageContext context = buildMessageContext(EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST);
+        DetermineEntitlementMessageContext context = buildMessageContext(NOT_PREGNANT);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
@@ -127,38 +126,7 @@ class DetermineEntitlementMessageProcessorTest {
         verifyClaimSavedAtStatus(ClaimStatus.EXPIRED);
         verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(context.getClaim());
         verifyZeroInteractions(messageQueueClient);
-        verify(pregnancyEntitlementCalculator)
-                .isEntitledToVoucher(EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST, context.getCurrentPaymentCycle().getCycleStartDate());
-    }
-
-    @Test
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenEligibleWithNoChildrenAndNotPregnant() {
-        //Given
-        DetermineEntitlementMessageContext context = buildMessageContext(NOT_PREGNANT);
-        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
-
-        //Eligibility
-        EligibilityAndEntitlementDecision decision = anIneligibleDecisionWithNoChildren();
-        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
-
-        //Current payment cycle voucher entitlement mocking
-        Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
-
-        //When
-        MessageStatus messageStatus = processor.processMessage(message);
-
-        //Then
-        assertThat(messageStatus).isEqualTo(COMPLETED);
-        verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityAndEntitlementService).evaluateExistingClaimant(context.getClaim().getClaimant(),
-                context.getCurrentPaymentCycle().getCycleStartDate(),
-                context.getPreviousPaymentCycle());
-
-        verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
-        verifyClaimSavedAtStatus(ClaimStatus.EXPIRED);
-        verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(context.getClaim());
-        verifyZeroInteractions(messageQueueClient);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, context.getCurrentPaymentCycle().getCycleStartDate());
     }
 
     @ParameterizedTest
