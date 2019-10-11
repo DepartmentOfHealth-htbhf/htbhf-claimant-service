@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 
 /**
@@ -80,9 +82,12 @@ public class ClaimantLoader {
     }
 
     private Set<UCChild> createUCChildren(List<ChildInfo> childrenAgeInfo) {
-        return childrenAgeInfo.stream()
-                .map(this::convertChildAgeInfoToUCChild)
-                .collect(Collectors.toSet());
+        if (childrenAgeInfo != null) {
+            return childrenAgeInfo.stream()
+                    .map(this::convertChildAgeInfoToUCChild)
+                    .collect(Collectors.toSet());
+        }
+        return emptySet();
     }
 
     private UCChild convertChildAgeInfoToUCChild(ChildInfo childInfo) {
@@ -171,10 +176,13 @@ public class ClaimantLoader {
     }
 
     private List<LocalDate> createListOfChildrenDatesOfBirth(List<ChildInfo> childrenInfo) {
-        return childrenInfo.stream()
-                .filter(childInfo -> !childInfo.isExcludeFromExistingCycle())
-                .map(this::convertChildAgeInfoToDate)
-                .collect(Collectors.toList());
+        if (childrenInfo != null) {
+            return childrenInfo.stream()
+                    .filter(childInfo -> !childInfo.isExcludeFromExistingCycle())
+                    .map(this::convertChildAgeInfoToDate)
+                    .collect(Collectors.toList());
+        }
+        return emptyList();
     }
 
     private LocalDate convertChildAgeInfoToDate(ChildInfo childInfo) {
