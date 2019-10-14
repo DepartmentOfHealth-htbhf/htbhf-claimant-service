@@ -79,7 +79,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         } else if (decision.noChildrenPresentInCurrentCycle() && claimantIsNotPregnant(claim, currentPaymentCycle)) {
             handleNoLongerEligibleForScheme(claim);
         } else {
-            handleNonEligibleQualifyingBenefitStatusClaim(claim);
+            handleLossOfQualifyingBenefitStatus(claim);
         }
     }
 
@@ -96,7 +96,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
-    private void handleNonEligibleQualifyingBenefitStatusClaim(Claim claim) {
+    private void handleLossOfQualifyingBenefitStatus(Claim claim) {
         updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
     }
