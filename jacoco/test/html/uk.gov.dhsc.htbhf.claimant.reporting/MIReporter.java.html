@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
@@ -12,20 +13,21 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
  * Also responsible for obtaining postcode data used to provide location info when reporting events.
  */
 @Component
-<span class="fc" id="L15">@Slf4j</span>
+<span class="fc" id="L16">@Slf4j</span>
 @AllArgsConstructor
 public class MIReporter {
 
     private final ClaimRepository claimRepository;
     private final PostcodeDataClient postcodeDataClient;
 
-    public void reportClaim(Claim claim) {
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (claim.getPostcodeData() == null) {</span>
-<span class="fc" id="L24">            PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);</span>
-<span class="fc" id="L25">            claim.setPostcodeData(postcodeData);</span>
-<span class="fc" id="L26">            claimRepository.save(claim);</span>
+    public void reportClaim(ReportClaimMessageContext context) {
+<span class="fc" id="L24">        Claim claim = context.getClaim();</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        if (claim.getPostcodeData() == null) {</span>
+<span class="fc" id="L26">            PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);</span>
+<span class="fc" id="L27">            claim.setPostcodeData(postcodeData);</span>
+<span class="fc" id="L28">            claimRepository.save(claim);</span>
         }
-<span class="fc" id="L28">    }</span>
+<span class="fc" id="L30">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
