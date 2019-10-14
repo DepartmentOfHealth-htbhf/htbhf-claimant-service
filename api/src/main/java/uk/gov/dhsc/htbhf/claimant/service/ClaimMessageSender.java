@@ -8,6 +8,10 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMess
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
@@ -24,8 +28,8 @@ public class ClaimMessageSender {
 
     private final MessageQueueClient messageQueueClient;
 
-    public void sendReportClaimMessage(Claim claim) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim);
+    public void sendReportClaimMessage(Claim claim, List<LocalDate> datesOfBirthOfChildren, ClaimAction claimAction) {
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction);
         messageQueueClient.sendMessage(payload, REPORT_CLAIM);
     }
 
