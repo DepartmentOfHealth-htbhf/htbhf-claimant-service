@@ -306,14 +306,26 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @DisplayName("Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, "
-            + "not pregnant, children over 4 present in previous cycle")
-    @ParameterizedTest(name = "Eligibility status={0}")
-    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+            + "not pregnant, children over 4 present in previous cycle, response from DWP is ELIGIBLE with no children")
+    @Test
     @Disabled("HTBHF-2182")
-    void shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+    void shouldTestClaimBecomingExpiredWhenRollingOffTheSchemeEligibleResponse() throws JsonProcessingException {
+        testClaimBecomingExpiredWhenRollingOffScheme(ELIGIBLE);
+    }
+
+    @DisplayName("Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, "
+            + "not pregnant, children over 4 present in previous cycle, response from DWP is INELIGIBLE with no children")
+    @Test
+    @Disabled("HTBHF-2182")
+    void shouldTestClaimBecomingExpiredWhenRollingOffTheSchemeIneligibleResponse() throws JsonProcessingException {
+        testClaimBecomingExpiredWhenRollingOffScheme(INELIGIBLE);
+    }
+
+    private void testClaimBecomingExpiredWhenRollingOffScheme(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+        List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
         List<LocalDate> previousCycleChildrenDobs = SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE;
         //DWP will not return children over 4 in response
-        wiremockManager.stubEligibilityResponse(emptyList(), eligibilityStatus);
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
 
         //Create previous PaymentCycle
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, NOT_PREGNANT);
@@ -322,7 +334,40 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm new payment cycle created with no payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        assertPaymentCycleWithNoPayment(newCycle, emptyList());
+        assertPaymentCycleWithNoPayment(newCycle, currentPaymentCycleChildrenDobs);
+
+        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+
+        // confirm card service not called to make payment
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        // confirm no emails sent to claimant
+        verifyZeroInteractions(notificationClient);
+    }
+
+    @DisplayName("Integration test for HTBHF-2182 where a claimant that was pregnant in the previous cycle but is no longer pregnant in this cycle, "
+            + "the claim status is set to Expired and no email is sent, DWP status is irrelevant.")
+    @ParameterizedTest(name = "Eligibility status={0}")
+    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+    @Disabled("HTBHF-2182")
+    void shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+        List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
+        List<LocalDate> previousCycleChildrenDobs = NO_CHILDREN;
+        //DWP will not return children over 4 in response
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
+
+        //Create previous PaymentCycle
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, DUE_DATE_IN_4_MONTHS);
+
+        //Update expected delivery date on the claim to reflect no longer being pregnant
+        claim.getClaimant().setExpectedDeliveryDate(NOT_PREGNANT);
+        repositoryMediator.saveClaim(claim);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with no payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertPaymentCycleWithNoPayment(newCycle, currentPaymentCycleChildrenDobs);
 
         assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
 
