@@ -247,14 +247,15 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP has said they are eligible but have returned no children on record, "
-            + "status should be set to Pending Expiry and email sent to Claimant")
-    @Disabled("HTBHF-2185")
-    @Test
-    void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant() throws JsonProcessingException, NotificationClientException {
+    @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP have returned no children on record for either ELIGIBLE or INELIGIBLE "
+            + "statuses, the claim status should be set to Expired and email sent to Claimant")
+    @ParameterizedTest(name = "Eligibility status={0}")
+    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+    void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant(EligibilityStatus eligibilityStatus)
+            throws JsonProcessingException, NotificationClientException {
         List<LocalDate> currentPaymentCycleChildrenDobs = emptyList();
         List<LocalDate> previousPaymentCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
-        wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
         stubNotificationEmailResponse();
 
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousPaymentCycleChildrenDobs, NOT_PREGNANT);
@@ -265,7 +266,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertPaymentCycleWithNoPayment(newCycle, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -407,8 +408,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
                 Arguments.of(SINGLE_THREE_YEAR_OLD, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
                 Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, DUE_DATE_IN_4_MONTHS),
                 Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT)
+                Arguments.of(NO_CHILDREN, NO_CHILDREN, DUE_DATE_IN_4_MONTHS)
         );
     }
 

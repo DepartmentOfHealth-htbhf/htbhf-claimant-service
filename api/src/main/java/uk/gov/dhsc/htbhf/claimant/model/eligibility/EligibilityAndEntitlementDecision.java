@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.model.eligibility;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -31,5 +32,9 @@ public class EligibilityAndEntitlementDecision {
 
     public boolean claimExistsAndIsEligible() {
         return existingClaimId != null && eligibilityStatus == EligibilityStatus.ELIGIBLE;
+    }
+
+    public boolean noChildrenPresentInCurrentCycle() {
+        return CollectionUtils.isEmpty(dateOfBirthOfChildren);
     }
 }
