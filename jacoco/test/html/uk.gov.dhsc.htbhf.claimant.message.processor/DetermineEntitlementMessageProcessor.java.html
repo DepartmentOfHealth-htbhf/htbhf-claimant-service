@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.*;
@@ -41,9 +41,11 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;
 
+    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L46">        return DETERMINE_ENTITLEMENT;</span>
+<span class="fc" id="L48">        return DETERMINE_ENTITLEMENT;</span>
     }
 
     /**
@@ -56,38 +58,58 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L59">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
-<span class="fc" id="L60">        Claimant claimant = messageContext.getClaim().getClaimant();</span>
-<span class="fc" id="L61">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
-<span class="fc" id="L62">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
+<span class="fc" id="L61">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
+<span class="fc" id="L62">        Claim claim = messageContext.getClaim();</span>
+<span class="fc" id="L63">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
+<span class="fc" id="L64">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
 
-<span class="fc" id="L64">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(</span>
-                claimant,
-<span class="fc" id="L66">                currentPaymentCycle.getCycleStartDate(),</span>
+<span class="fc" id="L66">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(</span>
+<span class="fc" id="L67">                claim.getClaimant(),</span>
+<span class="fc" id="L68">                currentPaymentCycle.getCycleStartDate(),</span>
                 previousPaymentCycle);
 
-<span class="fc" id="L69">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
+<span class="fc" id="L71">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
+<span class="fc" id="L72">        handleDecision(claim, currentPaymentCycle, decision);</span>
+<span class="fc" id="L73">        return COMPLETED;</span>
+    }
 
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
-<span class="fc" id="L72">            createMakePaymentMessage(currentPaymentCycle);</span>
+    private void handleDecision(Claim claim, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
+<span class="fc" id="L78">            createMakePaymentMessage(currentPaymentCycle);</span>
+<span class="fc bfc" id="L79" title="All 4 branches covered.">        } else if (decision.noChildrenPresentInCurrentCycle() &amp;&amp; claimantIsNotPregnant(claim, currentPaymentCycle)) {</span>
+<span class="fc" id="L80">            handleNoLongerEligibleForScheme(claim);</span>
         } else {
-<span class="fc" id="L74">            handleNonEligibleClaim(currentPaymentCycle);</span>
+<span class="fc" id="L82">            handleLossOfQualifyingBenefitStatus(claim);</span>
         }
+<span class="fc" id="L84">    }</span>
 
-<span class="fc" id="L77">        return COMPLETED;</span>
+    //Use the PregnancyEntitlementCalculator to check that the claimant is either not pregnant or their pregnancy date is
+    //considered too far in the past.
+    private boolean claimantIsNotPregnant(Claim claim, PaymentCycle currentPaymentCycle) {
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        return !pregnancyEntitlementCalculator.isEntitledToVoucher(</span>
+<span class="fc" id="L90">                claim.getClaimant().getExpectedDeliveryDate(),</span>
+<span class="fc" id="L91">                currentPaymentCycle.getCycleStartDate());</span>
     }
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L81">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L82">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L83">    }</span>
+<span class="fc" id="L95">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L96">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L97">    }</span>
 
-    private void handleNonEligibleClaim(PaymentCycle currentPaymentCycle) {
-<span class="fc" id="L86">        Claim claim = currentPaymentCycle.getClaim();</span>
-<span class="fc" id="L87">        claim.setClaimStatus(ClaimStatus.PENDING_EXPIRY);</span>
-<span class="fc" id="L88">        claimRepository.save(claim);</span>
-<span class="fc" id="L89">        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);</span>
-<span class="fc" id="L90">    }</span>
+    private void handleLossOfQualifyingBenefitStatus(Claim claim) {
+<span class="fc" id="L100">        updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);</span>
+<span class="fc" id="L101">        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);</span>
+<span class="fc" id="L102">    }</span>
+
+    private void handleNoLongerEligibleForScheme(Claim claim) {
+<span class="fc" id="L105">        updateClaimStatus(claim, ClaimStatus.EXPIRED);</span>
+<span class="fc" id="L106">        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);</span>
+<span class="fc" id="L107">    }</span>
+
+    private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
+<span class="fc" id="L110">        claim.setClaimStatus(claimStatus);</span>
+<span class="fc" id="L111">        claimRepository.save(claim);</span>
+<span class="fc" id="L112">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
