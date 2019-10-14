@@ -6,37 +6,42 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Factory object for building message payloads for emails.
  */
-<span class="nc" id="L16">public class MessagePayloadFactory {</span>
+<span class="nc" id="L18">public class MessagePayloadFactory {</span>
 
     public static NewCardRequestMessagePayload buildNewCardMessagePayload(Claim claim,
                                                                           PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                           List&lt;LocalDate&gt; datesOfBirthOfChildren) {
-<span class="fc" id="L21">        return NewCardRequestMessagePayload.builder()</span>
-<span class="fc" id="L22">                .claimId(claim.getId())</span>
-<span class="fc" id="L23">                .voucherEntitlement(voucherEntitlement)</span>
-<span class="fc" id="L24">                .datesOfBirthOfChildren(datesOfBirthOfChildren)</span>
-<span class="fc" id="L25">                .build();</span>
+<span class="fc" id="L23">        return NewCardRequestMessagePayload.builder()</span>
+<span class="fc" id="L24">                .claimId(claim.getId())</span>
+<span class="fc" id="L25">                .voucherEntitlement(voucherEntitlement)</span>
+<span class="fc" id="L26">                .datesOfBirthOfChildren(datesOfBirthOfChildren)</span>
+<span class="fc" id="L27">                .build();</span>
     }
 
     public static MakePaymentMessagePayload buildMakePaymentMessagePayload(PaymentCycle paymentCycle) {
-<span class="fc" id="L29">        return MakePaymentMessagePayload.builder()</span>
-<span class="fc" id="L30">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L31">                .paymentCycleId(paymentCycle.getId())</span>
-<span class="fc" id="L32">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
-<span class="fc" id="L33">                .build();</span>
+<span class="fc" id="L31">        return MakePaymentMessagePayload.builder()</span>
+<span class="fc" id="L32">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L33">                .paymentCycleId(paymentCycle.getId())</span>
+<span class="fc" id="L34">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
+<span class="fc" id="L35">                .build();</span>
     }
 
-    public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim) {
-<span class="fc" id="L37">        return ReportClaimMessagePayload.builder()</span>
-<span class="fc" id="L38">                .claimId(claim.getId())</span>
-<span class="fc" id="L39">                .build();</span>
+    public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim, List&lt;LocalDate&gt; dateOfBirthOfChildren, ClaimAction claimAction) {
+<span class="fc" id="L39">        return ReportClaimMessagePayload.builder()</span>
+<span class="fc" id="L40">                .claimId(claim.getId())</span>
+<span class="fc" id="L41">                .datesOfBirthOfChildren(dateOfBirthOfChildren)</span>
+<span class="fc" id="L42">                .claimAction(claimAction)</span>
+<span class="fc" id="L43">                .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L44">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

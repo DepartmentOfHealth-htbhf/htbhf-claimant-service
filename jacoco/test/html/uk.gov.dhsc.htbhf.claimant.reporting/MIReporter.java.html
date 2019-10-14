@@ -41,33 +41,35 @@ public class MIReporter {
 <span class="fc" id="L41">            claim.setPostcodeData(postcodeData);</span>
 <span class="fc" id="L42">            claimRepository.save(claim);</span>
         }
-<span class="fc" id="L44">    }</span>
+
+
+<span class="fc" id="L46">    }</span>
 
     private PostcodeData getPostcodeData(Claim claim) {
-<span class="fc" id="L47">        String postcode = getPostcodeWithoutSpace(claim);</span>
+<span class="fc" id="L49">        String postcode = getPostcodeWithoutSpace(claim);</span>
 
         try {
-<span class="fc" id="L50">            PostcodeDataResponse response = restTemplate.getForObject(postcodesUri + postcode, PostcodeDataResponse.class);</span>
-<span class="fc" id="L51">            return getPostcodeDataFromResponse(response, claim, postcode);</span>
-<span class="fc" id="L52">        } catch (HttpClientErrorException e) {</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">            if (e.getStatusCode() == NOT_FOUND) {</span>
-<span class="fc" id="L54">                log.error(&quot;No postcode data found for postcode {} on claim {}&quot;, postcode, claim.getId());</span>
-<span class="fc" id="L55">                return PostcodeData.NOT_FOUND;</span>
+<span class="fc" id="L52">            PostcodeDataResponse response = restTemplate.getForObject(postcodesUri + postcode, PostcodeDataResponse.class);</span>
+<span class="fc" id="L53">            return getPostcodeDataFromResponse(response, claim, postcode);</span>
+<span class="fc" id="L54">        } catch (HttpClientErrorException e) {</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (e.getStatusCode() == NOT_FOUND) {</span>
+<span class="fc" id="L56">                log.error(&quot;No postcode data found for postcode {} on claim {}&quot;, postcode, claim.getId());</span>
+<span class="fc" id="L57">                return PostcodeData.NOT_FOUND;</span>
             }
-<span class="fc" id="L57">            throw new PostcodesIoClientException(&quot;Unsuccessful call to postcodes.io for postcode &quot; + postcode + &quot; on claim &quot; + claim.getId(), e);</span>
+<span class="fc" id="L59">            throw new PostcodesIoClientException(&quot;Unsuccessful call to postcodes.io for postcode &quot; + postcode + &quot; on claim &quot; + claim.getId(), e);</span>
         }
     }
 
     private String getPostcodeWithoutSpace(Claim claim) {
-<span class="fc" id="L62">        return claim.getClaimant().getAddress().getPostcode().replace(&quot; &quot;, &quot;&quot;);</span>
+<span class="fc" id="L64">        return claim.getClaimant().getAddress().getPostcode().replace(&quot; &quot;, &quot;&quot;);</span>
     }
 
     private PostcodeData getPostcodeDataFromResponse(PostcodeDataResponse response, Claim claim, String postcode) {
-<span class="pc bpc" id="L66" title="1 of 4 branches missed.">        if (response == null || response.getPostcodeData() == null) {</span>
-<span class="fc" id="L67">            throw new PostcodesIoClientException(&quot;Received null response from postcodes.io for postcode &quot; + postcode + &quot; on claim &quot; + claim.getId());</span>
+<span class="pc bpc" id="L68" title="1 of 4 branches missed.">        if (response == null || response.getPostcodeData() == null) {</span>
+<span class="fc" id="L69">            throw new PostcodesIoClientException(&quot;Received null response from postcodes.io for postcode &quot; + postcode + &quot; on claim &quot; + claim.getId());</span>
         }
 
-<span class="fc" id="L70">        return response.getPostcodeData();</span>
+<span class="fc" id="L72">        return response.getPostcodeData();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

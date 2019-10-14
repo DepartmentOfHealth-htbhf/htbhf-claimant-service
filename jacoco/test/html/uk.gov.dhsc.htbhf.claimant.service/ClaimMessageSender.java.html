@@ -8,6 +8,10 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMess
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
@@ -24,19 +28,19 @@ public class ClaimMessageSender {
 
     private final MessageQueueClient messageQueueClient;
 
-    public void sendReportClaimMessage(Claim claim) {
-<span class="fc" id="L28">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim);</span>
-<span class="fc" id="L29">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
-<span class="fc" id="L30">    }</span>
+    public void sendReportClaimMessage(Claim claim, List&lt;LocalDate&gt; datesOfBirthOfChildren, ClaimAction claimAction) {
+<span class="fc" id="L32">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction);</span>
+<span class="fc" id="L33">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
+<span class="fc" id="L34">    }</span>
 
     public void sendAdditionalPaymentMessage(Claim claim) {
-<span class="fc" id="L33">        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.withClaimId(claim.getId());</span>
-<span class="fc" id="L34">        messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L37">        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.withClaimId(claim.getId());</span>
+<span class="fc" id="L38">        messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc" id="L39">    }</span>
 
     public void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L38">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
-<span class="fc" id="L39">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
-<span class="fc" id="L40">    }</span>
+<span class="fc" id="L42">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L43">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
+<span class="fc" id="L44">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
