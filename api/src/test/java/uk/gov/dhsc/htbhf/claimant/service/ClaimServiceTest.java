@@ -15,6 +15,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
@@ -36,7 +37,6 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
@@ -103,7 +103,7 @@ class ClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -140,7 +140,6 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(claimRepository).save(actualClaim);
         verify(eventAuditor).auditNewClaim(actualClaim);
-        verifyOnlyReportClaimMessageSent(actualClaim);
     }
 
     @Test
@@ -162,7 +161,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
     }
 
     /**
@@ -190,7 +189,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-            verify(claimMessageSender).sendReportClaimMessage(result.getClaim());
+            verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
         }
     }
 
@@ -201,11 +200,12 @@ class ClaimServiceTest {
         Claimant newClaimant = aClaimantWithLastName("New name");
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
         UUID existingClaimId = existingClaim.getId();
-        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .build());
+                .build();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
@@ -221,7 +221,6 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
-        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -232,11 +231,12 @@ class ClaimServiceTest {
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
         UUID existingClaimId = UUID.randomUUID();
-        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .build());
+                .build();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
@@ -252,7 +252,6 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
-        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -300,11 +299,12 @@ class ClaimServiceTest {
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(null);
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
         UUID existingClaimId = existingClaim.getId();
-        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .build());
+                .build();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
@@ -314,7 +314,6 @@ class ClaimServiceTest {
         //then
         assertThat(result.getClaimUpdated()).isTrue();
         assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
-        verifyOnlyReportClaimMessageSent(existingClaim);
     }
 
     @Test
@@ -437,11 +436,12 @@ class ClaimServiceTest {
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         UUID existingClaimId = UUID.randomUUID();
-        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(INELIGIBLE)
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .build());
+                .build();
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -458,7 +458,6 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verifyOnlyReportClaimMessageSent(result.getClaim());
     }
 
     /**
@@ -501,10 +500,5 @@ class ClaimServiceTest {
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
-    }
-
-    private void verifyOnlyReportClaimMessageSent(Claim claim) {
-        verify(claimMessageSender).sendReportClaimMessage(claim);
-        verifyNoMoreInteractions(claimMessageSender);
     }
 }

@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,7 +12,15 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMess
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
@@ -32,13 +41,19 @@ class ClaimMessageSenderTest {
     @Test
     void shouldSendReportClaimMessage() {
         Claim claim = aValidClaim();
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusYears(1));
+        ClaimAction claimAction = ClaimAction.NEW;
+        LocalDateTime now = LocalDateTime.now();
 
-        claimMessageSender.sendReportClaimMessage(claim);
+        claimMessageSender.sendReportClaimMessage(claim, datesOfBirthOfChildren, claimAction);
 
-        ReportClaimMessagePayload expectedPayload = ReportClaimMessagePayload.builder()
-                .claimId(claim.getId())
-                .build();
-        verify(messageQueueClient).sendMessage(expectedPayload, REPORT_CLAIM);
+        ArgumentCaptor<ReportClaimMessagePayload> argumentCaptor = ArgumentCaptor.forClass(ReportClaimMessagePayload.class);
+        verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(REPORT_CLAIM));
+        ReportClaimMessagePayload payload = argumentCaptor.getValue();
+        assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
+        assertThat(payload.getClaimAction()).isEqualTo(claimAction);
     }
 
     @Test

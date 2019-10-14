@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
@@ -46,12 +47,6 @@ public class ClaimService {
     );
 
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
-        ClaimResult claimResult = processClaimRequest(claimRequest);
-        claimMessageSender.sendReportClaimMessage(claimResult.getClaim());
-        return claimResult;
-    }
-
-    private ClaimResult processClaimRequest(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
             if (decision.claimExistsAndIsEligible()) {
@@ -66,6 +61,7 @@ public class ClaimService {
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
+                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement);
             }
 
