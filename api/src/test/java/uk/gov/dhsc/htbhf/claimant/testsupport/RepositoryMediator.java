@@ -109,4 +109,12 @@ public class RepositoryMediator {
         return claimRepository.findClaim(claimId);
     }
 
+    /**
+     * Saves the given claim.
+     *
+     * @param claim The claim to be saved
+     */
+    public void saveClaim(Claim claim) {
+        claimRepository.save(claim);
+    }
 }
