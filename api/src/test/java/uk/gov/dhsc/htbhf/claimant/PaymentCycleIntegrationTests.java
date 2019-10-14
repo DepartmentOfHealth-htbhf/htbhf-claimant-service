@@ -247,13 +247,15 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP has said they are eligible but have returned no children on record, "
-            + "status should be set to Expired and email sent to Claimant")
-    @Test
-    void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant() throws JsonProcessingException, NotificationClientException {
+    @DisplayName("Integration test for HTBHF-2185 for a non-pregnant claimant where DWP have returned no children on record for either ELIGIBLE or INELIGIBLE "
+            + "statuses, the claim status should be set to Expired and email sent to Claimant")
+    @ParameterizedTest(name = "Eligibility status={0}")
+    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+    void shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant(EligibilityStatus eligibilityStatus)
+            throws JsonProcessingException, NotificationClientException {
         List<LocalDate> currentPaymentCycleChildrenDobs = emptyList();
         List<LocalDate> previousPaymentCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
-        wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
         stubNotificationEmailResponse();
 
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousPaymentCycleChildrenDobs, NOT_PREGNANT);
