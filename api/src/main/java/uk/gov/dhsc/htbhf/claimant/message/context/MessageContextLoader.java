@@ -121,6 +121,9 @@ public class MessageContextLoader {
 
         return ReportClaimMessageContext.builder()
                 .claim(claim)
+                .claimAction(payload.getClaimAction())
+                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .timestamp(payload.getTimestamp())
                 .build();
     }
 

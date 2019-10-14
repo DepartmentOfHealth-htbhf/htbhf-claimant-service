@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
@@ -19,7 +20,8 @@ public class MIReporter {
     private final ClaimRepository claimRepository;
     private final PostcodeDataClient postcodeDataClient;
 
-    public void reportClaim(Claim claim) {
+    public void reportClaim(ReportClaimMessageContext context) {
+        Claim claim = context.getClaim();
         if (claim.getPostcodeData() == null) {
             PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);
             claim.setPostcodeData(postcodeData);

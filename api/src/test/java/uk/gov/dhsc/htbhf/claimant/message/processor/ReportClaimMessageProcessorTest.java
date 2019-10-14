@@ -43,6 +43,6 @@ class ReportClaimMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadReportClaimMessageContext(message);
-        verify(miReporter).reportClaim(claim);
+        verify(miReporter).reportClaim(context);
     }
 }

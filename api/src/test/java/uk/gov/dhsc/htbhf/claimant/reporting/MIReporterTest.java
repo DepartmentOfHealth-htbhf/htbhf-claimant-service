@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
@@ -32,11 +33,12 @@ class MIReporterTest {
     @Test
     void shouldGetPostcodeDataAndSaveToClaim() {
         Claim claim = aClaimWithPostcodeData(null);
+        ReportClaimMessageContext context = ReportClaimMessageContext.builder().claim(claim).build();
         String postcode = claim.getClaimant().getAddress().getPostcode();
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
         given(postcodeDataClient.getPostcodeData(any())).willReturn(postcodeData);
 
-        miReporter.reportClaim(claim);
+        miReporter.reportClaim(context);
 
         assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
         verify(postcodeDataClient).getPostcodeData(claim);
@@ -47,8 +49,9 @@ class MIReporterTest {
     void shouldNotGetPostcodeDataOrUpdateClaimWhenPostcodeDataExists() {
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(VALID_POSTCODE);
         Claim claim = aClaimWithPostcodeData(postcodeData);
+        ReportClaimMessageContext context = ReportClaimMessageContext.builder().claim(claim).build();
 
-        miReporter.reportClaim(claim);
+        miReporter.reportClaim(context);
 
         verifyZeroInteractions(postcodeDataClient, claimRepository);
     }

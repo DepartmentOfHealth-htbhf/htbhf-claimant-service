@@ -12,14 +12,17 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
@@ -411,6 +414,9 @@ class MessageContextLoaderTest {
         Message message = aValidMessageWithType(REPORT_CLAIM);
         ReportClaimMessagePayload payload = ReportClaimMessagePayload.builder()
                 .claimId(claim.getId())
+                .claimAction(ClaimAction.NEW)
+                .timestamp(LocalDateTime.now())
+                .datesOfBirthOfChildren(singletonList(LocalDate.now().minusYears(1)))
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(payloadMapper.getPayload(message, ReportClaimMessagePayload.class)).willReturn(payload);
@@ -420,6 +426,9 @@ class MessageContextLoaderTest {
 
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getClaimAction()).isEqualTo(payload.getClaimAction());
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
+        assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verifyZeroInteractions(paymentCycleRepository);
