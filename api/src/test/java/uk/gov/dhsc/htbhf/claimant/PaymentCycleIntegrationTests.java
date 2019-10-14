@@ -51,6 +51,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final List<LocalDate> SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE = singletonList(CHILD_TURNED_FOUR_IN_LAST_CYCLE);
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
     private static final LocalDate DUE_DATE_IN_4_MONTHS = LocalDate.now().plusMonths(4);
+    private static final LocalDate DUE_DATE_TOO_FAR_IN_PAST = LocalDate.now().minusWeeks(13);
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
 
@@ -345,12 +346,13 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyZeroInteractions(notificationClient);
     }
 
-    @DisplayName("Integration test for HTBHF-2182 where a claimant that was pregnant in the previous cycle but is no longer pregnant in this cycle, "
+    @DisplayName("Integration test for HTBHF-2182 where a claimant that was pregnant in the previous cycle but is considered no longer pregnant in this cycle, "
             + "the claim status is set to Expired and no email is sent, DWP status is irrelevant.")
-    @ParameterizedTest(name = "Eligibility status={0}")
-    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
+    @ParameterizedTest(name = "Eligibility status={0}, expected delivery date={1}")
+    @MethodSource("provideArgumentsForTestingNoLongerPregnantWithNoChildren")
     @Disabled("HTBHF-2182")
-    void shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+    void shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus eligibilityStatus, LocalDate expectedDeliveryDateInCurrentCycle)
+            throws JsonProcessingException {
         List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
         List<LocalDate> previousCycleChildrenDobs = NO_CHILDREN;
         //DWP will not return children over 4 in response
@@ -359,8 +361,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         //Create previous PaymentCycle
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, DUE_DATE_IN_4_MONTHS);
 
-        //Update expected delivery date on the claim to reflect no longer being pregnant
-        claim.getClaimant().setExpectedDeliveryDate(NOT_PREGNANT);
+        //Update expected delivery date on the claim to reflect the change in delivery date
+        claim.getClaimant().setExpectedDeliveryDate(expectedDeliveryDateInCurrentCycle);
         repositoryMediator.saveClaim(claim);
 
         invokeAllSchedulers();
@@ -477,6 +479,16 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
                 Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE),
                 Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, ELIGIBLE),
                 Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE)
+        );
+    }
+
+    //First argument is the status returned by DWP, second argument is the expected delivery date of the claimant in the current cycle.
+    private static Stream<Arguments> provideArgumentsForTestingNoLongerPregnantWithNoChildren() {
+        return Stream.of(
+                Arguments.of(INELIGIBLE, NOT_PREGNANT),
+                Arguments.of(INELIGIBLE, DUE_DATE_TOO_FAR_IN_PAST),
+                Arguments.of(ELIGIBLE, NOT_PREGNANT),
+                Arguments.of(ELIGIBLE, DUE_DATE_TOO_FAR_IN_PAST)
         );
     }
 
