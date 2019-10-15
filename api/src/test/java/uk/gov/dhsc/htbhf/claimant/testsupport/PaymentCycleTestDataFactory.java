@@ -48,6 +48,20 @@ public class PaymentCycleTestDataFactory {
                 .build();
     }
 
+    public static PaymentCycle aPaymentCycleWithStartDateClaimAndExpectedDeliveryDate(LocalDate startDate,
+                                                                                      Claim claim,
+                                                                                      LocalDate expectedDeliveryDate) {
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
+        return aValidPaymentCycleBuilder()
+                .voucherEntitlement(voucherEntitlement)
+                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
+                .cycleStartDate(startDate)
+                .claim(claim)
+                .childrenDob(nullSafeGetChildrenDob(claim))
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .build();
+    }
+
     public static PaymentCycle aPaymentCycleWithStartAndEndDate(LocalDate startDate, LocalDate endDate) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
@@ -89,6 +103,10 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithStatus(PaymentCycleStatus status) {
         return aValidPaymentCycleBuilder().paymentCycleStatus(status).build();
+    }
+
+    public static PaymentCycle aPaymentCycleWithChildrenDobs(List<LocalDate> childrenDobs) {
+        return aValidPaymentCycleBuilder().childrenDob(childrenDobs).build();
     }
 
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
