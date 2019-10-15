@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
@@ -86,17 +87,24 @@ public class RepositoryMediator {
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate, List<LocalDate> childrensDatesOfBirth) {
         claimRepository.save(claim);
+        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                cycleStartDate, childrensDatesOfBirth, claim.getClaimant().getExpectedDeliveryDate());
         PaymentCycle completedPaymentCycle = PaymentCycleTestDataFactory.aValidPaymentCycleBuilder()
                 .claim(claim)
                 .childrenDob(childrensDatesOfBirth)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(27))
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
-                        cycleStartDate, childrensDatesOfBirth, claim.getClaimant().getExpectedDeliveryDate()))
+                .voucherEntitlement(voucherEntitlement)
+                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))
                 .build();
         paymentCycleRepository.save(completedPaymentCycle);
         return completedPaymentCycle;
+    }
+
+    //Copied from PaymentCycleService - don't want to inject it just for this method.
+    private LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
+        return (voucherEntitlement != null && voucherEntitlement.getVouchersForPregnancy() > 0) ? claim.getClaimant().getExpectedDeliveryDate() : null;
     }
 
     /**

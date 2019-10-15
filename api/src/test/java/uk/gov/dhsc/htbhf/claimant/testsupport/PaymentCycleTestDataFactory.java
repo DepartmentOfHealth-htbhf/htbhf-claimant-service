@@ -33,6 +33,7 @@ public class PaymentCycleTestDataFactory {
                 .totalVouchers(paymentCycleVoucherEntitlement.getTotalVoucherEntitlement())
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
     }
 
@@ -45,12 +46,12 @@ public class PaymentCycleTestDataFactory {
                 .cycleStartDate(startDate)
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithStartDateClaimAndExpectedDeliveryDate(LocalDate startDate,
-                                                                                      Claim claim,
-                                                                                      LocalDate expectedDeliveryDate) {
+                                                                                      Claim claim) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(voucherEntitlement)
@@ -58,7 +59,7 @@ public class PaymentCycleTestDataFactory {
                 .cycleStartDate(startDate)
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
-                .expectedDeliveryDate(expectedDeliveryDate)
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
     }
 
@@ -89,6 +90,7 @@ public class PaymentCycleTestDataFactory {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
         paymentCycle.addPayment(payment);
         return paymentCycle;
@@ -98,6 +100,7 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder()
                 .claim(claim)
                 .childrenDob(nullSafeGetChildrenDob(claim))
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
     }
 
@@ -111,8 +114,9 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
+        Claim claim = aValidClaim();
         return PaymentCycle.builder()
-                .claim(aValidClaim())
+                .claim(claim)
                 .paymentCycleStatus(NEW)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .voucherEntitlement(voucherEntitlement)
@@ -124,10 +128,15 @@ public class PaymentCycleTestDataFactory {
                 .childrenDob(List.of(
                         LocalDate.now().minusMonths(6),
                         LocalDate.now().minusYears(3).minusMonths(6)))
-                .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE);
+                .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE)
+                .expectedDeliveryDate(claim.getClaimant().getExpectedDeliveryDate());
     }
 
     private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
         return (claim == null) ? emptyList() : claim.getClaimant().getChildrenDob();
+    }
+
+    private static LocalDate nullSafeGetExpectedDeliveryDate(Claim claim) {
+        return (claim == null) ? null : claim.getClaimant().getExpectedDeliveryDate();
     }
 }
