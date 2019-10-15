@@ -285,7 +285,7 @@ class ChildDateOfBirthCalculatorTest {
 
     @ParameterizedTest(name = "Children dobs={0}")
     @MethodSource("provideArgumentsForChildrenUnderFour")
-    void shouldReturnChildrenAtStartOrPaymentCycle(List<LocalDate> childrenDobs) {
+    void shouldReturnChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
         //Given a children under 4 in the PaymentCycle
         PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
         //When
@@ -296,7 +296,7 @@ class ChildDateOfBirthCalculatorTest {
 
     @ParameterizedTest(name = "Children dobs={0}")
     @MethodSource("provideArgumentsForChildrenFourAndOver")
-    void shouldReturnNoChildrenAtStartOrPaymentCycle(List<LocalDate> childrenDobs) {
+    void shouldReturnNoChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
         //Given a children 4 or over 4 in the PaymentCycle
         PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
         //When

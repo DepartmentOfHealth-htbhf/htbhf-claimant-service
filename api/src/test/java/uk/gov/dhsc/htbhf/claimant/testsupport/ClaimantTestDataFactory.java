@@ -79,7 +79,8 @@ public final class ClaimantTestDataFactory {
                 .dateOfBirth(VALID_DOB)
                 .phoneNumber(VALID_PHONE_NUMBER)
                 .emailAddress(VALID_EMAIL_ADDRESS)
-                .address(aValidAddress());
+                .address(aValidAddress())
+                .expectedDeliveryDate(EXPECTED_DELIVERY_DATE);
     }
 
     public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {

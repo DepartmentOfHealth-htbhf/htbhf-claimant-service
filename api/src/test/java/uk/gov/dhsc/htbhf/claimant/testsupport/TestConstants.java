@@ -35,6 +35,8 @@ public class TestConstants {
 
     public static final LocalDate MAGGIE_DOB = LocalDate.now().minusMonths(6);
     public static final LocalDate LISA_DOB = LocalDate.now().minusMonths(24);
+    public static final LocalDate EXPECTED_DELIVERY_DATE = LocalDate.now().plusMonths(2);
+    public static final LocalDate NOT_PREGNANT = null;
 
     public static final String CARD_ACCOUNT_ID = "123456789";
 
