@@ -43,7 +43,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFacto
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
@@ -71,7 +71,7 @@ class DetermineEntitlementMessageProcessorTest {
     @Test
     void shouldSuccessfullyProcessMessageAndTriggerPaymentWhenClaimantIsEligible() {
         //Given
-        DetermineEntitlementMessageContext context = buildMessageContext(EXPECTED_DELIVERY_DATE);
+        DetermineEntitlementMessageContext context = buildMessageContext(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility
