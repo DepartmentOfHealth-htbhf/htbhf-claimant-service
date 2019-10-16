@@ -236,7 +236,7 @@ class ClaimantServiceIntegrationTests {
         assertValidationErrorInResponse(response, "claimant.address.postcode", "postcodes in the Channel Islands or Isle of Man are not acceptable");
     }
 
-    @ParameterizedTest(name = "Field {0} with invalid value {1} on an error response")
+    @ParameterizedTest(name = "Field {1} with invalid value {0} on an error response")
     @CsvSource({
             "29-11-1909, dateOfBirth, '29-11-1909' could not be parsed as a LocalDate, claimant.dateOfBirth",
             "1999/12/31, dateOfBirth, '1999/12/31' could not be parsed as a LocalDate, claimant.dateOfBirth",

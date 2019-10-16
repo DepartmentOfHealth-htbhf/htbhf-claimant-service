@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimensions.*;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.UserType.ONLINE;
@@ -49,9 +49,9 @@ public class ReportPropertiesFactory {
     private Map<String, Object> createCustomDimensionMap(ReportClaimMessageContext context) {
         Map<String, Object> customDimensions = new HashMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
-        String claimantCategory = claimantCategoryCalculator
-                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp());
-        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory);
+        ClaimantCategory claimantCategory = claimantCategoryCalculator
+                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
         PostcodeData postcodeData = context.getClaim().getPostcodeData();
         customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());
         customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());

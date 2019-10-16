@@ -4,16 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.NOT_PREGNANT_WITH_CHILDREN;
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREGNANT_AND_UNDER_16;
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREGNANT_WITH_CHILDREN;
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREGNANT_WITH_NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.*;
 
 @Component
 @RequiredArgsConstructor
@@ -26,35 +24,39 @@ public class ClaimantCategoryCalculator {
      *
      * @param claimant               the claimant to determine the category of
      * @param datesOfBirthOfChildren the dates of birth of the claimant's children
-     * @param timestamp the timestamp to use when checking a claimant/child's age
+     * @param atDate                 the date to use when checking a claimant/child's age or pregnancy
      * @return claimant's determined category
      */
-    public String determineClaimantCategory(Claimant claimant, List<LocalDate> datesOfBirthOfChildren, LocalDateTime timestamp) {
-        int claimantAgeInYears = getClaimantAgeInYears(claimant, timestamp);
-        if (claimantAgeInYears < 16 && isClaimantPregnant(claimant)) {
-            return PREGNANT_AND_UNDER_16.getDescription();
-        } else if (isClaimantPregnant(claimant) && hasChildren(datesOfBirthOfChildren)) {
-            return PREGNANT_WITH_CHILDREN.getDescription();
-        } else if (isClaimantPregnant(claimant) && !hasChildren(datesOfBirthOfChildren)) {
-            return PREGNANT_WITH_NO_CHILDREN.getDescription();
-        } else if (!isClaimantPregnant(claimant) && hasChildren(datesOfBirthOfChildren)) {
-            return NOT_PREGNANT_WITH_CHILDREN.getDescription();
+    public ClaimantCategory determineClaimantCategory(Claimant claimant, List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
+        int claimantAgeInYears = getClaimantAgeInYears(claimant, atDate);
+        if (isClaimantPregnant(claimant, atDate)) {
+            if (claimantAgeInYears < 16) {
+                return PREGNANT_AND_UNDER_16;
+            }
+            if (claimantAgeInYears < 18) {
+                return PREGNANT_AND_UNDER_18;
+            }
+            if (hasChildren(datesOfBirthOfChildren)) {
+                return PREGNANT_WITH_CHILDREN;
+            }
+            return PREGNANT_WITH_NO_CHILDREN;
         }
-
-        // TODO DW HTBHF-2010 handle case where claimant doesn't match any category.
-        return null;
+        if (hasChildren(datesOfBirthOfChildren)) {
+            return NOT_PREGNANT_WITH_CHILDREN;
+        }
+        // this could happen once a claimant has expired
+        return NOT_PREGNANT_WITH_NO_CHILDREN;
     }
 
     private boolean hasChildren(List<LocalDate> datesOfBirthOfChildren) {
         return datesOfBirthOfChildren != null && !datesOfBirthOfChildren.isEmpty();
     }
 
-    private int getClaimantAgeInYears(Claimant claimant, LocalDateTime timestamp) {
-        return Period.between(claimant.getDateOfBirth(), timestamp.toLocalDate()).getYears();
+    private int getClaimantAgeInYears(Claimant claimant, LocalDate ageAtDate) {
+        return Period.between(claimant.getDateOfBirth(), ageAtDate).getYears();
     }
 
-    private boolean isClaimantPregnant(Claimant claimant) {
-        LocalDate now = LocalDate.now();
-        return pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), now);
+    private boolean isClaimantPregnant(Claimant claimant, LocalDate atDate) {
+        return pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), atDate);
     }
 }

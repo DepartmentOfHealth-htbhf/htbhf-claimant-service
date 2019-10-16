@@ -40,7 +40,7 @@ class ReportPropertiesFactoryTest {
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(VALID_POSTCODE);
         Claim claim = aClaimWithPostcodeData(postcodeData);
         LocalDateTime timeStamp = LocalDateTime.now().minusSeconds(1);
-        String claimantCategory = ClaimantCategory.PREGNANT_WITH_CHILDREN.getDescription();
+        ClaimantCategory claimantCategory = ClaimantCategory.PREGNANT_WITH_CHILDREN;
         List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(6));
         ReportClaimMessageContext context = ReportClaimMessageContext.builder()
                 .claimAction(NEW)
@@ -69,6 +69,6 @@ class ReportPropertiesFactoryTest {
                 entry("dimension8", postcodeData.getParliamentaryConstituency()),
                 entry("dimension9", postcodeData.getCcg()), // Clinical Commissioning Group
                 entry("dimension10", postcodeData.getCodes().getCcg())); // Clinical Commissioning Group code
-        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timeStamp);
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timeStamp.toLocalDate());
     }
 }
