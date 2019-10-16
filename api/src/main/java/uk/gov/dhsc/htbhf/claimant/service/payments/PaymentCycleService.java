@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
@@ -22,11 +23,14 @@ public class PaymentCycleService {
 
     private final PaymentCycleRepository paymentCycleRepository;
     private final Integer cycleDurationInDays;
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
-                               @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays) {
+                               @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays,
+                               PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {
         this.paymentCycleRepository = paymentCycleRepository;
         this.cycleDurationInDays = cycleDurationInDays;
+        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
     }
 
     /**
@@ -72,12 +76,19 @@ public class PaymentCycleService {
                 .eligibilityStatus(ELIGIBLE)
                 .qualifyingBenefitEligibilityStatus(CONFIRMED)
                 .childrenDob(datesOfBirthOfChildren)
-                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))
+                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))
                 .build();
 
         paymentCycle.applyVoucherEntitlement(voucherEntitlement);
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
+    }
+
+    private LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, LocalDate cycleStartDate) {
+        if (pregnancyEntitlementCalculator.isEntitledToVoucher(claim.getClaimant().getExpectedDeliveryDate(), cycleStartDate)) {
+            return claim.getClaimant().getExpectedDeliveryDate();
+        }
+        return null;
     }
 
     /**
@@ -89,13 +100,10 @@ public class PaymentCycleService {
         paymentCycleRepository.save(paymentCycle);
     }
 
-    public LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return (voucherEntitlement != null && voucherEntitlement.getVouchersForPregnancy() > 0) ? claim.getClaimant().getExpectedDeliveryDate() : null;
-    }
-
     /**
      * Update and saves the payment cycle with the given calculation and card balance.
-     * @param paymentCycle payment cycle to update
+     *
+     * @param paymentCycle       payment cycle to update
      * @param paymentCycleStatus payment cycle status
      * @param cardBalanceInPence card balance in pence
      */
@@ -107,8 +115,9 @@ public class PaymentCycleService {
 
     /**
      * Update and saves the payment cycle with the decision.
+     *
      * @param paymentCycle payment cycle to update
-     * @param decision decision to update the payment cycle with
+     * @param decision     decision to update the payment cycle with
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
@@ -117,14 +126,15 @@ public class PaymentCycleService {
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
         PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
-        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), decision.getVoucherEntitlement());
+        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), paymentCycle.getCycleStartDate());
         paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);
         paymentCycleRepository.save(paymentCycle);
     }
 
     /**
      * Update and saves the payment cycle with the given calculation.
-     * @param paymentCycle payment cycle to update
+     *
+     * @param paymentCycle       payment cycle to update
      * @param paymentCycleStatus payment cycle status
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
