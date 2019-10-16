@@ -43,13 +43,12 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFacto
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class DetermineEntitlementMessageProcessorTest {
-
-    private static final LocalDate EXPECTED_DELIVERY_DATE = LocalDate.now().plusMonths(2);
-    private static final LocalDate NOT_PREGNANT = null;
 
     @Mock
     private EligibilityAndEntitlementService eligibilityAndEntitlementService;

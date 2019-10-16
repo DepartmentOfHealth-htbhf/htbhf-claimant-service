@@ -19,6 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -226,9 +227,8 @@ class ClaimServiceTest {
     @Test
     void shouldUpdateClaimAndReturnClaimUpdatedForMatchingNinoWhenEligibleAndNoFieldsHaveChanged() {
         //given
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        Claimant existingClaimant = aValidClaimant();
+        Claimant newClaimant = aValidClaimant();
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
         UUID existingClaimId = UUID.randomUUID();
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementDecision.builder()
@@ -247,7 +247,7 @@ class ClaimServiceTest {
         assertThat(result.getClaimUpdated()).isTrue();
         assertThat(result.getUpdatedFields()).isEmpty();
         assertThat(result.getClaim()).isEqualTo(existingClaim);
-        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
+        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(TestConstants.EXPECTED_DELIVERY_DATE);
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());

@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 
@@ -47,6 +48,21 @@ public class ChildDateOfBirthCalculator {
                 .numberOfChildrenTurningOne(childrenAgedOneAffectingNextPayment)
                 .numberOfChildrenTurningFour(childrenAgedFourAffectingNextPayment)
                 .build();
+    }
+
+    /**
+     * Calculates whether there were any children under 4 at all at the start of the given PaymentCycle.
+     *
+     * @param paymentCycle The payment cycle to check
+     * @return true if any children were under 4 at the start of the given PaymentCycle.
+     */
+    public boolean hadChildrenUnder4AtStartOfPaymentCycle(PaymentCycle paymentCycle) {
+        List<LocalDate> childrenDob = paymentCycle.getChildrenDob();
+        if (CollectionUtils.isEmpty(childrenDob)) {
+            return false;
+        }
+        return paymentCycle.getChildrenDob().stream()
+                .anyMatch(childDob -> childDob.isAfter(paymentCycle.getCycleStartDate().minusYears(4)));
     }
 
     private int countChildrenOfAge(PaymentCycle paymentCycle, LocalDate lastEntitlementDateInCurrentCycle,

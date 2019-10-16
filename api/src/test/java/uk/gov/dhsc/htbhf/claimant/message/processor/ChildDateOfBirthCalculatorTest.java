@@ -3,6 +3,9 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,12 +14,14 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 
 @ExtendWith(MockitoExtension.class)
 class ChildDateOfBirthCalculatorTest {
@@ -278,10 +283,49 @@ class ChildDateOfBirthCalculatorTest {
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
+    @ParameterizedTest(name = "Children dobs={0}")
+    @MethodSource("provideArgumentsForChildrenUnderFour")
+    void shouldReturnChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
+        //Given a children under 4 in the PaymentCycle
+        PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
+        //When
+        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(paymentCycle);
+        //Then
+        assertThat(hasChildren).isTrue();
+    }
+
+    @ParameterizedTest(name = "Children dobs={0}")
+    @MethodSource("provideArgumentsForChildrenFourAndOver")
+    void shouldReturnNoChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
+        //Given a children 4 or over 4 in the PaymentCycle
+        PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
+        //When
+        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(paymentCycle);
+        //Then
+        assertThat(hasChildren).isFalse();
+    }
+
+    private static Stream<Arguments> provideArgumentsForChildrenFourAndOver() {
+        return Stream.of(
+                Arguments.of(emptyList()),
+                Arguments.of(List.of(LocalDate.now().minusYears(4))),
+                Arguments.of(List.of(LocalDate.now().minusYears(4).minusDays(1))),
+                Arguments.of(List.of(LocalDate.now().minusYears(5), LocalDate.now().minusYears(6))),
+                Arguments.of(List.of(LocalDate.now().minusYears(4).minusMonths(6)))
+        );
+    }
+
+    private static Stream<Arguments> provideArgumentsForChildrenUnderFour() {
+        return Stream.of(
+                Arguments.of(List.of(YOUNGEST_CHILD_DOB)),
+                Arguments.of(List.of(ELDEST_CHILD_DOB)),
+                Arguments.of(List.of(LocalDate.now().minusYears(4).plusDays(1))),
+                Arguments.of(List.of(YOUNGEST_CHILD_DOB, ELDEST_CHILD_DOB))
+        );
+    }
+
     private PaymentCycle buildPaymentCycleWithChildDobs(LocalDate... childDobs) {
-        return aValidPaymentCycleBuilder()
-                .childrenDob(List.of(childDobs))
-                .build();
+        return aPaymentCycleWithChildrenDobs(List.of(childDobs));
     }
 
 }
