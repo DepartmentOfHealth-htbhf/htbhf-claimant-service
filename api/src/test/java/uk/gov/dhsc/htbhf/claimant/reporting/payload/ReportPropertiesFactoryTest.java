@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -36,6 +35,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,9 +67,8 @@ class ReportPropertiesFactoryTest {
 
         // Queue time is number of milliseconds since now and the timestamp value. Therefore a timestamp one second ago should have a queue time >= 1000
         Long queueTime = Long.parseLong(reportProperties.get("qt"));
-        assertThat(queueTime).isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(secondsSinceEvent));
-        long maxQueueTime = ChronoUnit.MILLIS.between(timestamp, LocalDateTime.now());
-        assertThat(queueTime).isLessThanOrEqualTo(maxQueueTime);
+        Long maxPossibleQueueTime = ChronoUnit.MILLIS.between(timestamp, LocalDateTime.now());
+        assertThat(queueTime).isBetween(TimeUnit.SECONDS.toMillis(secondsSinceEvent), maxPossibleQueueTime);
 
         Claim claim = context.getClaim();
         PostcodeData postcodeData = claim.getPostcodeData();
@@ -99,7 +99,7 @@ class ReportPropertiesFactoryTest {
 
     @Test
     void shouldImposeMaximumValueForQueueTime() {
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now().minusHours(5), emptyList(), null);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now().minusHours(5), NO_CHILDREN, NOT_PREGNANT);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -113,7 +113,7 @@ class ReportPropertiesFactoryTest {
 
     @Test
     void shouldIncludeMetricsForZeroChildren() {
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), emptyList(), null);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, NOT_PREGNANT);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -127,7 +127,7 @@ class ReportPropertiesFactoryTest {
     @ParameterizedTest(name = "{1} children under 1 and {2} between 1 and 4 given: {0}")
     @MethodSource("childrensDatesOfBirth")
     void shouldIncludeMetricsForNumberOfChildren(List<LocalDate> datesOfBirth, long childrenUnderOne, long childrenOneToFour) {
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), datesOfBirth, null);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), datesOfBirth, NOT_PREGNANT);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -156,7 +156,7 @@ class ReportPropertiesFactoryTest {
     })
     void shouldIncludeMetricsForPregnantClaimant(String timeSinceConception, Long weeksPregnant) {
         LocalDate expectedDeliveryDate = LocalDate.now().minus(Period.parse(timeSinceConception)).plusWeeks(40);
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), emptyList(), expectedDeliveryDate);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, expectedDeliveryDate);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -170,7 +170,7 @@ class ReportPropertiesFactoryTest {
     @Test
     void shouldNotIncludePregnancyWeeksForPregnancyInPast() {
         LocalDate expectedDeliveryDate = LocalDate.now().minusWeeks(40).plusDays(1);
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), emptyList(), expectedDeliveryDate);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, expectedDeliveryDate);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -181,7 +181,7 @@ class ReportPropertiesFactoryTest {
 
     @Test
     void shouldNotIncludePregnancyWeeksForClaimantWithoutPregnancy() {
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), emptyList(), null);
+        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, NOT_PREGNANT);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
@@ -190,7 +190,8 @@ class ReportPropertiesFactoryTest {
         assertThat(reportProperties).doesNotContainKey("cm9");
     }
 
-    private ReportClaimMessageContext aReportClaimMessageContext(LocalDateTime timestamp, List<LocalDate> datesOfBirthOfChildren,
+    private ReportClaimMessageContext aReportClaimMessageContext(LocalDateTime timestamp,
+                                                                 List<LocalDate> datesOfBirthOfChildren,
                                                                  LocalDate expectedDeliveryDate) {
         Claimant claimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         Claim claim = aValidClaimBuilder()

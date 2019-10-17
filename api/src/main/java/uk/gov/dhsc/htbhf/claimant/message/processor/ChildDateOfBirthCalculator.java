@@ -57,12 +57,21 @@ public class ChildDateOfBirthCalculator {
      * @return true if any children were under 4 at the start of the given PaymentCycle.
      */
     public boolean hadChildrenUnder4AtStartOfPaymentCycle(PaymentCycle paymentCycle) {
-        List<LocalDate> childrenDob = paymentCycle.getChildrenDob();
+        return hadChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), paymentCycle.getCycleStartDate());
+    }
+
+    /**
+     * Calculates whether or not there are any children under 4 at the given date.
+     * @param childrenDob the list of children's dates of birth to check
+     * @param atDate the date to compare the children's date of birth against
+     * @return true if any children were under four at the given date
+     */
+    public boolean hadChildrenUnderFourAtGivenDate(List<LocalDate> childrenDob, LocalDate atDate) {
         if (CollectionUtils.isEmpty(childrenDob)) {
             return false;
         }
-        return paymentCycle.getChildrenDob().stream()
-                .anyMatch(childDob -> childDob.isAfter(paymentCycle.getCycleStartDate().minusYears(4)));
+        return childrenDob.stream()
+                .anyMatch(childDob -> childDob.isAfter(atDate.minusYears(4)));
     }
 
     private int countChildrenOfAge(PaymentCycle paymentCycle, LocalDate lastEntitlementDateInCurrentCycle,

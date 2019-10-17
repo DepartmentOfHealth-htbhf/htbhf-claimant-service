@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ public class ClaimantCategoryCalculator {
     private static final int EIGHTEEN = 18;
 
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     /**
      * Determines the {@link uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory} for a given claimant and their children's date of birth.
@@ -38,21 +40,16 @@ public class ClaimantCategoryCalculator {
             if (claimantAgeInYears < EIGHTEEN) {
                 return PREGNANT_AND_UNDER_18;
             }
-            if (hasChildren(datesOfBirthOfChildren, atDate)) {
+            if (childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
                 return PREGNANT_WITH_CHILDREN;
             }
             return PREGNANT_WITH_NO_CHILDREN;
         }
-        if (hasChildren(datesOfBirthOfChildren, atDate)) {
+        if (childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
             return NOT_PREGNANT_WITH_CHILDREN;
         }
         // this could happen once a claim has expired
         return NOT_PREGNANT_WITH_NO_CHILDREN;
-    }
-
-    private boolean hasChildren(List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
-        LocalDate fourYearsOld = atDate.minusYears(4);
-        return datesOfBirthOfChildren.stream().anyMatch(date -> date.isAfter(fourYearsOld));
     }
 
     private int getClaimantAgeInYears(Claimant claimant, LocalDate atDate) {
