@@ -35,13 +35,18 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
 
 @ExtendWith(MockitoExtension.class)
 class ReportPropertiesFactoryTest {
 
     private static final ClaimantCategory CLAIMANT_CATEGORY = ClaimantCategory.PREGNANT_WITH_CHILDREN;
+    private static final List<LocalDate> TWO_CHILDREN_UNDER_ONE = List.of(LocalDate.now().minusDays(1), LocalDate.now().minusMonths(11));
+    private static final List<LocalDate> TWO_CHILDREN_BETWEEN_ONE_AND_FOUR = List.of(LocalDate.now().minusYears(2), LocalDate.now().minusYears(3));
+    private static final List<LocalDate> ONE_CHILD_FOUR_YEARS_OLD = List.of(LocalDate.now().minusYears(4));
+    private static final List<LocalDate> ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR
+            = List.of(LocalDate.now().minusMonths(11), LocalDate.now().minusYears(2));
 
     @Mock
     private ClaimantCategoryCalculator claimantCategoryCalculator;
@@ -54,11 +59,10 @@ class ReportPropertiesFactoryTest {
         int secondsSinceEvent = 1;
         LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
         List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
-        ReportClaimMessageContext context = aReportClaimMessageContext(timestamp, datesOfBirthOfChildren, EXPECTED_DELIVERY_DATE);
+        ReportClaimMessageContext context = aReportClaimMessageContext(timestamp, datesOfBirthOfChildren, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
-
 
         // Queue time is number of milliseconds since now and the timestamp value. Therefore a timestamp one second ago should have a queue time >= 1000
         Long queueTime = Long.parseLong(reportProperties.get("qt"));
@@ -136,11 +140,10 @@ class ReportPropertiesFactoryTest {
 
     static Stream<Arguments> childrensDatesOfBirth() {
         return Stream.of(
-                Arguments.of(List.of(LocalDate.now().minusDays(1), LocalDate.now().minusMonths(11)), 2, 0),
-                Arguments.of(List.of(LocalDate.now().minusMonths(11), LocalDate.now().minusYears(2)), 1, 1),
-                Arguments.of(List.of(LocalDate.now().minusMonths(11), LocalDate.now().minusYears(2)), 1, 1),
-                Arguments.of(List.of(LocalDate.now().minusYears(2), LocalDate.now().minusYears(3)), 0, 2),
-                Arguments.of(List.of(LocalDate.now().minusYears(4)), 0, 0)
+                Arguments.of(TWO_CHILDREN_UNDER_ONE, 2, 0),
+                Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, 1, 1),
+                Arguments.of(TWO_CHILDREN_BETWEEN_ONE_AND_FOUR, 0, 2),
+                Arguments.of(ONE_CHILD_FOUR_YEARS_OLD, 0, 0)
         );
     }
 

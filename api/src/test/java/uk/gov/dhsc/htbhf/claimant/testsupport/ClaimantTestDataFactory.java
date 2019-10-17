@@ -80,7 +80,7 @@ public final class ClaimantTestDataFactory {
                 .phoneNumber(VALID_PHONE_NUMBER)
                 .emailAddress(VALID_EMAIL_ADDRESS)
                 .address(aValidAddress())
-                .expectedDeliveryDate(EXPECTED_DELIVERY_DATE);
+                .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
     }
 
     public static Claimant.ClaimantBuilder aValidClaimantInSameHouseholdBuilder() {

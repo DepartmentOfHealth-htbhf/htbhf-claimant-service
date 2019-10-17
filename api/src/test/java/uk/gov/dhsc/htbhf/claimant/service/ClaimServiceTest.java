@@ -19,7 +19,6 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
-import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -50,6 +49,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -247,7 +247,7 @@ class ClaimServiceTest {
         assertThat(result.getClaimUpdated()).isTrue();
         assertThat(result.getUpdatedFields()).isEmpty();
         assertThat(result.getClaim()).isEqualTo(existingClaim);
-        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(TestConstants.EXPECTED_DELIVERY_DATE);
+        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
