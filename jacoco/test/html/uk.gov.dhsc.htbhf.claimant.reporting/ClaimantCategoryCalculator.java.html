@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimantCategoryCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.reporting</a> &gt; <span class="el_source">ClaimantCategoryCalculator.java</span></div><h1>ClaimantCategoryCalculator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.reporting;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.List;
+
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.*;
+
+@Component
+@RequiredArgsConstructor
+public class ClaimantCategoryCalculator {
+
+    private static final int SIXTEEN = 16;
+    private static final int EIGHTEEN = 18;
+
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
+    /**
+     * Determines the {@link uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory} for a given claimant and their children's date of birth.
+     *
+     * @param claimant               the claimant to determine the category of
+     * @param datesOfBirthOfChildren the dates of birth of the claimant's children
+     * @param atDate                 the date to use when checking a claimant/child's age or pregnancy
+     * @return claimant's determined category
+     */
+    public ClaimantCategory determineClaimantCategory(Claimant claimant, List&lt;LocalDate&gt; datesOfBirthOfChildren, LocalDate atDate) {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (isClaimantPregnant(claimant, atDate)) {</span>
+<span class="fc" id="L34">            int claimantAgeInYears = getClaimantAgeInYears(claimant, atDate);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            if (claimantAgeInYears &lt; SIXTEEN) {</span>
+<span class="fc" id="L36">                return PREGNANT_AND_UNDER_16;</span>
+            }
+<span class="fc bfc" id="L38" title="All 2 branches covered.">            if (claimantAgeInYears &lt; EIGHTEEN) {</span>
+<span class="fc" id="L39">                return PREGNANT_AND_UNDER_18;</span>
+            }
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            if (hasChildren(datesOfBirthOfChildren, atDate)) {</span>
+<span class="fc" id="L42">                return PREGNANT_WITH_CHILDREN;</span>
+            }
+<span class="fc" id="L44">            return PREGNANT_WITH_NO_CHILDREN;</span>
+        }
+<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (hasChildren(datesOfBirthOfChildren, atDate)) {</span>
+<span class="fc" id="L47">            return NOT_PREGNANT_WITH_CHILDREN;</span>
+        }
+        // this could happen once a claim has expired
+<span class="fc" id="L50">        return NOT_PREGNANT_WITH_NO_CHILDREN;</span>
+    }
+
+    private boolean hasChildren(List&lt;LocalDate&gt; datesOfBirthOfChildren, LocalDate atDate) {
+<span class="fc" id="L54">        LocalDate fourYearsOld = atDate.minusYears(4);</span>
+<span class="fc" id="L55">        return datesOfBirthOfChildren.stream().anyMatch(date -&gt; date.isAfter(fourYearsOld));</span>
+    }
+
+    private int getClaimantAgeInYears(Claimant claimant, LocalDate atDate) {
+<span class="fc" id="L59">        return Period.between(claimant.getDateOfBirth(), atDate).getYears();</span>
+    }
+
+    private boolean isClaimantPregnant(Claimant claimant, LocalDate atDate) {
+<span class="fc" id="L63">        return pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), atDate);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
