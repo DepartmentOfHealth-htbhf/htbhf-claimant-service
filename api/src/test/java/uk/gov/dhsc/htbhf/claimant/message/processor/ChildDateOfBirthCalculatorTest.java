@@ -285,7 +285,7 @@ class ChildDateOfBirthCalculatorTest {
 
     @ParameterizedTest(name = "Children dobs={0}")
     @MethodSource("provideArgumentsForChildrenUnderFour")
-    void shouldReturnChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
+    void shouldReturnHadChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
         //Given a children under 4 in the PaymentCycle
         PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
         //When
@@ -296,11 +296,29 @@ class ChildDateOfBirthCalculatorTest {
 
     @ParameterizedTest(name = "Children dobs={0}")
     @MethodSource("provideArgumentsForChildrenFourAndOver")
-    void shouldReturnNoChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
+    void shouldReturnHadNoChildrenAtStartOfPaymentCycle(List<LocalDate> childrenDobs) {
         //Given a children 4 or over 4 in the PaymentCycle
         PaymentCycle paymentCycle = aPaymentCycleWithChildrenDobs(childrenDobs);
         //When
         boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(paymentCycle);
+        //Then
+        assertThat(hasChildren).isFalse();
+    }
+
+    @ParameterizedTest(name = "Children dobs={0}")
+    @MethodSource("provideArgumentsForChildrenUnderFour")
+    void shouldReturnHadChildrenForGivenDate(List<LocalDate> childrenDobs) {
+        //When
+        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
+        //Then
+        assertThat(hasChildren).isTrue();
+    }
+
+    @ParameterizedTest(name = "Children dobs={0}")
+    @MethodSource("provideArgumentsForChildrenFourAndOver")
+    void shouldReturnHadNoChildrenForGivenDate(List<LocalDate> childrenDobs) {
+        //When
+        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isFalse();
     }

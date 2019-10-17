@@ -1,6 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import static java.util.Collections.emptyList;
 
 public class TestConstants {
 
@@ -46,4 +49,8 @@ public class TestConstants {
 
     public static final String TEST_EXCEPTION_MESSAGE = "test exception";
     public static final RuntimeException TEST_EXCEPTION = new RuntimeException(TEST_EXCEPTION_MESSAGE);
+
+    public static final List<LocalDate> NO_CHILDREN = emptyList();
+
+    public static final LocalDate TWENTY_YEAR_OLD = LocalDate.now().minusYears(20);
 }
