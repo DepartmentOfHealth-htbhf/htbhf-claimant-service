@@ -34,6 +34,7 @@ public class ReportPropertiesFactory {
     // queue times longer than 4 hours may cause the event to not be registered:
     // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#qt
     private static final Long MAX_QUEUE_TIME = 1000L * 60 * 60 * 4;
+    public static final int PREGNANCY_DURATION_IN_WEEKS = 40;
 
     private final ClaimantCategoryCalculator claimantCategoryCalculator;
 
@@ -87,7 +88,7 @@ public class ReportPropertiesFactory {
             customMetrics.put(PREGNANCIES.getFieldName(), 0);
         } else {
             customMetrics.put(PREGNANCIES.getFieldName(), 1);
-            LocalDate conception = expectedDeliveryDate.minusMonths(9);
+            LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);
             customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));
         }
         return customMetrics;
