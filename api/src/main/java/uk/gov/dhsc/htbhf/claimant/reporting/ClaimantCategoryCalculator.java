@@ -7,7 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 
@@ -16,6 +15,9 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.*;
 @Component
 @RequiredArgsConstructor
 public class ClaimantCategoryCalculator {
+
+    private static final int SIXTEEN = 16;
+    private static final int EIGHTEEN = 18;
 
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
 
@@ -28,28 +30,29 @@ public class ClaimantCategoryCalculator {
      * @return claimant's determined category
      */
     public ClaimantCategory determineClaimantCategory(Claimant claimant, List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
-        int claimantAgeInYears = getClaimantAgeInYears(claimant, atDate);
         if (isClaimantPregnant(claimant, atDate)) {
-            if (claimantAgeInYears < 16) {
+            int claimantAgeInYears = getClaimantAgeInYears(claimant, atDate);
+            if (claimantAgeInYears < SIXTEEN) {
                 return PREGNANT_AND_UNDER_16;
             }
-            if (claimantAgeInYears < 18) {
+            if (claimantAgeInYears < EIGHTEEN) {
                 return PREGNANT_AND_UNDER_18;
             }
-            if (hasChildren(datesOfBirthOfChildren)) {
+            if (hasChildren(datesOfBirthOfChildren, atDate)) {
                 return PREGNANT_WITH_CHILDREN;
             }
             return PREGNANT_WITH_NO_CHILDREN;
         }
-        if (hasChildren(datesOfBirthOfChildren)) {
+        if (hasChildren(datesOfBirthOfChildren, atDate)) {
             return NOT_PREGNANT_WITH_CHILDREN;
         }
-        // this could happen once a claimant has expired
+        // this could happen once a claim has expired
         return NOT_PREGNANT_WITH_NO_CHILDREN;
     }
 
-    private boolean hasChildren(List<LocalDate> datesOfBirthOfChildren) {
-        return datesOfBirthOfChildren != null && !datesOfBirthOfChildren.isEmpty();
+    private boolean hasChildren(List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
+        LocalDate fourYearsOld = atDate.minusYears(4);
+        return datesOfBirthOfChildren.stream().filter(date -> date.isAfter(fourYearsOld)).count() > 0;
     }
 
     private int getClaimantAgeInYears(Claimant claimant, LocalDate ageAtDate) {

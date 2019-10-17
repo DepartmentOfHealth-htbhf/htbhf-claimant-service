@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 
@@ -23,9 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.*;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.NOT_PREGNANT_WITH_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.NOT_PREGNANT_WITH_NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREGNANT_WITH_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 
 @ExtendWith(MockitoExtension.class)
@@ -109,6 +109,23 @@ class ClaimantCategoryCalculatorTest {
         LocalDate expectedDeliveryDate = null;
         LocalDate now = LocalDate.now();
         List<LocalDate> datesOfBirthOfChildren = emptyList();
+        Claimant claimant = aValidClaimantBuilder()
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .dateOfBirth(LocalDate.now().minusYears(20))
+                .build();
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, datesOfBirthOfChildren, now);
+
+        assertThat(claimantCategory).isEqualTo(NOT_PREGNANT_WITH_NO_CHILDREN);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(expectedDeliveryDate, now);
+    }
+
+    @Test
+    void shouldMatchClaimantToNotPregnantWithNoChildrenWhenChildrenOver4() {
+        LocalDate expectedDeliveryDate = null;
+        LocalDate now = LocalDate.now();
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusYears(4));
         Claimant claimant = aValidClaimantBuilder()
                 .expectedDeliveryDate(expectedDeliveryDate)
                 .dateOfBirth(LocalDate.now().minusYears(20))

@@ -4,7 +4,7 @@ import lombok.Getter;
 
 /**
  * Custom dimensions with their associated indexes in google analytics.
- * Note, the indexes must be correct as these are used for reporting to google analytics.
+ * Note, the indexes must be correct as these are used for reporting to google analytics measurement protocol.
  * See https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
 @Getter
@@ -26,6 +26,6 @@ public enum CustomDimension {
     CustomDimension(int index) {
         // Google analytics using the notation of 'cd'+index as the field name
         // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#customs
-        this.fieldName = "dimension" + index;
+        this.fieldName = "cd" + index;
     }
 }
