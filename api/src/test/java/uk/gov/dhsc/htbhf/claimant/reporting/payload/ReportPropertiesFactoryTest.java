@@ -155,7 +155,7 @@ class ReportPropertiesFactoryTest {
             "P36W6D, 36"
     })
     void shouldIncludeMetricsForPregnantClaimant(String timeSinceConception, Long weeksPregnant) {
-        LocalDate expectedDeliveryDate = LocalDate.now().minus(Period.parse(timeSinceConception)).plusMonths(9);
+        LocalDate expectedDeliveryDate = LocalDate.now().minus(Period.parse(timeSinceConception)).plusWeeks(40);
         ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, expectedDeliveryDate);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
@@ -169,7 +169,7 @@ class ReportPropertiesFactoryTest {
 
     @Test
     void shouldNotIncludePregnancyWeeksForPregnancyInPast() {
-        LocalDate expectedDeliveryDate = LocalDate.now().minusMonths(9).plusDays(1);
+        LocalDate expectedDeliveryDate = LocalDate.now().minusWeeks(40).plusDays(1);
         ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, expectedDeliveryDate);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
 
@@ -207,7 +207,7 @@ class ReportPropertiesFactoryTest {
     }
 
     private String getNumberOfWeeksPregnant(Claim claim, LocalDateTime timestamp) {
-        LocalDate conception = claim.getClaimant().getExpectedDeliveryDate().minusMonths(9);
+        LocalDate conception = claim.getClaimant().getExpectedDeliveryDate().minusWeeks(40);
         return String.valueOf(ChronoUnit.WEEKS.between(conception, timestamp));
     }
 
