@@ -54,7 +54,7 @@ public class PaymentService {
                     .paymentReference(paymentReference)
                     .paymentStatus(PaymentStatus.FAILURE)
                     .failureDetail(failureDetail)
-                    .paymentTimestamp(LocalDateTime.now())
+                    .paymentTimestamp(failureEvent.getTimestamp())
                     .build();
 
             paymentRepository.save(failedPayment);

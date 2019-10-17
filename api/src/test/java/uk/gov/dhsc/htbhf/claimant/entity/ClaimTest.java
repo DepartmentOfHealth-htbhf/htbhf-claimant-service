@@ -21,6 +21,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 
 class ClaimTest extends AbstractValidationTest {
 
+    private static final LocalDateTime ONE_HOUR_AGO = LocalDateTime.now().minusHours(1);
+
     @Test
     void shouldValidateClaimSuccessfully() {
         //Given
@@ -95,10 +97,9 @@ class ClaimTest extends AbstractValidationTest {
 
     @Test
     void shouldUpdateClaimStatusAndTimestamp() {
-        LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
         Claim claim = Claim.builder()
                 .claimStatus(ClaimStatus.NEW)
-                .claimStatusTimestamp(originalTimestamp)
+                .claimStatusTimestamp(ONE_HOUR_AGO)
                 .build();
         LocalDateTime now = LocalDateTime.now();
 
@@ -109,23 +110,21 @@ class ClaimTest extends AbstractValidationTest {
 
     @Test
     void shouldNotUpdateClaimStatusTimestampWhenStatusUnchanged() {
-        LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
         Claim claim = Claim.builder()
                 .claimStatus(ClaimStatus.ACTIVE)
-                .claimStatusTimestamp(originalTimestamp)
+                .claimStatusTimestamp(ONE_HOUR_AGO)
                 .build();
 
         claim.updateClaimStatus(ClaimStatus.ACTIVE);
 
-        Assertions.assertThat(claim.getClaimStatusTimestamp()).isEqualTo(originalTimestamp);
+        Assertions.assertThat(claim.getClaimStatusTimestamp()).isEqualTo(ONE_HOUR_AGO);
     }
 
     @Test
     void shouldUpdateEligibilityStatusAndTimestamp() {
-        LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
         Claim claim = Claim.builder()
                 .eligibilityStatus(EligibilityStatus.INELIGIBLE)
-                .eligibilityStatusTimestamp(originalTimestamp)
+                .eligibilityStatusTimestamp(ONE_HOUR_AGO)
                 .build();
         LocalDateTime now = LocalDateTime.now();
 
@@ -136,14 +135,13 @@ class ClaimTest extends AbstractValidationTest {
 
     @Test
     void shouldNotUpdateEligibilityStatusTimestampWhenStatusUnchanged() {
-        LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
         Claim claim = Claim.builder()
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .eligibilityStatusTimestamp(originalTimestamp)
+                .eligibilityStatusTimestamp(ONE_HOUR_AGO)
                 .build();
 
         claim.updateEligibilityStatus(EligibilityStatus.ELIGIBLE);
 
-        Assertions.assertThat(claim.getEligibilityStatusTimestamp()).isEqualTo(originalTimestamp);
+        Assertions.assertThat(claim.getEligibilityStatusTimestamp()).isEqualTo(ONE_HOUR_AGO);
     }
 }

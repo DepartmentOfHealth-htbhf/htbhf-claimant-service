@@ -88,7 +88,7 @@ public class MessageProcessorScheduler {
         messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = "05/35 * * * * *") // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with CREATE_NEW_CARD for new claims
     @SchedulerLock(
             name = "Process REPORT_CLAIM messages",
             lockAtLeastForString = FIFTEEN_SECONDS,
