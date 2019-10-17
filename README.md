@@ -20,6 +20,7 @@ Note that this requires some services be present in the space to which it is dep
 
 ### Running locally
 In order to run the application locally, a valid notify api key will need to be set in an environment variable called `NOTIFY_API_KEY`. e.g. `export NOTIFY_API_KEY=MY-API-KEY`
+and an environment variable called `GOOGLE-ANALYTICS_TRACKING-ID` (exact value doesn't matter), e.g. `export GOOGLE-ANALYTICS_TRACKING-ID=test-key`.
 
 Note, you must set the environment variable in the same context you are running the application in. 
 
