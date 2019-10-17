@@ -76,18 +76,19 @@ public class ReportPropertiesFactory {
     private Map<String, Object> createCustomMetricMap(ReportClaimMessageContext context) {
         Map<String, Object> customMetrics = new TreeMap<>();
         Claimant claimant = context.getClaim().getClaimant();
-        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), LocalDate.now()).getYears());
-        long childrenUnder4 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(LocalDate.now().minusYears(4))).count();
-        long childrenUnder1 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(LocalDate.now().minusYears(1))).count();
+        LocalDate atDate = context.getTimestamp().toLocalDate();
+        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
+        long childrenUnder4 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(atDate.minusYears(4))).count();
+        long childrenUnder1 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(atDate.minusYears(1))).count();
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
         customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);
         LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();
-        if (expectedDeliveryDate == null || expectedDeliveryDate.isBefore(LocalDate.now())) {
+        if (expectedDeliveryDate == null || expectedDeliveryDate.isBefore(atDate)) {
             customMetrics.put(PREGNANCIES.getFieldName(), 0);
         } else {
             customMetrics.put(PREGNANCIES.getFieldName(), 1);
             LocalDate conception = expectedDeliveryDate.minusMonths(9);
-            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, LocalDate.now()));
+            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));
         }
         return customMetrics;
     }

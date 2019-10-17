@@ -52,11 +52,11 @@ public class ClaimantCategoryCalculator {
 
     private boolean hasChildren(List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
         LocalDate fourYearsOld = atDate.minusYears(4);
-        return datesOfBirthOfChildren.stream().filter(date -> date.isAfter(fourYearsOld)).count() > 0;
+        return datesOfBirthOfChildren.stream().anyMatch(date -> date.isAfter(fourYearsOld));
     }
 
-    private int getClaimantAgeInYears(Claimant claimant, LocalDate ageAtDate) {
-        return Period.between(claimant.getDateOfBirth(), ageAtDate).getYears();
+    private int getClaimantAgeInYears(Claimant claimant, LocalDate atDate) {
+        return Period.between(claimant.getDateOfBirth(), atDate).getYears();
     }
 
     private boolean isClaimantPregnant(Claimant claimant, LocalDate atDate) {

@@ -58,14 +58,12 @@ class ClaimantCategoryCalculatorTest {
                 .dateOfBirth(LocalDate.now().minus(Period.parse(age)))
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
+        LocalDate atDate = LocalDate.now();
 
-        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, emptyList(), LocalDate.now());
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, emptyList(), atDate);
 
-        LocalDate now = LocalDate.now();
         assertThat(claimantCategory).isEqualTo(expectedCategory);
-        ArgumentCaptor<LocalDate> argumentCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(eq(expectedDeliveryDate), argumentCaptor.capture());
-        assertThat(argumentCaptor.getValue()).isAfterOrEqualTo(now);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(expectedDeliveryDate, atDate);
     }
 
     @Test

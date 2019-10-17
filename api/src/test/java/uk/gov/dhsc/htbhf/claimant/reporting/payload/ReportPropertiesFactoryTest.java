@@ -21,6 +21,7 @@ import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -50,7 +51,8 @@ class ReportPropertiesFactoryTest {
 
     @Test
     void shouldCreateReportPropertiesForNewClaim() {
-        LocalDateTime timestamp = LocalDateTime.now().minusSeconds(1);
+        int secondsSinceEvent = 1;
+        LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
         List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
         ReportClaimMessageContext context = aReportClaimMessageContext(timestamp, datesOfBirthOfChildren, EXPECTED_DELIVERY_DATE);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
@@ -60,7 +62,7 @@ class ReportPropertiesFactoryTest {
 
         // Queue time is number of milliseconds since now and the timestamp value. Therefore a timestamp one second ago should have a queue time >= 1000
         Long queueTime = Long.parseLong(reportProperties.get("qt"));
-        assertThat(queueTime).isGreaterThanOrEqualTo(1000);
+        assertThat(queueTime).isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(secondsSinceEvent));
         long maxQueueTime = ChronoUnit.MILLIS.between(timestamp, LocalDateTime.now());
         assertThat(queueTime).isLessThanOrEqualTo(maxQueueTime);
 
@@ -80,9 +82,13 @@ class ReportPropertiesFactoryTest {
                 entry("cd7", postcodeData.getOutcode()),
                 entry("cd8", postcodeData.getParliamentaryConstituency()),
                 entry("cd9", postcodeData.getCcg()), // Clinical Commissioning Group
-                entry("cd10", postcodeData.getCodes().getCcg())); // Clinical Commissioning Group code
-        long expectedClaimantAge = Period.between(claim.getClaimant().getDateOfBirth(), timestamp.toLocalDate()).getYears();
-        assertThat(reportProperties.get("cm7")).isEqualTo(String.valueOf(expectedClaimantAge));
+                entry("cd10", postcodeData.getCodes().getCcg()), // Clinical Commissioning Group code
+                entry("cm1", "1"), // number of children under one
+                entry("cm2", "0"), // number of children between one and four
+                entry("cm3", "1"), // number of pregnancies
+                entry("cm7", getExpectedClaimantAge(claim, timestamp)), // claimant age in years
+                entry("cm9", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant
+        );
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
         verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
     }
@@ -194,5 +200,15 @@ class ReportPropertiesFactoryTest {
                 .datesOfBirthOfChildren(datesOfBirthOfChildren)
                 .timestamp(timestamp)
                 .build();
+    }
+
+    private String getNumberOfWeeksPregnant(Claim claim, LocalDateTime timestamp) {
+        LocalDate conception = claim.getClaimant().getExpectedDeliveryDate().minusMonths(9);
+        return String.valueOf(ChronoUnit.WEEKS.between(conception, timestamp));
+    }
+
+    private String getExpectedClaimantAge(Claim claim, LocalDateTime timestamp) {
+        long claimantAge = Period.between(claim.getClaimant().getDateOfBirth(), timestamp.toLocalDate()).getYears();
+        return String.valueOf(claimantAge);
     }
 }
