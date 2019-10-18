@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -8,31 +9,43 @@ import java.util.List;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.nCopies;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 public class EligibilityAndEntitlementTestDataFactory {
 
     public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
         EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
-        if (eligibilityStatus != ELIGIBLE) {
-            builder.voucherEntitlement(null);
-        }
+        removeEligibilityStatusIfAppropriate(eligibilityStatus, builder);
         return builder.build();
     }
 
-    public static EligibilityAndEntitlementDecision anIneligibleDecisionWithNoChildren() {
-        return aValidDecisionBuilder().eligibilityStatus(INELIGIBLE).dateOfBirthOfChildren(emptyList()).build();
+    public static EligibilityAndEntitlementDecision aDecisionWithStatusAndChildren(EligibilityStatus eligibilityStatus,
+                                                                                   QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus,
+                                                                                   List<LocalDate> childrenDobs) {
+        EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
+        removeEligibilityStatusIfAppropriate(eligibilityStatus, builder);
+        return builder
+                .qualifyingBenefitEligibilityStatus(qualifyingBenefitEligibilityStatus)
+                .dateOfBirthOfChildren(childrenDobs)
+                .build();
+    }
+
+    private static void removeEligibilityStatusIfAppropriate(EligibilityStatus eligibilityStatus,
+                                                             EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder) {
+        if (eligibilityStatus != ELIGIBLE) {
+            builder.voucherEntitlement(null);
+        }
     }
 
     public static EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder aValidDecisionBuilder() {
         List<LocalDate> children = createChildren(NUMBER_OF_CHILDREN_UNDER_ONE, NUMBER_OF_CHILDREN_UNDER_FOUR);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
+                .qualifyingBenefitEligibilityStatus(CONFIRMED)
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())

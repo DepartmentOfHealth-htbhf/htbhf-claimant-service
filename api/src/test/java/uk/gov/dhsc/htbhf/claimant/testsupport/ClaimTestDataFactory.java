@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
@@ -35,6 +36,16 @@ public class ClaimTestDataFactory {
     public static Claim aClaimWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE)
                 .claimant(ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate(expectedDeliveryDate))
+                .build();
+    }
+
+    public static Claim aClaimWithExpectedDeliveryDateAndChildrenDobs(LocalDate expectedDeliveryDate, List<LocalDate> childrenDobs) {
+        return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE)
+                .claimant(
+                        ClaimantTestDataFactory.aValidClaimantBuilder()
+                                .expectedDeliveryDate(expectedDeliveryDate)
+                                .childrenDob(childrenDobs)
+                                .build())
                 .build();
     }
 

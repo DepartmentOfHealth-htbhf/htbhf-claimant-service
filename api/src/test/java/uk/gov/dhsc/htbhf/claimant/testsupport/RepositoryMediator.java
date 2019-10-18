@@ -44,7 +44,7 @@ public class RepositoryMediator {
     @Transactional
     public PaymentCycle getCurrentPaymentCycleForClaim(Claim claim) {
         Optional<PaymentCycle> cycleOptional = paymentCycleRepository.findCurrentCycleForClaim(claim);
-        assertThat(cycleOptional.isPresent()).isTrue();
+        assertThat(cycleOptional).isPresent();
         PaymentCycle paymentCycle = cycleOptional.get();
         // ensure that everything has been loaded
         paymentCycle.getPayments().size();

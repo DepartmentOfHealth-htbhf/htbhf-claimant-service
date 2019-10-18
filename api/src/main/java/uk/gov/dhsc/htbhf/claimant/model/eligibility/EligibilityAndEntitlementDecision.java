@@ -34,7 +34,7 @@ public class EligibilityAndEntitlementDecision {
         return existingClaimId != null && eligibilityStatus == EligibilityStatus.ELIGIBLE;
     }
 
-    public boolean noChildrenPresentInCurrentCycle() {
-        return CollectionUtils.isEmpty(dateOfBirthOfChildren);
+    public boolean childrenPresent() {
+        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);
     }
 }

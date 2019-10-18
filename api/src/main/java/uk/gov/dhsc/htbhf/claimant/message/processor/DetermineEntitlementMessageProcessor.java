@@ -22,6 +22,7 @@ import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
@@ -42,6 +43,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;
 
     private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
+    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     @Override
     public MessageType supportsMessageType() {
@@ -69,26 +72,48 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
-        handleDecision(claim, currentPaymentCycle, decision);
+        handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);
         return COMPLETED;
     }
 
-    private void handleDecision(Claim claim, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
+    private void handleDecision(Claim claim, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
-        } else if (decision.noChildrenPresentInCurrentCycle() && claimantIsNotPregnant(claim, currentPaymentCycle)) {
-            handleNoLongerEligibleForScheme(claim);
-        } else {
-            handleLossOfQualifyingBenefitStatus(claim);
+        } else if (claim.getClaimStatus() == ACTIVE) {
+            if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
+                updateClaimStatus(claim, ClaimStatus.EXPIRED);
+            } else if (decision.getQualifyingBenefitEligibilityStatus().isNotEligible()) {
+                handleLossOfQualifyingBenefitStatus(claim);
+            } else {
+                handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim);
+            }
         }
+        //TODO HTBHF-1296: PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
+        // else {
+        // }
+    }
+
+    private boolean shouldExpireClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
+        if (decision.childrenPresent() || claimantIsPregnantInCycle(currentPaymentCycle)) {
+            return false;
+        }
+        if (childrenExistedInPreviousCycleAndNowOver4(previousPaymentCycle, currentPaymentCycle)) {
+            return true;
+        }
+        return claimantIsPregnantInCycle(previousPaymentCycle) && !claimantIsPregnantInCycle(currentPaymentCycle);
+    }
+
+    private boolean childrenExistedInPreviousCycleAndNowOver4(PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
+        return childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle)
+                && !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
     }
 
     //Use the PregnancyEntitlementCalculator to check that the claimant is either not pregnant or their pregnancy date is
     //considered too far in the past.
-    private boolean claimantIsNotPregnant(Claim claim, PaymentCycle currentPaymentCycle) {
-        return !pregnancyEntitlementCalculator.isEntitledToVoucher(
-                claim.getClaimant().getExpectedDeliveryDate(),
-                currentPaymentCycle.getCycleStartDate());
+    private boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
+        return pregnancyEntitlementCalculator.isEntitledToVoucher(
+                paymentCycle.getExpectedDeliveryDate(),
+                paymentCycle.getCycleStartDate());
     }
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {
@@ -101,7 +126,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
     }
 
-    private void handleNoLongerEligibleForScheme(Claim claim) {
+    private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim) {
         updateClaimStatus(claim, ClaimStatus.EXPIRED);
         determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
     }

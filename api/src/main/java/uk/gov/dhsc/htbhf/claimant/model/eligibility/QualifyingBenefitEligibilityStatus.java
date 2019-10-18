@@ -13,6 +13,7 @@ public enum QualifyingBenefitEligibilityStatus {
 
     /**
      * TODO: HTBHF-2388 This is a temporary method until the EligibilityService API is updated to include a more comprehensive response.
+     *
      * @param source the {@link EligibilityStatus} to determine this status from.
      * @return the status value appropriate to the source status.
      */
@@ -23,6 +24,15 @@ public enum QualifyingBenefitEligibilityStatus {
             return NOT_CONFIRMED;
         }
         return NOT_SET;
+    }
+
+    /**
+     * Determine whether the status is considered eligible or not.
+     *
+     * @return Whether the status is considered eligible or not.
+     */
+    public boolean isNotEligible() {
+        return this != QualifyingBenefitEligibilityStatus.CONFIRMED;
     }
 }
 
