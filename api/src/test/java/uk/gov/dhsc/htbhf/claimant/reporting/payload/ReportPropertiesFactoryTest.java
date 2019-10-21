@@ -1,12 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.reporting.payload;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -42,6 +42,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCOD
 @ExtendWith(MockitoExtension.class)
 class ReportPropertiesFactoryTest {
 
+    private static final String TRACKING_ID = "tracking-id";
     private static final ClaimantCategory CLAIMANT_CATEGORY = ClaimantCategory.PREGNANT_WITH_CHILDREN;
     private static final List<LocalDate> TWO_CHILDREN_UNDER_ONE = List.of(LocalDate.now().minusDays(1), LocalDate.now().minusMonths(11));
     private static final List<LocalDate> TWO_CHILDREN_BETWEEN_ONE_AND_FOUR = List.of(LocalDate.now().minusYears(2), LocalDate.now().minusYears(3));
@@ -52,8 +53,12 @@ class ReportPropertiesFactoryTest {
     @Mock
     private ClaimantCategoryCalculator claimantCategoryCalculator;
 
-    @InjectMocks
     private ReportPropertiesFactory reportPropertiesFactory;
+
+    @BeforeEach
+    void init() {
+        reportPropertiesFactory = new ReportPropertiesFactory(TRACKING_ID, claimantCategoryCalculator);
+    }
 
     @Test
     void shouldCreateReportPropertiesForNewClaim() {
@@ -74,10 +79,12 @@ class ReportPropertiesFactoryTest {
         PostcodeData postcodeData = claim.getPostcodeData();
         assertThat(reportProperties).contains(
                 entry("t", "event"),
+                entry("v", "1"), // protocol version
+                entry("tid", TRACKING_ID),
+                entry("cid", claim.getId().toString()),
                 entry("ec", "CLAIM"),
                 entry("ea", "NEW"),
                 entry("ev", "0"),
-                entry("cid", claim.getId().toString()),
                 entry("cd1", "ONLINE"), // user type
                 entry("cd3", CLAIMANT_CATEGORY.getDescription()), // claimant category
                 entry("cd4", postcodeData.getAdminDistrict()), // local authority (admin district in postcodes.io).

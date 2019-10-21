@@ -130,7 +130,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     }
 
     private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
-        claim.setClaimStatus(claimStatus);
+        claim.updateClaimStatus(claimStatus);
         claimRepository.save(claim);
     }
 

@@ -13,9 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewCardEvent;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 
 @Service
@@ -27,7 +24,6 @@ public class NewCardService {
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
     private EventAuditor eventAuditor;
-    private Clock clock;
 
     /**
      * Creates a new card for the given claim. If successful, the card account id is saved to the claim and the claim status is set to ACTIVE.
@@ -63,8 +59,7 @@ public class NewCardService {
 
     private void updateAndSaveClaim(Claim claim, CardResponse cardResponse) {
         claim.setCardAccountId(cardResponse.getCardAccountId());
-        claim.setClaimStatus(ACTIVE);
-        claim.setClaimStatusTimestamp(LocalDateTime.now(clock));
+        claim.updateClaimStatus(ACTIVE);
         claimRepository.save(claim);
     }
 }
