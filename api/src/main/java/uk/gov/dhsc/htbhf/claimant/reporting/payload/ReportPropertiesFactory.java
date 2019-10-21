@@ -1,6 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.reporting.payload;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
@@ -20,35 +20,52 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.*;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.HIT_TYPE_KEY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.PROTOCOL_VERSION_KEY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.TRACKING_ID_KEY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.UserType.ONLINE;
 
 /**
  * Factory class for creating a map of parameters reported to google analytics measurement protocol.
  */
 @Component
-@RequiredArgsConstructor
 public class ReportPropertiesFactory {
 
-    private static final String HIT_TYPE_KEY = "t";
     private static final String HIT_TYPE_VALUE = "event";
+    private static final String PROTOCOL_VERSION_VALUE = "1";
     // queue times longer than 4 hours may cause the event to not be registered:
     // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#qt
     private static final Long MAX_QUEUE_TIME = 1000L * 60 * 60 * 4;
     public static final int PREGNANCY_DURATION_IN_WEEKS = 40;
 
     private final ClaimantCategoryCalculator claimantCategoryCalculator;
+    private final String trackingId;
+
+    public ReportPropertiesFactory(@Value("${google-analytics.tracking-id}") String trackingId,
+                                   ClaimantCategoryCalculator claimantCategoryCalculator) {
+        this.trackingId = trackingId;
+        this.claimantCategoryCalculator = claimantCategoryCalculator;
+    }
 
     public Map<String, String> createReportPropertiesForClaimEvent(ReportClaimMessageContext context) {
         Map<String, String> reportProperties = new LinkedHashMap<>();
+        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
         reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context)));
         reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
         reportProperties.putAll(mapValuesToString(createCustomMetricMap(context)));
         return reportProperties;
     }
 
+    private Map<String, Object> createMandatoryPropertiesMap() {
+        Map<String, Object> mandatoryProperties = new LinkedHashMap<>();
+        mandatoryProperties.put(HIT_TYPE_KEY.getFieldName(), HIT_TYPE_VALUE);
+        mandatoryProperties.put(PROTOCOL_VERSION_KEY.getFieldName(), PROTOCOL_VERSION_VALUE);
+        mandatoryProperties.put(TRACKING_ID_KEY.getFieldName(), trackingId);
+        return mandatoryProperties;
+    }
+
     private Map<String, Object> createEventPropertiesMap(ReportClaimMessageContext context) {
         Map<String, Object> eventPropertiesMap = new LinkedHashMap<>();
-        eventPropertiesMap.put(HIT_TYPE_KEY, HIT_TYPE_VALUE);
         eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), CLAIM.name());
         eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getClaimAction().name());
         eventPropertiesMap.put(EVENT_VALUE.getFieldName(), 0);
