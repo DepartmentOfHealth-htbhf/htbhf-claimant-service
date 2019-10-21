@@ -13,21 +13,17 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewCardEvent;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L20">@Slf4j</span>
 public class NewCardService {
 
     private CardClient cardClient;
     private CardRequestFactory cardRequestFactory;
     private ClaimRepository claimRepository;
     private EventAuditor eventAuditor;
-    private Clock clock;
 
     /**
      * Creates a new card for the given claim. If successful, the card account id is saved to the claim and the claim status is set to ACTIVE.
@@ -41,31 +37,30 @@ public class NewCardService {
     @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
     @Transactional
     public void createNewCard(Claim claim) {
-<span class="fc" id="L44">        CardResponse cardResponse = null;</span>
+<span class="fc" id="L40">        CardResponse cardResponse = null;</span>
         try {
-<span class="fc" id="L46">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
-<span class="fc" id="L47">            cardResponse = cardClient.requestNewCard(cardRequest);</span>
-<span class="fc" id="L48">            updateAndSaveClaim(claim, cardResponse);</span>
-<span class="fc" id="L49">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
-<span class="fc" id="L50">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L51">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
-<span class="fc" id="L52">            throw new EventFailedException(buildFailedNewCardEvent(claim, cardResponse), e, failureMessage);</span>
-<span class="fc" id="L53">        }</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L42">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
+<span class="fc" id="L43">            cardResponse = cardClient.requestNewCard(cardRequest);</span>
+<span class="fc" id="L44">            updateAndSaveClaim(claim, cardResponse);</span>
+<span class="fc" id="L45">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
+<span class="fc" id="L46">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L47">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
+<span class="fc" id="L48">            throw new EventFailedException(buildFailedNewCardEvent(claim, cardResponse), e, failureMessage);</span>
+<span class="fc" id="L49">        }</span>
+<span class="fc" id="L50">    }</span>
 
     @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
     private NewCardEvent buildFailedNewCardEvent(Claim claim, CardResponse cardResponse) {
-<span class="fc" id="L58">        return NewCardEvent.builder()</span>
-<span class="fc" id="L59">                .claimId(claim.getId())</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">                .cardAccountId((cardResponse == null) ? null : cardResponse.getCardAccountId())</span>
-<span class="fc" id="L61">                .build();</span>
+<span class="fc" id="L54">        return NewCardEvent.builder()</span>
+<span class="fc" id="L55">                .claimId(claim.getId())</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                .cardAccountId((cardResponse == null) ? null : cardResponse.getCardAccountId())</span>
+<span class="fc" id="L57">                .build();</span>
     }
 
     private void updateAndSaveClaim(Claim claim, CardResponse cardResponse) {
-<span class="fc" id="L65">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
-<span class="fc" id="L66">        claim.setClaimStatus(ACTIVE);</span>
-<span class="fc" id="L67">        claim.setClaimStatusTimestamp(LocalDateTime.now(clock));</span>
-<span class="fc" id="L68">        claimRepository.save(claim);</span>
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L61">        claim.setCardAccountId(cardResponse.getCardAccountId());</span>
+<span class="fc" id="L62">        claim.updateClaimStatus(ACTIVE);</span>
+<span class="fc" id="L63">        claimRepository.save(claim);</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

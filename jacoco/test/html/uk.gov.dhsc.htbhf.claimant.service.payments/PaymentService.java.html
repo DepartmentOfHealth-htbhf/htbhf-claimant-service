@@ -54,7 +54,7 @@ public class PaymentService {
 <span class="fc" id="L54">                    .paymentReference(paymentReference)</span>
 <span class="fc" id="L55">                    .paymentStatus(PaymentStatus.FAILURE)</span>
 <span class="fc" id="L56">                    .failureDetail(failureDetail)</span>
-<span class="fc" id="L57">                    .paymentTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L57">                    .paymentTimestamp(failureEvent.getTimestamp())</span>
 <span class="fc" id="L58">                    .build();</span>
 
 <span class="fc" id="L60">            paymentRepository.save(failedPayment);</span>
