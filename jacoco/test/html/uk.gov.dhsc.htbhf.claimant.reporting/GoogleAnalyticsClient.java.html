@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GoogleAnalyticsClient.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.reporting</a> &gt; <span class="el_source">GoogleAnalyticsClient.java</span></div><h1>GoogleAnalyticsClient.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.reporting;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+import uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
+
+/**
+ * Service for interacting with google analytics measurement protocol.
+ * See https://developers.google.com/analytics/devguides/collection/protocol/v1/
+ */
+@Component
+<span class="fc" id="L30">@Slf4j</span>
+public class GoogleAnalyticsClient {
+
+    private static final String REPORT_ENDPOINT = &quot;/collect&quot;;
+
+    private final URI googleAnalyticsUri;
+    private final RestTemplate restTemplate;
+
+    public GoogleAnalyticsClient(@Value(&quot;${google-analytics.base-uri}&quot;) String baseUri,
+<span class="fc" id="L39">                                 RestTemplate restTemplate) throws URISyntaxException {</span>
+<span class="fc" id="L40">        this.googleAnalyticsUri = new URI(baseUri + REPORT_ENDPOINT);</span>
+<span class="fc" id="L41">        this.restTemplate = restTemplate;</span>
+<span class="fc" id="L42">    }</span>
+
+    public void reportEvent(Map&lt;String, String&gt; reportProperties) {
+<span class="fc" id="L45">        String payload = createQueryStringWithUrlEncodedValues(reportProperties);</span>
+
+<span class="fc" id="L47">        HttpHeaders headers = new HttpHeaders();</span>
+        // Google analytics requires plain text for the content type.
+<span class="fc" id="L49">        headers.setContentType(TEXT_PLAIN);</span>
+<span class="fc" id="L50">        RequestEntity&lt;String&gt; requestEntity = new RequestEntity&lt;&gt;(payload, headers, POST, googleAnalyticsUri);</span>
+
+        try {
+<span class="fc" id="L53">            ResponseEntity&lt;Void&gt; responseEntity = restTemplate.exchange(requestEntity, Void.class);</span>
+<span class="fc" id="L54">            checkResponseIsOk(responseEntity.getStatusCode());</span>
+<span class="fc" id="L55">        } catch (RestClientException e) {</span>
+<span class="fc" id="L56">            log.error(&quot;Exception caught trying to post to {}&quot;, googleAnalyticsUri.toString());</span>
+<span class="fc" id="L57">            throw new GoogleAnalyticsException(e, googleAnalyticsUri.toString());</span>
+<span class="fc" id="L58">        }</span>
+<span class="fc" id="L59">    }</span>
+
+    private String createQueryStringWithUrlEncodedValues(Map&lt;String, String&gt; reportProperties) {
+<span class="fc" id="L62">        return reportProperties.entrySet().stream()</span>
+<span class="fc" id="L63">                .map(entry -&gt; entry.getKey() + &quot;=&quot; + URLEncoder.encode(entry.getValue(), UTF_8))</span>
+<span class="fc" id="L64">                .collect(Collectors.joining(&quot;&amp;&quot;));</span>
+    }
+
+    private void checkResponseIsOk(HttpStatus status) {
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (status != OK) {</span>
+<span class="fc" id="L69">            log.error(&quot;Expecting response status from google analytics to be OK, instead received {}&quot;, status);</span>
+<span class="fc" id="L70">            throw new GoogleAnalyticsException(status);</span>
+        }
+<span class="fc" id="L72">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
