@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.Event;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,8 @@ class EventAuditorTest {
     @InjectMocks
     private EventAuditor eventAuditor;
 
+    private LocalDateTime testStart = LocalDateTime.now();
+
     @Test
     void shouldLogEventForValidClaimant() {
         //Given
@@ -53,7 +56,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CLAIM);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(3)
@@ -84,7 +87,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(UPDATED_CLAIM);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(2)
@@ -107,7 +110,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(NEW_CARD);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(2)
@@ -150,7 +153,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(MAKE_PAYMENT);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(5)
@@ -176,7 +179,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(4)
@@ -201,7 +204,7 @@ class EventAuditorTest {
         verify(eventLogger).logEvent(eventArgumentCaptor.capture());
         Event actualEvent = eventArgumentCaptor.getValue();
         assertThat(actualEvent.getEventType()).isEqualTo(EXPIRED_CLAIM);
-        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
                 .hasSize(1)
