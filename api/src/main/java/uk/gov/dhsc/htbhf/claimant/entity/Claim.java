@@ -25,17 +25,21 @@ public class Claim extends VersionedEntity {
     @NotNull
     @Column(name = "claim_status")
     @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
     private ClaimStatus claimStatus;
 
     @Column(name = "claim_status_timestamp")
+    @Setter(AccessLevel.PRIVATE)
     private LocalDateTime claimStatusTimestamp;
 
     @NotNull
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
     private EligibilityStatus eligibilityStatus;
 
     @Column(name = "eligibility_status_timestamp")
+    @Setter(AccessLevel.PRIVATE)
     private LocalDateTime eligibilityStatusTimestamp;
 
     @Column(name = "dwp_household_identifier")
@@ -66,4 +70,18 @@ public class Claim extends VersionedEntity {
     @ToString.Exclude
     @Valid
     private Claimant claimant;
+
+    public void updateClaimStatus(ClaimStatus newStatus) {
+        if (claimStatus != newStatus) {
+            claimStatusTimestamp = LocalDateTime.now();
+        }
+        claimStatus = newStatus;
+    }
+
+    public void updateEligibilityStatus(EligibilityStatus newStatus) {
+        if (eligibilityStatus != newStatus) {
+            eligibilityStatusTimestamp = LocalDateTime.now();
+        }
+        eligibilityStatus = newStatus;
+    }
 }
