@@ -73,7 +73,7 @@ class GoogleAnalyticsClientTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenGoogleAnalyticsReturnsAndErrorResponse() {
+    void shouldThrowExceptionWhenGoogleAnalyticsReturnsAnErrorResponse() {
         stubFor(post(urlEqualTo(REPORT_ENDPOINT)).withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
                 .willReturn((serverError())));
 
