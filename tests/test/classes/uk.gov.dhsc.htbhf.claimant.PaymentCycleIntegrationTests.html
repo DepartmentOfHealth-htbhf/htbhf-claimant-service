@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">17</div>
+<div class="counter">21</div>
 <p>tests</p>
 </div>
 </td>
@@ -35,13 +35,13 @@
 </td>
 <td>
 <div class="infoBox" id="ignored">
-<div class="counter">2</div>
+<div class="counter">0</div>
 <p>ignored</p>
 </div>
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.700s</div>
+<div class="counter">4.488s</div>
 <p>duration</p>
 </div>
 </td>
@@ -50,7 +50,7 @@
 </div>
 </td>
 <td>
-<div class="infoBox skipped" id="successRate">
+<div class="infoBox success" id="successRate">
 <div class="percent">100%</div>
 <p>successful</p>
 </div>
@@ -81,103 +81,127 @@
 <tr>
 <td class="success">Children DOB previous cycle=[2019-04-21, 2016-10-21], children DOB current cycle=[2019-04-21, 2016-10-21]</td>
 <td class="success">shouldCreatePaymentCycleMakePaymentAndSendEmail(List, List)[1]</td>
-<td class="success">0.191s</td>
+<td class="success">0.219s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Children DOB previous cycle=[], children DOB current cycle=[2019-04-21, 2016-10-21]</td>
 <td class="success">shouldCreatePaymentCycleMakePaymentAndSendEmail(List, List)[2]</td>
-<td class="success">0.177s</td>
+<td class="success">0.227s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Children DOB previous cycle=[2019-04-21, 2016-10-21], children DOB current cycle=[]</td>
 <td class="success">shouldCreatePaymentCycleMakePaymentAndSendEmail(List, List)[3]</td>
-<td class="success">0.169s</td>
+<td class="success">0.245s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Children DOB previous cycle=[], children DOB current cycle=[]</td>
 <td class="success">shouldCreatePaymentCycleMakePaymentAndSendEmail(List, List)[4]</td>
-<td class="success">0.167s</td>
+<td class="success">0.358s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldRecoverFromErrorsToMakePaymentAndSendEmail()</td>
 <td class="success">shouldRecoverFromErrorsToMakePaymentAndSendEmail()</td>
-<td class="success">0.353s</td>
+<td class="success">0.347s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle()</td>
 <td class="success">shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle()</td>
-<td class="success">0.203s</td>
+<td class="success">0.219s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSendEmailsWhenChildTurnsOneInNextPaymentCycle()</td>
 <td class="success">shouldSendEmailsWhenChildTurnsOneInNextPaymentCycle()</td>
-<td class="success">0.169s</td>
+<td class="success">0.215s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSendEmailsWhenChildTurnsOneOnFirstDayOfNextPaymentCycle()</td>
 <td class="success">shouldSendEmailsWhenChildTurnsOneOnFirstDayOfNextPaymentCycle()</td>
-<td class="success">0.175s</td>
+<td class="success">0.239s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSendNewChildEmailWhenPaymentCycleIncludesBackdatedVouchers()</td>
 <td class="success">shouldSendNewChildEmailWhenPaymentCycleIncludesBackdatedVouchers()</td>
-<td class="success">0.179s</td>
+<td class="success">0.224s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Eligibility status=ELIGIBLE</td>
-<td class="success">shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant(EligibilityStatus)[1]</td>
-<td class="success">0.154s</td>
+<td class="success">Integration test for HTBHF-2185 for a non-pregnant claimant where DWP have returned no children on record but they are ELIGIBLE, the claim status should be set to Expired and email sent to Claimant</td>
+<td class="success">shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant()</td>
+<td class="success">0.207s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Eligibility status=INELIGIBLE</td>
-<td class="success">shouldSendNoLongerEligibleEmailWhenEligibleWithNoChildrenOnFeedAndNotPregnant(EligibilityStatus)[2]</td>
-<td class="success">0.157s</td>
+<td class="success">Eligibility status=INELIGIBLE, expected delivery date=null</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus, LocalDate)[1]</td>
+<td class="success">0.176s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="skipped">Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, not pregnant, children over 4 present in previous cycle, response from DWP is ELIGIBLE with no children</td>
-<td class="skipped">shouldTestClaimBecomingExpiredWhenRollingOffTheSchemeEligibleResponse()</td>
-<td class="skipped">-</td>
-<td class="skipped">ignored</td>
+<td class="success">Eligibility status=INELIGIBLE, expected delivery date=2019-07-22</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus, LocalDate)[2]</td>
+<td class="success">0.197s</td>
+<td class="success">passed</td>
 </tr>
 <tr>
-<td class="skipped">Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, not pregnant, children over 4 present in previous cycle, response from DWP is INELIGIBLE with no children</td>
-<td class="skipped">shouldTestClaimBecomingExpiredWhenRollingOffTheSchemeIneligibleResponse()</td>
-<td class="skipped">-</td>
-<td class="skipped">ignored</td>
+<td class="success">Eligibility status=ELIGIBLE, expected delivery date=null</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus, LocalDate)[3]</td>
+<td class="success">0.184s</td>
+<td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Children DOB previous cycle=[2016-10-21], Children DOB current cycle=[2016-10-21], expected delivery date=2020-02-21</td>
+<td class="success">Eligibility status=ELIGIBLE, expected delivery date=2019-07-22</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus, LocalDate)[4]</td>
+<td class="success">0.195s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">DWP eligibility status=ELIGIBLE</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityStatus)[1]</td>
+<td class="success">0.176s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">DWP eligibility status=INELIGIBLE</td>
+<td class="success">shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityStatus)[2]</td>
+<td class="success">0.166s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Children DOB previous cycle=[2016-10-21], Children DOB current cycle=[2016-10-21], expected delivery date=2019-12-21</td>
 <td class="success">shouldTestClaimantBecomingIneligible(List, List, LocalDate)[1]</td>
-<td class="success">0.156s</td>
+<td class="success">0.163s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Children DOB previous cycle=[], Children DOB current cycle=[2016-10-21], expected delivery date=2020-02-21</td>
+<td class="success">Children DOB previous cycle=[], Children DOB current cycle=[2016-10-21], expected delivery date=2019-12-21</td>
 <td class="success">shouldTestClaimantBecomingIneligible(List, List, LocalDate)[2]</td>
-<td class="success">0.140s</td>
+<td class="success">0.147s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Children DOB previous cycle=[2016-10-21], Children DOB current cycle=[], expected delivery date=2020-02-21</td>
+<td class="success">Children DOB previous cycle=[2016-10-21], Children DOB current cycle=[], expected delivery date=2019-12-21</td>
 <td class="success">shouldTestClaimantBecomingIneligible(List, List, LocalDate)[3]</td>
-<td class="success">0.155s</td>
+<td class="success">0.146s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">Children DOB previous cycle=[], Children DOB current cycle=[], expected delivery date=2020-02-21</td>
+<td class="success">Children DOB previous cycle=[], Children DOB current cycle=[], expected delivery date=2019-12-21</td>
 <td class="success">shouldTestClaimantBecomingIneligible(List, List, LocalDate)[4]</td>
-<td class="success">0.155s</td>
+<td class="success">0.213s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Children DOB previous cycle=[2016-10-21], Children DOB current cycle=[], expected delivery date=null</td>
+<td class="success">shouldTestClaimantBecomingIneligible(List, List, LocalDate)[5]</td>
+<td class="success">0.225s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -185,19 +209,19 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>13:37:11.006 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.030 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.034 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:11.066 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.071 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
-13:37:11.090 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
-13:37:11.188 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.202 [Test worker] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
-13:37:11.203 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id af22cd47-19aa-4ff6-b5a0-fd838711bffb, exception detail: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+<pre>14:17:15.110 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.136 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.141 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:15.172 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.177 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
+14:17:15.198 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
+14:17:15.298 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.312 [Test worker] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
+14:17:15.313 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 60fa8f16-8745-4d52-b8fb-3d68673c41af, exception detail: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService.evaluateExistingClaimant(EligibilityAndEntitlementService.java:81)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.DetermineEntitlementMessageProcessor.processMessage(DetermineEntitlementMessageProcessor.java:66)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.DetermineEntitlementMessageProcessor.processMessage(DetermineEntitlementMessageProcessor.java:69)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.DetermineEntitlementMessageProcessor$$FastClassBySpringCGLIB$$c3cebaaf.invoke(&lt;generated&gt;)
 	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
 	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:750)
@@ -206,7 +230,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caugh
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.DetermineEntitlementMessageProcessor$$EnhancerBySpringCGLIB$$9de55f6a.processMessage(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.DetermineEntitlementMessageProcessor$$EnhancerBySpringCGLIB$$323913e7.processMessage(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessagesOfType$0(MessageProcessor.java:56)
@@ -226,7 +250,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caugh
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor262.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor318.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -236,9 +260,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caugh
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$72f85d84.processDetermineEntitlementMessages(&lt;generated&gt;)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:502)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:197)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$3101c488.processDetermineEntitlementMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:477)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:198)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -314,13 +338,13 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.postForEntity(RestTemplate.java:445)
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:43)
 	... 107 common frames omitted
-13:37:11.210 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
-13:37:11.229 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.254 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.258 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:11.271 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to get the card balance at http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/balance
-13:37:11.272 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 0408ab4e-4508-4855-8bd9-d39f98d641b1, exception detail: Payment failed for cardAccountId a76f247c-23d6-4ba5-8441-339894d42e15, claim 73c68e5d-766f-41bc-8ed4-bb68d51c9016, paymentCycle 2bd8fea3-4bb0-4558-a3ba-edcbb1941631, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/balance (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/balance (at uk.gov.dhsc.htbhf.claimant.service.CardClient.getBalance(CardClient.java:67)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
-uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId a76f247c-23d6-4ba5-8441-339894d42e15, claim 73c68e5d-766f-41bc-8ed4-bb68d51c9016, paymentCycle 2bd8fea3-4bb0-4558-a3ba-edcbb1941631, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/balance
+14:17:15.319 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
+14:17:15.338 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.365 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.369 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:15.383 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to get the card balance at http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/balance
+14:17:15.384 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id dec155d9-af7f-4e59-98bd-e9afd835ebdb, exception detail: Payment failed for cardAccountId 03ca90e5-a999-425b-b491-ab8725a9e74c, claim c9f86c7f-66d6-47a4-b9a1-4a51db19e1fc, paymentCycle 94645208-600c-411e-a33f-9f1714e031de, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/balance (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/balance (at uk.gov.dhsc.htbhf.claimant.service.CardClient.getBalance(CardClient.java:67)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId 03ca90e5-a999-425b-b491-ab8725a9e74c, claim c9f86c7f-66d6-47a4-b9a1-4a51db19e1fc, paymentCycle 94645208-600c-411e-a33f-9f1714e031de, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/balance
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor.processMessage(MakePaymentMessageProcessor.java:39)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$FastClassBySpringCGLIB$$bf47a5f9.invoke(&lt;generated&gt;)
@@ -331,7 +355,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$EnhancerBySpringCGLIB$$ecb07f88.processMessage(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$EnhancerBySpringCGLIB$$81043405.processMessage(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessagesOfType$0(MessageProcessor.java:56)
@@ -351,7 +375,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor262.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor318.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -361,9 +385,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$72f85d84.processPaymentMessages(&lt;generated&gt;)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:503)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:199)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$3101c488.processPaymentMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:478)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:200)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -428,7 +452,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/balance
+Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/balance
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.getBalance(CardClient.java:67)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:117)
 	... 106 common frames omitted
@@ -443,11 +467,11 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.getForEntity(RestTemplate.java:338)
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.getBalance(CardClient.java:62)
 	... 107 common frames omitted
-13:37:11.289 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
-13:37:11.309 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:11.328 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/deposit
-13:37:11.328 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 0408ab4e-4508-4855-8bd9-d39f98d641b1, exception detail: Payment failed for cardAccountId a76f247c-23d6-4ba5-8441-339894d42e15, claim 73c68e5d-766f-41bc-8ed4-bb68d51c9016, paymentCycle 2bd8fea3-4bb0-4558-a3ba-edcbb1941631, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/deposit (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/deposit (at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
-uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId a76f247c-23d6-4ba5-8441-339894d42e15, claim 73c68e5d-766f-41bc-8ed4-bb68d51c9016, paymentCycle 2bd8fea3-4bb0-4558-a3ba-edcbb1941631, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/deposit
+14:17:15.402 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
+14:17:15.421 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:15.440 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/deposit
+14:17:15.441 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id dec155d9-af7f-4e59-98bd-e9afd835ebdb, exception detail: Payment failed for cardAccountId 03ca90e5-a999-425b-b491-ab8725a9e74c, claim c9f86c7f-66d6-47a4-b9a1-4a51db19e1fc, paymentCycle 94645208-600c-411e-a33f-9f1714e031de, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/deposit (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/deposit (at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId 03ca90e5-a999-425b-b491-ab8725a9e74c, claim c9f86c7f-66d6-47a4-b9a1-4a51db19e1fc, paymentCycle 94645208-600c-411e-a33f-9f1714e031de, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/deposit
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:135)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor.processMessage(MakePaymentMessageProcessor.java:39)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$FastClassBySpringCGLIB$$bf47a5f9.invoke(&lt;generated&gt;)
@@ -458,7 +482,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$EnhancerBySpringCGLIB$$ecb07f88.processMessage(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.MakePaymentMessageProcessor$$EnhancerBySpringCGLIB$$81043405.processMessage(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessagesOfType$0(MessageProcessor.java:56)
@@ -478,7 +502,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor262.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor318.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -488,9 +512,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$72f85d84.processPaymentMessages(&lt;generated&gt;)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:503)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:201)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$3101c488.processPaymentMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:478)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:202)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -555,7 +579,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/a76f247c-23d6-4ba5-8441-339894d42e15/deposit
+Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/03ca90e5-a999-425b-b491-ab8725a9e74c/deposit
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:182)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePaymentForCycle(PaymentService.java:127)
@@ -571,11 +595,11 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.postForEntity(RestTemplate.java:445)
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:50)
 	... 108 common frames omitted
-13:37:11.345 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
-13:37:11.364 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:11.394 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.400 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:11.406 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
+14:17:15.457 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
+14:17:15.474 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:15.502 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.507 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:15.512 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
 uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -597,7 +621,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor262.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor318.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -607,9 +631,9 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$72f85d84.processSendEmailMessages(&lt;generated&gt;)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:504)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:203)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$3101c488.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:479)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:204)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -674,7 +698,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-13:37:11.407 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 8f8bd128-64ed-4a8f-8bc4-c5109c317439, exception detail: Failed to send PAYMENT email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
+14:17:15.513 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 2bfd302a-b227-481c-8974-be822b250dc3, exception detail: Failed to send PAYMENT email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send PAYMENT email message, exception is: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -696,7 +720,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send PAYMEN
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor262.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor318.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -706,9 +730,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send PAYMEN
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$72f85d84.processSendEmailMessages(&lt;generated&gt;)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:504)
-	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:203)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$3101c488.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.invokeAllSchedulers(PaymentCycleIntegrationTests.java:479)
+	at uk.gov.dhsc.htbhf.claimant.PaymentCycleIntegrationTests.shouldRecoverFromErrorsToMakePaymentAndSendEmail(PaymentCycleIntegrationTests.java:204)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -776,75 +800,87 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send PAYMEN
 Caused by: uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	... 96 common frames omitted
-13:37:11.412 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
-13:37:11.431 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:11.442 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.545 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.582 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.592 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:11.602 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.698 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.728 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.736 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:11.745 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.850 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:11.883 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:11.892 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:11.902 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.007 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.039 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.048 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:12.058 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.166 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.191 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.196 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:12.233 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.238 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:12.249 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.348 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.373 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.378 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:12.409 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.414 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:12.423 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.526 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.548 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.552 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:12.582 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.587 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:12.597 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.692 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.715 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.720 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:12.752 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.756 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:12.766 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.857 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:12.879 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.884 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:12.915 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:12.920 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
-13:37:12.943 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
-13:37:13.043 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:13.068 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.073 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:13.105 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.110 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:13.121 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.221 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:13.254 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.264 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:13.275 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.383 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:13.415 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.424 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-13:37:13.434 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.533 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
-13:37:13.556 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.560 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
-13:37:13.589 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
-13:37:13.594 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
-13:37:13.611 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
+14:17:15.519 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status ERROR
+14:17:15.537 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:15.546 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.653 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.693 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.703 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:15.714 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.812 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.843 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.852 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:15.863 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:15.957 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:15.991 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.000 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:16.011 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.128 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:16.176 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.189 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:16.207 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.366 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:16.407 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.424 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:16.440 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.561 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:16.589 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.599 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:16.634 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.641 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:16.654 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.801 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:16.824 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.829 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:16.864 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:16.869 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:16.882 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.030 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:17.055 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.061 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:17.097 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.103 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:17.117 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.303 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:17.331 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.337 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:17.454 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.462 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:17.478 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.625 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:17.655 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.661 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:17.697 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.702 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
+14:17:17.727 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
+14:17:17.863 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:17.894 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.901 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:17.939 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:17.944 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:17.958 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.104 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:18.137 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.284 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:18.324 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.481 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:18.517 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.674 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:18.708 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.851 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:18.889 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:18.905 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:17:18.921 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:19.067 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:19.098 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:19.228 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:19.267 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:19.403 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type DETERMINE_ENTITLEMENT
+14:17:19.426 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:19.431 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+14:17:19.467 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 message(s) with status COMPLETED
+14:17:19.472 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type SEND_EMAIL
+14:17:19.494 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 message(s) with status COMPLETED
 </pre>
 </span>
 </div>
@@ -856,7 +892,7 @@ Caused by: uk.gov.service.notify.NotificationClientException: Something went wro
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 21, 2019, 1:37:14 PM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 21, 2019, 2:17:20 PM</p>
 </div>
 </div>
 </body>

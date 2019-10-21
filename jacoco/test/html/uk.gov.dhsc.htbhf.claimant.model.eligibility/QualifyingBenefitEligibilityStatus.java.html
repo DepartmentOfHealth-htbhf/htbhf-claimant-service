@@ -13,16 +13,26 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
     /**
      * TODO: HTBHF-2388 This is a temporary method until the EligibilityService API is updated to include a more comprehensive response.
+     *
      * @param source the {@link EligibilityStatus} to determine this status from.
      * @return the status value appropriate to the source status.
      */
     public static QualifyingBenefitEligibilityStatus fromEligibilityStatus(EligibilityStatus source) {
-<span class="fc bfc" id="L20" title="All 2 branches covered.">        if (source == EligibilityStatus.ELIGIBLE) {</span>
-<span class="fc" id="L21">            return CONFIRMED;</span>
-<span class="fc bfc" id="L22" title="All 2 branches covered.">        } else if (source == EligibilityStatus.INELIGIBLE) {</span>
-<span class="fc" id="L23">            return NOT_CONFIRMED;</span>
+<span class="fc bfc" id="L21" title="All 2 branches covered.">        if (source == EligibilityStatus.ELIGIBLE) {</span>
+<span class="fc" id="L22">            return CONFIRMED;</span>
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        } else if (source == EligibilityStatus.INELIGIBLE) {</span>
+<span class="fc" id="L24">            return NOT_CONFIRMED;</span>
         }
-<span class="fc" id="L25">        return NOT_SET;</span>
+<span class="fc" id="L26">        return NOT_SET;</span>
+    }
+
+    /**
+     * Determine whether the status is considered eligible or not.
+     *
+     * @return Whether the status is considered eligible or not.
+     */
+    public boolean isNotEligible() {
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        return this != QualifyingBenefitEligibilityStatus.CONFIRMED;</span>
     }
 }
 
