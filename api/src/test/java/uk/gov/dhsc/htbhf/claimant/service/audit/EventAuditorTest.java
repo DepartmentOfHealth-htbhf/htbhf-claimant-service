@@ -187,4 +187,37 @@ class EventAuditorTest {
                         entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), 0));
 
     }
+
+    @Test
+    void shouldLogClaimExpiredEvent() {
+        //Given
+        Claim claim = aValidClaim();
+
+        //When
+        eventAuditor.auditExpiredClaim(claim);
+
+        //Then
+        ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
+        verify(eventLogger).logEvent(eventArgumentCaptor.capture());
+        Event actualEvent = eventArgumentCaptor.getValue();
+        assertThat(actualEvent.getEventType()).isEqualTo(EXPIRED_CLAIM);
+        assertThat(actualEvent.getTimestamp()).isNotNull();
+        assertThat(actualEvent.getEventMetadata())
+                .isNotNull()
+                .hasSize(1)
+                .containsExactly(
+                        entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claim.getId()));
+
+    }
+
+    @Test
+    void shouldNotLogClaimExpiredWithNullClaim() {
+        //Given
+        Claim claim = null;
+        //When
+        eventAuditor.auditExpiredClaim(claim);
+        //Then
+        verifyZeroInteractions(eventLogger);
+
+    }
 }
