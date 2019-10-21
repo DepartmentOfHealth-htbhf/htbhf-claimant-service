@@ -88,9 +88,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim);
             }
         }
-        //TODO HTBHF-1296: PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
-        // else {
-        // }
+        //TODO HTBHF-1296: If not ACTIVE, PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
     }
 
     private boolean shouldExpireClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
@@ -100,7 +98,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         if (childrenExistedInPreviousCycleAndNowOver4(previousPaymentCycle, currentPaymentCycle)) {
             return true;
         }
-        return claimantIsPregnantInCycle(previousPaymentCycle) && !claimantIsPregnantInCycle(currentPaymentCycle);
+        return claimantIsPregnantInCycle(previousPaymentCycle);
     }
 
     private boolean childrenExistedInPreviousCycleAndNowOver4(PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {

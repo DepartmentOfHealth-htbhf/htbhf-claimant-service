@@ -84,8 +84,8 @@ class DetermineEntitlementMessageProcessorTest {
         //Given
         DetermineEntitlementMessageContext context = buildMessageContext(
                 EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
-                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
                 TWO_CHILDREN,
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
                 TWO_CHILDREN);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
@@ -114,20 +114,17 @@ class DetermineEntitlementMessageProcessorTest {
 
     @ParameterizedTest(name = "Qualifying benefit status={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenEligibleWithNoChildrenAndNotPregnant(
+    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenIneligibleWithNoChildrenAndNotPregnant(
             QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
         //Given
         //Test for HTBHF-2182 has the following context:
         // Previous cycle: children exist and are under 4 but will be 4 in the next cycle, not pregnant
         // Current cycle: no children and not pregnant
-        LocalDate previousCycleExpectedDeliveryDate = NOT_PREGNANT;
-        LocalDate currentCycleExpectedDeliveryDate = NOT_PREGNANT;
-        List<LocalDate> previousCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         DetermineEntitlementMessageContext context = buildMessageContext(
-                previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
-                previousCycleChildrenDobs,
+                NOT_PREGNANT,
+                SINGLE_NEARLY_FOUR_YEAR_OLD,
+                NOT_PREGNANT,
                 currentCycleChildrenDobs);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
@@ -135,7 +132,7 @@ class DetermineEntitlementMessageProcessorTest {
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
         given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
 
-        //Eligibility is INELIGIBLE as they have no children or pregnancy but DWP have returned that they are eligible (CONFIRMED)
+        //Eligibility is INELIGIBLE as they have no children or pregnancy but did in the previous cycle. DWP status is irrelevant here.
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, qualifyingBenefitEligibilityStatus, currentCycleChildrenDobs);
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
@@ -151,24 +148,22 @@ class DetermineEntitlementMessageProcessorTest {
         LocalDate currentPaymentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
+        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
         verifyZeroInteractions(messageQueueClient, determineEntitlementNotificationHandler);
     }
 
-    @Test
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenEligibleWithNoChildrenAndNotPregnant() {
+    @ParameterizedTest(name = "Expected delivery date previous cycle={0}")
+    @MethodSource("provideArgumentsForPreviousCycleExpectedDeliveryDate")
+    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenChildDisappearsFromFeedAndNotPregnant(LocalDate previousCycleExpectedDeliveryDate) {
         //Given
         //Test for HTBHF-2185 has the following context:
-        // Previous cycle: children exist and are under 4, not pregnant
+        // Previous cycle: children exist and are under 4, not pregnant or pregnant (parameterised)
         // Current cycle: no children and not pregnant
-        LocalDate previousCycleExpectedDeliveryDate = NOT_PREGNANT;
-        LocalDate currentCycleExpectedDeliveryDate = NOT_PREGNANT;
-        List<LocalDate> previousCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         DetermineEntitlementMessageContext context = buildMessageContext(
                 previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
-                previousCycleChildrenDobs,
+                SINGLE_THREE_YEAR_OLD,
+                NOT_PREGNANT,
                 currentCycleChildrenDobs);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
@@ -199,23 +194,27 @@ class DetermineEntitlementMessageProcessorTest {
 
     //HTBHF-1757 Children in current cycle, DWP returns ineligible, varying on pregnancy and children in previous cycle
     @ParameterizedTest(name = "Children DOB previous cycle={0}, expected delivery date previous cycle={1}, expected delivery date current cycle={2}")
-    @MethodSource("provideArgumentsForClaimantBecomingPregnantWithChildrenInCurrentCycle")
+    @MethodSource("provideArgumentsForPendingExpiryTestsWithChildrenInCurrentCycle")
     void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleWithChildrenInCurrentCycle(
             List<LocalDate> previousCycleChildrenDobs,
             LocalDate previousCycleExpectedDeliveryDate,
             LocalDate currentCycleExpectedDeliveryDate) {
-        //Given
-        List<LocalDate> currentCycleChildrenDobs = TWO_CHILDREN;
+        //Given - their children would still be under 4 but DWP doesn't return them if they're NOT_CONFIRMED.
+        List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         DetermineEntitlementMessageContext context = buildMessageContext(
                 previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
                 previousCycleChildrenDobs,
+                currentCycleExpectedDeliveryDate,
                 currentCycleChildrenDobs);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility - any status that isn't ELIGIBLE has the same effect here.
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, NOT_CONFIRMED, currentCycleChildrenDobs);
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        //Had children in last cycle who are under 4 at the start of the current payment cycle.
+        given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
+        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -226,22 +225,23 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
-        verifyZeroInteractions(pregnancyEntitlementCalculator, childDateOfBirthCalculator);
+        LocalDate currentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
+        verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
+        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(TWO_CHILDREN, currentCycleStartDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(currentCycleExpectedDeliveryDate, currentCycleStartDate);
+        verifyZeroInteractions(childDateOfBirthCalculator);
     }
 
     //HTBHF-1757 No children in current cycle, are pregnant but ineligible from DWP
     @ParameterizedTest(name = "Children DOB in previous cycle={0}")
     @MethodSource("provideArgumentsForChildrenInPreviousCycle")
-    void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleWithNoChildrenInCurrentCycle(
-            List<LocalDate> previousCycleChildrenDobs) {
+    void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleButStillPregnant(List<LocalDate> previousCycleChildrenDobs) {
         //Given
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        LocalDate currentCycleExpectedDeliveryDate = EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-        LocalDate previousCycleExpectedDeliveryDate = EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
         DetermineEntitlementMessageContext context = buildMessageContext(
-                previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
                 previousCycleChildrenDobs,
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
                 currentCycleChildrenDobs);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
@@ -263,96 +263,15 @@ class DetermineEntitlementMessageProcessorTest {
         verifyZeroInteractions(childDateOfBirthCalculator);
     }
 
-    //HTBHF-1757 Claimant had children in previous cycle who would be under 4 in this cycle but are not returned from DWP
-    @Test
-    void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleWithNoChildrenInCurrentCycle() {
-        //Given
-        List<LocalDate> previousCycleChildrenDobs = TWO_CHILDREN;
-        List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        LocalDate currentCycleExpectedDeliveryDate = NOT_PREGNANT;
-        LocalDate previousCycleExpectedDeliveryDate = NOT_PREGNANT;
-        DetermineEntitlementMessageContext context = buildMessageContext(
-                previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
-                previousCycleChildrenDobs,
-                currentCycleChildrenDobs);
-        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
-        //Had children in last cycle who are under 4 at the start of the current payment cycle.
-        given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
-        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
-
-        //Eligibility - any status that isn't ELIGIBLE has the same effect here.
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, NOT_CONFIRMED, currentCycleChildrenDobs);
-        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
-
-        //Current payment cycle voucher entitlement mocking
-        Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
-
-        //When
-        MessageStatus messageStatus = processor.processMessage(message);
-
-        //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY);
-        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
-        LocalDate currentPaymentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
-        verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(TWO_CHILDREN, currentPaymentCycleStartDate);
-        verifyZeroInteractions(childDateOfBirthCalculator);
-    }
-
     @ParameterizedTest(name = "Qualifying benefit status={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimWhenClaimantWasPregnantButNoLongerWithChildrenInPreviousCycle(
-            QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
+    void shouldExpireClaimWhenClaimantWasPregnantWithNoChildrenButNoLongerPregnant(QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
         //Given
-        List<LocalDate> previousCycleChildrenDobs = SINGLE_THREE_YEAR_OLD;
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        LocalDate previousCycleExpectedDeliveryDate = EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-        LocalDate currentCycleExpectedDeliveryDate = NOT_PREGNANT;
         DetermineEntitlementMessageContext context = buildMessageContext(
-                previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
-                previousCycleChildrenDobs,
-                currentCycleChildrenDobs);
-        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
-        //Had children in last cycle who are under 4 at the start of the current payment cycle.
-        given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
-        //Children in previous cycle are now be over 4.
-        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
-
-        //Eligibility - any status that isn't ELIGIBLE has the same effect here.
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, qualifyingBenefitEligibilityStatus, currentCycleChildrenDobs);
-        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
-
-        //Current payment cycle voucher entitlement mocking
-        Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
-
-        //When
-        MessageStatus messageStatus = processor.processMessage(message);
-
-        //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED);
-        verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, context.getCurrentPaymentCycle().getCycleStartDate());
-        verifyZeroInteractions(determineEntitlementNotificationHandler);
-    }
-
-    @ParameterizedTest(name = "Qualifying benefit status={0}")
-    @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimWhenClaimantWasPregnantButNoLongerWithNoChildrenInPreviousCycle(
-            QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
-        //Given
-        List<LocalDate> previousCycleChildrenDobs = NO_CHILDREN;
-        List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        LocalDate previousCycleExpectedDeliveryDate = EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-        LocalDate currentCycleExpectedDeliveryDate = NOT_PREGNANT;
-        DetermineEntitlementMessageContext context = buildMessageContext(
-                previousCycleExpectedDeliveryDate,
-                currentCycleExpectedDeliveryDate,
-                previousCycleChildrenDobs,
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
+                NO_CHILDREN,
+                NOT_PREGNANT,
                 currentCycleChildrenDobs);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
         LocalDate currentPaymentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
@@ -379,7 +298,7 @@ class DetermineEntitlementMessageProcessorTest {
         InOrder inOrder = inOrder(pregnancyEntitlementCalculator, pregnancyEntitlementCalculator);
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycleStartDate);
-        verifyZeroInteractions(determineEntitlementNotificationHandler);
+        verifyZeroInteractions(determineEntitlementNotificationHandler, messageQueueClient);
     }
 
     private void verifyClaimSavedAtStatus(ClaimStatus claimStatus) {
@@ -402,10 +321,11 @@ class DetermineEntitlementMessageProcessorTest {
     }
 
     private DetermineEntitlementMessageContext buildMessageContext(LocalDate previousCycleExpectedDeliveryDate,
-                                                                   LocalDate currentCycleExpectedDeliveryDate,
                                                                    List<LocalDate> previousCycleChildrenDobs,
+                                                                   LocalDate currentCycleExpectedDeliveryDate,
                                                                    List<LocalDate> currentCycleChildrenDobs) {
-        //Claim
+        //Claim - we are creating two claims to model the claim being at different states (differ by expected delivery date) at these points in time,
+        //they are effectively the same Claim apart from the UUID being different (also on Claimant).
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(previousCycleExpectedDeliveryDate, previousCycleChildrenDobs);
         Claim claimAtCurrentCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(currentCycleExpectedDeliveryDate, currentCycleChildrenDobs);
 
@@ -422,22 +342,11 @@ class DetermineEntitlementMessageProcessorTest {
                 claimAtCurrentCycle);
     }
 
-    //Argument order is: previousCycleExpectedDeliveryDate, previousCycleChildrenDobs, currentCycleChildrenDobs
-    private static Stream<Arguments> provideArgumentsForClaimantBecomingPregnantWithChildrenInCurrentCycle() {
+    //Argument order is: previousCycleChildrenDobs, previousCycleExpectedDeliveryDate, currentCycleExpectedDeliveryDate
+    private static Stream<Arguments> provideArgumentsForPendingExpiryTestsWithChildrenInCurrentCycle() {
         return Stream.of(
                 Arguments.of(TWO_CHILDREN, NOT_PREGNANT, NOT_PREGNANT),
-                Arguments.of(TWO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                Arguments.of(NO_CHILDREN, NOT_PREGNANT, NOT_PREGNANT)
-        );
-    }
-
-    //Argument order is: qualifyingBenefitStatus, previousCycleChildrenDobs
-    private static Stream<Arguments> provideArgumentsForQualifyingBenefitStatusAndPreviousChildrenDob() {
-        return Stream.of(
-                Arguments.of(NOT_CONFIRMED, NO_CHILDREN),
-                Arguments.of(CONFIRMED, NO_CHILDREN),
-                Arguments.of(NOT_CONFIRMED, SINGLE_THREE_YEAR_OLD),
-                Arguments.of(CONFIRMED, SINGLE_THREE_YEAR_OLD)
+                Arguments.of(TWO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
         );
     }
 
@@ -445,6 +354,13 @@ class DetermineEntitlementMessageProcessorTest {
         return Stream.of(
                 Arguments.of(TWO_CHILDREN),
                 Arguments.of(NO_CHILDREN)
+        );
+    }
+
+    private static Stream<Arguments> provideArgumentsForPreviousCycleExpectedDeliveryDate() {
+        return Stream.of(
+                Arguments.of(NOT_PREGNANT),
+                Arguments.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
         );
     }
 

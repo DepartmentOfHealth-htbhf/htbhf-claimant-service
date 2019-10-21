@@ -53,8 +53,10 @@ public class TestConstants {
 
     public static final LocalDate SIX_MONTH_OLD = LocalDate.now().minusMonths(6);
     public static final LocalDate THREE_YEAR_OLD = LocalDate.now().minusYears(3);
+    public static final LocalDate NEARLY_FOUR_YEAR_OLD = LocalDate.now().minusYears(4).plusWeeks(2);
     public static final List<LocalDate> TWO_CHILDREN = List.of(SIX_MONTH_OLD, THREE_YEAR_OLD);
     public static final List<LocalDate> NO_CHILDREN = emptyList();
     public static final List<LocalDate> SINGLE_THREE_YEAR_OLD = singletonList(THREE_YEAR_OLD);
+    public static final List<LocalDate> SINGLE_NEARLY_FOUR_YEAR_OLD = singletonList(NEARLY_FOUR_YEAR_OLD);
     public static final LocalDate TWENTY_YEAR_OLD = LocalDate.now().minusYears(20);
 }
