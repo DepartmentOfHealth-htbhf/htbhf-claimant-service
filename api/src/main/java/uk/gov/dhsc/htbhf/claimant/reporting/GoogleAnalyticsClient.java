@@ -6,7 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException;
@@ -23,9 +23,10 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 /**
- * Service for interacting with google analytics.
+ * Service for interacting with google analytics measurement protocol.
+ * See https://developers.google.com/analytics/devguides/collection/protocol/v1/
  */
-@Service
+@Component
 @Slf4j
 public class GoogleAnalyticsClient {
 
@@ -44,6 +45,7 @@ public class GoogleAnalyticsClient {
         String payload = createQueryStringWithUrlEncodedValues(reportProperties);
 
         HttpHeaders headers = new HttpHeaders();
+        // Google analytics requires plain text for the content type.
         headers.setContentType(TEXT_PLAIN);
         RequestEntity<String> requestEntity = new RequestEntity<>(payload, headers, POST, googleAnalyticsUri);
 

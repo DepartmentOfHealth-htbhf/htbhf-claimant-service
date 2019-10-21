@@ -24,9 +24,7 @@ import javax.validation.ConstraintViolationException;
 import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithTooLongFirstName;
@@ -261,11 +259,11 @@ class ClaimRepositoryTest {
     void shouldAuditClaimUpdate() {
         //Given
         // with a versioned entity, the returned object will have an incremented version number, the object passed into save will not
-        Claim claim = aClaimWithClaimStatus(ACTIVE);
+        Claim claim = aValidClaim();
         claim = claimRepository.save(claim);
-        claim.setClaimStatus(PENDING);
+        claim.setCardAccountId("ID1");
         claim = claimRepository.save(claim);
-        claim.setClaimStatus(PENDING_EXPIRY);
+        claim.setCardAccountId("ID2");
         claimRepository.save(claim);
 
         //When
@@ -274,8 +272,9 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(changes.size()).isEqualTo(2);
-        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'PENDING' to 'PENDING_EXPIRY' }");
-        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'claimStatus' value changed from 'ACTIVE' to 'PENDING' }");
+        // most recent change first
+        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from 'ID1' to 'ID2' }");
+        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from '123456789' to 'ID1' }");
     }
 
     @Test

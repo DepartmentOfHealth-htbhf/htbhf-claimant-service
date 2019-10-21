@@ -14,11 +14,6 @@ import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,8 +33,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTIO
 @ExtendWith(MockitoExtension.class)
 class NewCardServiceTest {
 
-    private final Clock fixedClock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-
     @Mock
     private CardClient cardClient;
 
@@ -52,9 +45,6 @@ class NewCardServiceTest {
     @Mock
     private EventAuditor eventAuditor;
 
-    @Mock
-    private Clock clock;
-
     @InjectMocks
     private NewCardService newCardService;
 
@@ -64,8 +54,6 @@ class NewCardServiceTest {
         CardResponse cardResponse = aCardResponse();
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
-        given(clock.instant()).willReturn(fixedClock.instant());
-        given(clock.getZone()).willReturn(fixedClock.getZone());
         Claim claim = aClaimWithClaimStatus(NEW);
 
         newCardService.createNewCard(claim);
@@ -77,7 +65,6 @@ class NewCardServiceTest {
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
-        assertThat(claim.getClaimStatusTimestamp()).isEqualTo(LocalDateTime.now(clock));
     }
 
     @Test
@@ -110,8 +97,6 @@ class NewCardServiceTest {
         CardResponse cardResponse = aCardResponse();
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
         doThrow(TEST_EXCEPTION).when(claimRepository).save(any());
-        given(clock.instant()).willReturn(fixedClock.instant());
-        given(clock.getZone()).willReturn(fixedClock.getZone());
 
         EventFailedException exception = catchThrowableOfType(() -> newCardService.createNewCard(claim), EventFailedException.class);
 

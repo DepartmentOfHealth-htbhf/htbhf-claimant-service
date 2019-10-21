@@ -271,25 +271,25 @@ class PaymentServiceTest {
     }
 
     private void verifyFailedPaymentSavedWithNoReference(PaymentCycle paymentCycle, FailureEvent failureEvent) {
-        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
+        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle, failureEvent);
         assertThat(actualPayment.getPaymentReference()).isNull();
         assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
     private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentReference, FailureEvent failureEvent) {
-        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle);
+        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle, failureEvent);
         assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
         assertThat(actualPayment.getPaymentReference()).isEqualTo(paymentReference);
         assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
-    private Payment verifyFailedPaymentSavedCorrectly(PaymentCycle paymentCycle) {
+    private Payment verifyFailedPaymentSavedCorrectly(PaymentCycle paymentCycle, FailureEvent failureEvent) {
         Payment actualPayment = paymentRepository.findAll().iterator().next();
         assertThat(actualPayment.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
         assertThat(actualPayment.getClaim()).isEqualTo(paymentCycle.getClaim());
         assertThat(actualPayment.getPaymentCycle()).isEqualTo(paymentCycle);
         assertThat(actualPayment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILURE);
-        assertThat(actualPayment.getPaymentTimestamp()).isNotNull();
+        assertThat(actualPayment.getPaymentTimestamp()).isEqualTo(failureEvent.getTimestamp());
         assertThat(actualPayment.getId()).isNotNull();
         return actualPayment;
     }
