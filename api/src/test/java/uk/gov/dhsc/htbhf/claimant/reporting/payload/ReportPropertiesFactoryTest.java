@@ -85,7 +85,7 @@ class ReportPropertiesFactoryTest {
                 entry("cd7", postcodeData.getOutcode()),
                 entry("cd8", postcodeData.getParliamentaryConstituency()),
                 entry("cd9", postcodeData.getCcg()), // Clinical Commissioning Group
-                entry("cd10", postcodeData.getCodes().getCcg()), // C`linical Commissioning Group code`
+                entry("cd10", postcodeData.getCodes().getCcg()), // Clinical Commissioning Group code
                 entry("cm1", "1"), // number of children under one
                 entry("cm2", "0"), // number of children between one and four
                 entry("cm3", "1"), // number of pregnancies

@@ -6,7 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException;
@@ -23,9 +23,10 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 /**
- * Service for interacting with google analytics.
+ * Service for interacting with google analytics measurement protocol.
+ * See https://developers.google.com/analytics/devguides/collection/protocol/v1/
  */
-@Service
+@Component
 @Slf4j
 public class GoogleAnalyticsClient {
 
@@ -41,11 +42,10 @@ public class GoogleAnalyticsClient {
     }
 
     public void reportEvent(Map<String, String> reportProperties) {
-        String payload = reportProperties.entrySet().stream()
-                .map(entry -> entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), UTF_8))
-                .collect(Collectors.joining("&"));
+        String payload = createQueryStringWithUrlEncodedValues(reportProperties);
 
         HttpHeaders headers = new HttpHeaders();
+        // Google analytics requires plain text for the content type.
         headers.setContentType(TEXT_PLAIN);
         RequestEntity<String> requestEntity = new RequestEntity<>(payload, headers, POST, googleAnalyticsUri);
 
@@ -56,6 +56,12 @@ public class GoogleAnalyticsClient {
             log.error("Exception caught trying to post to {}", googleAnalyticsUri.toString());
             throw new GoogleAnalyticsException(e, googleAnalyticsUri.toString());
         }
+    }
+
+    private String createQueryStringWithUrlEncodedValues(Map<String, String> reportProperties) {
+        return reportProperties.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), UTF_8))
+                .collect(Collectors.joining("&"));
     }
 
     private void checkResponseIsOk(HttpStatus status) {
