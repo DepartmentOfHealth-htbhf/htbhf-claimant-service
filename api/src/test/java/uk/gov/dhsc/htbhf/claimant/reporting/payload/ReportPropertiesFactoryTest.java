@@ -34,21 +34,13 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReportPropertiesFactoryTest {
 
     private static final String TRACKING_ID = "tracking-id";
     private static final ClaimantCategory CLAIMANT_CATEGORY = ClaimantCategory.PREGNANT_WITH_CHILDREN;
-    private static final List<LocalDate> TWO_CHILDREN_UNDER_ONE = List.of(LocalDate.now().minusDays(1), LocalDate.now().minusMonths(11));
-    private static final List<LocalDate> TWO_CHILDREN_BETWEEN_ONE_AND_FOUR = List.of(LocalDate.now().minusYears(2), LocalDate.now().minusYears(3));
-    private static final List<LocalDate> ONE_CHILD_FOUR_YEARS_OLD = List.of(LocalDate.now().minusYears(4));
-    private static final List<LocalDate> ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR
-            = List.of(LocalDate.now().minusMonths(11), LocalDate.now().minusYears(2));
 
     @Mock
     private ClaimantCategoryCalculator claimantCategoryCalculator;
