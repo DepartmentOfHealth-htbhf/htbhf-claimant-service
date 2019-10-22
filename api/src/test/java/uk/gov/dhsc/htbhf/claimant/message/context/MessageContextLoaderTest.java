@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.PayloadMapper;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -38,6 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.SINGLE_THREE_YEAR_OLD;
 
 @ExtendWith(MockitoExtension.class)
 class MessageContextLoaderTest {
@@ -430,6 +432,66 @@ class MessageContextLoaderTest {
         assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
+        verify(claimRepository).findById(claim.getId());
+        verifyZeroInteractions(paymentCycleRepository);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadReportPaymentMessageContextWithAPaymentCycle() {
+        //Given
+        Claim claim = aValidClaim();
+        Message message = aValidMessageWithType(REPORT_PAYMENT);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()
+                .claimId(claim.getId())
+                .paymentAction(PaymentAction.INITIAL)
+                .paymentCycleId(Optional.of(paymentCycle.getId()))
+                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .timestamp(LocalDateTime.now())
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
+        given(payloadMapper.getPayload(message, ReportPaymentMessagePayload.class)).willReturn(payload);
+
+        //When
+        ReportPaymentMessageContext context = loader.loadReportPaymentMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).contains(paymentCycle);
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
+        assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
+        assertThat(context.getPaymentAction()).isEqualTo(payload.getPaymentAction());
+        verify(payloadMapper).getPayload(message, ReportPaymentMessagePayload.class);
+        verify(claimRepository).findById(claim.getId());
+        verify(paymentCycleRepository).findById(paymentCycle.getId());
+    }
+
+    @Test
+    void shouldSuccessfullyLoadReportPaymentMessageContextWithoutAPaymentCycle() {
+        //Given
+        Claim claim = aValidClaim();
+        Message message = aValidMessageWithType(REPORT_PAYMENT);
+        ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()
+                .claimId(claim.getId())
+                .paymentAction(PaymentAction.INITIAL)
+                .paymentCycleId(Optional.empty())
+                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .timestamp(LocalDateTime.now())
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(payloadMapper.getPayload(message, ReportPaymentMessagePayload.class)).willReturn(payload);
+
+        //When
+        ReportPaymentMessageContext context = loader.loadReportPaymentMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).isEmpty();
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
+        assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
+        assertThat(context.getPaymentAction()).isEqualTo(payload.getPaymentAction());
+        verify(payloadMapper).getPayload(message, ReportPaymentMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verifyZeroInteractions(paymentCycleRepository);
     }

@@ -97,4 +97,14 @@ public class MessageProcessorScheduler {
     public void processReportClaimMessages() {
         messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);
     }
+
+    @Scheduled(cron = EVERY_30_SECONDS)
+    @SchedulerLock(
+            name = "Process REPORT_PAYMENT messages",
+            lockAtLeastForString = FIFTEEN_SECONDS,
+            lockAtMostForString = ONE_HOUR)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REPORT_PAYMENT")
+    public void processReportPaymentMessages() {
+        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);
+    }
 }
