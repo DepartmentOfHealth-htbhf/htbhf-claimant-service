@@ -65,79 +65,80 @@ public class ClaimService {
 <span class="fc" id="L65">                return ClaimResult.withEntitlement(claim, weeklyEntitlement);</span>
             }
 
-<span class="fc" id="L68">            return ClaimResult.withNoEntitlement(claim);</span>
-<span class="fc" id="L69">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L70">            handleFailedClaim(claimRequest, e);</span>
-<span class="fc" id="L71">            throw e;</span>
+<span class="fc" id="L68">            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);</span>
+<span class="fc" id="L69">            return ClaimResult.withNoEntitlement(claim);</span>
+<span class="fc" id="L70">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L71">            handleFailedClaim(claimRequest, e);</span>
+<span class="fc" id="L72">            throw e;</span>
         }
     }
 
     private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List&lt;String&gt; updatedFields) {
-<span class="fc bfc" id="L76" title="All 4 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {</span>
-<span class="fc" id="L77">            claimMessageSender.sendAdditionalPaymentMessage(claim);</span>
+<span class="fc bfc" id="L77" title="All 4 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {</span>
+<span class="fc" id="L78">            claimMessageSender.sendAdditionalPaymentMessage(claim);</span>
         }
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L80">    }</span>
 
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
-<span class="fc" id="L82">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
-<span class="fc" id="L83">        Claim claim = buildClaim(claimRequest, decision);</span>
-<span class="fc" id="L84">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
-<span class="fc" id="L85">        FailureEvent failureEvent = FailureEvent.builder()</span>
-<span class="fc" id="L86">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
-<span class="fc" id="L87">                .failedEvent(newClaimEvent)</span>
-<span class="fc" id="L88">                .exception(e)</span>
-<span class="fc" id="L89">                .build();</span>
-<span class="fc" id="L90">        eventAuditor.auditFailedEvent(failureEvent);</span>
-<span class="fc" id="L91">        claimRepository.save(claim);</span>
-<span class="fc" id="L92">    }</span>
+<span class="fc" id="L83">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
+<span class="fc" id="L84">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L85">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L86">        FailureEvent failureEvent = FailureEvent.builder()</span>
+<span class="fc" id="L87">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
+<span class="fc" id="L88">                .failedEvent(newClaimEvent)</span>
+<span class="fc" id="L89">                .exception(e)</span>
+<span class="fc" id="L90">                .build();</span>
+<span class="fc" id="L91">        eventAuditor.auditFailedEvent(failureEvent);</span>
+<span class="fc" id="L92">        claimRepository.save(claim);</span>
+<span class="fc" id="L93">    }</span>
 
     private List&lt;String&gt; updateClaim(Claim claim, Claimant claimant) {
-<span class="fc" id="L95">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
-<span class="fc" id="L96">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
-<span class="fc" id="L97">        claimRepository.save(claim);</span>
-<span class="fc" id="L98">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
-<span class="fc" id="L99">        return updatedFields;</span>
+<span class="fc" id="L96">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
+<span class="fc" id="L97">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
+<span class="fc" id="L98">        claimRepository.save(claim);</span>
+<span class="fc" id="L99">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
+<span class="fc" id="L100">        return updatedFields;</span>
     }
 
     private List&lt;String&gt; updateClaimantFields(Claim claim, Claimant claimant) {
-<span class="fc" id="L103">        Claimant originalClaimant = claim.getClaimant();</span>
-<span class="fc" id="L104">        List&lt;String&gt; updatedFields = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
-<span class="fc" id="L107">                field.updateOriginal(originalClaimant, claimant);</span>
-<span class="fc" id="L108">                updatedFields.add(field.getFieldName());</span>
+<span class="fc" id="L104">        Claimant originalClaimant = claim.getClaimant();</span>
+<span class="fc" id="L105">        List&lt;String&gt; updatedFields = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
+<span class="fc" id="L108">                field.updateOriginal(originalClaimant, claimant);</span>
+<span class="fc" id="L109">                updatedFields.add(field.getFieldName());</span>
             }
         }
-<span class="fc" id="L111">        return updatedFields;</span>
+<span class="fc" id="L112">        return updatedFields;</span>
     }
 
     private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L115">        Claim claim = buildClaim(claimRequest, decision);</span>
-<span class="fc" id="L116">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L117">        claimRepository.save(claim);</span>
-<span class="fc" id="L118">        eventAuditor.auditNewClaim(claim);</span>
-<span class="fc" id="L119">        return claim;</span>
+<span class="fc" id="L116">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L117">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L118">        claimRepository.save(claim);</span>
+<span class="fc" id="L119">        eventAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L120">        return claim;</span>
     }
 
     @SuppressFBWarnings(value = &quot;SECMD5&quot;,
             justification = &quot;Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption&quot;)
     private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L125">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
-<span class="fc" id="L126">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
-<span class="fc" id="L127">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
-<span class="fc" id="L129">        return Claim.builder()</span>
-<span class="fc" id="L130">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L131">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L132">                .eligibilityStatus(decision.getEligibilityStatus())</span>
-<span class="fc" id="L133">                .eligibilityStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L134">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L135">                .claimStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L136">                .claimant(claimRequest.getClaimant())</span>
-<span class="fc" id="L137">                .deviceFingerprint(deviceFingerprint)</span>
-<span class="fc" id="L138">                .deviceFingerprintHash(fingerprintHash)</span>
-<span class="fc" id="L139">                .webUIVersion(claimRequest.getWebUIVersion())</span>
-<span class="fc" id="L140">                .build();</span>
+<span class="fc" id="L126">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
+<span class="fc" id="L127">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
+<span class="fc" id="L128">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
+<span class="fc" id="L130">        return Claim.builder()</span>
+<span class="fc" id="L131">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L132">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L133">                .eligibilityStatus(decision.getEligibilityStatus())</span>
+<span class="fc" id="L134">                .eligibilityStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L135">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L136">                .claimStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L137">                .claimant(claimRequest.getClaimant())</span>
+<span class="fc" id="L138">                .deviceFingerprint(deviceFingerprint)</span>
+<span class="fc" id="L139">                .deviceFingerprintHash(fingerprintHash)</span>
+<span class="fc" id="L140">                .webUIVersion(claimRequest.getWebUIVersion())</span>
+<span class="fc" id="L141">                .build();</span>
     }
 
 }
