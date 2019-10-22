@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException;
 
 import java.util.LinkedHashMap;
@@ -73,13 +74,14 @@ class GoogleAnalyticsClientTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenGoogleAnalyticsReturnsAndErrorResponse() {
+    void shouldThrowExceptionWhenGoogleAnalyticsReturnsAnErrorResponse() {
         stubFor(post(urlEqualTo(REPORT_ENDPOINT)).withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
                 .willReturn((serverError())));
 
         GoogleAnalyticsException exception = catchThrowableOfType(() -> googleAnalyticsClient.reportEvent(REPORT_PROPERTIES), GoogleAnalyticsException.class);
 
         assertThat(exception.getMessage()).isEqualTo("Exception caught trying to call google analytics at: " + baseUri + REPORT_ENDPOINT);
+        assertThat(exception.getCause()).isInstanceOf(HttpServerErrorException.class);
         verify(exactly(1), postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
                 .withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
                 .withRequestBody(equalTo(URL_ENCODED_REPORT_PROPERTIES)));

@@ -26,5 +26,15 @@ class QualifyingBenefitEligibilityStatusTest {
         assertThat(actual).isEqualTo(expected);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "CONFIRMED, false",
+            "NOT_CONFIRMED, true",
+            "NOT_SET, true"
+    })
+    void shouldCorrectlyDetermineNotEligibleStatus(QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus, boolean isNotEligible) {
+        assertThat(qualifyingBenefitEligibilityStatus.isNotEligible()).isEqualTo(isNotEligible);
+    }
+
 
 }

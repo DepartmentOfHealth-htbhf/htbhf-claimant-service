@@ -40,7 +40,8 @@ public class EventAuditor {
 
     /**
      * Audit that a claim has been updated.
-     * @param claim the claim that has been updated
+     *
+     * @param claim         the claim that has been updated
      * @param updatedFields the fields on the claim that have been updated
      */
     public void auditUpdatedClaim(Claim claim, List<String> updatedFields) {
@@ -96,5 +97,19 @@ public class EventAuditor {
      */
     public void auditFailedEvent(FailureEvent failureEvent) {
         eventLogger.logEvent(failureEvent);
+    }
+
+    /**
+     * Audits when a claim has been expired.
+     *
+     * @param claim The claim that has been expired
+     */
+    public void auditExpiredClaim(Claim claim) {
+        if (claim == null) {
+            log.warn("Unable to audit expired claim event, claim is null");
+            return;
+        }
+        ExpiredClaimEvent expiredClaimEvent = ExpiredClaimEvent.builder().claimId(claim.getId()).build();
+        eventLogger.logEvent(expiredClaimEvent);
     }
 }
