@@ -65,6 +65,7 @@ public class ClaimService {
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement);
             }
 
+            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);

@@ -272,6 +272,22 @@ class ClaimServiceTest {
         shouldSendAdditionalPregnancyPaymentMessage(existingClaimant, newClaimant);
     }
 
+    @Test
+    void shouldReportClaimWhenTheClaimIsRejected() {
+        //given
+        Claimant claimant = aValidClaimant();
+        // an INELIGIBLE response will cause a claim to be rejected
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateClaimant(any())).willReturn(eligibility);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
+
+        //when
+        ClaimResult result = claimService.createOrUpdateClaim(request);
+
+        // then
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+    }
+
     private void shouldSendAdditionalPregnancyPaymentMessage(Claimant existingClaimant, Claimant newClaimant) {
         Claim existingClaim = aClaimWithClaimant(existingClaimant);
         UUID existingClaimId = existingClaim.getId();

@@ -2,7 +2,9 @@ package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +21,8 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.REJECTED;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
@@ -42,6 +46,12 @@ public class ReportClaimIntegrationTest {
     @Autowired
     private ClaimRepository claimRepository;
 
+    @AfterEach
+    @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
+    void tearDown() {
+        WireMock.reset();
+    }
+
     @Test
     void shouldReportNewClaimToGoogleAnalyticsWithPostcodeData() throws JsonProcessingException {
         Claim claim = aValidClaim();
@@ -54,7 +64,22 @@ public class ReportClaimIntegrationTest {
         messageProcessorScheduler.processReportClaimMessages();
 
         verifyPostcodesIoCalled(postcode);
-        verifyGoogleAnalyticsCalled(claim);
+        verifyGoogleAnalyticsCalled(claim, ClaimAction.NEW);
+    }
+
+    @Test
+    void shouldReportRejectedClaimToGoogleAnalyticsWithPostcodeData() throws JsonProcessingException {
+        Claim claim = aClaimWithClaimStatus(REJECTED);
+        claimRepository.save(claim);
+        String postcode = claim.getClaimant().getAddress().getPostcode();
+        stubPostcodeDataLookup(postcode);
+        stubGoogleAnalyticsCall();
+
+        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, ClaimAction.REJECTED);
+        messageProcessorScheduler.processReportClaimMessages();
+
+        verifyPostcodesIoCalled(postcode);
+        verifyGoogleAnalyticsCalled(claim, ClaimAction.REJECTED);
     }
 
     private void stubPostcodeDataLookup(String postcode) throws JsonProcessingException {
@@ -84,7 +109,7 @@ public class ReportClaimIntegrationTest {
         return POSTCODES_IO_PATH + postcodeWithoutSpace;
     }
 
-    private void verifyGoogleAnalyticsCalled(Claim claim) {
+    private void verifyGoogleAnalyticsCalled(Claim claim, ClaimAction claimAction) {
         // not asserting the full payload as it contains time based values and a large amount of data that would make the test fragile.
         // testing that the payload is created and sent correctly is covered by GoogleAnalyticsClientTest
         verify(exactly(1), postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
@@ -94,7 +119,7 @@ public class ReportClaimIntegrationTest {
                                 + "&v=1" // version 1
                                 + "&tid=" + trackingId // tracking id from properties
                                 + "&ec=CLAIM" // event category is CLAIM
-                                + "&ea=NEW" // event action is NEW
+                                + "&ea=" + claimAction.name()  // event action is the claim action (e.g. NEW/REJECTED)
                                 + "&ev=0" // event value is unused, so set to 0
                                 + "&qt=\\d+" // queue time should be an integer
                                 + "&cid=" + claim.getId() // customer id is the claim id
