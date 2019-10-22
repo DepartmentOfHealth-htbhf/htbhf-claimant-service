@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
@@ -28,6 +29,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 @Slf4j
 @Component
 @AllArgsConstructor
+@SuppressWarnings("PMD.TooManyMethods")
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
     private EligibilityAndEntitlementService eligibilityAndEntitlementService;
@@ -45,6 +47,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
 
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
+
+    private EventAuditor eventAuditor;
 
     @Override
     public MessageType supportsMessageType() {
@@ -81,7 +85,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
             createMakePaymentMessage(currentPaymentCycle);
         } else if (claim.getClaimStatus() == ACTIVE) {
             if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
-                updateClaimStatus(claim, ClaimStatus.EXPIRED);
+                expireClaim(claim);
             } else if (decision.getQualifyingBenefitEligibilityStatus().isNotEligible()) {
                 handleLossOfQualifyingBenefitStatus(claim);
             } else {
@@ -125,8 +129,13 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     }
 
     private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim) {
-        updateClaimStatus(claim, ClaimStatus.EXPIRED);
+        expireClaim(claim);
         determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+    }
+
+    private void expireClaim(Claim claim) {
+        updateClaimStatus(claim, ClaimStatus.EXPIRED);
+        eventAuditor.auditExpiredClaim(claim);
     }
 
     private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
