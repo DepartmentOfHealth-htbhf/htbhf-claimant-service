@@ -84,9 +84,9 @@ class DetermineEntitlementMessageProcessorTest {
         //Given
         DetermineEntitlementMessageContext context = buildMessageContext(
                 EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
-                TWO_CHILDREN,
+                ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR,
                 EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
-                TWO_CHILDREN);
+                ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
         given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
 
         //Eligibility response with children returned
@@ -227,7 +227,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
         LocalDate currentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(TWO_CHILDREN, currentCycleStartDate);
+        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(currentCycleExpectedDeliveryDate, currentCycleStartDate);
         verifyZeroInteractions(childDateOfBirthCalculator);
     }
@@ -345,14 +345,14 @@ class DetermineEntitlementMessageProcessorTest {
     //Argument order is: previousCycleChildrenDobs, previousCycleExpectedDeliveryDate, currentCycleExpectedDeliveryDate
     private static Stream<Arguments> provideArgumentsForPendingExpiryTestsWithChildrenInCurrentCycle() {
         return Stream.of(
-                Arguments.of(TWO_CHILDREN, NOT_PREGNANT, NOT_PREGNANT),
-                Arguments.of(TWO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
+                Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, NOT_PREGNANT, NOT_PREGNANT),
+                Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
         );
     }
 
     private static Stream<Arguments> provideArgumentsForChildrenInPreviousCycle() {
         return Stream.of(
-                Arguments.of(TWO_CHILDREN),
+                Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR),
                 Arguments.of(NO_CHILDREN)
         );
     }
