@@ -175,7 +175,7 @@ class MessageProcessorTest {
         assertThat(events).hasSize(2);
         assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 message(s) of type CREATE_NEW_CARD");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
-        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 message(s) with status COMPLETED");
+        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 CREATE_NEW_CARD message(s) with status COMPLETED");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
     }
 

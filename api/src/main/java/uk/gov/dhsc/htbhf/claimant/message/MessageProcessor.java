@@ -56,7 +56,7 @@ public class MessageProcessor {
                 .map(message -> processMessage(message, messageTypeProcessor))
                 .collect(Collectors.toList());
 
-        logResults(statuses, messageTypeProcessor);
+        logResults(statuses, messageType, messageTypeProcessor);
     }
 
     private MessageTypeProcessor getMessageTypeProcessor(MessageType messageType, List<Message> messages) {
@@ -90,13 +90,13 @@ public class MessageProcessor {
         }
     }
 
-    private void logResults(List<MessageStatus> statuses, MessageTypeProcessor messageTypeProcessor) {
+    private void logResults(List<MessageStatus> statuses, MessageType messageType, MessageTypeProcessor messageTypeProcessor) {
         Map<MessageStatus, Long> statusesCountMap = statuses.stream()
                 .peek(messageStatus -> logNullMessageStatus(messageTypeProcessor, messageStatus))
                 .filter(Objects::nonNull)
                 .collect(groupingBy(identity(), counting()));
 
-        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} message(s) with status {}", count, messageStatus.name()));
+        statusesCountMap.forEach((messageStatus, count) -> log.info("Processed {} {} message(s) with status {}", count, messageType, messageStatus.name()));
     }
 
     private void logNullMessageStatus(MessageTypeProcessor messageTypeProcessor, MessageStatus messageStatus) {
