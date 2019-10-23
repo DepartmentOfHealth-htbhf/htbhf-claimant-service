@@ -25,6 +25,9 @@ public class MessageProcessorScheduler {
     private static final String EVERY_30_SECONDS = &quot;*/30 * * * * *&quot;;
     private static final String ONE_HOUR = &quot;PT60M&quot;;
     private static final String FIFTEEN_SECONDS = &quot;PT15S&quot;;
+    // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with other scheduled processes
+    private static final String EVERY_30_SECONDS_OFFSET_BY_5_SECONDS = &quot;05/35 * * * * *&quot;;
+    private static final String EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM = &quot;*/30 * 8-18 * * *&quot;;
 
     private final MessageProcessor messageProcessor;
 
@@ -35,18 +38,18 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:ADDITIONAL_PREGNANCY_PAYMENT&quot;)
     public void processAdditionalPregnancyPaymentMessages() {
-<span class="fc" id="L38">        messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);</span>
-<span class="fc" id="L39">    }</span>
+<span class="fc" id="L41">        messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc" id="L42">    }</span>
 
-    @Scheduled(cron = &quot;*/30 * 8-18 * * *&quot;)  // every 30 seconds between 8am and 6pm
+    @Scheduled(cron = EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM)
     @SchedulerLock(
             name = &quot;Process SEND_EMAIL messages&quot;,
             lockAtLeastForString = FIFTEEN_SECONDS,
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:SEND_EMAIL&quot;)
     public void processSendEmailMessages() {
-<span class="fc" id="L48">        messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L51">        messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L52">    }</span>
 
     @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
@@ -55,8 +58,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:CREATE_NEW_CARD&quot;)
     public void processCreateNewCardMessages() {
-<span class="fc" id="L58">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
-<span class="fc" id="L59">    }</span>
+<span class="fc" id="L61">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
+<span class="fc" id="L62">    }</span>
 
     @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
@@ -65,8 +68,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:DETERMINE_ENTITLEMENT&quot;)
     public void processDetermineEntitlementMessages() {
-<span class="fc" id="L68">        messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);</span>
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L71">        messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);</span>
+<span class="fc" id="L72">    }</span>
 
     @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
@@ -75,8 +78,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_FIRST_PAYMENT&quot;)
     public void processFirstPaymentMessages() {
-<span class="fc" id="L78">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L81">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L82">    }</span>
 
     @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
@@ -85,18 +88,18 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_PAYMENT&quot;)
     public void processPaymentMessages() {
-<span class="fc" id="L88">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L91">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L92">    }</span>
 
-    @Scheduled(cron = &quot;05/35 * * * * *&quot;) // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with CREATE_NEW_CARD for new claims
+    @Scheduled(cron = EVERY_30_SECONDS_OFFSET_BY_5_SECONDS)
     @SchedulerLock(
             name = &quot;Process REPORT_CLAIM messages&quot;,
             lockAtLeastForString = FIFTEEN_SECONDS,
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_CLAIM&quot;)
     public void processReportClaimMessages() {
-<span class="fc" id="L98">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
-<span class="fc" id="L99">    }</span>
+<span class="fc" id="L101">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
+<span class="fc" id="L102">    }</span>
 
     @Scheduled(cron = EVERY_30_SECONDS)
     @SchedulerLock(
@@ -105,7 +108,7 @@ public class MessageProcessorScheduler {
             lockAtMostForString = ONE_HOUR)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_PAYMENT&quot;)
     public void processReportPaymentMessages() {
-<span class="fc" id="L108">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
-<span class="fc" id="L109">    }</span>
+<span class="fc" id="L111">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
+<span class="fc" id="L112">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
