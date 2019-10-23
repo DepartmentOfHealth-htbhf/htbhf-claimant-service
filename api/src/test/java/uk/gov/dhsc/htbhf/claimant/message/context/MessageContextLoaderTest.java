@@ -444,7 +444,7 @@ class MessageContextLoaderTest {
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()
                 .claimId(claim.getId())
-                .paymentAction(PaymentAction.INITIAL)
+                .paymentAction(PaymentAction.INITIAL_PAYMENT)
                 .paymentCycleId(Optional.of(paymentCycle.getId()))
                 .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
                 .timestamp(LocalDateTime.now())
@@ -474,7 +474,7 @@ class MessageContextLoaderTest {
         Message message = aValidMessageWithType(REPORT_PAYMENT);
         ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()
                 .claimId(claim.getId())
-                .paymentAction(PaymentAction.INITIAL)
+                .paymentAction(PaymentAction.INITIAL_PAYMENT)
                 .paymentCycleId(Optional.empty())
                 .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
                 .timestamp(LocalDateTime.now())
