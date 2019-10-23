@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">15</div>
+<div class="counter">17</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.048s</div>
+<div class="counter">0.028s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,17 +79,17 @@
 </thead>
 <tr>
 <td class="success">shouldFailToLoadEntitlementContextIfClaimNotFound()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailToLoadEntitlementContextIfCurrentPaymentCycleNotFound()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailToLoadEntitlementContextIfPreviousPaymentCycleNotFound()</td>
-<td class="success">0.024s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -99,7 +99,7 @@
 </tr>
 <tr>
 <td class="success">shouldFailToLoadPaymentContextIfPaymentCycleNotFound()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -114,22 +114,22 @@
 </tr>
 <tr>
 <td class="success">shouldFailToMakePaymentContextIfPaymentCycleNotFound()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSuccessfullyLoadAdditionalPregnancyPaymentContext()</td>
-<td class="success">0.004s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSuccessfullyLoadEmailMessageContext()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldSuccessfullyLoadEntitlementContext()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -149,7 +149,17 @@
 </tr>
 <tr>
 <td class="success">shouldSuccessfullyLoadReportClaimMessageContext()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldSuccessfullyLoadReportPaymentMessageContextWithAPaymentCycle()</td>
 <td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldSuccessfullyLoadReportPaymentMessageContextWithoutAPaymentCycle()</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -157,13 +167,13 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>07:29:05.488 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load previous payment cycle using id: b688cd29-c38a-479b-9f4d-7fcdb2f29af7
-07:29:05.492 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load payment cycle using id: 222b3d99-8015-4df0-b79c-74e18b5735b8
-07:29:05.497 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: 137c6983-3b92-4146-a406-38619cade58c
-07:29:05.500 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load payment cycle using id: 7cc3fd07-48d4-47a9-b196-17e16298e24d
-07:29:05.502 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: 0a508ee6-cf7e-4c61-a291-b49d142cfe47
-07:29:05.505 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: 66128b45-5e2f-4141-adb8-648c8ba6615f
-07:29:05.507 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load current payment cycle using id: 48381110-20b3-4ee8-a237-bf0fb6ea0602
+<pre>10:00:01.648 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load previous payment cycle using id: e7342162-63af-4762-b2d4-ea3cea709261
+10:00:01.651 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load payment cycle using id: a63f592a-f464-4a4e-998a-6bce5e1cbc9c
+10:00:01.658 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: a660ef50-7c99-4786-8aab-808fb7479143
+10:00:01.660 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load payment cycle using id: 501d3ce4-b61a-4902-b02e-c4e30342274d
+10:00:01.661 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: defbff66-86ea-41b9-b359-1e3788d912d3
+10:00:01.662 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load claim using id: 397ebb6f-24c5-40f8-baea-75228f723643
+10:00:01.664 [Test worker] ERROR u.g.d.h.c.m.c.MessageContextLoader - Unable to process message, unable to load current payment cycle using id: fa38baf5-54b2-4ba0-be24-490518f1664d
 </pre>
 </span>
 </div>
@@ -175,7 +185,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 23, 2019, 7:29:48 AM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 23, 2019, 10:00:30 AM</p>
 </div>
 </div>
 </body>
