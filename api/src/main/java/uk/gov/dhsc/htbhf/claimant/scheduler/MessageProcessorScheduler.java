@@ -25,6 +25,9 @@ public class MessageProcessorScheduler {
     private static final String EVERY_30_SECONDS = "*/30 * * * * *";
     private static final String ONE_HOUR = "PT60M";
     private static final String FIFTEEN_SECONDS = "PT15S";
+    // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with other scheduled processes
+    private static final String EVERY_30_SECONDS_OFFSET_BY_5_SECONDS = "05/35 * * * * *";
+    private static final String EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM = "*/30 * 8-18 * * *";
 
     private final MessageProcessor messageProcessor;
 
@@ -38,7 +41,7 @@ public class MessageProcessorScheduler {
         messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);
     }
 
-    @Scheduled(cron = "*/30 * 8-18 * * *")  // every 30 seconds between 8am and 6pm
+    @Scheduled(cron = EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM)
     @SchedulerLock(
             name = "Process SEND_EMAIL messages",
             lockAtLeastForString = FIFTEEN_SECONDS,
@@ -88,7 +91,7 @@ public class MessageProcessorScheduler {
         messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);
     }
 
-    @Scheduled(cron = "05/35 * * * * *") // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with CREATE_NEW_CARD for new claims
+    @Scheduled(cron = EVERY_30_SECONDS_OFFSET_BY_5_SECONDS)
     @SchedulerLock(
             name = "Process REPORT_CLAIM messages",
             lockAtLeastForString = FIFTEEN_SECONDS,
