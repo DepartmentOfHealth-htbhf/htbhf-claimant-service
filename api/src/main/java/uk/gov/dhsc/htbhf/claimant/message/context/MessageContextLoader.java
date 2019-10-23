@@ -127,6 +127,20 @@ public class MessageContextLoader {
                 .build();
     }
 
+    public ReportPaymentMessageContext loadReportPaymentMessageContext(Message message) {
+        ReportPaymentMessagePayload payload = payloadMapper.getPayload(message, ReportPaymentMessagePayload.class);
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        Optional<PaymentCycle> paymentCycle = payload.getPaymentCycleId().flatMap(id -> paymentCycleRepository.findById(id));
+
+        return ReportPaymentMessageContext.builder()
+                .claim(claim)
+                .paymentCycle(paymentCycle)
+                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .paymentAction(payload.getPaymentAction())
+                .timestamp(payload.getTimestamp())
+                .build();
+    }
+
     private Claim getAndCheckClaim(UUID claimId) {
         Optional<Claim> claim = claimRepository.findById(claimId);
         if (claim.isEmpty()) {
@@ -148,5 +162,4 @@ public class MessageContextLoader {
         log.error(errorMessage);
         throw new MessageProcessingException(errorMessage);
     }
-
 }
