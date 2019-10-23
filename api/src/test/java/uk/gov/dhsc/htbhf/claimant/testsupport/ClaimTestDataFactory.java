@@ -10,10 +10,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
 
 public class ClaimTestDataFactory {
 
@@ -69,6 +72,14 @@ public class ClaimTestDataFactory {
     public static Claim aClaimWithPostcodeData(PostcodeData postcodeData) {
         return aValidClaimBuilder()
                 .postcodeData(postcodeData)
+                .build();
+    }
+
+    public static Claim aClaimWithDueDateAndPostcodeData(LocalDate expectedDeliveryDate) {
+        Claimant claimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        return aValidClaimBuilder()
+                .claimant(claimant)
+                .postcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE))
                 .build();
     }
 
