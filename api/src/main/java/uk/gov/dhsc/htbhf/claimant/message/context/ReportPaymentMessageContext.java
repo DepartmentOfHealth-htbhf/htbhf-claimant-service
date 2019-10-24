@@ -6,15 +6,15 @@ import lombok.experimental.SuperBuilder;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 
-import java.util.Optional;
-
 @Data
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class ReportPaymentMessageContext extends ReportEventMessageContext {
-
-    private Optional<PaymentCycle> paymentCycle;
+    private PaymentCycle paymentCycle;
     private PaymentAction paymentAction;
+    private int paymentForPregnancy;
+    private int paymentForChildrenUnderOne;
+    private int paymentForChildrenBetweenOneAndFour;
 
     @Override
     public String getEventAction() {

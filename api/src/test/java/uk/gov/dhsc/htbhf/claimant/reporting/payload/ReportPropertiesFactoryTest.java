@@ -10,8 +10,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
 
@@ -31,9 +33,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithDueDateAndPostcodeData;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,16 +46,18 @@ class ReportPropertiesFactoryTest {
 
     @Mock
     private ClaimantCategoryCalculator claimantCategoryCalculator;
+    @Mock
+    private ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     private ReportPropertiesFactory reportPropertiesFactory;
 
     @BeforeEach
     void init() {
-        reportPropertiesFactory = new ReportPropertiesFactory(TRACKING_ID, claimantCategoryCalculator);
+        reportPropertiesFactory = new ReportPropertiesFactory(TRACKING_ID, claimantCategoryCalculator, childDateOfBirthCalculator);
     }
 
     @Test
-    void shouldCreateReportPropertiesForNewClaim() {
+    void shouldCreateReportPropertiesForClaim() {
         int secondsSinceEvent = 1;
         LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
         List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
@@ -62,38 +66,43 @@ class ReportPropertiesFactoryTest {
 
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
 
-        // Queue time is number of milliseconds since now and the timestamp value. Therefore a timestamp one second ago should have a queue time >= 1000
-        Long queueTime = Long.parseLong(reportProperties.get("qt"));
-        Long maxPossibleQueueTime = ChronoUnit.MILLIS.between(timestamp, LocalDateTime.now());
-        assertThat(queueTime).isBetween(TimeUnit.SECONDS.toMillis(secondsSinceEvent), maxPossibleQueueTime);
-
+        assertQueueTime(reportProperties, timestamp, secondsSinceEvent);
         Claim claim = context.getClaim();
-        PostcodeData postcodeData = claim.getPostcodeData();
+        assertCommonProperties(reportProperties, timestamp, claim, "CLAIM", "NEW");
         assertThat(reportProperties).contains(
-                entry("t", "event"),
-                entry("v", "1"), // protocol version
-                entry("tid", TRACKING_ID),
-                entry("cid", claim.getId().toString()),
-                entry("ec", "CLAIM"),
-                entry("ea", "NEW"),
-                entry("ev", "0"),
-                entry("cd1", "ONLINE"), // user type
-                entry("cd3", CLAIMANT_CATEGORY.getDescription()), // claimant category
-                entry("cd4", postcodeData.getAdminDistrict()), // local authority (admin district in postcodes.io).
-                entry("cd5", postcodeData.getCodes().getAdminDistrict()), // local authority code
-                entry("cd6", postcodeData.getCountry()),
-                entry("cd7", postcodeData.getOutcode()),
-                entry("cd8", postcodeData.getParliamentaryConstituency()),
-                entry("cd9", postcodeData.getCcg()), // Clinical Commissioning Group
-                entry("cd10", postcodeData.getCodes().getCcg()), // Clinical Commissioning Group code
-                entry("cm1", "1"), // number of children under one
-                entry("cm2", "0"), // number of children between one and four
-                entry("cm3", "1"), // number of pregnancies
-                entry("cm7", getExpectedClaimantAge(claim, timestamp)), // claimant age in years
-                entry("cm9", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant
-        );
+                entry("ev", "0"), // event value (set to 0 as it's not used for claim events)
+                entry("cm9", getNumberOfWeeksPregnant(claim, timestamp))); // weeks pregnant
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
         verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
+    }
+
+    @Test
+    void shouldCreateReportPropertiesForPayment() {
+        int secondsSinceEvent = 1;
+        LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
+        ReportPaymentMessageContext context = aReportPaymentMessageContext(timestamp, datesOfBirthOfChildren, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+        given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(context.getPaymentCycle()))
+                .willReturn(NextPaymentCycleSummary.builder()
+                        .numberOfChildrenTurningOne(1)
+                        .numberOfChildrenTurningFour(1)
+                        .build());
+
+        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForPaymentEvent(context);
+
+        assertQueueTime(reportProperties, timestamp, secondsSinceEvent);
+        Claim claim = context.getClaim();
+        assertCommonProperties(reportProperties, timestamp, claim, "PAYMENT", "SCHEDULED_PAYMENT");
+        assertThat(reportProperties).contains(
+                entry("ev", "300"), // event value is the total payment amount
+                entry("cm4", "100"), // payment for children under one (one child for cycle = 8 vouchers)
+                entry("cm5", "100"), // payment for children between one and four (one child for cycle = 4 vouchers)
+                entry("cm6", "100"), // payment for pregnancy (pregnant for the entire payment cycle = 4 vouchers)
+                entry("cm8", "2") // number of children turning 1 or 4 in the next cycle.
+        );
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
+        verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(context.getPaymentCycle());
     }
 
     @Test
@@ -189,16 +198,60 @@ class ReportPropertiesFactoryTest {
         assertThat(reportProperties).doesNotContainKey("cm9");
     }
 
+    private void assertQueueTime(Map<String, String> reportProperties, LocalDateTime timestamp, int secondsSinceEvent) {
+        // Queue time is number of milliseconds since now and the timestamp value. Therefore a timestamp one second ago should have a queue time >= 1000
+        Long queueTime = Long.parseLong(reportProperties.get("qt"));
+        Long maxPossibleQueueTime = ChronoUnit.MILLIS.between(timestamp, LocalDateTime.now());
+        assertThat(queueTime).isBetween(TimeUnit.SECONDS.toMillis(secondsSinceEvent), maxPossibleQueueTime);
+    }
+
+    private void assertCommonProperties(Map<String, String> reportProperties, LocalDateTime timestamp, Claim claim, String eventCategory, String eventAction) {
+        PostcodeData postcodeData = claim.getPostcodeData();
+        assertThat(reportProperties).contains(
+                entry("t", "event"),
+                entry("v", "1"), // protocol version
+                entry("tid", TRACKING_ID),
+                entry("cid", claim.getId().toString()),
+                entry("ec", eventCategory),
+                entry("ea", eventAction),
+                entry("cd1", "ONLINE"), // user type
+                entry("cd3", CLAIMANT_CATEGORY.getDescription()), // claimant category
+                entry("cd4", postcodeData.getAdminDistrict()), // local authority (admin district in postcodes.io).
+                entry("cd5", postcodeData.getCodes().getAdminDistrict()), // local authority code
+                entry("cd6", postcodeData.getCountry()),
+                entry("cd7", postcodeData.getOutcode()),
+                entry("cd8", postcodeData.getParliamentaryConstituency()),
+                entry("cd9", postcodeData.getCcg()), // Clinical Commissioning Group
+                entry("cd10", postcodeData.getCodes().getCcg()), // Clinical Commissioning Group code
+                entry("cm1", "1"), // number of children under one
+                entry("cm2", "0"), // number of children between one and four
+                entry("cm3", "1"), // number of pregnancies
+                entry("cm7", getExpectedClaimantAge(claim, timestamp)) // claimant age in years
+        );
+    }
+
     private ReportClaimMessageContext aReportClaimMessageContext(LocalDateTime timestamp,
                                                                  List<LocalDate> datesOfBirthOfChildren,
                                                                  LocalDate expectedDeliveryDate) {
-        Claimant claimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        Claim claim = aValidClaimBuilder()
-                .claimant(claimant)
-                .postcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE))
-                .build();
+        Claim claim = aClaimWithDueDateAndPostcodeData(expectedDeliveryDate);
         return ReportClaimMessageContext.builder()
                 .claimAction(NEW)
+                .claim(claim)
+                .datesOfBirthOfChildren(datesOfBirthOfChildren)
+                .timestamp(timestamp)
+                .build();
+    }
+
+    private ReportPaymentMessageContext aReportPaymentMessageContext(LocalDateTime timestamp,
+                                                                     List<LocalDate> datesOfBirthOfChildren,
+                                                                     LocalDate expectedDeliveryDate) {
+        Claim claim = aClaimWithDueDateAndPostcodeData(expectedDeliveryDate);
+        return ReportPaymentMessageContext.builder()
+                .paymentAction(SCHEDULED_PAYMENT)
+                .paymentCycle(aPaymentCycleWithClaim(claim))
+                .paymentForPregnancy(100)
+                .paymentForChildrenUnderOne(100)
+                .paymentForChildrenBetweenOneAndFour(100)
                 .claim(claim)
                 .datesOfBirthOfChildren(datesOfBirthOfChildren)
                 .timestamp(timestamp)

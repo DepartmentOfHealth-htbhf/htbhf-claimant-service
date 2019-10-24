@@ -130,11 +130,14 @@ public class MessageContextLoader {
     public ReportPaymentMessageContext loadReportPaymentMessageContext(Message message) {
         ReportPaymentMessagePayload payload = payloadMapper.getPayload(message, ReportPaymentMessagePayload.class);
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        Optional<PaymentCycle> paymentCycle = payload.getPaymentCycleId().flatMap(id -> paymentCycleRepository.findById(id));
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), "payment cycle");
 
         return ReportPaymentMessageContext.builder()
                 .claim(claim)
                 .paymentCycle(paymentCycle)
+                .paymentForPregnancy(payload.getPaymentForPregnancy())
+                .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())
+                .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())
                 .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .paymentAction(payload.getPaymentAction())
                 .timestamp(payload.getTimestamp())

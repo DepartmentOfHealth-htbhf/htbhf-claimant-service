@@ -3,7 +3,12 @@ package uk.gov.dhsc.htbhf.claimant.reporting.payload;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
 
@@ -19,6 +24,7 @@ import java.util.TreeMap;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.HIT_TYPE_KEY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.PROTOCOL_VERSION_KEY;
@@ -29,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.payload.UserType.ONLINE;
  * Factory class for creating a map of parameters reported to google analytics measurement protocol.
  */
 @Component
+@SuppressWarnings("PMD.TooManyMethods")
 public class ReportPropertiesFactory {
 
     private static final String HIT_TYPE_VALUE = "event";
@@ -39,20 +46,33 @@ public class ReportPropertiesFactory {
     public static final int PREGNANCY_DURATION_IN_WEEKS = 40;
 
     private final ClaimantCategoryCalculator claimantCategoryCalculator;
+    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final String trackingId;
 
     public ReportPropertiesFactory(@Value("${google-analytics.tracking-id}") String trackingId,
-                                   ClaimantCategoryCalculator claimantCategoryCalculator) {
+                                   ClaimantCategoryCalculator claimantCategoryCalculator,
+                                   ChildDateOfBirthCalculator childDateOfBirthCalculator) {
         this.trackingId = trackingId;
         this.claimantCategoryCalculator = claimantCategoryCalculator;
+        this.childDateOfBirthCalculator = childDateOfBirthCalculator;
     }
 
     public Map<String, String> createReportPropertiesForClaimEvent(ReportClaimMessageContext context) {
         Map<String, String> reportProperties = new LinkedHashMap<>();
         reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
-        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context)));
+        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, 0)));
         reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
-        reportProperties.putAll(mapValuesToString(createCustomMetricMap(context)));
+        reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));
+        return reportProperties;
+    }
+
+    public Map<String, String> createReportPropertiesForPaymentEvent(ReportPaymentMessageContext context) {
+        Map<String, String> reportProperties = new LinkedHashMap<>();
+        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
+        int totalPaymentAmount = context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne() + context.getPaymentForChildrenBetweenOneAndFour();
+        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, totalPaymentAmount)));
+        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
+        reportProperties.putAll(mapValuesToString(createCustomMetricMapForPaymentEvent(context)));
         return reportProperties;
     }
 
@@ -64,17 +84,17 @@ public class ReportPropertiesFactory {
         return mandatoryProperties;
     }
 
-    private Map<String, Object> createEventPropertiesMap(ReportClaimMessageContext context) {
+    private Map<String, Object> createEventPropertiesMap(ReportEventMessageContext context, EventCategory eventCategory, int eventValue) {
         Map<String, Object> eventPropertiesMap = new LinkedHashMap<>();
-        eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), CLAIM.name());
-        eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getClaimAction().name());
-        eventPropertiesMap.put(EVENT_VALUE.getFieldName(), 0);
+        eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), eventCategory.name());
+        eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getEventAction());
+        eventPropertiesMap.put(EVENT_VALUE.getFieldName(), eventValue);
         eventPropertiesMap.put(QUEUE_TIME.getFieldName(), calculateQueueTime(context.getTimestamp()));
         eventPropertiesMap.put(CUSTOMER_ID.getFieldName(), context.getClaim().getId());
         return eventPropertiesMap;
     }
 
-    private Map<String, Object> createCustomDimensionMap(ReportClaimMessageContext context) {
+    private Map<String, Object> createCustomDimensionMap(ReportEventMessageContext context) {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
         ClaimantCategory claimantCategory = claimantCategoryCalculator
@@ -91,7 +111,24 @@ public class ReportPropertiesFactory {
         return customDimensions;
     }
 
-    private Map<String, Object> createCustomMetricMap(ReportClaimMessageContext context) {
+    private Map<String, Object> createCustomMetricMapForClaimEvent(ReportClaimMessageContext context) {
+        Map<String, Object> customMetrics = createCommonCustomMetrics(context);
+        LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();
+        LocalDate atDate = context.getTimestamp().toLocalDate();
+        if (isClaimantPregnant(expectedDeliveryDate, atDate)) {
+            LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);
+            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));
+        }
+        return customMetrics;
+    }
+
+    private Map<String, Object> createCustomMetricMapForPaymentEvent(ReportPaymentMessageContext context) {
+        Map<String, Object> customMetrics = createCommonCustomMetrics(context);
+        addPaymentCycleMetrics(context, customMetrics);
+        return customMetrics;
+    }
+
+    private Map<String, Object> createCommonCustomMetrics(ReportEventMessageContext context) {
         Map<String, Object> customMetrics = new TreeMap<>();
         Claimant claimant = context.getClaim().getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
@@ -101,14 +138,22 @@ public class ReportPropertiesFactory {
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
         customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);
         LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();
-        if (expectedDeliveryDate == null || expectedDeliveryDate.isBefore(atDate)) {
-            customMetrics.put(PREGNANCIES.getFieldName(), 0);
-        } else {
-            customMetrics.put(PREGNANCIES.getFieldName(), 1);
-            LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);
-            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));
-        }
+        int pregnanciesValue = isClaimantPregnant(expectedDeliveryDate, atDate) ? 1 : 0;
+        customMetrics.put(PREGNANCIES.getFieldName(), pregnanciesValue);
         return customMetrics;
+    }
+
+    private boolean isClaimantPregnant(LocalDate expectedDeliveryDate, LocalDate atDate) {
+        return expectedDeliveryDate != null && !expectedDeliveryDate.isBefore(atDate);
+    }
+
+    private void addPaymentCycleMetrics(ReportPaymentMessageContext context, Map<String, Object> customMetrics) {
+        PaymentCycle paymentCycle = context.getPaymentCycle();
+        customMetrics.put(PAYMENT_FOR_PREGNANCY.getFieldName(), context.getPaymentForPregnancy());
+        customMetrics.put(PAYMENT_FOR_CHILDREN_UNDER_ONE.getFieldName(), context.getPaymentForChildrenUnderOne());
+        customMetrics.put(PAYMENT_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), context.getPaymentForChildrenBetweenOneAndFour());
+        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
+        customMetrics.put(NUMBER_OF_1ST_OR_FOURTH_BIRTHDAYS_IN_NEXT_CYCLE.getFieldName(), nextPaymentCycleSummary.getNumberOfChildrenTurningOneOrFour());
     }
 
     private Long calculateQueueTime(LocalDateTime timestamp) {
