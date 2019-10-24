@@ -22,6 +22,7 @@ import static org.mockito.Mockito.lenient;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChildDateOfBirthCalculatorTest {
@@ -321,6 +322,44 @@ class ChildDateOfBirthCalculatorTest {
         boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isFalse();
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForNumberOfChildrenUnderOne")
+    void shouldGetNumberOfChildrenUnderOne(List<LocalDate> childrenDobs, int expectedNumberOfChildrenUnderOne) {
+        //When
+        int numberOfChildrenUnderOne = ChildDateOfBirthCalculator.getNumberOfChildrenUnderOne(childrenDobs, LocalDate.now());
+        //Then
+        assertThat(numberOfChildrenUnderOne).isEqualTo(expectedNumberOfChildrenUnderOne);
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForNumberOfChildrenUnderFour")
+    void shouldGetNumberOfChildrenUnderFour(List<LocalDate> childrenDobs, int expectedNumberOfChildrenUnderFour) {
+        //When
+        int numberOfChildrenUnderFour = ChildDateOfBirthCalculator.getNumberOfChildrenUnderFour(childrenDobs, LocalDate.now());
+        //Then
+        assertThat(numberOfChildrenUnderFour).isEqualTo(expectedNumberOfChildrenUnderFour);
+    }
+
+    private static Stream<Arguments> provideArgumentsForNumberOfChildrenUnderOne() {
+        return Stream.of(
+                Arguments.of(emptyList(), 0),
+                Arguments.of(null, 0),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, 0),
+                Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, 1),
+                Arguments.of(TWO_CHILDREN_UNDER_ONE, 2)
+        );
+    }
+
+    private static Stream<Arguments> provideArgumentsForNumberOfChildrenUnderFour() {
+        return Stream.of(
+                Arguments.of(emptyList(), 0),
+                Arguments.of(null, 0),
+                Arguments.of(SINGLE_FIVE_YEAR_OLD, 0),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, 1),
+                Arguments.of(TWO_CHILDREN_BETWEEN_ONE_AND_FOUR, 2)
+        );
     }
 
     private static Stream<Arguments> provideArgumentsForChildrenFourAndOver() {

@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
@@ -133,8 +134,8 @@ public class ReportPropertiesFactory {
         Claimant claimant = context.getClaim().getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
-        long childrenUnder4 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(atDate.minusYears(4))).count();
-        long childrenUnder1 = context.getDatesOfBirthOfChildren().stream().filter(dob -> dob.isAfter(atDate.minusYears(1))).count();
+        long childrenUnder4 = getNumberOfChildrenUnderFour(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+        long childrenUnder1 = getNumberOfChildrenUnderOne(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
         customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);
         LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();

@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 
 /**
@@ -21,6 +22,14 @@ public class ChildDateOfBirthCalculator {
 
     public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
+    }
+
+    public static Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 1);
+    }
+
+    public static Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 4);
     }
 
     /**
@@ -72,6 +81,16 @@ public class ChildDateOfBirthCalculator {
         }
         return childrenDob.stream()
                 .anyMatch(childDob -> childDob.isAfter(atDate.minusYears(4)));
+    }
+
+    private static Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate, Integer ageInYears) {
+        if (isEmpty(dateOfBirthOfChildren)) {
+            return 0;
+        }
+        LocalDate pastDate = entitlementDate.minusYears(ageInYears);
+        return Math.toIntExact(dateOfBirthOfChildren.stream()
+                .filter(date -> date.isAfter(pastDate) && !date.isAfter(entitlementDate))
+                .count());
     }
 
     private int countChildrenOfAge(PaymentCycle paymentCycle, LocalDate lastEntitlementDateInCurrentCycle,
