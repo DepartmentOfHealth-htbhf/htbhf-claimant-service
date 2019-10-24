@@ -30,4 +30,8 @@ public class NextPaymentCycleSummary {
     public boolean hasMultipleChildrenTurningOne() {
         return numberOfChildrenTurningOne > 1;
     }
+
+    public int getNumberOfChildrenTurningOneOrFour() {
+        return numberOfChildrenTurningOne + numberOfChildrenTurningFour;
+    }
 }
