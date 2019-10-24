@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -26,16 +28,23 @@ public class MIReporter {
     private final GoogleAnalyticsClient googleAnalyticsClient;
 
     public void reportClaim(ReportClaimMessageContext context) {
+        updateClaimWithPostcodeDataIfNecessary(context);
+        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
+        googleAnalyticsClient.reportEvent(reportProperties);
+    }
+
+    public void reportPayment(ReportPaymentMessageContext context) {
+        updateClaimWithPostcodeDataIfNecessary(context);
+        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForPaymentEvent(context);
+        googleAnalyticsClient.reportEvent(reportProperties);
+    }
+
+    private void updateClaimWithPostcodeDataIfNecessary(ReportEventMessageContext context) {
         Claim claim = context.getClaim();
         if (claim.getPostcodeData() == null) {
             PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);
             claim.setPostcodeData(postcodeData);
             claimRepository.save(claim);
         }
-
-        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
-
-        googleAnalyticsClient.reportEvent(reportProperties);
     }
-
 }
