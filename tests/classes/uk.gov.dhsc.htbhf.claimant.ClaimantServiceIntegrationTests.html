@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.224s</div>
+<div class="counter">0.943s</div>
 <p>duration</p>
 </div>
 </td>
@@ -81,13 +81,13 @@
 <tr>
 <td class="success">shouldAcceptAndCreateANewValidClaimWithNoNullFields()</td>
 <td class="success">shouldAcceptAndCreateANewValidClaimWithNoNullFields()</td>
-<td class="success">0.077s</td>
+<td class="success">0.064s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldAcceptAndCreateANewValidClaimWithNullFields()</td>
 <td class="success">shouldAcceptAndCreateANewValidClaimWithNullFields()</td>
-<td class="success">0.061s</td>
+<td class="success">0.063s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -99,37 +99,37 @@
 <tr>
 <td class="success">shouldAcceptAndUpdateAnExistingEligibleClaim()</td>
 <td class="success">shouldAcceptAndUpdateAnExistingEligibleClaim()</td>
-<td class="success">0.079s</td>
+<td class="success">0.083s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailWhenEligibilityServiceCallThrowsException()</td>
 <td class="success">shouldFailWhenEligibilityServiceCallThrowsException()</td>
-<td class="success">0.059s</td>
+<td class="success">0.053s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailWithAddressValidationError()</td>
 <td class="success">shouldFailWithAddressValidationError()</td>
-<td class="success">0.028s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailWithChannelIslandPostcode()</td>
 <td class="success">shouldFailWithChannelIslandPostcode()</td>
-<td class="success">0.029s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldFailWithClaimantValidationError()</td>
 <td class="success">shouldFailWithClaimantValidationError()</td>
-<td class="success">0.326s</td>
+<td class="success">0.098s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field dateOfBirth with invalid value 29-11-1909 on an error response</td>
 <td class="success">shouldFailWithInvalidDateFormatError(String, String, String, String)[1]</td>
-<td class="success">0.049s</td>
+<td class="success">0.033s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -141,37 +141,37 @@
 <tr>
 <td class="success">Field dateOfBirth with invalid value Foo on an error response</td>
 <td class="success">shouldFailWithInvalidDateFormatError(String, String, String, String)[3]</td>
-<td class="success">0.026s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field expectedDeliveryDate with invalid value 29-11-1909 on an error response</td>
 <td class="success">shouldFailWithInvalidDateFormatError(String, String, String, String)[4]</td>
-<td class="success">0.027s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field expectedDeliveryDate with invalid value 1999/12/31 on an error response</td>
 <td class="success">shouldFailWithInvalidDateFormatError(String, String, String, String)[5]</td>
-<td class="success">0.029s</td>
+<td class="success">0.025s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Field expectedDeliveryDate with invalid value Foo on an error response</td>
 <td class="success">shouldFailWithInvalidDateFormatError(String, String, String, String)[6]</td>
-<td class="success">0.024s</td>
+<td class="success">0.026s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldIgnoreUnknownFieldsInValidClaimRequest()</td>
 <td class="success">shouldIgnoreUnknownFieldsInValidClaimRequest()</td>
-<td class="success">0.099s</td>
+<td class="success">0.101s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldReturn404ErrorForNonExistentPath()</td>
 <td class="success">shouldReturn404ErrorForNonExistentPath()</td>
-<td class="success">0.052s</td>
+<td class="success">0.039s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -189,7 +189,7 @@
 <tr>
 <td class="success">shouldReturnErrorGivenAnEmptyClaim()</td>
 <td class="success">shouldReturnErrorGivenAnEmptyClaim()</td>
-<td class="success">0.026s</td>
+<td class="success">0.023s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -206,10 +206,10 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.9.RELEASE)
 
-13:33:18.655 [http-nio-auto-2-exec-1] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.phoneNumber, message=must not be null)]
-13:33:18.826 [http-nio-auto-2-exec-3] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.address.addressLine1, message=must not be null)]
-13:33:19.082 [http-nio-auto-2-exec-7] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
-13:33:19.091 [http-nio-auto-2-exec-7] ERROR u.g.d.h.errorhandler.ErrorHandler - An error occurred during incoming POST request to /v2/claims: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+08:05:09.413 [http-nio-auto-4-exec-1] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.phoneNumber, message=must not be null)]
+08:05:09.564 [http-nio-auto-4-exec-3] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.address.addressLine1, message=must not be null)]
+08:05:09.824 [http-nio-auto-4-exec-7] ERROR u.g.d.h.c.service.EligibilityClient - Exception caught trying to post to http://localhost:8100/v1/eligibility
+08:05:09.832 [http-nio-auto-4-exec-7] ERROR u.g.d.h.errorhandler.ErrorHandler - An error occurred during incoming POST request to /v2/claims: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility (at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException: Exception caught trying to call eligibility service at: http://localhost:8100/v1/eligibility
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:61)
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService.evaluateClaimant(EligibilityAndEntitlementService.java:48)
@@ -293,8 +293,8 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.postForEntity(RestTemplate.java:445)
 	at uk.gov.dhsc.htbhf.claimant.service.EligibilityClient.checkEligibility(EligibilityClient.java:43)
 	... 70 common frames omitted
-13:33:19.135 [http-nio-auto-2-exec-8] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.address.postcode, message=postcodes in the Channel Islands or Isle of Man are not acceptable)]
-13:33:19.609 [http-nio-auto-2-exec-9] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
+08:05:09.871 [http-nio-auto-4-exec-8] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant.address.postcode, message=postcodes in the Channel Islands or Isle of Man are not acceptable)]
+08:05:10.293 [http-nio-auto-4-exec-9] ERROR u.g.d.h.errorhandler.ErrorHandler - Binding error(s) during incoming POST request to /v2/claims: [ErrorResponse.FieldError(field=claimant, message=must not be null)]
 </pre>
 </span>
 </div>
@@ -306,7 +306,7 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 23, 2019, 1:35:01 PM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 24, 2019, 8:07:19 AM</p>
 </div>
 </div>
 </body>
