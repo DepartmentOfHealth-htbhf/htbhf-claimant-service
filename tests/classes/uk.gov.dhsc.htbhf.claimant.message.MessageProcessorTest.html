@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.024s</div>
+<div class="counter">0.048s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown()</td>
-<td class="success">0.016s</td>
+<td class="success">0.031s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldCallDummyProcessors()</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldContinueToProcessMessagesAfterAnExceptionThrown()</td>
 <td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">shouldContinueToProcessMessagesAfterAnExceptionThrown()</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">shouldLogMessageProcessResults()</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -104,7 +104,7 @@
 </tr>
 <tr>
 <td class="success">shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor()</td>
-<td class="success">0.003s</td>
+<td class="success">0.006s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -112,8 +112,8 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>08:24:03.642 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-08:24:03.643 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 865eac53-017a-4d0a-98dd-59e01f411901, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.&lt;clinit&gt;(TestConstants.java:52))
+<pre>12:45:51.248 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+12:45:51.250 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 72ef533f-9c49-4130-ab93-9bbc8d43d56c, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.&lt;clinit&gt;(TestConstants.java:52))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Something went badly wrong
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -196,20 +196,22 @@ Caused by: java.lang.RuntimeException: test exception
 	at uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.&lt;clinit&gt;(TestConstants.java:52)
 	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder(ClaimantTestDataFactory.java:78)
 	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant(ClaimantTestDataFactory.java:19)
-	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilderWithStatus(ClaimTestDataFactory.java:81)
-	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus(ClaimTestDataFactory.java:53)
-	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim(ClaimTestDataFactory.java:21)
-	at uk.gov.dhsc.htbhf.claimant.exception.EventFailedExceptionTest.shouldCreateFailureEventOnConstruction(EventFailedExceptionTest.java:17)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilderWithStatus(ClaimTestDataFactory.java:92)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus(ClaimTestDataFactory.java:56)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim(ClaimTestDataFactory.java:24)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder(PaymentCycleTestDataFactory.java:117)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle(PaymentCycleTestDataFactory.java:26)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleSchedulerTest.shouldContinueToProcessAfterException(PaymentCycleSchedulerTest.java:55)
 	... 64 common frames omitted
-08:24:03.643 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
-08:24:03.645 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-08:24:03.645 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
-08:24:03.646 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type CREATE_NEW_CARD
-08:24:03.646 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 CREATE_NEW_CARD message(s) with status COMPLETED
-08:24:03.647 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-08:24:03.647 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$1505244721
-08:24:03.648 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 message(s) of type CREATE_NEW_CARD
-08:24:03.648 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 4661d269-4a0c-4c5e-bfc5-aef5bef3b465, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
+12:45:51.254 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
+12:45:51.257 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+12:45:51.257 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
+12:45:51.259 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 message(s) of type CREATE_NEW_CARD
+12:45:51.260 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 CREATE_NEW_CARD message(s) with status COMPLETED
+12:45:51.261 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+12:45:51.262 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$1434150415
+12:45:51.263 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 message(s) of type CREATE_NEW_CARD
+12:45:51.264 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 36acb4c6-2b37-4ca2-8596-729c740733ec, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
 java.lang.RuntimeException: foo
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -288,10 +290,10 @@ java.lang.RuntimeException: foo
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-08:24:03.649 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status FAILED
-08:24:03.649 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
-08:24:03.649 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
-08:24:03.650 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
+12:45:51.265 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status FAILED
+12:45:51.266 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
+12:45:51.266 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
+12:45:51.269 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_PAYMENT
 </pre>
 </span>
 </div>
@@ -303,7 +305,7 @@ java.lang.RuntimeException: foo
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 24, 2019, 8:25:44 AM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 24, 2019, 12:48:14 PM</p>
 </div>
 </div>
 </body>

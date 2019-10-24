@@ -3,7 +3,12 @@
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
+import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
 
@@ -19,6 +24,7 @@ import java.util.TreeMap;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.HIT_TYPE_KEY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.PROTOCOL_VERSION_KEY;
@@ -29,97 +35,136 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.payload.UserType.ONLINE;
  * Factory class for creating a map of parameters reported to google analytics measurement protocol.
  */
 @Component
+@SuppressWarnings(&quot;PMD.TooManyMethods&quot;)
 public class ReportPropertiesFactory {
 
     private static final String HIT_TYPE_VALUE = &quot;event&quot;;
     private static final String PROTOCOL_VERSION_VALUE = &quot;1&quot;;
     // queue times longer than 4 hours may cause the event to not be registered:
     // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#qt
-<span class="fc" id="L38">    private static final Long MAX_QUEUE_TIME = 1000L * 60 * 60 * 4;</span>
+<span class="fc" id="L45">    private static final Long MAX_QUEUE_TIME = 1000L * 60 * 60 * 4;</span>
     public static final int PREGNANCY_DURATION_IN_WEEKS = 40;
 
     private final ClaimantCategoryCalculator claimantCategoryCalculator;
+    private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private final String trackingId;
 
     public ReportPropertiesFactory(@Value(&quot;${google-analytics.tracking-id}&quot;) String trackingId,
-<span class="fc" id="L45">                                   ClaimantCategoryCalculator claimantCategoryCalculator) {</span>
-<span class="fc" id="L46">        this.trackingId = trackingId;</span>
-<span class="fc" id="L47">        this.claimantCategoryCalculator = claimantCategoryCalculator;</span>
-<span class="fc" id="L48">    }</span>
+                                   ClaimantCategoryCalculator claimantCategoryCalculator,
+<span class="fc" id="L54">                                   ChildDateOfBirthCalculator childDateOfBirthCalculator) {</span>
+<span class="fc" id="L55">        this.trackingId = trackingId;</span>
+<span class="fc" id="L56">        this.claimantCategoryCalculator = claimantCategoryCalculator;</span>
+<span class="fc" id="L57">        this.childDateOfBirthCalculator = childDateOfBirthCalculator;</span>
+<span class="fc" id="L58">    }</span>
 
     public Map&lt;String, String&gt; createReportPropertiesForClaimEvent(ReportClaimMessageContext context) {
-<span class="fc" id="L51">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L52">        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));</span>
-<span class="fc" id="L53">        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context)));</span>
-<span class="fc" id="L54">        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));</span>
-<span class="fc" id="L55">        reportProperties.putAll(mapValuesToString(createCustomMetricMap(context)));</span>
-<span class="fc" id="L56">        return reportProperties;</span>
+<span class="fc" id="L61">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L62">        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));</span>
+<span class="fc" id="L63">        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, 0)));</span>
+<span class="fc" id="L64">        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));</span>
+<span class="fc" id="L65">        reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));</span>
+<span class="fc" id="L66">        return reportProperties;</span>
+    }
+
+    public Map&lt;String, String&gt; createReportPropertiesForPaymentEvent(ReportPaymentMessageContext context) {
+<span class="fc" id="L70">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L71">        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));</span>
+<span class="fc" id="L72">        int totalPaymentAmount = context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne() + context.getPaymentForChildrenBetweenOneAndFour();</span>
+<span class="fc" id="L73">        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, totalPaymentAmount)));</span>
+<span class="fc" id="L74">        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));</span>
+<span class="fc" id="L75">        reportProperties.putAll(mapValuesToString(createCustomMetricMapForPaymentEvent(context)));</span>
+<span class="fc" id="L76">        return reportProperties;</span>
     }
 
     private Map&lt;String, Object&gt; createMandatoryPropertiesMap() {
-<span class="fc" id="L60">        Map&lt;String, Object&gt; mandatoryProperties = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L61">        mandatoryProperties.put(HIT_TYPE_KEY.getFieldName(), HIT_TYPE_VALUE);</span>
-<span class="fc" id="L62">        mandatoryProperties.put(PROTOCOL_VERSION_KEY.getFieldName(), PROTOCOL_VERSION_VALUE);</span>
-<span class="fc" id="L63">        mandatoryProperties.put(TRACKING_ID_KEY.getFieldName(), trackingId);</span>
-<span class="fc" id="L64">        return mandatoryProperties;</span>
+<span class="fc" id="L80">        Map&lt;String, Object&gt; mandatoryProperties = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L81">        mandatoryProperties.put(HIT_TYPE_KEY.getFieldName(), HIT_TYPE_VALUE);</span>
+<span class="fc" id="L82">        mandatoryProperties.put(PROTOCOL_VERSION_KEY.getFieldName(), PROTOCOL_VERSION_VALUE);</span>
+<span class="fc" id="L83">        mandatoryProperties.put(TRACKING_ID_KEY.getFieldName(), trackingId);</span>
+<span class="fc" id="L84">        return mandatoryProperties;</span>
     }
 
-    private Map&lt;String, Object&gt; createEventPropertiesMap(ReportClaimMessageContext context) {
-<span class="fc" id="L68">        Map&lt;String, Object&gt; eventPropertiesMap = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L69">        eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), CLAIM.name());</span>
-<span class="fc" id="L70">        eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getClaimAction().name());</span>
-<span class="fc" id="L71">        eventPropertiesMap.put(EVENT_VALUE.getFieldName(), 0);</span>
-<span class="fc" id="L72">        eventPropertiesMap.put(QUEUE_TIME.getFieldName(), calculateQueueTime(context.getTimestamp()));</span>
-<span class="fc" id="L73">        eventPropertiesMap.put(CUSTOMER_ID.getFieldName(), context.getClaim().getId());</span>
-<span class="fc" id="L74">        return eventPropertiesMap;</span>
+    private Map&lt;String, Object&gt; createEventPropertiesMap(ReportEventMessageContext context, EventCategory eventCategory, int eventValue) {
+<span class="fc" id="L88">        Map&lt;String, Object&gt; eventPropertiesMap = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L89">        eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), eventCategory.name());</span>
+<span class="fc" id="L90">        eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getEventAction());</span>
+<span class="fc" id="L91">        eventPropertiesMap.put(EVENT_VALUE.getFieldName(), eventValue);</span>
+<span class="fc" id="L92">        eventPropertiesMap.put(QUEUE_TIME.getFieldName(), calculateQueueTime(context.getTimestamp()));</span>
+<span class="fc" id="L93">        eventPropertiesMap.put(CUSTOMER_ID.getFieldName(), context.getClaim().getId());</span>
+<span class="fc" id="L94">        return eventPropertiesMap;</span>
     }
 
-    private Map&lt;String, Object&gt; createCustomDimensionMap(ReportClaimMessageContext context) {
-<span class="fc" id="L78">        Map&lt;String, Object&gt; customDimensions = new TreeMap&lt;&gt;();</span>
-<span class="fc" id="L79">        customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());</span>
-<span class="fc" id="L80">        ClaimantCategory claimantCategory = claimantCategoryCalculator</span>
-<span class="fc" id="L81">                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());</span>
-<span class="fc" id="L82">        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());</span>
-<span class="fc" id="L83">        PostcodeData postcodeData = context.getClaim().getPostcodeData();</span>
-<span class="fc" id="L84">        customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());</span>
-<span class="fc" id="L85">        customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());</span>
-<span class="fc" id="L86">        customDimensions.put(COUNTRY.getFieldName(), postcodeData.getCountry());</span>
-<span class="fc" id="L87">        customDimensions.put(POSTCODE_OUTCODE.getFieldName(), postcodeData.getOutcode());</span>
-<span class="fc" id="L88">        customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());</span>
-<span class="fc" id="L89">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());</span>
-<span class="fc" id="L90">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());</span>
-<span class="fc" id="L91">        return customDimensions;</span>
+    private Map&lt;String, Object&gt; createCustomDimensionMap(ReportEventMessageContext context) {
+<span class="fc" id="L98">        Map&lt;String, Object&gt; customDimensions = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L99">        customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());</span>
+<span class="fc" id="L100">        ClaimantCategory claimantCategory = claimantCategoryCalculator</span>
+<span class="fc" id="L101">                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());</span>
+<span class="fc" id="L102">        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());</span>
+<span class="fc" id="L103">        PostcodeData postcodeData = context.getClaim().getPostcodeData();</span>
+<span class="fc" id="L104">        customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());</span>
+<span class="fc" id="L105">        customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());</span>
+<span class="fc" id="L106">        customDimensions.put(COUNTRY.getFieldName(), postcodeData.getCountry());</span>
+<span class="fc" id="L107">        customDimensions.put(POSTCODE_OUTCODE.getFieldName(), postcodeData.getOutcode());</span>
+<span class="fc" id="L108">        customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());</span>
+<span class="fc" id="L109">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());</span>
+<span class="fc" id="L110">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());</span>
+<span class="fc" id="L111">        return customDimensions;</span>
     }
 
-    private Map&lt;String, Object&gt; createCustomMetricMap(ReportClaimMessageContext context) {
-<span class="fc" id="L95">        Map&lt;String, Object&gt; customMetrics = new TreeMap&lt;&gt;();</span>
-<span class="fc" id="L96">        Claimant claimant = context.getClaim().getClaimant();</span>
-<span class="fc" id="L97">        LocalDate atDate = context.getTimestamp().toLocalDate();</span>
-<span class="fc" id="L98">        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());</span>
-<span class="fc" id="L99">        long childrenUnder4 = context.getDatesOfBirthOfChildren().stream().filter(dob -&gt; dob.isAfter(atDate.minusYears(4))).count();</span>
-<span class="fc" id="L100">        long childrenUnder1 = context.getDatesOfBirthOfChildren().stream().filter(dob -&gt; dob.isAfter(atDate.minusYears(1))).count();</span>
-<span class="fc" id="L101">        customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);</span>
-<span class="fc" id="L102">        customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);</span>
-<span class="fc" id="L103">        LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();</span>
-<span class="fc bfc" id="L104" title="All 4 branches covered.">        if (expectedDeliveryDate == null || expectedDeliveryDate.isBefore(atDate)) {</span>
-<span class="fc" id="L105">            customMetrics.put(PREGNANCIES.getFieldName(), 0);</span>
-        } else {
-<span class="fc" id="L107">            customMetrics.put(PREGNANCIES.getFieldName(), 1);</span>
-<span class="fc" id="L108">            LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);</span>
-<span class="fc" id="L109">            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));</span>
+    private Map&lt;String, Object&gt; createCustomMetricMapForClaimEvent(ReportClaimMessageContext context) {
+<span class="fc" id="L115">        Map&lt;String, Object&gt; customMetrics = createCommonCustomMetrics(context);</span>
+<span class="fc" id="L116">        LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();</span>
+<span class="fc" id="L117">        LocalDate atDate = context.getTimestamp().toLocalDate();</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (isClaimantPregnant(expectedDeliveryDate, atDate)) {</span>
+<span class="fc" id="L119">            LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);</span>
+<span class="fc" id="L120">            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));</span>
         }
-<span class="fc" id="L111">        return customMetrics;</span>
+<span class="fc" id="L122">        return customMetrics;</span>
     }
+
+    private Map&lt;String, Object&gt; createCustomMetricMapForPaymentEvent(ReportPaymentMessageContext context) {
+<span class="fc" id="L126">        Map&lt;String, Object&gt; customMetrics = createCommonCustomMetrics(context);</span>
+<span class="fc" id="L127">        addPaymentCycleMetrics(context, customMetrics);</span>
+<span class="fc" id="L128">        return customMetrics;</span>
+    }
+
+    private Map&lt;String, Object&gt; createCommonCustomMetrics(ReportEventMessageContext context) {
+<span class="fc" id="L132">        Map&lt;String, Object&gt; customMetrics = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L133">        Claimant claimant = context.getClaim().getClaimant();</span>
+<span class="fc" id="L134">        LocalDate atDate = context.getTimestamp().toLocalDate();</span>
+<span class="fc" id="L135">        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());</span>
+<span class="fc" id="L136">        long childrenUnder4 = context.getDatesOfBirthOfChildren().stream().filter(dob -&gt; dob.isAfter(atDate.minusYears(4))).count();</span>
+<span class="fc" id="L137">        long childrenUnder1 = context.getDatesOfBirthOfChildren().stream().filter(dob -&gt; dob.isAfter(atDate.minusYears(1))).count();</span>
+<span class="fc" id="L138">        customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);</span>
+<span class="fc" id="L139">        customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);</span>
+<span class="fc" id="L140">        LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        int pregnanciesValue = isClaimantPregnant(expectedDeliveryDate, atDate) ? 1 : 0;</span>
+<span class="fc" id="L142">        customMetrics.put(PREGNANCIES.getFieldName(), pregnanciesValue);</span>
+<span class="fc" id="L143">        return customMetrics;</span>
+    }
+
+    private boolean isClaimantPregnant(LocalDate expectedDeliveryDate, LocalDate atDate) {
+<span class="fc bfc" id="L147" title="All 4 branches covered.">        return expectedDeliveryDate != null &amp;&amp; !expectedDeliveryDate.isBefore(atDate);</span>
+    }
+
+    private void addPaymentCycleMetrics(ReportPaymentMessageContext context, Map&lt;String, Object&gt; customMetrics) {
+<span class="fc" id="L151">        PaymentCycle paymentCycle = context.getPaymentCycle();</span>
+<span class="fc" id="L152">        customMetrics.put(PAYMENT_FOR_PREGNANCY.getFieldName(), context.getPaymentForPregnancy());</span>
+<span class="fc" id="L153">        customMetrics.put(PAYMENT_FOR_CHILDREN_UNDER_ONE.getFieldName(), context.getPaymentForChildrenUnderOne());</span>
+<span class="fc" id="L154">        customMetrics.put(PAYMENT_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), context.getPaymentForChildrenBetweenOneAndFour());</span>
+<span class="fc" id="L155">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc" id="L156">        customMetrics.put(NUMBER_OF_1ST_OR_FOURTH_BIRTHDAYS_IN_NEXT_CYCLE.getFieldName(), nextPaymentCycleSummary.getNumberOfChildrenTurningOneOrFour());</span>
+<span class="fc" id="L157">    }</span>
 
     private Long calculateQueueTime(LocalDateTime timestamp) {
-<span class="fc" id="L115">        long queueTime = Duration.between(timestamp, LocalDateTime.now()).toMillis();</span>
-<span class="fc" id="L116">        return Math.min(queueTime, MAX_QUEUE_TIME);</span>
+<span class="fc" id="L160">        long queueTime = Duration.between(timestamp, LocalDateTime.now()).toMillis();</span>
+<span class="fc" id="L161">        return Math.min(queueTime, MAX_QUEUE_TIME);</span>
     }
 
     private Map&lt;String, String&gt; mapValuesToString(Map&lt;String, Object&gt; original) {
-<span class="fc" id="L120">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L121">        original.forEach((key, value) -&gt; reportProperties.put(key, String.valueOf(value)));</span>
-<span class="fc" id="L122">        return reportProperties;</span>
+<span class="fc" id="L165">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L166">        original.forEach((key, value) -&gt; reportProperties.put(key, String.valueOf(value)));</span>
+<span class="fc" id="L167">        return reportProperties;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
