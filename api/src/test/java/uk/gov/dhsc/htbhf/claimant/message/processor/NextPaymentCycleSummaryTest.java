@@ -57,4 +57,18 @@ class NextPaymentCycleSummaryTest {
         assertThat(NO_CHILDREN.hasMultipleChildrenTurningFour()).isFalse();
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "0, 0, 0",
+            "1, 1, 2",
+            "3, 2, 5"
+    })
+    void testNumberOfChildrenTurningOneOrFour(int childrenTuringOne, int childrenTurningFour, int total) {
+        NextPaymentCycleSummary summary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(childrenTuringOne)
+                .numberOfChildrenTurningFour(childrenTurningFour)
+                .build();
+
+        assertThat(summary.getNumberOfChildrenTurningOneOrFour()).isEqualTo(total);
+    }
 }
