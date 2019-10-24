@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import java.util.Optional;
@@ -40,12 +41,19 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
     private PaymentService paymentService;
     @Mock
     private AdditionalPregnancyVoucherCalculator voucherCalculator;
+    @Mock
+    private ReportPaymentMessageSender reportPaymentMessageSender;
 
     private AdditionalPregnancyPaymentMessageProcessor messageProcessor;
 
     @BeforeEach
     public void setUp() {
-        messageProcessor = new AdditionalPregnancyPaymentMessageProcessor(VOUCHER_VALUE_IN_PENCE, messageContextLoader, voucherCalculator, paymentService);
+        messageProcessor = new AdditionalPregnancyPaymentMessageProcessor(
+                VOUCHER_VALUE_IN_PENCE,
+                messageContextLoader,
+                voucherCalculator,
+                paymentService,
+                reportPaymentMessageSender);
     }
 
     @Test
@@ -57,7 +65,9 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
 
-        verify(paymentService).makeInterimPayment(paymentCycle, claim.getCardAccountId(), numberOfVouchers * VOUCHER_VALUE_IN_PENCE);
+        int paymentAmount = numberOfVouchers * VOUCHER_VALUE_IN_PENCE;
+        verify(paymentService).makeInterimPayment(paymentCycle, claim.getCardAccountId(), paymentAmount);
+        verify(reportPaymentMessageSender).sendReportTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
     }
 
     @Test
@@ -69,7 +79,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
 
-        verifyZeroInteractions(paymentService);
+        verifyZeroInteractions(paymentService, reportPaymentMessageSender);
     }
 
     private void shouldCalculateAdditionalVouchers(int numberOfVouchers, Claim claim, PaymentCycle paymentCycle) {
@@ -99,7 +109,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(voucherCalculator, paymentService);
+        verifyZeroInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
     }
 
     @Test
@@ -114,6 +124,6 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(voucherCalculator, paymentService);
+        verifyZeroInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
     }
 }

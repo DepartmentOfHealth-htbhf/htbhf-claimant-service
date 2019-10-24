@@ -8,6 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -16,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
@@ -68,6 +70,9 @@ class PaymentServiceTest {
     @MockBean
     private PaymentCalculator paymentCalculator;
 
+    @SpyBean
+    private ReportPaymentMessageSender reportPaymentMessageSender;
+
     @Autowired
     private PaymentCycleRepository paymentCycleRepository;
 
@@ -100,6 +105,7 @@ class PaymentServiceTest {
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         verifyDepositFundsRequestCorrectWithSpecificReference(paymentCycle.getTotalEntitlementAmountInPence(), paymentResult.getId().toString());
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE);
+        verify(reportPaymentMessageSender).sendReportInitialPaymentMessage(paymentCycle.getClaim(), paymentCycle);
     }
 
     @Test
@@ -116,7 +122,7 @@ class PaymentServiceTest {
                 paymentCycle.getTotalEntitlementAmountInPence(),
                 paymentCycle.getTotalEntitlementAmountInPence()
         );
-        verifyZeroInteractions(paymentCycleService, eventAuditor);
+        verifyZeroInteractions(paymentCycleService, eventAuditor, reportPaymentMessageSender);
         verifyNoPaymentsInDatabase();
         verifyDepositFundsRequestCorrectWithAnyReference(paymentCycle.getTotalEntitlementAmountInPence());
     }
@@ -140,6 +146,7 @@ class PaymentServiceTest {
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, balanceResponse.getAvailableBalanceInPence());
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyDepositFundsRequestCorrectWithSpecificReference(paymentCalculation.getPaymentAmount(), paymentResult.getId().toString());
+        verify(reportPaymentMessageSender).sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
     }
 
     @Test
@@ -200,7 +207,7 @@ class PaymentServiceTest {
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         //This may be called, but the transaction will be rolled back, so it wont be actually be updated
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, balanceResponse.getAvailableBalanceInPence());
-        verifyZeroInteractions(eventAuditor);
+        verifyZeroInteractions(eventAuditor, reportPaymentMessageSender);
         verifyNoPaymentsInDatabase();
         verifyDepositFundsRequestCorrectWithAnyReference(paymentCalculation.getPaymentAmount());
     }
@@ -221,6 +228,7 @@ class PaymentServiceTest {
         verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
         verifyNoPaymentsInDatabase();
         verifyNoMoreInteractions(cardClient, eventAuditor);
+        verifyZeroInteractions(reportPaymentMessageSender);
     }
 
     @Test
@@ -240,6 +248,7 @@ class PaymentServiceTest {
         paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
         verifyFailedPaymentSavedWithAllData(paymentCycle, amountToPay, paymentReference, failureEvent);
+        verifyZeroInteractions(reportPaymentMessageSender);
     }
 
     @Test
@@ -257,6 +266,7 @@ class PaymentServiceTest {
         paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
         verifyFailedPaymentSavedWithNoReference(paymentCycle, failureEvent);
+        verifyZeroInteractions(reportPaymentMessageSender);
     }
 
     private PaymentCycle createAndSavePaymentCycle() {

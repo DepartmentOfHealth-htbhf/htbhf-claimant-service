@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import java.time.LocalDate;
@@ -28,15 +29,18 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
     private final AdditionalPregnancyVoucherCalculator additionalPregnancyVoucherCalculator;
     private final Integer voucherValueInPence;
     private final PaymentService paymentService;
+    private final ReportPaymentMessageSender reportPaymentMessageSender;
 
     public AdditionalPregnancyPaymentMessageProcessor(@Value("${entitlement.voucher-value-in-pence}") Integer voucherValueInPence,
                                                       MessageContextLoader messageContextLoader,
                                                       AdditionalPregnancyVoucherCalculator additionalPregnancyVoucherCalculator,
-                                                      PaymentService paymentService) {
+                                                      PaymentService paymentService,
+                                                      ReportPaymentMessageSender reportPaymentMessageSender) {
         this.messageContextLoader = messageContextLoader;
         this.additionalPregnancyVoucherCalculator = additionalPregnancyVoucherCalculator;
         this.voucherValueInPence = voucherValueInPence;
         this.paymentService = paymentService;
+        this.reportPaymentMessageSender = reportPaymentMessageSender;
     }
 
     /**
@@ -59,6 +63,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle);
         if (paymentAmountInPence > 0) {
             paymentService.makeInterimPayment(paymentCycle.get(), context.getClaim().getCardAccountId(), paymentAmountInPence);
+            reportPaymentMessageSender.sendReportTopUpPaymentMessage(paymentCycle.get().getClaim(), paymentCycle.get(), paymentAmountInPence);
         }
 
         return COMPLETED;

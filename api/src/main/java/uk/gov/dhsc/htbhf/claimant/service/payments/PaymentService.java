@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
@@ -31,6 +32,7 @@ public class PaymentService {
     private PaymentCycleService paymentCycleService;
     private EventAuditor eventAuditor;
     private PaymentCalculator paymentCalculator;
+    private ReportPaymentMessageSender reportPaymentMessageSender;
 
     /**
      * Method used to store a failed payment to the database with the status of FAILURE. Will attempt to
@@ -83,6 +85,7 @@ public class PaymentService {
                 paymentCycle.getTotalEntitlementAmountInPence()
         );
         paymentCycleService.updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
+        reportPaymentMessageSender.sendReportInitialPaymentMessage(paymentCycle.getClaim(), paymentCycle);
         return payment;
     }
 
@@ -127,6 +130,7 @@ public class PaymentService {
             depositFundsResponse = depositFundsToCard(payment);
             updatePayment(payment, depositFundsResponse.getReferenceId());
             eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
+            reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
         } catch (RuntimeException e) {
             String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                     cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
