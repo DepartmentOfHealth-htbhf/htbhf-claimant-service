@@ -125,4 +125,21 @@ public class RepositoryMediator {
     public void saveClaim(Claim claim) {
         claimRepository.save(claim);
     }
+
+    /**
+     * Fast-forwards the database by a given number of days. Subtracts the number of days from every temporal field on every entity in the database.
+     * This updates all payments, paymentCycles, claims and claimants in the database - it could be problematic if run on a large db.
+     * @param numberOfDays the number of days to fast-forward by.
+     */
+    @Transactional
+    public void fastForwardDatabaseEntities(int numberOfDays) {
+        paymentRepository.findAll().forEach(payment -> EntityAgeAccelerator.fastForward(payment, numberOfDays));
+        claimRepository.findAll().forEach(claim -> {
+            EntityAgeAccelerator.fastForward(claim, numberOfDays);
+            EntityAgeAccelerator.fastForward(claim.getClaimant(), numberOfDays);
+        });
+        paymentCycleRepository.findAll().forEach(paymentCycle -> EntityAgeAccelerator.fastForward(paymentCycle, numberOfDays));
+        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.fastForward(message, numberOfDays));
+    }
+
 }
