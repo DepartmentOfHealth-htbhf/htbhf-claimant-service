@@ -63,7 +63,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle);
         if (paymentAmountInPence > 0) {
             paymentService.makeInterimPayment(paymentCycle.get(), context.getClaim().getCardAccountId(), paymentAmountInPence);
-            reportPaymentMessageSender.sendReportTopUpPaymentMessage(paymentCycle.get().getClaim(), paymentCycle.get(), paymentAmountInPence);
+            reportPaymentMessageSender.sendReportPregnancyTopUpPaymentMessage(paymentCycle.get().getClaim(), paymentCycle.get(), paymentAmountInPence);
         }
 
         return COMPLETED;

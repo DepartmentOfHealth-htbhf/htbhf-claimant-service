@@ -67,7 +67,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         int paymentAmount = numberOfVouchers * VOUCHER_VALUE_IN_PENCE;
         verify(paymentService).makeInterimPayment(paymentCycle, claim.getCardAccountId(), paymentAmount);
-        verify(reportPaymentMessageSender).sendReportTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
+        verify(reportPaymentMessageSender).sendReportPregnancyTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
     }
 
     @Test

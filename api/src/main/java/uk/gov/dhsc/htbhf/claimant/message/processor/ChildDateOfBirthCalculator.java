@@ -24,12 +24,24 @@ public class ChildDateOfBirthCalculator {
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
     }
 
-    public static Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 1);
+    /**
+     * Calculates the number of children under one on a given date.
+     * @param dateOfBirthOfChildren list of dates of birth to check against
+     * @param atDate date at which to check if each child was one year old.
+     * @return number of children under one at the give date.
+     */
+    public static Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, atDate, 1);
     }
 
-    public static Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 4);
+    /**
+     * Calculates the number of children under four on a given date.
+     * @param dateOfBirthOfChildren list of dates of birth to check against
+     * @param atDate date at which to check if each child was four years old.
+     * @return number of children under one at the give date.
+     */
+    public static Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, atDate, 4);
     }
 
     /**
@@ -83,13 +95,13 @@ public class ChildDateOfBirthCalculator {
                 .anyMatch(childDob -> childDob.isAfter(atDate.minusYears(4)));
     }
 
-    private static Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate, Integer ageInYears) {
+    private static Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate, Integer ageInYears) {
         if (isEmpty(dateOfBirthOfChildren)) {
             return 0;
         }
-        LocalDate pastDate = entitlementDate.minusYears(ageInYears);
+        LocalDate pastDate = atDate.minusYears(ageInYears);
         return Math.toIntExact(dateOfBirthOfChildren.stream()
-                .filter(date -> date.isAfter(pastDate) && !date.isAfter(entitlementDate))
+                .filter(date -> date.isAfter(pastDate) && !date.isAfter(atDate))
                 .count());
     }
 
