@@ -18,8 +18,10 @@ import javax.validation.constraints.NotNull;
 @ToString(callSuper = true)
 public class Message extends BaseEntity {
 
+    @NotNull
     @Column(name = "created_timestamp")
-    private LocalDateTime createdTimestamp;
+    @Builder.Default
+    private LocalDateTime createdTimestamp = LocalDateTime.now();
 
     @NotNull
     @Column(name = "message_timestamp")

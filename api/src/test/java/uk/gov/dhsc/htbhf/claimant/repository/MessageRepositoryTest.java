@@ -17,8 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithMessageTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 
 @SpringBootTest
@@ -77,9 +77,9 @@ class MessageRepositoryTest {
     @Test
     void shouldRetrieveMessagesInChronologicalOrder() {
         // Given
-        Message newCardMessage = aValidMessageWithTimestamp(LocalDateTime.now());
-        Message newCardMessageOneMonthAgo = aValidMessageWithTimestamp(LocalDateTime.now().minusMonths(1));
-        Message newCardMessageOneYearAgo = aValidMessageWithTimestamp(LocalDateTime.now().minusYears(1));
+        Message newCardMessage = aMessageWithMessageTimestamp(LocalDateTime.now());
+        Message newCardMessageOneMonthAgo = aMessageWithMessageTimestamp(LocalDateTime.now().minusMonths(1));
+        Message newCardMessageOneYearAgo = aMessageWithMessageTimestamp(LocalDateTime.now().minusYears(1));
         messageRepository.save(newCardMessageOneMonthAgo);
         messageRepository.save(newCardMessage);
         messageRepository.save(newCardMessageOneYearAgo);
