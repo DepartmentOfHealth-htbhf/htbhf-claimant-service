@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.277s</div>
+<div class="counter">4.220s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">shouldRecoverFromErrorsToHandleSuccessfulClaim()</td>
-<td class="success">0.912s</td>
+<td class="success">1.111s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldRequestNewCardAndSendEmailForSuccessfulClaim()</td>
-<td class="success">0.426s</td>
+<td class="success">0.424s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldUpdateSuccessfulClaimWhenPostcodesIOReturnsPostcodeNotFound()</td>
-<td class="success">0.201s</td>
+<td class="success">0.238s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldUpdateSuccessfulClaimWithPostcodeData()</td>
-<td class="success">0.738s</td>
+<td class="success">2.447s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -111,24 +111,38 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::        (v2.1.9.RELEASE)
 
-14:22:53.767 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:53.885 [qtp2124173099-109] ERROR WireMock - 
-                                               Request was not matched
-                                               =======================
-
------------------------------------------------------------------------------------------------------------------------
-| Closest stub                                             | Request                                                  |
------------------------------------------------------------------------------------------------------------------------
-                                                           |
-GET                                                        | POST                                                &lt;&lt;&lt;&lt;&lt; HTTP method does not match
-/postcodes/AA11AA                                          | /collect                                            &lt;&lt;&lt;&lt;&lt; URL does not match
-                                                           |
-                                                           |
------------------------------------------------------------------------------------------------------------------------
-
-14:22:53.902 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8120/collect
-14:22:53.903 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id e60c0caa-44ca-4b01-9757-ce6764e474ad, exception detail: Exception caught trying to call google analytics at: http://localhost:8120/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
-uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8120/collect
+14:44:57.563 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:57.950 [qtp1848844423-108] ERROR WireMock - Request was not matched as there were no stubs registered:
+{
+  &quot;url&quot; : &quot;/collect&quot;,
+  &quot;absoluteUrl&quot; : &quot;http://localhost:8150/collect&quot;,
+  &quot;method&quot; : &quot;POST&quot;,
+  &quot;clientIp&quot; : &quot;127.0.0.1&quot;,
+  &quot;headers&quot; : {
+    &quot;Accept-Charset&quot; : &quot;big5, big5-hkscs, cesu-8, euc-jp, euc-kr, gb18030, gb2312, gbk, ibm-thai, ibm00858, ibm01140, ibm01141, ibm01142, ibm01143, ibm01144, ibm01145, ibm01146, ibm01147, ibm01148, ibm01149, ibm037, ibm1026, ibm1047, ibm273, ibm277, ibm278, ibm280, ibm284, ibm285, ibm290, ibm297, ibm420, ibm424, ibm437, ibm500, ibm775, ibm850, ibm852, ibm855, ibm857, ibm860, ibm861, ibm862, ibm863, ibm864, ibm865, ibm866, ibm868, ibm869, ibm870, ibm871, ibm918, iso-2022-cn, iso-2022-jp, iso-2022-jp-2, iso-2022-kr, iso-8859-1, iso-8859-13, iso-8859-15, iso-8859-16, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, jis_x0201, jis_x0212-1990, koi8-r, koi8-u, shift_jis, tis-620, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-32be, utf-32le, utf-8, windows-1250, windows-1251, windows-1252, windows-1253, windows-1254, windows-1255, windows-1256, windows-1257, windows-1258, windows-31j, x-big5-hkscs-2001, x-big5-solaris, x-euc-jp-linux, x-euc-tw, x-eucjp-open, x-ibm1006, x-ibm1025, x-ibm1046, x-ibm1097, x-ibm1098, x-ibm1112, x-ibm1122, x-ibm1123, x-ibm1124, x-ibm1129, x-ibm1166, x-ibm1364, x-ibm1381, x-ibm1383, x-ibm29626c, x-ibm300, x-ibm33722, x-ibm737, x-ibm833, x-ibm834, x-ibm856, x-ibm874, x-ibm875, x-ibm921, x-ibm922, x-ibm930, x-ibm933, x-ibm935, x-ibm937, x-ibm939, x-ibm942, x-ibm942c, x-ibm943, x-ibm943c, x-ibm948, x-ibm949, x-ibm949c, x-ibm950, x-ibm964, x-ibm970, x-iscii91, x-iso-2022-cn-cns, x-iso-2022-cn-gb, x-iso-8859-11, x-jis0208, x-jisautodetect, x-johab, x-macarabic, x-maccentraleurope, x-maccroatian, x-maccyrillic, x-macdingbat, x-macgreek, x-machebrew, x-maciceland, x-macroman, x-macromania, x-macsymbol, x-macthai, x-macturkish, x-macukraine, x-ms932_0213, x-ms950-hkscs, x-ms950-hkscs-xp, x-mswin-936, x-pck, x-sjis_0213, x-utf-16le-bom, x-utf-32be-bom, x-utf-32le-bom, x-windows-50220, x-windows-50221, x-windows-874, x-windows-949, x-windows-950, x-windows-iso2022jp&quot;,
+    &quot;Accept&quot; : &quot;application/json, application/*+json&quot;,
+    &quot;User-Agent&quot; : &quot;Java/11.0.4&quot;,
+    &quot;Connection&quot; : &quot;keep-alive&quot;,
+    &quot;X-REQUEST-ID&quot; : &quot;&quot;,
+    &quot;Host&quot; : &quot;localhost:8150&quot;,
+    &quot;X-SESSION-ID&quot; : &quot;MessageProcessor:REPORT_CLAIM&quot;,
+    &quot;Content-Length&quot; : &quot;326&quot;,
+    &quot;Content-Type&quot; : &quot;text/plain&quot;
+  },
+  &quot;cookies&quot; : { },
+  &quot;browserProxyRequest&quot; : false,
+  &quot;loggedDate&quot; : 1572014697897,
+  &quot;bodyAsBase64&quot; : &quot;dD1ldmVudCZ2PTEmdGlkPXRyYWNraW5nLWlkJmVjPUNMQUlNJmVhPU5FVyZldj0wJnF0PTIyMiZjaWQ9ODU3YzdlZTQtYzBhMS00NWI1LWIyMDgtYWU2NWYzYTFkZGNjJmNkMT1PTkxJTkUmY2QxMD1FMzgwMDAyMjImY2QzPVByZWduYW50K3dpdGgrcGFzc3BvcnRlZCtjaGlsZHJlbiZjZDQ9QnJpc3RvbCUyQytDaXR5K29mJmNkNT1FMDYwMDAwMjMmY2Q2PUVuZ2xhbmQmY2Q3PUJTMSZjZDg9QnJpc3RvbCtXZXN0JmNkOT1OSFMrQnJpc3RvbCUyQytOb3J0aCtTb21lcnNldCthbmQrU291dGgrR2xvdWNlc3RlcnNoaXJlJmNtMT0xJmNtMj0wJmNtMz0xJmNtNz0zMyZjbTk9MjI=&quot;,
+  &quot;body&quot; : &quot;t=event&amp;v=1&amp;tid=tracking-id&amp;ec=CLAIM&amp;ea=NEW&amp;ev=0&amp;qt=222&amp;cid=857c7ee4-c0a1-45b5-b208-ae65f3a1ddcc&amp;cd1=ONLINE&amp;cd10=E38000222&amp;cd3=Pregnant+with+passported+children&amp;cd4=Bristol%2C+City+of&amp;cd5=E06000023&amp;cd6=England&amp;cd7=BS1&amp;cd8=Bristol+West&amp;cd9=NHS+Bristol%2C+North+Somerset+and+South+Gloucestershire&amp;cm1=1&amp;cm2=0&amp;cm3=1&amp;cm7=33&amp;cm9=22&quot;,
+  &quot;scheme&quot; : &quot;http&quot;,
+  &quot;host&quot; : &quot;localhost&quot;,
+  &quot;port&quot; : 8150,
+  &quot;loggedDateString&quot; : &quot;2019-10-25T14:44:57Z&quot;,
+  &quot;queryParams&quot; : { }
+}
+14:44:57.973 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8150/collect
+14:44:57.978 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id f4a74b3a-7752-487e-b854-a7beb7c4a2bd, exception detail: Exception caught trying to call google analytics at: http://localhost:8150/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
+uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8150/collect
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)
 	at uk.gov.dhsc.htbhf.claimant.reporting.MIReporter.reportClaim(MIReporter.java:33)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.ReportClaimMessageProcessor.processMessage(ReportClaimMessageProcessor.java:27)
@@ -162,7 +176,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldUpdateSuccessfulClaimWithPostcodeData(ClaimantServiceIntegrationTestsWithScheduledServices.java:77)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -238,11 +252,11 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
 	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:637)
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:53)
 	... 98 common frames omitted
-14:22:53.913 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:54.152 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-14:22:54.191 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards
-14:22:54.195 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 44b9dc13-72c9-47c7-8c8b-55fa3128ffcd, exception detail: Card creation failed for claim 9b470282-6af4-4312-9016-bc53b6fb1864, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards (at uk.gov.dhsc.htbhf.claimant.service.NewCardService.createNewCard(NewCardService.java:48)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards (at uk.gov.dhsc.htbhf.claimant.service.CardClient.requestNewCard(CardClient.java:43)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
-uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Card creation failed for claim 9b470282-6af4-4312-9016-bc53b6fb1864, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards
+14:44:58.002 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:58.299 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+14:44:58.352 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards
+14:44:58.358 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 7f4f398d-660d-4a22-818f-742b6a4abee7, exception detail: Card creation failed for claim 39f38145-5ed7-4868-966c-f47a12908d9c, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards (at uk.gov.dhsc.htbhf.claimant.service.NewCardService.createNewCard(NewCardService.java:48)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards (at uk.gov.dhsc.htbhf.claimant.service.CardClient.requestNewCard(CardClient.java:43)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Card creation failed for claim 39f38145-5ed7-4868-966c-f47a12908d9c, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards
 	at uk.gov.dhsc.htbhf.claimant.service.NewCardService.createNewCard(NewCardService.java:48)
 	at uk.gov.dhsc.htbhf.claimant.service.NewCardService$$FastClassBySpringCGLIB$$9dbf8ae5.invoke(&lt;generated&gt;)
 	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
@@ -252,7 +266,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Card creation failed 
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.service.NewCardService$$EnhancerBySpringCGLIB$$5ffb7869.createNewCard(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.service.NewCardService$$EnhancerBySpringCGLIB$$baa4675a.createNewCard(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.NewCardMessageProcessor.processMessage(NewCardMessageProcessor.java:53)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.NewCardMessageProcessor$$FastClassBySpringCGLIB$$fe2f7d91.invoke(&lt;generated&gt;)
 	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:218)
@@ -262,7 +276,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Card creation failed 
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.NewCardMessageProcessor$$EnhancerBySpringCGLIB$$f2525bed.processMessage(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.NewCardMessageProcessor$$EnhancerBySpringCGLIB$$4cfb4ade.processMessage(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessagesOfType$0(MessageProcessor.java:56)
@@ -293,7 +307,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Card creation failed 
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processCreateNewCardMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processCreateNewCardMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:156)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:122)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -375,9 +389,9 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.postForEntity(RestTemplate.java:445)
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.requestNewCard(CardClient.java:38)
 	... 117 common frames omitted
-14:22:54.208 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
-14:22:54.227 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:54.247 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 605d08f8-1f45-4ba0-af2e-6f4762fae354, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+14:44:58.374 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status ERROR
+14:44:58.399 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:58.423 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 48e49150-75be-430f-91c5-05f33351165e, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Server Error
 	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:124)
@@ -421,7 +435,7 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:122)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -488,13 +502,13 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.257 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:54.266 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-14:22:54.356 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
-14:22:54.363 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
-14:22:54.397 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards/8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1/deposit
-14:22:54.399 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 87b04a00-1121-4439-8aae-97eae90650a0, exception detail: Payment failed for cardAccountId 8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1, claim 9b470282-6af4-4312-9016-bc53b6fb1864, paymentCycle f3e3c876-3ae3-407d-ad97-fa11a6dfeb43, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1/deposit (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePayment(PaymentService.java:156)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1/deposit (at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
-uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId 8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1, claim 9b470282-6af4-4312-9016-bc53b6fb1864, paymentCycle f3e3c876-3ae3-407d-ad97-fa11a6dfeb43, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1/deposit
+14:44:58.439 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:58.449 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+14:44:58.557 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
+14:44:58.565 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
+14:44:58.609 [Test worker] ERROR u.g.d.h.claimant.service.CardClient - Exception caught trying to post to http://localhost:8140/v1/cards/c8afcc39-7b8d-4f2d-ae19-751a7d8673e1/deposit
+14:44:58.611 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 5d8decc9-811d-490e-b39b-610a09811c36, exception detail: Payment failed for cardAccountId c8afcc39-7b8d-4f2d-ae19-751a7d8673e1, claim 39f38145-5ed7-4868-966c-f47a12908d9c, paymentCycle c64a463f-6da9-46ae-b658-cae8b47932f1, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/c8afcc39-7b8d-4f2d-ae19-751a7d8673e1/deposit (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePayment(PaymentService.java:156)), wraps: Exception caught trying to call card service at: http://localhost:8140/v1/cards/c8afcc39-7b8d-4f2d-ae19-751a7d8673e1/deposit (at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)), wraps: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for cardAccountId c8afcc39-7b8d-4f2d-ae19-751a7d8673e1, claim 39f38145-5ed7-4868-966c-f47a12908d9c, paymentCycle c64a463f-6da9-46ae-b658-cae8b47932f1, exception is: Exception caught trying to call card service at: http://localhost:8140/v1/cards/c8afcc39-7b8d-4f2d-ae19-751a7d8673e1/deposit
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePayment(PaymentService.java:156)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makeFirstPayment(PaymentService.java:81)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.MakeFirstPaymentMessageProcessor.processMessage(MakeFirstPaymentMessageProcessor.java:35)
@@ -506,7 +520,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:98)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.message.processor.MakeFirstPaymentMessageProcessor$$EnhancerBySpringCGLIB$$6f5f1985.processMessage(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.message.processor.MakeFirstPaymentMessageProcessor$$EnhancerBySpringCGLIB$$ca080876.processMessage(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.lambda$processMessagesOfType$0(MessageProcessor.java:56)
@@ -537,7 +551,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processFirstPaymentMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processFirstPaymentMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:157)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:124)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -604,7 +618,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Payment failed for ca
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/8f9433c5-fb19-49ee-9c4c-1c9bc2f99ec1/deposit
+Caused by: uk.gov.dhsc.htbhf.claimant.exception.CardClientException: Exception caught trying to call card service at: http://localhost:8140/v1/cards/c8afcc39-7b8d-4f2d-ae19-751a7d8673e1/deposit
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:55)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:186)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePayment(PaymentService.java:149)
@@ -620,9 +634,9 @@ Caused by: org.springframework.web.client.HttpServerErrorException$InternalServe
 	at org.springframework.web.client.RestTemplate.postForEntity(RestTemplate.java:445)
 	at uk.gov.dhsc.htbhf.claimant.service.CardClient.depositFundsToCard(CardClient.java:50)
 	... 110 common frames omitted
-14:22:54.430 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status ERROR
-14:22:54.438 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-14:22:54.453 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
+14:44:58.645 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status ERROR
+14:44:58.654 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:44:58.672 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
 uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -655,7 +669,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processSendEmailMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:158)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:124)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -722,7 +736,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.455 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 339f8511-afbb-4b42-985f-b6e8e95406b0, exception detail: Failed to send NEW_CARD email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
+14:44:58.675 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id e6b7a220-2279-456f-bd66-4b76889bd452, exception detail: Failed to send NEW_CARD email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CARD email message, exception is: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -755,7 +769,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CA
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processSendEmailMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:158)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:124)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -825,9 +839,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CA
 Caused by: uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	... 97 common frames omitted
-14:22:54.465 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status ERROR
-14:22:54.471 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:54.488 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 605d08f8-1f45-4ba0-af2e-6f4762fae354, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+14:44:58.685 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status ERROR
+14:44:58.692 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:58.713 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 48e49150-75be-430f-91c5-05f33351165e, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Server Error
 	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:124)
@@ -871,7 +885,7 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:124)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -938,11 +952,11 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.497 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:54.511 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
-14:22:54.562 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status COMPLETED
-14:22:54.571 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-14:22:54.584 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
+14:44:58.724 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:58.741 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
+14:44:58.798 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status COMPLETED
+14:44:58.806 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:44:58.818 [Test worker] ERROR u.g.d.h.c.m.p.EmailMessageProcessor - Failed to send email message
 uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -975,7 +989,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processSendEmailMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:158)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:126)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1042,7 +1056,7 @@ uk.gov.service.notify.NotificationClientException: Something went wrong
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.586 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 339f8511-afbb-4b42-985f-b6e8e95406b0, exception detail: Failed to send NEW_CARD email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
+14:44:58.820 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id e6b7a220-2279-456f-bd66-4b76889bd452, exception detail: Failed to send NEW_CARD email message, exception is: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)), wraps: Something went wrong (at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CARD email message, exception is: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:52)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
@@ -1075,7 +1089,7 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CA
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processSendEmailMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processSendEmailMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:158)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:126)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1145,9 +1159,9 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Failed to send NEW_CA
 Caused by: uk.gov.service.notify.NotificationClientException: Something went wrong
 	at uk.gov.dhsc.htbhf.claimant.message.processor.EmailMessageProcessor.processMessage(EmailMessageProcessor.java:41)
 	... 97 common frames omitted
-14:22:54.595 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status ERROR
-14:22:54.603 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:54.619 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 605d08f8-1f45-4ba0-af2e-6f4762fae354, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+14:44:58.830 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status ERROR
+14:44:58.838 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:58.856 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 48e49150-75be-430f-91c5-05f33351165e, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Server Error
 	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:124)
@@ -1191,7 +1205,7 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:126)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1258,11 +1272,11 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.627 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:54.648 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-14:22:54.668 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status COMPLETED
-14:22:54.674 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:54.693 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 605d08f8-1f45-4ba0-af2e-6f4762fae354, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
+14:44:58.867 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:58.890 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:44:58.913 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status COMPLETED
+14:44:58.920 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:58.942 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 48e49150-75be-430f-91c5-05f33351165e, exception detail: 500 Server Error (at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79))
 org.springframework.web.client.HttpServerErrorException$InternalServerError: 500 Server Error
 	at org.springframework.web.client.HttpServerErrorException.create(HttpServerErrorException.java:79)
 	at org.springframework.web.client.DefaultResponseErrorHandler.handleError(DefaultResponseErrorHandler.java:124)
@@ -1295,7 +1309,7 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor257.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor212.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -1305,7 +1319,7 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:129)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1372,25 +1386,39 @@ org.springframework.web.client.HttpServerErrorException$InternalServerError: 500
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-14:22:54.701 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:54.726 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:54.781 [qtp1916110413-144] ERROR WireMock - 
-                                               Request was not matched
-                                               =======================
-
------------------------------------------------------------------------------------------------------------------------
-| Closest stub                                             | Request                                                  |
------------------------------------------------------------------------------------------------------------------------
-                                                           |
-GET                                                        | POST                                                &lt;&lt;&lt;&lt;&lt; HTTP method does not match
-/postcodes/AA11AA                                          | /collect                                            &lt;&lt;&lt;&lt;&lt; URL does not match
-                                                           |
-                                                           |
------------------------------------------------------------------------------------------------------------------------
-
-14:22:54.784 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8120/collect
-14:22:54.785 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 605d08f8-1f45-4ba0-af2e-6f4762fae354, exception detail: Exception caught trying to call google analytics at: http://localhost:8120/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
-uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8120/collect
+14:44:58.951 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:58.977 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:59.041 [qtp413324117-150] ERROR WireMock - Request was not matched as there were no stubs registered:
+{
+  &quot;url&quot; : &quot;/collect&quot;,
+  &quot;absoluteUrl&quot; : &quot;http://localhost:8150/collect&quot;,
+  &quot;method&quot; : &quot;POST&quot;,
+  &quot;clientIp&quot; : &quot;127.0.0.1&quot;,
+  &quot;headers&quot; : {
+    &quot;Accept-Charset&quot; : &quot;big5, big5-hkscs, cesu-8, euc-jp, euc-kr, gb18030, gb2312, gbk, ibm-thai, ibm00858, ibm01140, ibm01141, ibm01142, ibm01143, ibm01144, ibm01145, ibm01146, ibm01147, ibm01148, ibm01149, ibm037, ibm1026, ibm1047, ibm273, ibm277, ibm278, ibm280, ibm284, ibm285, ibm290, ibm297, ibm420, ibm424, ibm437, ibm500, ibm775, ibm850, ibm852, ibm855, ibm857, ibm860, ibm861, ibm862, ibm863, ibm864, ibm865, ibm866, ibm868, ibm869, ibm870, ibm871, ibm918, iso-2022-cn, iso-2022-jp, iso-2022-jp-2, iso-2022-kr, iso-8859-1, iso-8859-13, iso-8859-15, iso-8859-16, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, jis_x0201, jis_x0212-1990, koi8-r, koi8-u, shift_jis, tis-620, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-32be, utf-32le, utf-8, windows-1250, windows-1251, windows-1252, windows-1253, windows-1254, windows-1255, windows-1256, windows-1257, windows-1258, windows-31j, x-big5-hkscs-2001, x-big5-solaris, x-euc-jp-linux, x-euc-tw, x-eucjp-open, x-ibm1006, x-ibm1025, x-ibm1046, x-ibm1097, x-ibm1098, x-ibm1112, x-ibm1122, x-ibm1123, x-ibm1124, x-ibm1129, x-ibm1166, x-ibm1364, x-ibm1381, x-ibm1383, x-ibm29626c, x-ibm300, x-ibm33722, x-ibm737, x-ibm833, x-ibm834, x-ibm856, x-ibm874, x-ibm875, x-ibm921, x-ibm922, x-ibm930, x-ibm933, x-ibm935, x-ibm937, x-ibm939, x-ibm942, x-ibm942c, x-ibm943, x-ibm943c, x-ibm948, x-ibm949, x-ibm949c, x-ibm950, x-ibm964, x-ibm970, x-iscii91, x-iso-2022-cn-cns, x-iso-2022-cn-gb, x-iso-8859-11, x-jis0208, x-jisautodetect, x-johab, x-macarabic, x-maccentraleurope, x-maccroatian, x-maccyrillic, x-macdingbat, x-macgreek, x-machebrew, x-maciceland, x-macroman, x-macromania, x-macsymbol, x-macthai, x-macturkish, x-macukraine, x-ms932_0213, x-ms950-hkscs, x-ms950-hkscs-xp, x-mswin-936, x-pck, x-sjis_0213, x-utf-16le-bom, x-utf-32be-bom, x-utf-32le-bom, x-windows-50220, x-windows-50221, x-windows-874, x-windows-949, x-windows-950, x-windows-iso2022jp&quot;,
+    &quot;Accept&quot; : &quot;application/json, application/*+json&quot;,
+    &quot;User-Agent&quot; : &quot;Java/11.0.4&quot;,
+    &quot;Connection&quot; : &quot;keep-alive&quot;,
+    &quot;X-REQUEST-ID&quot; : &quot;&quot;,
+    &quot;Host&quot; : &quot;localhost:8150&quot;,
+    &quot;X-SESSION-ID&quot; : &quot;MessageProcessor:REPORT_CLAIM&quot;,
+    &quot;Content-Length&quot; : &quot;326&quot;,
+    &quot;Content-Type&quot; : &quot;text/plain&quot;
+  },
+  &quot;cookies&quot; : { },
+  &quot;browserProxyRequest&quot; : false,
+  &quot;loggedDate&quot; : 1572014699036,
+  &quot;bodyAsBase64&quot; : &quot;dD1ldmVudCZ2PTEmdGlkPXRyYWNraW5nLWlkJmVjPUNMQUlNJmVhPU5FVyZldj0wJnF0PTc0OSZjaWQ9MzlmMzgxNDUtNWVkNy00ODY4LTk2NmMtZjQ3YTEyOTA4ZDljJmNkMT1PTkxJTkUmY2QxMD1FMzgwMDAyMjImY2QzPVByZWduYW50K3dpdGgrcGFzc3BvcnRlZCtjaGlsZHJlbiZjZDQ9QnJpc3RvbCUyQytDaXR5K29mJmNkNT1FMDYwMDAwMjMmY2Q2PUVuZ2xhbmQmY2Q3PUJTMSZjZDg9QnJpc3RvbCtXZXN0JmNkOT1OSFMrQnJpc3RvbCUyQytOb3J0aCtTb21lcnNldCthbmQrU291dGgrR2xvdWNlc3RlcnNoaXJlJmNtMT0xJmNtMj0wJmNtMz0xJmNtNz0zMyZjbTk9MjI=&quot;,
+  &quot;body&quot; : &quot;t=event&amp;v=1&amp;tid=tracking-id&amp;ec=CLAIM&amp;ea=NEW&amp;ev=0&amp;qt=749&amp;cid=39f38145-5ed7-4868-966c-f47a12908d9c&amp;cd1=ONLINE&amp;cd10=E38000222&amp;cd3=Pregnant+with+passported+children&amp;cd4=Bristol%2C+City+of&amp;cd5=E06000023&amp;cd6=England&amp;cd7=BS1&amp;cd8=Bristol+West&amp;cd9=NHS+Bristol%2C+North+Somerset+and+South+Gloucestershire&amp;cm1=1&amp;cm2=0&amp;cm3=1&amp;cm7=33&amp;cm9=22&quot;,
+  &quot;scheme&quot; : &quot;http&quot;,
+  &quot;host&quot; : &quot;localhost&quot;,
+  &quot;port&quot; : 8150,
+  &quot;loggedDateString&quot; : &quot;2019-10-25T14:44:59Z&quot;,
+  &quot;queryParams&quot; : { }
+}
+14:44:59.045 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8150/collect
+14:44:59.045 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 48e49150-75be-430f-91c5-05f33351165e, exception detail: Exception caught trying to call google analytics at: http://localhost:8150/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
+uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8150/collect
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)
 	at uk.gov.dhsc.htbhf.claimant.reporting.MIReporter.reportClaim(MIReporter.java:33)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.ReportClaimMessageProcessor.processMessage(ReportClaimMessageProcessor.java:27)
@@ -1413,7 +1441,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor257.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor212.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -1423,7 +1451,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRecoverFromErrorsToHandleSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:132)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1500,15 +1528,15 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
 	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:637)
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:53)
 	... 98 common frames omitted
-14:22:54.793 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:55.064 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
-14:22:55.115 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
-14:22:55.120 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
-14:22:55.159 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status COMPLETED
-14:22:55.165 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
-14:22:55.184 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status COMPLETED
-14:22:55.190 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:55.237 [qtp1590962622-177] ERROR WireMock - Request was not matched as there were no stubs registered:
+14:44:59.055 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:59.387 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type CREATE_NEW_CARD
+14:44:59.448 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 CREATE_NEW_CARD message(s) with status COMPLETED
+14:44:59.455 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type MAKE_FIRST_PAYMENT
+14:44:59.501 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 MAKE_FIRST_PAYMENT message(s) with status COMPLETED
+14:44:59.510 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type SEND_EMAIL
+14:44:59.529 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 SEND_EMAIL message(s) with status COMPLETED
+14:44:59.536 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:59.556 [qtp213563177-186] ERROR WireMock - Request was not matched as there were no stubs registered:
 {
   &quot;url&quot; : &quot;/postcodes/AA11AA&quot;,
   &quot;absoluteUrl&quot; : &quot;http://localhost:8120/postcodes/AA11AA&quot;,
@@ -1524,20 +1552,20 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
   },
   &quot;cookies&quot; : { },
   &quot;browserProxyRequest&quot; : false,
-  &quot;loggedDate&quot; : 1572013375205,
+  &quot;loggedDate&quot; : 1572014699550,
   &quot;bodyAsBase64&quot; : &quot;&quot;,
   &quot;body&quot; : &quot;&quot;,
   &quot;scheme&quot; : &quot;http&quot;,
   &quot;host&quot; : &quot;localhost&quot;,
   &quot;port&quot; : 8120,
-  &quot;loggedDateString&quot; : &quot;2019-10-25T14:22:55Z&quot;,
+  &quot;loggedDateString&quot; : &quot;2019-10-25T14:44:59Z&quot;,
   &quot;queryParams&quot; : { }
 }
-14:22:55.256 [Test worker] ERROR u.g.d.h.c.r.PostcodeDataClient - No postcode data found for postcode AA11AA on claim 01b54c67-f75e-4f38-8eb1-b79736ab23dd
-14:22:55.297 [qtp1590962622-178] ERROR WireMock - Request was not matched as there were no stubs registered:
+14:44:59.574 [Test worker] ERROR u.g.d.h.c.r.PostcodeDataClient - No postcode data found for postcode AA11AA on claim 808180db-a148-4b44-ac6c-cab7f9d63858
+14:44:59.617 [qtp512255575-195] ERROR WireMock - Request was not matched as there were no stubs registered:
 {
   &quot;url&quot; : &quot;/collect&quot;,
-  &quot;absoluteUrl&quot; : &quot;http://localhost:8120/collect&quot;,
+  &quot;absoluteUrl&quot; : &quot;http://localhost:8150/collect&quot;,
   &quot;method&quot; : &quot;POST&quot;,
   &quot;clientIp&quot; : &quot;127.0.0.1&quot;,
   &quot;headers&quot; : {
@@ -1546,25 +1574,25 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
     &quot;User-Agent&quot; : &quot;Java/11.0.4&quot;,
     &quot;Connection&quot; : &quot;keep-alive&quot;,
     &quot;X-REQUEST-ID&quot; : &quot;&quot;,
-    &quot;Host&quot; : &quot;localhost:8120&quot;,
+    &quot;Host&quot; : &quot;localhost:8150&quot;,
     &quot;X-SESSION-ID&quot; : &quot;MessageProcessor:REPORT_CLAIM&quot;,
     &quot;Content-Length&quot; : &quot;276&quot;,
     &quot;Content-Type&quot; : &quot;text/plain&quot;
   },
   &quot;cookies&quot; : { },
   &quot;browserProxyRequest&quot; : false,
-  &quot;loggedDate&quot; : 1572013375293,
-  &quot;bodyAsBase64&quot; : &quot;dD1ldmVudCZ2PTEmdGlkPXRyYWNraW5nLWlkJmVjPUNMQUlNJmVhPU5FVyZldj0wJnF0PTIzNiZjaWQ9MDFiNTRjNjctZjc1ZS00ZjM4LThlYjEtYjc5NzM2YWIyM2RkJmNkMT1PTkxJTkUmY2QxMD1OT1RfRk9VTkQmY2QzPVByZWduYW50K3dpdGgrcGFzc3BvcnRlZCtjaGlsZHJlbiZjZDQ9Tk9UX0ZPVU5EJmNkNT1OT1RfRk9VTkQmY2Q2PU5PVF9GT1VORCZjZDc9Tk9UX0ZPVU5EJmNkOD1OT1RfRk9VTkQmY2Q5PU5PVF9GT1VORCZjbTE9MSZjbTI9MCZjbTM9MSZjbTc9MzMmY205PTIy&quot;,
-  &quot;body&quot; : &quot;t=event&amp;v=1&amp;tid=tracking-id&amp;ec=CLAIM&amp;ea=NEW&amp;ev=0&amp;qt=236&amp;cid=01b54c67-f75e-4f38-8eb1-b79736ab23dd&amp;cd1=ONLINE&amp;cd10=NOT_FOUND&amp;cd3=Pregnant+with+passported+children&amp;cd4=NOT_FOUND&amp;cd5=NOT_FOUND&amp;cd6=NOT_FOUND&amp;cd7=NOT_FOUND&amp;cd8=NOT_FOUND&amp;cd9=NOT_FOUND&amp;cm1=1&amp;cm2=0&amp;cm3=1&amp;cm7=33&amp;cm9=22&quot;,
+  &quot;loggedDate&quot; : 1572014699612,
+  &quot;bodyAsBase64&quot; : &quot;dD1ldmVudCZ2PTEmdGlkPXRyYWNraW5nLWlkJmVjPUNMQUlNJmVhPU5FVyZldj0wJnF0PTIzNSZjaWQ9ODA4MTgwZGItYTE0OC00YjQ0LWFjNmMtY2FiN2Y5ZDYzODU4JmNkMT1PTkxJTkUmY2QxMD1OT1RfRk9VTkQmY2QzPVByZWduYW50K3dpdGgrcGFzc3BvcnRlZCtjaGlsZHJlbiZjZDQ9Tk9UX0ZPVU5EJmNkNT1OT1RfRk9VTkQmY2Q2PU5PVF9GT1VORCZjZDc9Tk9UX0ZPVU5EJmNkOD1OT1RfRk9VTkQmY2Q5PU5PVF9GT1VORCZjbTE9MSZjbTI9MCZjbTM9MSZjbTc9MzMmY205PTIy&quot;,
+  &quot;body&quot; : &quot;t=event&amp;v=1&amp;tid=tracking-id&amp;ec=CLAIM&amp;ea=NEW&amp;ev=0&amp;qt=235&amp;cid=808180db-a148-4b44-ac6c-cab7f9d63858&amp;cd1=ONLINE&amp;cd10=NOT_FOUND&amp;cd3=Pregnant+with+passported+children&amp;cd4=NOT_FOUND&amp;cd5=NOT_FOUND&amp;cd6=NOT_FOUND&amp;cd7=NOT_FOUND&amp;cd8=NOT_FOUND&amp;cd9=NOT_FOUND&amp;cm1=1&amp;cm2=0&amp;cm3=1&amp;cm7=33&amp;cm9=22&quot;,
   &quot;scheme&quot; : &quot;http&quot;,
   &quot;host&quot; : &quot;localhost&quot;,
-  &quot;port&quot; : 8120,
-  &quot;loggedDateString&quot; : &quot;2019-10-25T14:22:55Z&quot;,
+  &quot;port&quot; : 8150,
+  &quot;loggedDateString&quot; : &quot;2019-10-25T14:44:59Z&quot;,
   &quot;queryParams&quot; : { }
 }
-14:22:55.300 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8120/collect
-14:22:55.301 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 685dd9b1-9cd8-4c53-8c75-a1daba1f1f5e, exception detail: Exception caught trying to call google analytics at: http://localhost:8120/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
-uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8120/collect
+14:44:59.620 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8150/collect
+14:44:59.621 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 1d0fe725-fe95-47ac-bb65-041cbff3cd61, exception detail: Exception caught trying to call google analytics at: http://localhost:8150/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
+uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8150/collect
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)
 	at uk.gov.dhsc.htbhf.claimant.reporting.MIReporter.reportClaim(MIReporter.java:33)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.ReportClaimMessageProcessor.processMessage(ReportClaimMessageProcessor.java:27)
@@ -1587,7 +1615,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor257.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor212.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -1597,7 +1625,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.invokeAllSchedulers(ClaimantServiceIntegrationTestsWithScheduledServices.java:159)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldRequestNewCardAndSendEmailForSuccessfulClaim(ClaimantServiceIntegrationTestsWithScheduledServices.java:47)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
@@ -1674,26 +1702,40 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
 	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:637)
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:53)
 	... 98 common frames omitted
-14:22:55.310 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
-14:22:55.487 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
-14:22:55.503 [Test worker] ERROR u.g.d.h.c.r.PostcodeDataClient - No postcode data found for postcode AA11AA on claim 85cfddc9-1a0d-415b-af6d-6e2218872a15
-14:22:55.540 [qtp944509489-211] ERROR WireMock - 
-                                               Request was not matched
-                                               =======================
-
------------------------------------------------------------------------------------------------------------------------
-| Closest stub                                             | Request                                                  |
------------------------------------------------------------------------------------------------------------------------
-                                                           |
-GET                                                        | POST                                                &lt;&lt;&lt;&lt;&lt; HTTP method does not match
-/postcodes/AA11AA                                          | /collect                                            &lt;&lt;&lt;&lt;&lt; URL does not match
-                                                           |
-                                                           |
------------------------------------------------------------------------------------------------------------------------
-
-14:22:55.544 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8120/collect
-14:22:55.544 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id dd28e0c1-6952-47dd-93f0-341ff2b856de, exception detail: Exception caught trying to call google analytics at: http://localhost:8120/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
-uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8120/collect
+14:44:59.629 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:59.819 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 message(s) of type REPORT_CLAIM
+14:44:59.838 [Test worker] ERROR u.g.d.h.c.r.PostcodeDataClient - No postcode data found for postcode AA11AA on claim 27e563d1-1027-4bcd-82d8-e2ca6aa83964
+14:44:59.880 [qtp1584872581-240] ERROR WireMock - Request was not matched as there were no stubs registered:
+{
+  &quot;url&quot; : &quot;/collect&quot;,
+  &quot;absoluteUrl&quot; : &quot;http://localhost:8150/collect&quot;,
+  &quot;method&quot; : &quot;POST&quot;,
+  &quot;clientIp&quot; : &quot;127.0.0.1&quot;,
+  &quot;headers&quot; : {
+    &quot;Accept-Charset&quot; : &quot;big5, big5-hkscs, cesu-8, euc-jp, euc-kr, gb18030, gb2312, gbk, ibm-thai, ibm00858, ibm01140, ibm01141, ibm01142, ibm01143, ibm01144, ibm01145, ibm01146, ibm01147, ibm01148, ibm01149, ibm037, ibm1026, ibm1047, ibm273, ibm277, ibm278, ibm280, ibm284, ibm285, ibm290, ibm297, ibm420, ibm424, ibm437, ibm500, ibm775, ibm850, ibm852, ibm855, ibm857, ibm860, ibm861, ibm862, ibm863, ibm864, ibm865, ibm866, ibm868, ibm869, ibm870, ibm871, ibm918, iso-2022-cn, iso-2022-jp, iso-2022-jp-2, iso-2022-kr, iso-8859-1, iso-8859-13, iso-8859-15, iso-8859-16, iso-8859-2, iso-8859-3, iso-8859-4, iso-8859-5, iso-8859-6, iso-8859-7, iso-8859-8, iso-8859-9, jis_x0201, jis_x0212-1990, koi8-r, koi8-u, shift_jis, tis-620, us-ascii, utf-16, utf-16be, utf-16le, utf-32, utf-32be, utf-32le, utf-8, windows-1250, windows-1251, windows-1252, windows-1253, windows-1254, windows-1255, windows-1256, windows-1257, windows-1258, windows-31j, x-big5-hkscs-2001, x-big5-solaris, x-euc-jp-linux, x-euc-tw, x-eucjp-open, x-ibm1006, x-ibm1025, x-ibm1046, x-ibm1097, x-ibm1098, x-ibm1112, x-ibm1122, x-ibm1123, x-ibm1124, x-ibm1129, x-ibm1166, x-ibm1364, x-ibm1381, x-ibm1383, x-ibm29626c, x-ibm300, x-ibm33722, x-ibm737, x-ibm833, x-ibm834, x-ibm856, x-ibm874, x-ibm875, x-ibm921, x-ibm922, x-ibm930, x-ibm933, x-ibm935, x-ibm937, x-ibm939, x-ibm942, x-ibm942c, x-ibm943, x-ibm943c, x-ibm948, x-ibm949, x-ibm949c, x-ibm950, x-ibm964, x-ibm970, x-iscii91, x-iso-2022-cn-cns, x-iso-2022-cn-gb, x-iso-8859-11, x-jis0208, x-jisautodetect, x-johab, x-macarabic, x-maccentraleurope, x-maccroatian, x-maccyrillic, x-macdingbat, x-macgreek, x-machebrew, x-maciceland, x-macroman, x-macromania, x-macsymbol, x-macthai, x-macturkish, x-macukraine, x-ms932_0213, x-ms950-hkscs, x-ms950-hkscs-xp, x-mswin-936, x-pck, x-sjis_0213, x-utf-16le-bom, x-utf-32be-bom, x-utf-32le-bom, x-windows-50220, x-windows-50221, x-windows-874, x-windows-949, x-windows-950, x-windows-iso2022jp&quot;,
+    &quot;Accept&quot; : &quot;application/json, application/*+json&quot;,
+    &quot;User-Agent&quot; : &quot;Java/11.0.4&quot;,
+    &quot;Connection&quot; : &quot;keep-alive&quot;,
+    &quot;X-REQUEST-ID&quot; : &quot;&quot;,
+    &quot;Host&quot; : &quot;localhost:8150&quot;,
+    &quot;X-SESSION-ID&quot; : &quot;MessageProcessor:REPORT_CLAIM&quot;,
+    &quot;Content-Length&quot; : &quot;275&quot;,
+    &quot;Content-Type&quot; : &quot;text/plain&quot;
+  },
+  &quot;cookies&quot; : { },
+  &quot;browserProxyRequest&quot; : false,
+  &quot;loggedDate&quot; : 1572014699877,
+  &quot;bodyAsBase64&quot; : &quot;dD1ldmVudCZ2PTEmdGlkPXRyYWNraW5nLWlkJmVjPUNMQUlNJmVhPU5FVyZldj0wJnF0PTY3JmNpZD0yN2U1NjNkMS0xMDI3LTRiY2QtODJkOC1lMmNhNmFhODM5NjQmY2QxPU9OTElORSZjZDEwPU5PVF9GT1VORCZjZDM9UHJlZ25hbnQrd2l0aCtwYXNzcG9ydGVkK2NoaWxkcmVuJmNkND1OT1RfRk9VTkQmY2Q1PU5PVF9GT1VORCZjZDY9Tk9UX0ZPVU5EJmNkNz1OT1RfRk9VTkQmY2Q4PU5PVF9GT1VORCZjZDk9Tk9UX0ZPVU5EJmNtMT0xJmNtMj0wJmNtMz0xJmNtNz0zMyZjbTk9MjI=&quot;,
+  &quot;body&quot; : &quot;t=event&amp;v=1&amp;tid=tracking-id&amp;ec=CLAIM&amp;ea=NEW&amp;ev=0&amp;qt=67&amp;cid=27e563d1-1027-4bcd-82d8-e2ca6aa83964&amp;cd1=ONLINE&amp;cd10=NOT_FOUND&amp;cd3=Pregnant+with+passported+children&amp;cd4=NOT_FOUND&amp;cd5=NOT_FOUND&amp;cd6=NOT_FOUND&amp;cd7=NOT_FOUND&amp;cd8=NOT_FOUND&amp;cd9=NOT_FOUND&amp;cm1=1&amp;cm2=0&amp;cm3=1&amp;cm7=33&amp;cm9=22&quot;,
+  &quot;scheme&quot; : &quot;http&quot;,
+  &quot;host&quot; : &quot;localhost&quot;,
+  &quot;port&quot; : 8150,
+  &quot;loggedDateString&quot; : &quot;2019-10-25T14:44:59Z&quot;,
+  &quot;queryParams&quot; : { }
+}
+14:44:59.885 [Test worker] ERROR u.g.d.h.c.r.GoogleAnalyticsClient - Exception caught trying to post to http://localhost:8150/collect
+14:44:59.886 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 5f8d459a-5b27-4f0a-b441-3eed9ff0acb1, exception detail: Exception caught trying to call google analytics at: http://localhost:8150/collect (at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)), wraps: 404 Not Found (at org.springframework.web.client.HttpClientErrorException.create(HttpClientErrorException.java:85))
+uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught trying to call google analytics at: http://localhost:8150/collect
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:57)
 	at uk.gov.dhsc.htbhf.claimant.reporting.MIReporter.reportClaim(MIReporter.java:33)
 	at uk.gov.dhsc.htbhf.claimant.message.processor.ReportClaimMessageProcessor.processMessage(ReportClaimMessageProcessor.java:27)
@@ -1716,7 +1758,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
 	at org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint.proceed(MethodInvocationProceedingJoinPoint.java:88)
 	at uk.gov.dhsc.htbhf.requestcontext.aop.RequestContextAdvisor.updateRequestContext(RequestContextAdvisor.java:42)
-	at jdk.internal.reflect.GeneratedMethodAccessor257.invoke(Unknown Source)
+	at jdk.internal.reflect.GeneratedMethodAccessor212.invoke(Unknown Source)
 	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
 	at org.springframework.aop.aspectj.AbstractAspectJAdvice.invokeAdviceMethodWithGivenArgs(AbstractAspectJAdvice.java:644)
@@ -1726,7 +1768,7 @@ uk.gov.dhsc.htbhf.claimant.exception.GoogleAnalyticsException: Exception caught 
 	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:93)
 	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)
 	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:689)
-	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$4b56cbe2.processReportClaimMessages(&lt;generated&gt;)
+	at uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler$$EnhancerBySpringCGLIB$$57bb5f6a.processReportClaimMessages(&lt;generated&gt;)
 	at uk.gov.dhsc.htbhf.claimant.ClaimantServiceIntegrationTestsWithScheduledServices.shouldUpdateSuccessfulClaimWhenPostcodesIOReturnsPostcodeNotFound(ClaimantServiceIntegrationTestsWithScheduledServices.java:95)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -1802,7 +1844,7 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
 	at org.springframework.web.client.RestTemplate.exchange(RestTemplate.java:637)
 	at uk.gov.dhsc.htbhf.claimant.reporting.GoogleAnalyticsClient.reportEvent(GoogleAnalyticsClient.java:53)
 	... 97 common frames omitted
-14:22:55.553 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
+14:44:59.894 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REPORT_CLAIM message(s) with status ERROR
 </pre>
 </span>
 </div>
@@ -1814,7 +1856,7 @@ Caused by: org.springframework.web.client.HttpClientErrorException$NotFound: 404
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 25, 2019, 2:23:39 PM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Oct 25, 2019, 2:45:40 PM</p>
 </div>
 </div>
 </body>
