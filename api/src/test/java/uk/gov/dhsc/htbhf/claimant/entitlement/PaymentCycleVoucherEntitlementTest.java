@@ -51,6 +51,9 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForPregnancy()).isEqualTo(6);
         assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(14);
+        assertThat(result.getTotalChildrenUnderOneVoucherValueInPence()).isEqualTo(300);
+        assertThat(result.getTotalChildrenBetweenOneAndFourVoucherValueInPence()).isEqualTo(500);
+        assertThat(result.getTotalPregnancyVoucherValueInPence()).isEqualTo(600);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(1400);
         assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
@@ -75,6 +78,9 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVouchersForPregnancy()).isEqualTo(0);
         assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(2);
+        assertThat(result.getTotalChildrenUnderOneVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getTotalChildrenBetweenOneAndFourVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getTotalPregnancyVoucherValueInPence()).isEqualTo(0);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(200);
         assertThat(result.getBackdatedVouchers()).isEqualTo(0);
         assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
@@ -105,6 +111,9 @@ class PaymentCycleVoucherEntitlementTest {
         assertThat(result.getVoucherEntitlements()).isEqualTo(voucherEntitlements);
         assertThat(result.getTotalVoucherEntitlement()).isEqualTo(24);
         assertThat(result.getSingleVoucherValueInPence()).isEqualTo(100);
+        assertThat(result.getTotalChildrenUnderOneVoucherValueInPence()).isEqualTo(300);
+        assertThat(result.getTotalChildrenBetweenOneAndFourVoucherValueInPence()).isEqualTo(500);
+        assertThat(result.getTotalPregnancyVoucherValueInPence()).isEqualTo(600);
         assertThat(result.getTotalVoucherValueInPence()).isEqualTo(2400);
         assertThat(result.getBackdatedVouchers()).isEqualTo(backdatedVouchers);
     }

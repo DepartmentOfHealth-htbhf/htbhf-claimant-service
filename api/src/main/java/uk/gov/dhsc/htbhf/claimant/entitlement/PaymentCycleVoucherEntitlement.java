@@ -22,6 +22,9 @@ public class PaymentCycleVoucherEntitlement {
     private int vouchersForPregnancy;
     private int totalVoucherEntitlement;
     private int singleVoucherValueInPence;
+    private int totalChildrenUnderOneVoucherValueInPence;
+    private int totalChildrenBetweenOneAndFourVoucherValueInPence;
+    private int totalPregnancyVoucherValueInPence;
     private int totalVoucherValueInPence;
     private int backdatedVouchers;
     private List<VoucherEntitlement> voucherEntitlements;
@@ -55,6 +58,9 @@ public class PaymentCycleVoucherEntitlement {
         this.vouchersForPregnancy = pregnancy;
         this.totalVoucherEntitlement = total + backdatedVouchers;
         this.singleVoucherValueInPence = voucherEntitlements.get(0).getSingleVoucherValueInPence();
+        this.totalChildrenUnderOneVoucherValueInPence = vouchersForChildrenUnderOne * singleVoucherValueInPence;
+        this.totalChildrenBetweenOneAndFourVoucherValueInPence = vouchersForChildrenBetweenOneAndFour * singleVoucherValueInPence;
+        this.totalPregnancyVoucherValueInPence = vouchersForPregnancy * singleVoucherValueInPence;
         this.totalVoucherValueInPence = totalVoucherEntitlement * singleVoucherValueInPence;
     }
 

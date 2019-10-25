@@ -97,9 +97,8 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getPaymentAction()).isEqualTo(paymentAction);
         assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        int voucherValue = voucherEntitlement.getSingleVoucherValueInPence();
-        assertThat(payload.getPaymentForChildrenUnderOne()).isEqualTo(voucherEntitlement.getVouchersForChildrenUnderOne() * voucherValue);
-        assertThat(payload.getPaymentForChildrenBetweenOneAndFour()).isEqualTo(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * voucherValue);
-        assertThat(payload.getPaymentForPregnancy()).isEqualTo(voucherEntitlement.getVouchersForPregnancy() * voucherValue);
+        assertThat(payload.getPaymentForChildrenUnderOne()).isEqualTo(voucherEntitlement.getTotalChildrenUnderOneVoucherValueInPence());
+        assertThat(payload.getPaymentForChildrenBetweenOneAndFour()).isEqualTo(voucherEntitlement.getTotalChildrenBetweenOneAndFourVoucherValueInPence());
+        assertThat(payload.getPaymentForPregnancy()).isEqualTo(voucherEntitlement.getTotalPregnancyVoucherValueInPence());
     }
 }

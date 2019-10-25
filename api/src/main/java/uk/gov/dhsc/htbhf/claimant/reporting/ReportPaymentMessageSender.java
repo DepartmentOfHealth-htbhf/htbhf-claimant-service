@@ -55,16 +55,15 @@ public class ReportPaymentMessageSender {
 
     private ReportPaymentMessagePayload createPayloadForNonTopUpPayments(Claim claim, PaymentCycle paymentCycle, PaymentAction paymentAction) {
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         return ReportPaymentMessagePayload.builder()
                 .claimId(claim.getId())
                 .paymentCycleId(paymentCycle.getId())
                 .datesOfBirthOfChildren(paymentCycle.getChildrenDob())
                 .timestamp(LocalDateTime.now())
                 .paymentAction(paymentAction)
-                .paymentForChildrenUnderOne(voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence)
-                .paymentForChildrenBetweenOneAndFour(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
-                .paymentForPregnancy(voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence)
+                .paymentForChildrenUnderOne(voucherEntitlement.getTotalChildrenUnderOneVoucherValueInPence())
+                .paymentForChildrenBetweenOneAndFour(voucherEntitlement.getTotalChildrenBetweenOneAndFourVoucherValueInPence())
+                .paymentForPregnancy(voucherEntitlement.getTotalPregnancyVoucherValueInPence())
                 .build();
     }
 }
