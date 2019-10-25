@@ -40,8 +40,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithMessageTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTypeAndTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
@@ -100,9 +100,9 @@ class MessageProcessorTest {
 
     @Test
     void shouldContinueToProcessMessagesAfterAnExceptionThrown() {
-        Message cardMessage1 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(1));
-        Message cardMessage2 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(2));
-        Message cardMessage3 = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(3));
+        Message cardMessage1 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(1));
+        Message cardMessage2 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(2));
+        Message cardMessage3 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(3));
         given(messageRepository.findAllMessagesByTypeOrderedByDate(any(), any()))
                 .willReturn(List.of(cardMessage1, cardMessage2, cardMessage3))
                 .willReturn(emptyList());
@@ -128,7 +128,7 @@ class MessageProcessorTest {
     @Test
     void shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown() {
         //Given
-        Message cardMessage = aValidMessageWithTimestamp(LocalDateTime.now().minusHours(1));
+        Message cardMessage = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(1));
         given(messageRepository.findAllMessagesByTypeOrderedByDate(any(), any()))
                 .willReturn(List.of(cardMessage));
         UUID claimId = UUID.randomUUID();

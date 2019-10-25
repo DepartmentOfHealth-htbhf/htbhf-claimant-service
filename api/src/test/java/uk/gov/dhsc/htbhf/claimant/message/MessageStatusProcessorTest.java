@@ -21,8 +21,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithMessageTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithTimestamp;
 
 @ExtendWith(MockitoExtension.class)
 class MessageStatusProcessorTest {
@@ -51,7 +51,7 @@ class MessageStatusProcessorTest {
     void shouldUpdateMessageWhenNotCompleted(MessageStatus messageStatus) {
         //Given
         LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
-        Message message = aValidMessageWithTimestamp(originalTimestamp);
+        Message message = aMessageWithMessageTimestamp(originalTimestamp);
         //When
         messageStatusProcessor.processStatusForMessage(message, messageStatus);
         //Then
@@ -63,11 +63,11 @@ class MessageStatusProcessorTest {
     void shouldUpdateMessagesToErrorAndIncrementCount() {
         //Given
         LocalDateTime originalTimestamp1 = LocalDateTime.now().minusHours(1);
-        Message message1 = aValidMessageWithTimestamp(originalTimestamp1);
+        Message message1 = aMessageWithMessageTimestamp(originalTimestamp1);
         LocalDateTime originalTimestamp2 = LocalDateTime.now().minusHours(2);
-        Message message2 = aValidMessageWithTimestamp(originalTimestamp2);
+        Message message2 = aMessageWithMessageTimestamp(originalTimestamp2);
         LocalDateTime originalTimestamp3 = LocalDateTime.now().minusHours(3);
-        Message message3 = aValidMessageWithTimestamp(originalTimestamp3);
+        Message message3 = aMessageWithMessageTimestamp(originalTimestamp3);
         List<Message> messages = List.of(message1, message2, message3);
         //When
         messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);

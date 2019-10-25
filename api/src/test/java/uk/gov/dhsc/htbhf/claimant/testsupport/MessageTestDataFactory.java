@@ -22,7 +22,11 @@ public class MessageTestDataFactory {
         return buildValidMessageBuilder().messageType(type).messageTimestamp(timestamp).build();
     }
 
-    public static Message aValidMessageWithTimestamp(LocalDateTime localDateTime) {
+    public static Message aMessageWithCreatedTimestamp(LocalDateTime localDateTime) {
+        return buildValidMessageBuilder().createdTimestamp(localDateTime).build();
+    }
+
+    public static Message aMessageWithMessageTimestamp(LocalDateTime localDateTime) {
         return buildValidMessageBuilder().messageTimestamp(localDateTime).build();
     }
 
