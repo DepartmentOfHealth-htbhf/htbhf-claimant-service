@@ -112,6 +112,13 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder().childrenDob(childrenDobs).build();
     }
 
+    public static PaymentCycle aPaymentCycleWithClaimAndChildrenDobs(Claim claim, List<LocalDate> childrenDobs) {
+        return aValidPaymentCycleBuilder()
+                .claim(claim)
+                .childrenDob(childrenDobs)
+                .build();
+    }
+
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         Claim claim = aValidClaim();
