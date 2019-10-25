@@ -8,7 +8,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -70,7 +69,7 @@ class PaymentServiceTest {
     @MockBean
     private PaymentCalculator paymentCalculator;
 
-    @SpyBean
+    @MockBean
     private ReportPaymentMessageSender reportPaymentMessageSender;
 
     @Autowired
