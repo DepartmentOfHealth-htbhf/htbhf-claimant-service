@@ -44,7 +44,7 @@ class ReportPaymentMessageSenderTest {
         int paymentForPregnancy = 100;
         LocalDateTime testStart = LocalDateTime.now();
 
-        reportPaymentMessageSender.sendReportTopUpPaymentMessage(claim, paymentCycle, paymentForPregnancy);
+        reportPaymentMessageSender.sendReportPregnancyTopUpPaymentMessage(claim, paymentCycle, paymentForPregnancy);
 
         ArgumentCaptor<ReportPaymentMessagePayload> argumentCaptor = ArgumentCaptor.forClass(ReportPaymentMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(REPORT_PAYMENT));

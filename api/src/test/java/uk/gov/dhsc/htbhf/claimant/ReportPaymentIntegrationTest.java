@@ -88,7 +88,7 @@ public class ReportPaymentIntegrationTest {
         stubPostcodesIoAndGoogleAnalytics(postcode);
         int paymentAmount = 100;
 
-        reportPaymentMessageSender.sendReportTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
+        reportPaymentMessageSender.sendReportPregnancyTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);

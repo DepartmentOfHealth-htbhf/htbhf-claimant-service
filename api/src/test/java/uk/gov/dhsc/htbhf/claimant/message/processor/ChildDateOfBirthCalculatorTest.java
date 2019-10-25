@@ -22,10 +22,7 @@ import static org.mockito.Mockito.lenient;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.SINGLE_THREE_YEAR_OLD;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TWO_CHILDREN_BETWEEN_ONE_AND_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TWO_CHILDREN_UNDER_ONE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChildDateOfBirthCalculatorTest {
@@ -349,6 +346,7 @@ class ChildDateOfBirthCalculatorTest {
         return Stream.of(
                 Arguments.of(emptyList(), 0),
                 Arguments.of(null, 0),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, 0),
                 Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, 1),
                 Arguments.of(TWO_CHILDREN_UNDER_ONE, 2)
         );
@@ -358,6 +356,7 @@ class ChildDateOfBirthCalculatorTest {
         return Stream.of(
                 Arguments.of(emptyList(), 0),
                 Arguments.of(null, 0),
+                Arguments.of(SINGLE_FIVE_YEAR_OLD, 0),
                 Arguments.of(SINGLE_THREE_YEAR_OLD, 1),
                 Arguments.of(TWO_CHILDREN_BETWEEN_ONE_AND_FOUR, 2)
         );
