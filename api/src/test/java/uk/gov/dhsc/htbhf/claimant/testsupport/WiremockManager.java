@@ -14,6 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
@@ -30,12 +33,15 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 
 @Component
 public class WiremockManager {
+    private static final String POSTCODES_IO_PATH = "/postcodes/";
+    private static final String REPORT_ENDPOINT = "/collect";
     private static final String V1_ELIGIBILITY_URL = "/v1/eligibility";
     private static final String V1_CARDS_URL = "/v1/cards";
     private static final String POSTCODES_URL = "/postcodes/";
     private WireMockServer eligibilityServiceMock;
     private WireMockServer cardServiceMock;
     private WireMockServer postcodesMock;
+    private WireMockServer googleAnalyticsMock;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -44,12 +50,14 @@ public class WiremockManager {
         eligibilityServiceMock = startWireMockServer(8100);
         cardServiceMock = startWireMockServer(8140);
         postcodesMock = startWireMockServer(8120);
+        googleAnalyticsMock = startWireMockServer(8150);
     }
 
     public void stopWireMock() {
         eligibilityServiceMock.stop();
         cardServiceMock.stop();
         postcodesMock.stop();
+        googleAnalyticsMock.stop();
     }
 
     public void stubSuccessfulEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
@@ -129,8 +137,16 @@ public class WiremockManager {
                 .willReturn(serverError()));
     }
 
-    private String getPostcodeUrl(String postcode) {
-        return POSTCODES_URL + postcode.toUpperCase().replace(" ", "");
+    public void stubPostcodeDataLookup(PostcodeDataResponse postcodeDataResponse) throws JsonProcessingException {
+        String responseBody = objectMapper.writeValueAsString(postcodeDataResponse);
+        String postcodeWithoutSpace = postcodeDataResponse.getPostcodeData().getPostcode().replace(" ", "");
+        postcodesMock.stubFor(get(urlEqualTo(POSTCODES_IO_PATH + postcodeWithoutSpace))
+                .willReturn(okJson(responseBody)));
+    }
+
+    public void stubGoogleAnalyticsCall() {
+        googleAnalyticsMock.stubFor(post(urlEqualTo(REPORT_ENDPOINT)).withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
+                .willReturn(ok()));
     }
 
     public void assertThatGetBalanceRequestMadeForClaim(String cardAccountId) {
@@ -154,6 +170,50 @@ public class WiremockManager {
 
     public void assertThatPostcodeDataRetrievedForPostcode(String postcode) {
         postcodesMock.verify(getRequestedFor(urlEqualTo(getPostcodeUrl(postcode))));
+    }
+
+    public void verifyPostcodesIoCalled(String postcode) {
+        String postcodeWithoutSpace = postcode.replace(" ", "");
+        String expectedPostcodesUrl = POSTCODES_IO_PATH + postcodeWithoutSpace;
+        postcodesMock.verify(1, getRequestedFor(urlEqualTo(expectedPostcodesUrl)));
+    }
+
+    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, String trackingId) {
+        // not asserting the full payload as it contains time based values and a large amount of data that would make the test fragile.
+        // testing that the payload is created and sent correctly is covered by GoogleAnalyticsClientTest
+        googleAnalyticsMock.verify(1, postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
+                .withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
+                .withRequestBody(matching(
+                        "t=event"
+                                + "&v=1" // version 1
+                                + "&tid=" + trackingId // tracking id from properties
+                                + "&ec=CLAIM" // event category is CLAIM
+                                + "&ea=" + claimAction.name()  // event action is the claim action (e.g. NEW, REJECTED, etc)
+                                + "&ev=0" // event value is unused, so set to 0
+                                + "&qt=\\d+" // queue time should be an integer
+                                + "&cid=" + claim.getId() // customer id is the claim id
+                                + ".*"))); // rest of payload data
+    }
+
+    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim, PaymentAction paymentAction, String trackingId, Integer paymentAmount) {
+        // not asserting the full payload as it contains time based values and a large amount of data that would make the test fragile.
+        // testing that the payload is created and sent correctly is covered by GoogleAnalyticsClientTest
+        googleAnalyticsMock.verify(1, postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
+                .withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
+                .withRequestBody(matching(
+                        "t=event"
+                                + "&v=1" // version 1
+                                + "&tid=" + trackingId // tracking id from properties
+                                + "&ec=PAYMENT" // event category is PAYMENT
+                                + "&ea=" + paymentAction.name()  // event action is the payment action (e.g. INITIAL, SCHEDULED, etc)
+                                + "&ev=" + paymentAmount.toString() // event value is the total payment amount
+                                + "&qt=\\d+" // queue time should be an integer
+                                + "&cid=" + claim.getId() // customer id is the claim id
+                                + ".*"))); // rest of payload data
+    }
+
+    private String getPostcodeUrl(String postcode) {
+        return POSTCODES_URL + postcode.toUpperCase().replace(" ", "");
     }
 
     private StringValuePattern expectedDepositRequestBody(Payment payment) throws JsonProcessingException {
