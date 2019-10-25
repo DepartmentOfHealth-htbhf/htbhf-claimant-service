@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 
 /**
@@ -21,6 +22,26 @@ public class ChildDateOfBirthCalculator {
 
     public ChildDateOfBirthCalculator(PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator) {
         this.paymentCycleEntitlementCalculator = paymentCycleEntitlementCalculator;
+    }
+
+    /**
+     * Calculates the number of children under one on a given date.
+     * @param dateOfBirthOfChildren list of dates of birth to check against
+     * @param atDate date at which to check if each child was one year old.
+     * @return number of children under one at the give date.
+     */
+    public static Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, atDate, 1);
+    }
+
+    /**
+     * Calculates the number of children under four on a given date.
+     * @param dateOfBirthOfChildren list of dates of birth to check against
+     * @param atDate date at which to check if each child was four years old.
+     * @return number of children under one at the give date.
+     */
+    public static Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate) {
+        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, atDate, 4);
     }
 
     /**
@@ -72,6 +93,16 @@ public class ChildDateOfBirthCalculator {
         }
         return childrenDob.stream()
                 .anyMatch(childDob -> childDob.isAfter(atDate.minusYears(4)));
+    }
+
+    private static Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate atDate, Integer ageInYears) {
+        if (isEmpty(dateOfBirthOfChildren)) {
+            return 0;
+        }
+        LocalDate pastDate = atDate.minusYears(ageInYears);
+        return Math.toIntExact(dateOfBirthOfChildren.stream()
+                .filter(date -> date.isAfter(pastDate) && !date.isAfter(atDate))
+                .count());
     }
 
     private int countChildrenOfAge(PaymentCycle paymentCycle, LocalDate lastEntitlementDateInCurrentCycle,

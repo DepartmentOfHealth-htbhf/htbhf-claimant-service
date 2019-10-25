@@ -119,19 +119,6 @@ class ReportPropertiesFactoryTest {
         assertThat(queueTime).isLessThanOrEqualTo(maxQueueTime);
     }
 
-    @Test
-    void shouldIncludeMetricsForZeroChildren() {
-        ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, NOT_PREGNANT);
-        given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
-
-        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
-
-        assertThat(reportProperties).contains(
-                entry("cm1", "0"),
-                entry("cm2", "0")
-        );
-    }
-
     @ParameterizedTest(name = "{1} children under 1 and {2} between 1 and 4 given: {0}")
     @MethodSource("childrensDatesOfBirth")
     void shouldIncludeMetricsForNumberOfChildren(List<LocalDate> datesOfBirth, long childrenUnderOne, long childrenOneToFour) {
@@ -148,13 +135,14 @@ class ReportPropertiesFactoryTest {
 
     static Stream<Arguments> childrensDatesOfBirth() {
         return Stream.of(
+                Arguments.of(NO_CHILDREN, 0, 0),
+                Arguments.of(null, 0, 0),
                 Arguments.of(TWO_CHILDREN_UNDER_ONE, 2, 0),
                 Arguments.of(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, 1, 1),
                 Arguments.of(TWO_CHILDREN_BETWEEN_ONE_AND_FOUR, 0, 2),
                 Arguments.of(ONE_CHILD_FOUR_YEARS_OLD, 0, 0)
         );
     }
-
 
     @ParameterizedTest(name = "{1} weeks pregnant given {0} since conception")
     @CsvSource({

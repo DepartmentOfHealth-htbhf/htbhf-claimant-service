@@ -8,7 +8,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator.getNumberOfChildrenUnderFour;
+import static uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator.getNumberOfChildrenUnderOne;
 
 /**
  * Responsible for calculating how many 'vouchers' an eligible claimant is entitled to.
@@ -67,24 +68,6 @@ public class EntitlementCalculator {
                 .map(dueDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate)).orElse(false);
 
         return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne, entitlementDate);
-    }
-
-    private Integer getNumberOfChildrenUnderOne(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 1);
-    }
-
-    private Integer getNumberOfChildrenUnderFour(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate) {
-        return getNumberOfChildrenUnderAgeInYears(dateOfBirthOfChildren, entitlementDate, 4);
-    }
-
-    private Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, LocalDate entitlementDate, Integer ageInYears) {
-        if (isEmpty(dateOfBirthOfChildren)) {
-            return 0;
-        }
-        LocalDate pastDate = entitlementDate.minusYears(ageInYears);
-        return Math.toIntExact(dateOfBirthOfChildren.stream()
-                .filter(date -> date.isAfter(pastDate) && !date.isAfter(entitlementDate))
-                .count());
     }
 
     private VoucherEntitlement createVoucherEntitlement(boolean isEntitledToPregnancyVoucher,
