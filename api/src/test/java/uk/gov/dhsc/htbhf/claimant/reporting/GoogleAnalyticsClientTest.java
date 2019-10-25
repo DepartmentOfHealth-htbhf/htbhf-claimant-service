@@ -22,7 +22,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
-@AutoConfigureWireMock(port = 8120)
+@AutoConfigureWireMock(port = 8150)
 class GoogleAnalyticsClientTest {
 
     private static final String REPORT_ENDPOINT = "/collect";

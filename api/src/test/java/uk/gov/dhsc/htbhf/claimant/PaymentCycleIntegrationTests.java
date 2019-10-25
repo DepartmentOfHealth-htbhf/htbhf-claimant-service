@@ -9,9 +9,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Value;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.service.notify.NotificationClientException;
 
@@ -29,10 +31,15 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
@@ -55,12 +62,15 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
 
+    @Value("${google-analytics.tracking-id}")
+    private String trackingId;
+
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
     @MethodSource("provideArgumentsForActiveClaimTests")
-    void shouldCreatePaymentCycleMakePaymentAndSendEmail(List<LocalDate> previousPaymentCycleChildrenDobs,
-                                                         List<LocalDate> currentPaymentCycleChildrenDobs)
+    void shouldCreatePaymentCycleMakePaymentAndSendEmailAndReportPayment(List<LocalDate> previousPaymentCycleChildrenDobs,
+                                                                         List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
-        testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus.ACTIVE, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(ACTIVE, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
     }
 
     //TODO MRS 10/10/2019: When these tests are enabled, we may be able to refactor back into a single parameterised test
@@ -70,12 +80,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldCreatePaymentCycleMakePaymentAndSendEmailForPendingExpiryStatus(List<LocalDate> previousPaymentCycleChildrenDobs,
                                                                                List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
-        testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus.PENDING_EXPIRY, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(PENDING_EXPIRY, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
     }
 
-    private void testClaimIsActivePaymentMadeAndEmailSent(ClaimStatus previousCycleClaimStatus,
-                                                          List<LocalDate> previousPaymentCycleChildrenDobs,
-                                                          List<LocalDate> currentPaymentCycleChildrenDobs)
+    private void testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(ClaimStatus previousCycleClaimStatus,
+                                                                            List<LocalDate> previousPaymentCycleChildrenDobs,
+                                                                            List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
 
         wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
@@ -86,6 +96,13 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         Claim claim = createClaimWithPaymentCycleEndingYesterday(previousCycleClaimStatus,
                 previousPaymentCycleChildrenDobs, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
 
+        String postcode = claim.getClaimant().getAddress().getPostcode();
+        PostcodeDataResponse postcodeDataResponse = aPostcodeDataResponseObjectForPostcode(postcode);
+        wiremockManager.stubPostcodeDataLookup(postcodeDataResponse);
+        wiremockManager.stubGoogleAnalyticsCall();
+
+        invokeAllSchedulers();
+        // The processing of a make payment message will create a report payment message, so we need to invoke the schedulers again
         invokeAllSchedulers();
 
         // confirm new payment cycle created with a payment
@@ -94,12 +111,14 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
                 LocalDate.now(), currentPaymentCycleChildrenDobs, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsFullyPaid(newCycle, currentPaymentCycleChildrenDobs, expectedVoucherEntitlement);
 
-        assertStatusOnClaim(claim, ClaimStatus.ACTIVE);
+        assertStatusOnClaim(claim, ACTIVE);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+        wiremockManager.verifyPostcodesIoCalled(postcode);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, newCycle.getTotalEntitlementAmountInPence());
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle);
@@ -265,7 +284,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+        assertStatusOnClaim(claim, EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -291,7 +310,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+        assertStatusOnClaim(claim, PENDING_EXPIRY);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -318,7 +337,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+        assertStatusOnClaim(claim, EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -349,7 +368,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+        assertStatusOnClaim(claim, EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -373,7 +392,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // create previous PaymentCycle
         LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(17);
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(ClaimStatus.PENDING_EXPIRY,
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY,
                 claimStatusTimestamp,
                 previousCycleChildrenDobs,
                 expectedDeliveryDate);
@@ -382,7 +401,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.EXPIRED);
+        assertStatusOnClaim(claim, EXPIRED);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -405,7 +424,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // create previous PaymentCycle
         LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(2);
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(ClaimStatus.PENDING_EXPIRY,
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY,
                 claimStatusTimestamp,
                 previousCycleChildrenDobs,
                 expectedDeliveryDate);
@@ -414,7 +433,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, ClaimStatus.PENDING_EXPIRY);
+        assertStatusOnClaim(claim, PENDING_EXPIRY);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -477,6 +496,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         messageProcessorScheduler.processDetermineEntitlementMessages();
         messageProcessorScheduler.processPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processReportPaymentMessages();
     }
 
     private void assertPaymentCycleIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
@@ -509,7 +529,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
 
     private Claim createActiveClaimWithPaymentCycleEndingYesterday(List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
-        return createClaimWithPaymentCycleEndingYesterday(ClaimStatus.ACTIVE, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
+        return createClaimWithPaymentCycleEndingYesterday(ACTIVE, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus, List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
