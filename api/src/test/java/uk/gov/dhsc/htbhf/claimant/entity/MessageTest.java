@@ -36,9 +36,19 @@ class MessageTest extends AbstractValidationTest {
     }
 
     @Test
-    void shouldFailToValidateWithNoTimestamp() {
+    void shouldFailToValidateWithNoCreatedTimestamp() {
         //Given
-        Message message = aValidMessageWithTimestamp(null);
+        Message message = aMessageWithCreatedTimestamp(null);
+        //When
+        Set<ConstraintViolation<Message>> violations = validator.validate(message);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "createdTimestamp");
+    }
+
+    @Test
+    void shouldFailToValidateWithNoMessageTimestamp() {
+        //Given
+        Message message = aMessageWithMessageTimestamp(null);
         //When
         Set<ConstraintViolation<Message>> violations = validator.validate(message);
         //Then
