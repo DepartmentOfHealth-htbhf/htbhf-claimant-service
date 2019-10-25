@@ -30,7 +30,7 @@ public class ReportPaymentMessageSender {
      * @param paymentCycle the current payment cycle
      * @param paymentForPregnancyInPence the payment amount made for pregnancy
      */
-    public void sendReportTopUpPaymentMessage(Claim claim, PaymentCycle paymentCycle, int paymentForPregnancyInPence) {
+    public void sendReportPregnancyTopUpPaymentMessage(Claim claim, PaymentCycle paymentCycle, int paymentForPregnancyInPence) {
         ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()
                 .claimId(claim.getId())
                 .paymentCycleId(paymentCycle.getId())
@@ -44,16 +44,18 @@ public class ReportPaymentMessageSender {
     }
 
     public void sendReportInitialPaymentMessage(Claim claim, PaymentCycle paymentCycle) {
-        ReportPaymentMessagePayload payload = createPayloadForNonTopUpPayments(claim, paymentCycle, INITIAL_PAYMENT);
+        ReportPaymentMessagePayload payload = createPayloadWithPaymentAmountsDerivedFromPaymentCycle(claim, paymentCycle, INITIAL_PAYMENT);
         messageQueueClient.sendMessage(payload, REPORT_PAYMENT);
     }
 
     public void sendReportScheduledPayment(Claim claim, PaymentCycle paymentCycle) {
-        ReportPaymentMessagePayload payload = createPayloadForNonTopUpPayments(claim, paymentCycle, SCHEDULED_PAYMENT);
+        ReportPaymentMessagePayload payload = createPayloadWithPaymentAmountsDerivedFromPaymentCycle(claim, paymentCycle, SCHEDULED_PAYMENT);
         messageQueueClient.sendMessage(payload, REPORT_PAYMENT);
     }
 
-    private ReportPaymentMessagePayload createPayloadForNonTopUpPayments(Claim claim, PaymentCycle paymentCycle, PaymentAction paymentAction) {
+    private ReportPaymentMessagePayload createPayloadWithPaymentAmountsDerivedFromPaymentCycle(Claim claim,
+                                                                                               PaymentCycle paymentCycle,
+                                                                                               PaymentAction paymentAction) {
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
         int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         return ReportPaymentMessagePayload.builder()
