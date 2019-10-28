@@ -40,7 +40,7 @@ public class MessageProcessor {
     private final int messageProcessingLimit;
 
     public void processMessagesOfType(MessageType messageType) {
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, PageRequest.of(0, messageProcessingLimit));
+        List<Message> messages = messageRepository.findAllMessagesDueForProcessingByType(messageType, PageRequest.of(0, messageProcessingLimit));
         processMessagesOfType(messages, messageType);
     }
 

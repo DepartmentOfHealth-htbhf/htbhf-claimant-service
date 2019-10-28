@@ -68,7 +68,7 @@ class MessageRepositoryTest {
         messageRepository.save(aValidMessageWithType(differentMessageType));
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(messageType, Pageable.unpaged());
+        List<Message> messages = messageRepository.findAllMessagesDueForProcessingByType(messageType, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessage);
@@ -85,10 +85,27 @@ class MessageRepositoryTest {
         messageRepository.save(newCardMessageOneYearAgo);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
+        List<Message> messages = messageRepository.findAllMessagesDueForProcessingByType(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo, newCardMessage);
+    }
+
+    @Test
+    void shouldExcludeMessageWithTimestampInFuture() {
+        // Given
+        Message newCardMessageInFuture = aMessageWithMessageTimestamp(LocalDateTime.now().plusMinutes(1));
+        Message newCardMessageOneMonthAgo = aMessageWithMessageTimestamp(LocalDateTime.now().minusMonths(1));
+        Message newCardMessageOneYearAgo = aMessageWithMessageTimestamp(LocalDateTime.now().minusYears(1));
+        messageRepository.save(newCardMessageInFuture);
+        messageRepository.save(newCardMessageOneMonthAgo);
+        messageRepository.save(newCardMessageOneYearAgo);
+
+        // When
+        List<Message> messages = messageRepository.findAllMessagesDueForProcessingByType(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
+
+        // Then
+        assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo);
     }
 
     @Test
@@ -102,7 +119,7 @@ class MessageRepositoryTest {
         messageRepository.save(message3);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesByTypeOrderedByDate(MessageType.CREATE_NEW_CARD, PageRequest.of(0, 2));
+        List<Message> messages = messageRepository.findAllMessagesDueForProcessingByType(MessageType.CREATE_NEW_CARD, PageRequest.of(0, 2));
 
         // Then
         assertThat(messages).containsExactly(message1, message2);
