@@ -492,6 +492,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     private void invokeAllSchedulers() {
+        repositoryMediator.makeAllMessagesProcessable();
         paymentCycleScheduler.createNewPaymentCycles();
         messageProcessorScheduler.processDetermineEntitlementMessages();
         messageProcessorScheduler.processPaymentMessages();
