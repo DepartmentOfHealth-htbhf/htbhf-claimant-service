@@ -15,15 +15,20 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
+import java.time.LocalDate;
+import java.util.List;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Slf4j
@@ -49,6 +54,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
 
     private EventAuditor eventAuditor;
+
+    private ClaimMessageSender claimMessageSender;
 
     @Override
     public MessageType supportsMessageType() {
@@ -85,11 +92,11 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
             createMakePaymentMessage(currentPaymentCycle);
         } else if (claim.getClaimStatus() == ACTIVE) {
             if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
-                expireClaim(claim);
+                expireActiveClaim(claim, decision.getDateOfBirthOfChildren());
             } else if (decision.getQualifyingBenefitEligibilityStatus().isNotEligible()) {
-                handleLossOfQualifyingBenefitStatus(claim);
+                handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());
             } else {
-                handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim);
+                handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());
             }
         }
         //TODO HTBHF-1296: If not ACTIVE, PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
@@ -123,19 +130,21 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
-    private void handleLossOfQualifyingBenefitStatus(Claim claim) {
+    private void handleLossOfQualifyingBenefitStatus(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
         updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 
-    private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim) {
-        expireClaim(claim);
+    private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
+        expireActiveClaim(claim, dateOfBirthOfChildren);
         determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
     }
 
-    private void expireClaim(Claim claim) {
+    private void expireActiveClaim(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
         updateClaimStatus(claim, ClaimStatus.EXPIRED);
         eventAuditor.auditExpiredClaim(claim);
+        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_EXPIRED);
     }
 
     private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
