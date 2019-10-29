@@ -8,9 +8,11 @@ import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,23 +30,45 @@ public class MIReporter {
     private final GoogleAnalyticsClient googleAnalyticsClient;
 
     public void reportClaim(ReportClaimMessageContext context) {
-        updateClaimWithPostcodeDataIfNecessary(context);
+        updateClaimWithPostcodeDataIfNotSet(context);
+        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
+        googleAnalyticsClient.reportEvent(reportProperties);
+    }
+
+    public void reportUpdatedClaim(ReportClaimMessageContext context) {
+        Claim claim = context.getClaim();
+        if (postcodeDataIsNotSet(claim) || addressHasBeenUpdated(context)) {
+            retrievePostcodeDataAndSaveToClaim(claim);
+        }
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
         googleAnalyticsClient.reportEvent(reportProperties);
     }
 
     public void reportPayment(ReportPaymentMessageContext context) {
-        updateClaimWithPostcodeDataIfNecessary(context);
+        updateClaimWithPostcodeDataIfNotSet(context);
         Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForPaymentEvent(context);
         googleAnalyticsClient.reportEvent(reportProperties);
     }
 
-    private void updateClaimWithPostcodeDataIfNecessary(ReportEventMessageContext context) {
+    private void updateClaimWithPostcodeDataIfNotSet(ReportEventMessageContext context) {
         Claim claim = context.getClaim();
         if (claim.getPostcodeData() == null) {
-            PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);
-            claim.setPostcodeData(postcodeData);
-            claimRepository.save(claim);
+            retrievePostcodeDataAndSaveToClaim(claim);
         }
+    }
+
+    private boolean postcodeDataIsNotSet(Claim claim) {
+        return claim.getPostcodeData() == null;
+    }
+
+    private boolean addressHasBeenUpdated(ReportClaimMessageContext context) {
+        List<UpdatableClaimantField> updatedClaimFields = context.getUpdatedClaimFields();
+        return updatedClaimFields != null && updatedClaimFields.contains(UpdatableClaimantField.ADDRESS);
+    }
+
+    private void retrievePostcodeDataAndSaveToClaim(Claim claim) {
+        PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);
+        claim.setPostcodeData(postcodeData);
+        claimRepository.save(claim);
     }
 }

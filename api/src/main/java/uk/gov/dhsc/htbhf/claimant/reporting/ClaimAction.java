@@ -5,5 +5,6 @@ package uk.gov.dhsc.htbhf.claimant.reporting;
  */
 public enum ClaimAction {
     NEW,
-    REJECTED
+    REJECTED,
+    UPDATED
 }

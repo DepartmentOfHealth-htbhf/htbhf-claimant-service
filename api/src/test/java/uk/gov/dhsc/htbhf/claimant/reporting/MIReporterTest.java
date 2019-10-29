@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,11 +20,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.ADDRESS;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.HIT_TYPE_KEY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.PROTOCOL_VERSION_KEY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.MandatoryProperties.TRACKING_ID_KEY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTestDataFactory.aReportClaimMessageContextWithClaimAndUpdatedFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportPaymentMessageContextTestDataFactory.aReportPaymentMessageContextWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
 
@@ -106,6 +111,68 @@ class MIReporterTest {
 
         verifyZeroInteractions(postcodeDataClient, claimRepository);
         verify(reportPropertiesFactory).createReportPropertiesForPaymentEvent(context);
+        verify(googleAnalyticsClient).reportEvent(REPORT_PROPERTIES);
+    }
+
+    @Test
+    void shouldGetPostcodeDataAndSaveToClaimAndReportUpdatedClaimToGoogleAnalyticsWhenThereIsNoPostcodeData() {
+        Claim claim = aClaimWithPostcodeData(null);
+        ReportClaimMessageContext context = aReportClaimMessageContextWithClaimAndUpdatedFields(claim, List.of(LAST_NAME));
+        String postcode = claim.getClaimant().getAddress().getPostcode();
+        PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
+        given(postcodeDataClient.getPostcodeData(any())).willReturn(postcodeData);
+        given(reportPropertiesFactory.createReportPropertiesForClaimEvent(any())).willReturn(REPORT_PROPERTIES);
+
+        miReporter.reportUpdatedClaim(context);
+
+        assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
+        verify(postcodeDataClient).getPostcodeData(claim);
+        verify(claimRepository).save(claim);
+        verify(reportPropertiesFactory).createReportPropertiesForClaimEvent(context);
+        verify(googleAnalyticsClient).reportEvent(REPORT_PROPERTIES);
+    }
+
+    @Test
+    void shouldGetPostcodeDataAndSaveToClaimAndReportUpdatedClaimWhenTheAddressIsUpdated() {
+        Claim claim = aClaimWithPostcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE));
+        ReportClaimMessageContext context = aReportClaimMessageContextWithClaimAndUpdatedFields(claim, List.of(ADDRESS));
+        String postcode = claim.getClaimant().getAddress().getPostcode();
+        PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
+        given(postcodeDataClient.getPostcodeData(any())).willReturn(postcodeData);
+        given(reportPropertiesFactory.createReportPropertiesForClaimEvent(any())).willReturn(REPORT_PROPERTIES);
+
+        miReporter.reportUpdatedClaim(context);
+
+        assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
+        verify(postcodeDataClient).getPostcodeData(claim);
+        verify(claimRepository).save(claim);
+        verify(reportPropertiesFactory).createReportPropertiesForClaimEvent(context);
+        verify(googleAnalyticsClient).reportEvent(REPORT_PROPERTIES);
+    }
+
+    @Test
+    void shouldNotGetPostcodeDataOrUpdateClaimForReportingAnUpdatedClaimWhenTheAddressHasNotChanged() {
+        Claim claim = aClaimWithPostcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE));
+        ReportClaimMessageContext context = aReportClaimMessageContextWithClaimAndUpdatedFields(claim, List.of(FIRST_NAME));
+        given(reportPropertiesFactory.createReportPropertiesForClaimEvent(any())).willReturn(REPORT_PROPERTIES);
+
+        miReporter.reportUpdatedClaim(context);
+
+        verifyZeroInteractions(postcodeDataClient, claimRepository);
+        verify(reportPropertiesFactory).createReportPropertiesForClaimEvent(context);
+        verify(googleAnalyticsClient).reportEvent(REPORT_PROPERTIES);
+    }
+
+    @Test
+    void shouldNotGetPostcodeDataOrUpdateClaimForReportingAnUpdatedClaimWhenUpdatedFieldsIsNull() {
+        Claim claim = aClaimWithPostcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE));
+        ReportClaimMessageContext context = aReportClaimMessageContextWithClaimAndUpdatedFields(claim, null);
+        given(reportPropertiesFactory.createReportPropertiesForClaimEvent(any())).willReturn(REPORT_PROPERTIES);
+
+        miReporter.reportUpdatedClaim(context);
+
+        verifyZeroInteractions(postcodeDataClient, claimRepository);
+        verify(reportPropertiesFactory).createReportPropertiesForClaimEvent(context);
         verify(googleAnalyticsClient).reportEvent(REPORT_PROPERTIES);
     }
 }
