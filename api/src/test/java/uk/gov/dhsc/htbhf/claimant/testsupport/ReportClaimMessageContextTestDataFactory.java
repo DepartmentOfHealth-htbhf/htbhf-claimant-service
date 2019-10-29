@@ -22,8 +22,8 @@ public class ReportClaimMessageContextTestDataFactory {
                 .build();
     }
 
-    // Without <?, ?> at the end of ReportClaimMessageContextBuilder, an instance of ReportEventMessageContextBuilder instead
-    // of ReportClaimMessageContextBuilder, this is due to how lombok implements it's SuperBuilder.
+    // Without <?, ?> at the end of ReportClaimMessageContextBuilder, an instance of ReportEventMessageContextBuilder is returned instead
+    // of a ReportClaimMessageContextBuilder, this is due to how lombok implements it's SuperBuilder.
     private static ReportClaimMessageContext.ReportClaimMessageContextBuilder<?, ?> aReportClaimMessageContextBuilder() {
         return ReportClaimMessageContext.builder()
                 .claim(aValidClaim())

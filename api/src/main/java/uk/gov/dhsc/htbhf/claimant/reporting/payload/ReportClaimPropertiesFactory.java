@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import static org.springframework.util.ObjectUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.WEEKS_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.EVENT_LABEL;
 
 /**
  * Factory class for creating a map of parameters for claims reported to google analytics measurement protocol.
@@ -31,17 +32,17 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
     public Map<String, String> createReportPropertiesForClaimEvent(ReportClaimMessageContext context) {
         Map<String, String> reportProperties = new LinkedHashMap<>();
         reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
-        String eventValue = getEventValue(context.getUpdatedClaimFields());
-        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, eventValue)));
+        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, 0)));
+        if (updatedClaimFieldsExists(context)) {
+            reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimFields()));
+        }
         reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
         reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));
         return reportProperties;
     }
 
-    private String getEventValue(List<UpdatableClaimantField> updatedClaimFields) {
-        return isEmpty(updatedClaimFields)
-                ? "0"
-                : convertToCommaSeparatedString(updatedClaimFields);
+    private boolean updatedClaimFieldsExists(ReportClaimMessageContext context) {
+        return !isEmpty(context.getUpdatedClaimFields());
     }
 
     private String convertToCommaSeparatedString(List<UpdatableClaimantField> updatedClaimFields) {

@@ -66,7 +66,7 @@ public abstract class ReportPropertiesFactory {
         return mandatoryProperties;
     }
 
-    protected Map<String, Object> createEventPropertiesMap(ReportEventMessageContext context, EventCategory eventCategory, String eventValue) {
+    protected Map<String, Object> createEventPropertiesMap(ReportEventMessageContext context, EventCategory eventCategory, int eventValue) {
         Map<String, Object> eventPropertiesMap = new LinkedHashMap<>();
         eventPropertiesMap.put(EVENT_CATEGORY.getFieldName(), eventCategory.name());
         eventPropertiesMap.put(EVENT_ACTION.getFieldName(), context.getEventAction());

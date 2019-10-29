@@ -33,7 +33,7 @@ public class ReportPaymentPropertiesFactory extends ReportPropertiesFactory {
         Map<String, String> reportProperties = new LinkedHashMap<>();
         reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
         int totalPaymentAmount = context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne() + context.getPaymentForChildrenBetweenOneAndFour();
-        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, Integer.toString(totalPaymentAmount))));
+        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, totalPaymentAmount)));
         reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
         reportProperties.putAll(mapValuesToString(createCustomMetricMapForPaymentEvent(context)));
         return reportProperties;
