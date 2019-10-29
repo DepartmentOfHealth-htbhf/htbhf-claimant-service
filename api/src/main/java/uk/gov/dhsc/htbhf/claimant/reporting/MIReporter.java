@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
-import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
@@ -32,12 +31,6 @@ public class MIReporter {
     private final GoogleAnalyticsClient googleAnalyticsClient;
 
     public void reportClaim(ReportClaimMessageContext context) {
-        updateClaimWithPostcodeDataIfNotSet(context);
-        Map<String, String> reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);
-        googleAnalyticsClient.reportEvent(reportProperties);
-    }
-
-    public void reportUpdatedClaim(ReportClaimMessageContext context) {
         Claim claim = context.getClaim();
         if (postcodeDataIsNotSet(claim) || addressHasBeenUpdated(context)) {
             retrievePostcodeDataAndSaveToClaim(claim);
@@ -47,16 +40,12 @@ public class MIReporter {
     }
 
     public void reportPayment(ReportPaymentMessageContext context) {
-        updateClaimWithPostcodeDataIfNotSet(context);
-        Map<String, String> reportProperties = reportPaymentPropertiesFactory.createReportPropertiesForPaymentEvent(context);
-        googleAnalyticsClient.reportEvent(reportProperties);
-    }
-
-    private void updateClaimWithPostcodeDataIfNotSet(ReportEventMessageContext context) {
         Claim claim = context.getClaim();
-        if (claim.getPostcodeData() == null) {
+        if (postcodeDataIsNotSet(claim)) {
             retrievePostcodeDataAndSaveToClaim(claim);
         }
+        Map<String, String> reportProperties = reportPaymentPropertiesFactory.createReportPropertiesForPaymentEvent(context);
+        googleAnalyticsClient.reportEvent(reportProperties);
     }
 
     private boolean postcodeDataIsNotSet(Claim claim) {
