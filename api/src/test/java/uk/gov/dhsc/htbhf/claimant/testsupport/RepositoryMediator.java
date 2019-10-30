@@ -132,14 +132,14 @@ public class RepositoryMediator {
      * @param numberOfDays the number of days to fast-forward by.
      */
     @Transactional
-    public void fastForwardDatabaseEntities(int numberOfDays) {
-        paymentRepository.findAll().forEach(payment -> EntityAgeAccelerator.fastForward(payment, numberOfDays));
+    public void ageDatabaseEntities(int numberOfDays) {
+        paymentRepository.findAll().forEach(payment -> EntityAgeAccelerator.ageObject(payment, numberOfDays));
         claimRepository.findAll().forEach(claim -> {
-            EntityAgeAccelerator.fastForward(claim, numberOfDays);
-            EntityAgeAccelerator.fastForward(claim.getClaimant(), numberOfDays);
+            EntityAgeAccelerator.ageObject(claim, numberOfDays);
+            EntityAgeAccelerator.ageObject(claim.getClaimant(), numberOfDays);
         });
-        paymentCycleRepository.findAll().forEach(paymentCycle -> EntityAgeAccelerator.fastForward(paymentCycle, numberOfDays));
-        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.fastForward(message, numberOfDays));
+        paymentCycleRepository.findAll().forEach(paymentCycle -> EntityAgeAccelerator.ageObject(paymentCycle, numberOfDays));
+        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.ageObject(message, numberOfDays));
     }
 
     /**
