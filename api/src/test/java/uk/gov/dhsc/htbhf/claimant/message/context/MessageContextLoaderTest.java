@@ -433,7 +433,7 @@ class MessageContextLoaderTest {
         assertThat(context.getClaimAction()).isEqualTo(payload.getClaimAction());
         assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
-        assertThat(context.getUpdatedClaimFields()).isEqualTo(payload.getUpdatedClaimantFields());
+        assertThat(context.getUpdatedClaimantFields()).isEqualTo(payload.getUpdatedClaimantFields());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verifyZeroInteractions(paymentCycleRepository);
