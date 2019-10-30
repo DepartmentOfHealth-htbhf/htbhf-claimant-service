@@ -8,7 +8,8 @@ import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
-import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPropertiesFactory;
+import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportClaimPropertiesFactory;
+import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPaymentPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
 import java.util.Map;
@@ -24,18 +25,19 @@ public class MIReporter {
 
     private final ClaimRepository claimRepository;
     private final PostcodeDataClient postcodeDataClient;
-    private final ReportPropertiesFactory reportPropertiesFactory;
+    private final ReportClaimPropertiesFactory reportClaimPropertiesFactory;
+    private final ReportPaymentPropertiesFactory reportPaymentPropertiesFactory;
     private final GoogleAnalyticsClient googleAnalyticsClient;
 
     public void reportClaim(ReportClaimMessageContext context) {
         updateClaimWithPostcodeDataIfNecessary(context);
-        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForClaimEvent(context);
+        Map<String, String> reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);
         googleAnalyticsClient.reportEvent(reportProperties);
     }
 
     public void reportPayment(ReportPaymentMessageContext context) {
         updateClaimWithPostcodeDataIfNecessary(context);
-        Map<String, String> reportProperties = reportPropertiesFactory.createReportPropertiesForPaymentEvent(context);
+        Map<String, String> reportProperties = reportPaymentPropertiesFactory.createReportPropertiesForPaymentEvent(context);
         googleAnalyticsClient.reportEvent(reportProperties);
     }
 

@@ -87,11 +87,11 @@ class MessageProcessorTest {
     @Test
     void shouldCallDummyProcessors() {
         Message cardMessage = aValidMessage();
-        lenient().when(messageRepository.findAllMessagesDueForProcessingByType(CREATE_NEW_CARD, PAGEABLE)).thenReturn(singletonList(cardMessage));
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE)).thenReturn(singletonList(cardMessage));
         //When
         messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
         //Then
-        verify(messageRepository).findAllMessagesDueForProcessingByType(CREATE_NEW_CARD, PAGEABLE);
+        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE);
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
@@ -103,7 +103,7 @@ class MessageProcessorTest {
         Message cardMessage1 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(1));
         Message cardMessage2 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(2));
         Message cardMessage3 = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(3));
-        given(messageRepository.findAllMessagesDueForProcessingByType(any(), any()))
+        given(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(any(), any()))
                 .willReturn(List.of(cardMessage1, cardMessage2, cardMessage3))
                 .willReturn(emptyList());
         given(createNewCardDummyMessageTypeProcessor.processMessage(any()))
@@ -129,7 +129,7 @@ class MessageProcessorTest {
     void shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown() {
         //Given
         Message cardMessage = aMessageWithMessageTimestamp(LocalDateTime.now().minusHours(1));
-        given(messageRepository.findAllMessagesDueForProcessingByType(any(), any()))
+        given(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(any(), any()))
                 .willReturn(List.of(cardMessage));
         UUID claimId = UUID.randomUUID();
         NewCardEvent event = NewCardEvent.builder().claimId(claimId).build();
@@ -152,13 +152,13 @@ class MessageProcessorTest {
     void shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor() {
         LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
         Message cardMessage = aValidMessageWithTypeAndTimestamp(MAKE_PAYMENT, originalTimestamp);
-        lenient().when(messageRepository.findAllMessagesDueForProcessingByType(MAKE_PAYMENT, PAGEABLE)).thenReturn(singletonList(cardMessage));
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE)).thenReturn(singletonList(cardMessage));
         //When
         IllegalArgumentException thrown = catchThrowableOfType(() -> messageProcessor.processMessagesOfType(MAKE_PAYMENT), IllegalArgumentException.class);
         //Then
         assertThat(thrown).hasMessage("No message type processor found in application context for message type: "
                 + "MAKE_PAYMENT, there are 1 message(s) due to be processed");
-        verify(messageRepository).findAllMessagesDueForProcessingByType(MAKE_PAYMENT, PAGEABLE);
+        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE);
         verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
         verifyZeroInteractions(eventAuditor);
@@ -167,7 +167,7 @@ class MessageProcessorTest {
     @Test
     void shouldLogMessageProcessResults() {
         Message cardMessage = aValidMessageWithType(CREATE_NEW_CARD);
-        lenient().when(messageRepository.findAllMessagesDueForProcessingByType(CREATE_NEW_CARD, PAGEABLE)).thenReturn(asList(cardMessage, cardMessage));
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE)).thenReturn(asList(cardMessage, cardMessage));
         //When
         messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
         //Then
@@ -182,7 +182,7 @@ class MessageProcessorTest {
     @Test
     void shouldLogNullMessageProcessResult() {
         Message emailMessage = aValidMessageWithType(SEND_EMAIL);
-        lenient().when(messageRepository.findAllMessagesDueForProcessingByType(SEND_EMAIL, PAGEABLE)).thenReturn(singletonList(emailMessage));
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(SEND_EMAIL, PAGEABLE)).thenReturn(singletonList(emailMessage));
         //When
         messageProcessor.processMessagesOfType(SEND_EMAIL);
         //Then

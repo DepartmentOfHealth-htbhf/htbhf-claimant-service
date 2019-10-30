@@ -25,7 +25,7 @@ public interface MessageRepository extends CrudRepository<Message, UUID> {
             @Param("olderThan") LocalDateTime olderThan,
             Pageable pageable);
 
-    default List<Message> findAllMessagesDueForProcessingByType(
+    default List<Message> findAllMessagesOfTypeWithTimestampBeforeNow(
             @Param("messageType") MessageType messageType, Pageable pageable) {
         return findAllMessagesByTypeOlderThan(messageType, LocalDateTime.now(), pageable);
     }

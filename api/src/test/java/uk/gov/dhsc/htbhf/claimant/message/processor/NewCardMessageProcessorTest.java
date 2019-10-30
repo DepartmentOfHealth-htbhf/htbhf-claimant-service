@@ -92,7 +92,7 @@ class NewCardMessageProcessorTest {
         assertThat(status).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
         verify(messageContextLoader).loadNewCardContext(message);
-        verify(newCardService).createNewCard(context.getClaim());
+        verify(newCardService).createNewCard(context.getClaim(), context.getDatesOfBirthOfChildren());
         verify(paymentCycleService).createAndSavePaymentCycleForEligibleClaim(
                 context.getClaim(),
                 cycleStartDate,
