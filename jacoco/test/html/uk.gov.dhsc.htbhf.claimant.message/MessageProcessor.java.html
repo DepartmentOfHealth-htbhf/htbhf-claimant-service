@@ -64,7 +64,7 @@ public class MessageProcessor {
 <span class="fc bfc" id="L64" title="All 2 branches covered.">        if (messageTypeProcessor == null) {</span>
 <span class="fc" id="L65">            messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);</span>
 <span class="fc" id="L66">            throw new IllegalArgumentException(&quot;No message type processor found in application context for message type: &quot;</span>
-<span class="fc" id="L67">                    + messageType + &quot;, there are &quot; + messages.size() + &quot; message(s) in the queue&quot;);</span>
+<span class="fc" id="L67">                    + messageType + &quot;, there are &quot; + messages.size() + &quot; message(s) due to be processed&quot;);</span>
         }
 <span class="fc" id="L69">        return messageTypeProcessor;</span>
     }

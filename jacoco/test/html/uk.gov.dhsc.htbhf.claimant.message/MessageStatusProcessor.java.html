@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MessageStatusProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message</a> &gt; <span class="el_source">MessageStatusProcessor.java</span></div><h1>MessageStatusProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -11,11 +11,22 @@ import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 
-@RequiredArgsConstructor
 @Component
 public class MessageStatusProcessor {
 
+    private static final long THIRTY_SECONDS = 30;
+    private static final int MAX_EXPONENT_SIZE = 50;
+
     private final MessageRepository messageRepository;
+    private final long maximumRetryDelaySeconds;
+
+    public MessageStatusProcessor(
+            MessageRepository messageRepository,
+            @Value(&quot;${message-processor.maximum-retry-delay-seconds}&quot;) long maximumRetryDelaySeconds
+<span class="fc" id="L26">    ) {</span>
+<span class="fc" id="L27">        this.messageRepository = messageRepository;</span>
+<span class="fc" id="L28">        this.maximumRetryDelaySeconds = maximumRetryDelaySeconds;</span>
+<span class="fc" id="L29">    }</span>
 
     /**
      * Method responsible for updating/deleting messages post processing dependent upon their status.
@@ -27,12 +38,12 @@ public class MessageStatusProcessor {
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void processStatusForMessage(Message message, MessageStatus messageStatus) {
-<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (messageStatus == MessageStatus.COMPLETED) {</span>
-<span class="fc" id="L31">            messageRepository.delete(message);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (messageStatus == MessageStatus.COMPLETED) {</span>
+<span class="fc" id="L42">            messageRepository.delete(message);</span>
         } else {
-<span class="fc" id="L33">            updateMessageWithStatusAndIncrementCount(message, messageStatus);</span>
+<span class="fc" id="L44">            updateMessageWithStatusAndIncrementCount(message, messageStatus);</span>
         }
-<span class="fc" id="L35">    }</span>
+<span class="fc" id="L46">    }</span>
 
     /**
      * Will set all the given messages to an ERROR status and update delivery counts
@@ -42,15 +53,23 @@ public class MessageStatusProcessor {
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void updateMessagesToErrorAndIncrementCount(List&lt;Message&gt; messages) {
-<span class="fc" id="L45">        messages.forEach(message -&gt; updateMessageWithStatusAndIncrementCount(message, ERROR));</span>
-<span class="fc" id="L46">    }</span>
+<span class="fc" id="L56">        messages.forEach(message -&gt; updateMessageWithStatusAndIncrementCount(message, ERROR));</span>
+<span class="fc" id="L57">    }</span>
 
     private void updateMessageWithStatusAndIncrementCount(Message message, MessageStatus status) {
-<span class="fc" id="L49">        int updatedDeliveryCount = message.getDeliveryCount() + 1;</span>
-<span class="fc" id="L50">        message.setDeliveryCount(updatedDeliveryCount);</span>
-<span class="fc" id="L51">        message.setMessageTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L52">        message.setStatus(status);</span>
-<span class="fc" id="L53">        messageRepository.save(message);</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L60">        int initialDeliveryCount = message.getDeliveryCount();</span>
+<span class="fc" id="L61">        LocalDateTime newTimestamp = LocalDateTime.now().plusSeconds(getRetryDelayInSeconds(initialDeliveryCount));</span>
+
+<span class="fc" id="L63">        message.setDeliveryCount(initialDeliveryCount + 1);</span>
+<span class="fc" id="L64">        message.setMessageTimestamp(newTimestamp);</span>
+<span class="fc" id="L65">        message.setStatus(status);</span>
+<span class="fc" id="L66">        messageRepository.save(message);</span>
+<span class="fc" id="L67">    }</span>
+
+    private long getRetryDelayInSeconds(int deliveryCount) {
+<span class="fc" id="L70">        int exponent = Math.min(deliveryCount, MAX_EXPONENT_SIZE); // we overflow the size of a long if the exponent is too large</span>
+<span class="fc" id="L71">        long delay = ((long) Math.pow(2, exponent)) * THIRTY_SECONDS;</span>
+<span class="fc" id="L72">        return Math.min(delay, maximumRetryDelaySeconds);</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
