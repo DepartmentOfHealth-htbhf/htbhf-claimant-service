@@ -142,4 +142,11 @@ public class RepositoryMediator {
         messageRepository.findAll().forEach(message -> EntityAgeAccelerator.ageObject(message, numberOfDays));
     }
 
+    /**
+     * Ensures that the messageTimestamp on all messages is in the past.
+     */
+    @Transactional
+    public void makeAllMessagesProcessable() {
+        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.ageObject(message, 1));
+    }
 }
