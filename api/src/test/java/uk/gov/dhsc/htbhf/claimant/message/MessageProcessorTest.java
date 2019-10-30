@@ -157,7 +157,7 @@ class MessageProcessorTest {
         IllegalArgumentException thrown = catchThrowableOfType(() -> messageProcessor.processMessagesOfType(MAKE_PAYMENT), IllegalArgumentException.class);
         //Then
         assertThat(thrown).hasMessage("No message type processor found in application context for message type: "
-                + "MAKE_PAYMENT, there are 1 message(s) in the queue");
+                + "MAKE_PAYMENT, there are 1 message(s) due to be processed");
         verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE);
         verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);

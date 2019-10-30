@@ -64,7 +64,7 @@ public class MessageProcessor {
         if (messageTypeProcessor == null) {
             messageStatusProcessor.updateMessagesToErrorAndIncrementCount(messages);
             throw new IllegalArgumentException("No message type processor found in application context for message type: "
-                    + messageType + ", there are " + messages.size() + " message(s) in the queue");
+                    + messageType + ", there are " + messages.size() + " message(s) due to be processed");
         }
         return messageTypeProcessor;
     }
