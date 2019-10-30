@@ -6,6 +6,7 @@ package uk.gov.dhsc.htbhf.claimant.reporting;
 public enum ClaimAction {
     NEW,
     REJECTED,
+    UPDATED,
     UPDATED_FROM_NEW_TO_ACTIVE,
     UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY,
     UPDATED_FROM_ACTIVE_TO_EXPIRED,
