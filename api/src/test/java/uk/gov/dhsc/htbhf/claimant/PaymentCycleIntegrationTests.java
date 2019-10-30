@@ -34,6 +34,9 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymen
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
@@ -289,6 +292,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
+
         // confirm notify component invoked with correct email template & personalisation
         assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
@@ -314,6 +319,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY, trackingId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimNoLongerEligibleEmailWasSent(claim);
@@ -341,6 +348,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
         verifyZeroInteractions(notificationClient);
@@ -372,6 +381,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
         verifyZeroInteractions(notificationClient);
@@ -405,6 +416,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
+
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, trackingId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimClosedEmailWasSent(claim);
@@ -497,6 +510,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         messageProcessorScheduler.processPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
         messageProcessorScheduler.processReportPaymentMessages();
+        messageProcessorScheduler.processReportClaimMessages();
     }
 
     private void assertPaymentCycleIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
