@@ -2,10 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.service.audit;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.javers.common.collections.Lists;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
@@ -44,10 +46,11 @@ public class EventAuditor {
      * @param claim         the claim that has been updated
      * @param updatedFields the fields on the claim that have been updated
      */
-    public void auditUpdatedClaim(Claim claim, List<String> updatedFields) {
+    public void auditUpdatedClaim(Claim claim, List<UpdatableClaimantField> updatedFields) {
+        List<String> updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);
         UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()
                 .claimId(claim.getId())
-                .updatedFields(updatedFields)
+                .updatedFields(updatedFieldsAsStrings)
                 .build();
         eventLogger.logEvent(updatedClaimEvent);
     }
