@@ -27,6 +27,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
@@ -46,6 +47,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
@@ -78,6 +81,8 @@ class DetermineEntitlementMessageProcessorTest {
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
     @Mock
     private EventAuditor eventAuditor;
+    @Mock
+    private ClaimMessageSender claimMessageSender;
 
     @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
@@ -112,7 +117,8 @@ class DetermineEntitlementMessageProcessorTest {
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(context.getCurrentPaymentCycle());
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
-        verifyZeroInteractions(claimRepository, pregnancyEntitlementCalculator, childDateOfBirthCalculator, childDateOfBirthCalculator, eventAuditor);
+        verifyZeroInteractions(claimRepository, pregnancyEntitlementCalculator, childDateOfBirthCalculator,
+                childDateOfBirthCalculator, eventAuditor, claimMessageSender);
     }
 
     @ParameterizedTest(name = "Qualifying benefit status={0}")
@@ -153,6 +159,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(context.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_EXPIRED);
         verifyZeroInteractions(messageQueueClient, determineEntitlementNotificationHandler);
     }
 
@@ -194,6 +201,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(context.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_EXPIRED);
         verifyZeroInteractions(messageQueueClient);
     }
 
@@ -234,6 +242,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(currentCycleExpectedDeliveryDate, currentCycleStartDate);
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyZeroInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
@@ -265,6 +274,7 @@ class DetermineEntitlementMessageProcessorTest {
         runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, context.getCurrentPaymentCycle().getCycleStartDate());
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyZeroInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
@@ -304,6 +314,7 @@ class DetermineEntitlementMessageProcessorTest {
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(context.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_EXPIRED);
         verifyZeroInteractions(determineEntitlementNotificationHandler, messageQueueClient);
     }
 

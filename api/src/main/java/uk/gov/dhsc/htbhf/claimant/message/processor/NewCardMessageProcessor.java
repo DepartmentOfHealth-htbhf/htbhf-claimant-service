@@ -50,7 +50,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);
-        newCardService.createNewCard(context.getClaim());
+        newCardService.createNewCard(context.getClaim(), context.getDatesOfBirthOfChildren());
         PaymentCycle paymentCycle = createAndSavePaymentCycle(context);
         sendMakeFirstPaymentMessage(paymentCycle);
         sendNewCardSuccessEmailMessage(paymentCycle);
