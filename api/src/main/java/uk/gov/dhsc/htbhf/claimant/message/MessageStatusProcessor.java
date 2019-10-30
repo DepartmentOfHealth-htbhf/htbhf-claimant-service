@@ -1,6 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
@@ -11,11 +11,22 @@ import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 
-@RequiredArgsConstructor
 @Component
 public class MessageStatusProcessor {
 
+    private static final long THIRTY_SECONDS = 30;
+    private static final int MAX_EXPONENT_SIZE = 50;
+
     private final MessageRepository messageRepository;
+    private final long maximumRetryDelaySeconds;
+
+    public MessageStatusProcessor(
+            MessageRepository messageRepository,
+            @Value("${message-processor.maximum-retry-delay-seconds}") long maximumRetryDelaySeconds
+    ) {
+        this.messageRepository = messageRepository;
+        this.maximumRetryDelaySeconds = maximumRetryDelaySeconds;
+    }
 
     /**
      * Method responsible for updating/deleting messages post processing dependent upon their status.
@@ -46,10 +57,18 @@ public class MessageStatusProcessor {
     }
 
     private void updateMessageWithStatusAndIncrementCount(Message message, MessageStatus status) {
-        int updatedDeliveryCount = message.getDeliveryCount() + 1;
-        message.setDeliveryCount(updatedDeliveryCount);
-        message.setMessageTimestamp(LocalDateTime.now());
+        int initialDeliveryCount = message.getDeliveryCount();
+        LocalDateTime newTimestamp = LocalDateTime.now().plusSeconds(getRetryDelayInSeconds(initialDeliveryCount));
+
+        message.setDeliveryCount(initialDeliveryCount + 1);
+        message.setMessageTimestamp(newTimestamp);
         message.setStatus(status);
         messageRepository.save(message);
+    }
+
+    private long getRetryDelayInSeconds(int deliveryCount) {
+        int exponent = Math.min(deliveryCount, MAX_EXPONENT_SIZE); // we overflow the size of a long if the exponent is too large
+        long delay = ((long) Math.pow(2, exponent)) * THIRTY_SECONDS;
+        return Math.min(delay, maximumRetryDelaySeconds);
     }
 }

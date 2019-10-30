@@ -153,6 +153,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     }
 
     private void invokeAllSchedulers() {
+        repositoryMediator.makeAllMessagesProcessable();
         messageProcessorScheduler.processCreateNewCardMessages();
         messageProcessorScheduler.processFirstPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();

@@ -30,6 +30,13 @@ public class MessageTestDataFactory {
         return buildValidMessageBuilder().messageTimestamp(localDateTime).build();
     }
 
+    public static Message aMessageWithMessageTimestampAndDeliveryCount(LocalDateTime localDateTime, int deliveryCount) {
+        return buildValidMessageBuilder()
+                .messageTimestamp(localDateTime)
+                .deliveryCount(deliveryCount)
+                .build();
+    }
+
     public static Message aValidMessageWithPayload(String payload) {
         return buildValidMessageBuilder().messagePayload(payload).build();
     }
