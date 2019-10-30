@@ -7,10 +7,12 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import uk.gov.dhsc.htbhf.claimant.converter.AddressDTOToAddressConverter;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -32,10 +34,12 @@ public class TestClaimantCreator {
         return new AddressDTOToAddressConverter();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         SpringApplication application = new SpringApplication(TestClaimantCreator.class);
         application.setWebApplicationType(WebApplicationType.NONE);
         application.setAdditionalProfiles("test-claimant-creator");
-        application.run(args);
+        ConfigurableApplicationContext context = application.run(args);
+        ClaimantLoader claimantLoader = context.getBean(ClaimantLoader.class);
+        claimantLoader.loadClaimantIntoDatabase();
     }
 }
