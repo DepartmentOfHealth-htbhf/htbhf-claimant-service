@@ -54,6 +54,7 @@ public class ClaimService {
                 List<UpdatableClaimantField> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
+                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);
                 return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
             }
 

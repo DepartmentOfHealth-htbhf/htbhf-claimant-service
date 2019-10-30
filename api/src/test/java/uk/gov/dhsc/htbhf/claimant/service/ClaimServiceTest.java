@@ -24,6 +24,7 @@ import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -222,6 +223,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME));
+        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), List.of(LAST_NAME));
     }
 
     @Test
@@ -252,6 +254,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
+        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), emptyList());
     }
 
     @Test
