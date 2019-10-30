@@ -124,6 +124,7 @@ public class MessageContextLoader {
                 .claimAction(payload.getClaimAction())
                 .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .timestamp(payload.getTimestamp())
+                .updatedClaimFields(payload.getUpdatedClaimantFields())
                 .build();
     }
 
