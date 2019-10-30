@@ -28,7 +28,7 @@ class EntityAgeAcceleratorTest {
         final LocalDateTime originalClaimStatusTime = paymentCycle.getClaim().getClaimStatusTimestamp();
         final LocalDate originalEntitlementDate = paymentCycle.getVoucherEntitlement().getVoucherEntitlements().get(0).getEntitlementDate();
 
-        EntityAgeAccelerator.fastForward(paymentCycle, 28);
+        EntityAgeAccelerator.ageObject(paymentCycle, 28);
 
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(originalStartDate.minusDays(28));
         assertThat(paymentCycle.getCardBalanceTimestamp()).isEqualTo(originalCardBalanceTimestamp.minusDays(28));

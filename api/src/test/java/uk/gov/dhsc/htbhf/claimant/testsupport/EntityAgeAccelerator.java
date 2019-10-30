@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.BaseEntity;
 
@@ -29,17 +30,19 @@ public class EntityAgeAccelerator {
     private static final Map<Class, List<Field>> NON_ENTITY_CHILD_OBJECT_LISTS = new HashMap<>();
 
     /**
-     * Adjusts all LocalDate and LocalDateTime fields on the given entity, and on all child objects of that entity.
+     * Adjusts all LocalDate and LocalDateTime fields on the given entity by subtracting the given number of days, and on all child objects of that entity.
      * A 'child object' is considered to be the value of any field whose type is in a package starting 'uk.gov.dhsc.htbhf',
-     * excluding enums and objects extending {@link BaseEntity} (to prevent infinite recursion & entities being fast-forwarded twice).
+     * excluding enums and objects extending {@link BaseEntity} (to prevent infinite recursion & entities being aged twice).
      *
-     * @param entity       the object to fast-forward.
-     * @param numberOfDays the number of days to fast-forward by.
+     * @param objectToAge  the object to be aged.
+     * @param numberOfDays the number of days to age by.
      */
-    public static void fastForward(Object entity, int numberOfDays) {
-        if (entity == null) {
+    public static void ageObject(Object objectToAge, int numberOfDays) {
+        if (objectToAge == null) {
             return;
         }
+        // if the entity is proxied we cannot compare class name or hierarchy
+        Object entity = Hibernate.unproxy(objectToAge);
         if (entity instanceof BaseEntity) {
             log.info("Fast-forwarding {} {} by {} days", entity.getClass().getSimpleName(), ((BaseEntity) entity).getId(), numberOfDays);
         }
@@ -47,7 +50,7 @@ public class EntityAgeAccelerator {
         adjustTemporalLists(entity, numberOfDays);
 
         List<Object> childObjects = getChildObjectsToUpdate(entity);
-        childObjects.forEach(child -> fastForward(child, numberOfDays));
+        childObjects.forEach(child -> ageObject(child, numberOfDays));
     }
 
     private static void adjustTemporalFields(Object entity, int numberOfDays) {
