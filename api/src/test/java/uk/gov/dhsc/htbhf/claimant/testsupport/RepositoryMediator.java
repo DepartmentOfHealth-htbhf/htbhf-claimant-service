@@ -147,6 +147,6 @@ public class RepositoryMediator {
      */
     @Transactional
     public void makeAllMessagesProcessable() {
-        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.fastForward(message, 1));
+        messageRepository.findAll().forEach(message -> EntityAgeAccelerator.ageObject(message, 1));
     }
 }
