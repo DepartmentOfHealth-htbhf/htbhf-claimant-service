@@ -65,6 +65,15 @@ public class Claim extends VersionedEntity {
     @Type(type = "json")
     private PostcodeData postcodeData;
 
+    @Column(name = "card_status")
+    @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
+    private CardStatus cardStatus;
+
+    @Column(name = "card_status_timestamp")
+    @Setter(AccessLevel.PRIVATE)
+    private LocalDateTime cardStatusTimestamp;
+
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @ToString.Exclude
@@ -83,5 +92,12 @@ public class Claim extends VersionedEntity {
             eligibilityStatusTimestamp = LocalDateTime.now();
         }
         eligibilityStatus = newStatus;
+    }
+
+    public void updateCardStatus(CardStatus newStatus) {
+        if (cardStatus != newStatus) {
+            cardStatusTimestamp = LocalDateTime.now();
+        }
+        cardStatus = newStatus;
     }
 }
