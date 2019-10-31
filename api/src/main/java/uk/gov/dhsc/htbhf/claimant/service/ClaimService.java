@@ -51,7 +51,7 @@ public class ClaimService {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
             if (decision.claimExistsAndIsEligible()) {
                 Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
-                List<String> updatedFields = updateClaim(claim, claimRequest.getClaimant());
+                List<UpdatableClaimantField> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
@@ -73,8 +73,8 @@ public class ClaimService {
         }
     }
 
-    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<String> updatedFields) {
-        if (claim.getClaimant().getExpectedDeliveryDate() != null && updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {
+    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<UpdatableClaimantField> updatedFields) {
+        if (claim.getClaimant().getExpectedDeliveryDate() != null && updatedFields.contains(EXPECTED_DELIVERY_DATE)) {
             claimMessageSender.sendAdditionalPaymentMessage(claim);
         }
     }
@@ -92,21 +92,21 @@ public class ClaimService {
         claimRepository.save(claim);
     }
 
-    private List<String> updateClaim(Claim claim, Claimant claimant) {
-        List<String> updatedFields = updateClaimantFields(claim, claimant);
+    private List<UpdatableClaimantField> updateClaim(Claim claim, Claimant claimant) {
+        List<UpdatableClaimantField> updatedFields = updateClaimantFields(claim, claimant);
         log.info("Updating claim: {},  fields updated {}", claim.getId(), updatedFields);
         claimRepository.save(claim);
         eventAuditor.auditUpdatedClaim(claim, updatedFields);
         return updatedFields;
     }
 
-    private List<String> updateClaimantFields(Claim claim, Claimant claimant) {
+    private List<UpdatableClaimantField> updateClaimantFields(Claim claim, Claimant claimant) {
         Claimant originalClaimant = claim.getClaimant();
-        List<String> updatedFields = new ArrayList<>();
+        List<UpdatableClaimantField> updatedFields = new ArrayList<>();
         for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
             if (field.valueIsDifferent(originalClaimant, claimant)) {
                 field.updateOriginal(originalClaimant, claimant);
-                updatedFields.add(field.getFieldName());
+                updatedFields.add(field);
             }
         }
         return updatedFields;

@@ -221,7 +221,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(newClaimant);
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
-        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME.getFieldName()));
+        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME));
     }
 
     @Test
