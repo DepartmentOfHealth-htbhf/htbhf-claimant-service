@@ -22,3 +22,12 @@ Optionally, you can add `excludeFromExistingCycle: true` to a childInfo to preve
 To run the test claimant creator, run the [TestClaimantCreator main method](TestClaimantCreator.java).
 
 The database connection details are defined in [application-test-claimant-creator.yml](../../../../../../../resources/application-test-claimant-creator.yml). Make sure these match your local instance of the claimant and eligibility (DWP) database before running the application. 
+
+# Database Fast-forwarder
+
+This application is a utility for moving the database forward through time 
+(i.e. to subtract 28 days from all Temporal fields on all entities in the database).
+It affects entities in the claimant and dwp databases.
+
+To run the db fast forwarder, run the [DatabaseFastForwarder main method](DatabaseFastForwarder.java).
+Database connection details are as mentioned above.
