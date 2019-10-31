@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
 import static java.util.Collections.emptyList;
@@ -53,7 +52,6 @@ public class ClaimantLoader {
     private PaymentRepository paymentRepository;
     private AddressDTOToAddressConverter addressDTOToAddressConverter;
 
-    @PostConstruct
     @Transactional
     public void loadClaimantIntoDatabase() throws IOException {
         ClaimantInfo claimantInfo = objectMapper.readValue(new ClassPathResource("test-claimant-creator/claimant.yml").getFile(), ClaimantInfo.class);
