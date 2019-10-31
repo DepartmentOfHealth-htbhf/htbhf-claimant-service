@@ -5,13 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
-import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportClaimPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ReportPaymentPropertiesFactory;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,7 +20,7 @@ import java.util.Map;
  * Also responsible for obtaining postcode data used to provide location info when reporting events.
  */
 @Component
-<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L23">@Slf4j</span>
 @AllArgsConstructor
 public class MIReporter {
 
@@ -30,24 +31,36 @@ public class MIReporter {
     private final GoogleAnalyticsClient googleAnalyticsClient;
 
     public void reportClaim(ReportClaimMessageContext context) {
-<span class="fc" id="L33">        updateClaimWithPostcodeDataIfNecessary(context);</span>
-<span class="fc" id="L34">        Map&lt;String, String&gt; reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);</span>
-<span class="fc" id="L35">        googleAnalyticsClient.reportEvent(reportProperties);</span>
-<span class="fc" id="L36">    }</span>
+<span class="fc" id="L34">        Claim claim = context.getClaim();</span>
+<span class="fc bfc" id="L35" title="All 4 branches covered.">        if (postcodeDataIsNotSet(claim) || addressHasBeenUpdated(context)) {</span>
+<span class="fc" id="L36">            retrievePostcodeDataAndSaveToClaim(claim);</span>
+        }
+<span class="fc" id="L38">        Map&lt;String, String&gt; reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);</span>
+<span class="fc" id="L39">        googleAnalyticsClient.reportEvent(reportProperties);</span>
+<span class="fc" id="L40">    }</span>
 
     public void reportPayment(ReportPaymentMessageContext context) {
-<span class="fc" id="L39">        updateClaimWithPostcodeDataIfNecessary(context);</span>
-<span class="fc" id="L40">        Map&lt;String, String&gt; reportProperties = reportPaymentPropertiesFactory.createReportPropertiesForPaymentEvent(context);</span>
-<span class="fc" id="L41">        googleAnalyticsClient.reportEvent(reportProperties);</span>
-<span class="fc" id="L42">    }</span>
-
-    private void updateClaimWithPostcodeDataIfNecessary(ReportEventMessageContext context) {
-<span class="fc" id="L45">        Claim claim = context.getClaim();</span>
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        if (claim.getPostcodeData() == null) {</span>
-<span class="fc" id="L47">            PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);</span>
-<span class="fc" id="L48">            claim.setPostcodeData(postcodeData);</span>
-<span class="fc" id="L49">            claimRepository.save(claim);</span>
+<span class="fc" id="L43">        Claim claim = context.getClaim();</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (postcodeDataIsNotSet(claim)) {</span>
+<span class="fc" id="L45">            retrievePostcodeDataAndSaveToClaim(claim);</span>
         }
-<span class="fc" id="L51">    }</span>
+<span class="fc" id="L47">        Map&lt;String, String&gt; reportProperties = reportPaymentPropertiesFactory.createReportPropertiesForPaymentEvent(context);</span>
+<span class="fc" id="L48">        googleAnalyticsClient.reportEvent(reportProperties);</span>
+<span class="fc" id="L49">    }</span>
+
+    private boolean postcodeDataIsNotSet(Claim claim) {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        return claim.getPostcodeData() == null;</span>
+    }
+
+    private boolean addressHasBeenUpdated(ReportClaimMessageContext context) {
+<span class="fc" id="L56">        List&lt;UpdatableClaimantField&gt; updatedClaimFields = context.getUpdatedClaimFields();</span>
+<span class="fc bfc" id="L57" title="All 4 branches covered.">        return updatedClaimFields != null &amp;&amp; updatedClaimFields.contains(UpdatableClaimantField.ADDRESS);</span>
+    }
+
+    private void retrievePostcodeDataAndSaveToClaim(Claim claim) {
+<span class="fc" id="L61">        PostcodeData postcodeData = postcodeDataClient.getPostcodeData(claim);</span>
+<span class="fc" id="L62">        claim.setPostcodeData(postcodeData);</span>
+<span class="fc" id="L63">        claimRepository.save(claim);</span>
+<span class="fc" id="L64">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
