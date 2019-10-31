@@ -51,7 +51,7 @@ public class ClaimService {
 <span class="fc" id="L51">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());</span>
 <span class="fc bfc" id="L52" title="All 2 branches covered.">            if (decision.claimExistsAndIsEligible()) {</span>
 <span class="fc" id="L53">                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());</span>
-<span class="fc" id="L54">                List&lt;String&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
+<span class="fc" id="L54">                List&lt;UpdatableClaimantField&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
 <span class="fc" id="L55">                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);</span>
 <span class="fc" id="L56">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
 <span class="fc" id="L57">                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);</span>
@@ -73,8 +73,8 @@ public class ClaimService {
         }
     }
 
-    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List&lt;String&gt; updatedFields) {
-<span class="fc bfc" id="L77" title="All 4 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE.getFieldName())) {</span>
+    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List&lt;UpdatableClaimantField&gt; updatedFields) {
+<span class="fc bfc" id="L77" title="All 4 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE)) {</span>
 <span class="fc" id="L78">            claimMessageSender.sendAdditionalPaymentMessage(claim);</span>
         }
 <span class="fc" id="L80">    }</span>
@@ -92,21 +92,21 @@ public class ClaimService {
 <span class="fc" id="L92">        claimRepository.save(claim);</span>
 <span class="fc" id="L93">    }</span>
 
-    private List&lt;String&gt; updateClaim(Claim claim, Claimant claimant) {
-<span class="fc" id="L96">        List&lt;String&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
+    private List&lt;UpdatableClaimantField&gt; updateClaim(Claim claim, Claimant claimant) {
+<span class="fc" id="L96">        List&lt;UpdatableClaimantField&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
 <span class="fc" id="L97">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
 <span class="fc" id="L98">        claimRepository.save(claim);</span>
 <span class="fc" id="L99">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
 <span class="fc" id="L100">        return updatedFields;</span>
     }
 
-    private List&lt;String&gt; updateClaimantFields(Claim claim, Claimant claimant) {
+    private List&lt;UpdatableClaimantField&gt; updateClaimantFields(Claim claim, Claimant claimant) {
 <span class="fc" id="L104">        Claimant originalClaimant = claim.getClaimant();</span>
-<span class="fc" id="L105">        List&lt;String&gt; updatedFields = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L105">        List&lt;UpdatableClaimantField&gt; updatedFields = new ArrayList&lt;&gt;();</span>
 <span class="fc bfc" id="L106" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
 <span class="fc bfc" id="L107" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
 <span class="fc" id="L108">                field.updateOriginal(originalClaimant, claimant);</span>
-<span class="fc" id="L109">                updatedFields.add(field.getFieldName());</span>
+<span class="fc" id="L109">                updatedFields.add(field);</span>
             }
         }
 <span class="fc" id="L112">        return updatedFields;</span>

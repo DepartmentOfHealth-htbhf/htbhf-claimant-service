@@ -2,8 +2,10 @@
 
 import lombok.Builder;
 import lombok.Data;
+import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,26 +20,27 @@ public class ClaimResult {
     private List&lt;String&gt; updatedFields;
 
     public static ClaimResult withNoEntitlement(Claim claim) {
-<span class="fc" id="L21">        return ClaimResult.builder()</span>
-<span class="fc" id="L22">                .claim(claim)</span>
-<span class="fc" id="L23">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L24">                .build();</span>
+<span class="fc" id="L23">        return ClaimResult.builder()</span>
+<span class="fc" id="L24">                .claim(claim)</span>
+<span class="fc" id="L25">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L26">                .build();</span>
     }
 
     public static ClaimResult withEntitlement(Claim claim, VoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L28">        return ClaimResult.builder()</span>
-<span class="fc" id="L29">                .claim(claim)</span>
-<span class="fc" id="L30">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="fc" id="L31">                .build();</span>
+<span class="fc" id="L30">        return ClaimResult.builder()</span>
+<span class="fc" id="L31">                .claim(claim)</span>
+<span class="fc" id="L32">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="fc" id="L33">                .build();</span>
     }
 
-    public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List&lt;String&gt; updatedFields) {
-<span class="fc" id="L35">        return ClaimResult.builder()</span>
-<span class="fc" id="L36">                .claim(claim)</span>
-<span class="fc" id="L37">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="fc" id="L38">                .updatedFields(updatedFields)</span>
-<span class="fc" id="L39">                .claimUpdated(true)</span>
-<span class="fc" id="L40">                .build();</span>
+    public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List&lt;UpdatableClaimantField&gt; updatedFields) {
+<span class="fc" id="L37">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
+<span class="fc" id="L38">        return ClaimResult.builder()</span>
+<span class="fc" id="L39">                .claim(claim)</span>
+<span class="fc" id="L40">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="fc" id="L41">                .updatedFields(updatedFieldsAsStrings)</span>
+<span class="fc" id="L42">                .claimUpdated(true)</span>
+<span class="fc" id="L43">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
