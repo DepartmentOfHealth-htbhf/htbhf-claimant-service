@@ -7,13 +7,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.BaseEntity;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +43,12 @@ public class EntityAgeAccelerator {
         Object entity = Hibernate.unproxy(objectToAge);
         if (entity instanceof BaseEntity) {
             log.info("Fast-forwarding {} {} by {} days", entity.getClass().getSimpleName(), ((BaseEntity) entity).getId(), numberOfDays);
+        }
+        if (entity instanceof uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.BaseEntity) {
+            log.info("Fast-forwarding {} {} by {} days",
+                    entity.getClass().getSimpleName(),
+                    ((uk.gov.dhsc.htbhf.claimant.creator.dwp.entities.BaseEntity) entity).getId(),
+                    numberOfDays);
         }
         adjustTemporalFields(entity, numberOfDays);
         adjustTemporalLists(entity, numberOfDays);
@@ -87,7 +91,7 @@ public class EntityAgeAccelerator {
 
     private static List<Field> getFieldsOfType(Class entityClass, Class fieldType) {
         List<Field> matching = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
+        List<Field> fields = getDeclaredFields(entityClass);
         for (Field field : fields) {
             if (fieldType.isAssignableFrom(field.getType())) {
                 field.setAccessible(true);
@@ -99,7 +103,7 @@ public class EntityAgeAccelerator {
 
     private static List<Field> getListFieldsOfType(Class entityClass, Class fieldType) {
         List<Field> matching = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
+        List<Field> fields = getDeclaredFields(entityClass);
         for (Field field : fields) {
             if (List.class.isAssignableFrom(field.getType())) {
                 ParameterizedType listType = (ParameterizedType) field.getGenericType();
@@ -114,17 +118,17 @@ public class EntityAgeAccelerator {
     }
 
     private static List<Object> getChildObjectsToUpdate(Object entity) {
-        List<Field> fields = NON_ENTITY_CHILD_OBJECT_FIELDS.computeIfAbsent(entity.getClass(), entityClass -> getNonEntityFieldsInHtbhfPackage(entityClass));
-        List<Field> lists = NON_ENTITY_CHILD_OBJECT_LISTS.computeIfAbsent(entity.getClass(), entityClass -> getNonEntityListsInHtbhfPackage(entityClass));
+        List<Field> fields = NON_ENTITY_CHILD_OBJECT_FIELDS.computeIfAbsent(entity.getClass(), EntityAgeAccelerator::getNonEntityFieldsInHtbhfPackage);
+        List<Field> lists = NON_ENTITY_CHILD_OBJECT_LISTS.computeIfAbsent(entity.getClass(), EntityAgeAccelerator::getNonEntityListsInHtbhfPackage);
         List<Object> children = new ArrayList<>();
-        fields.stream().forEach(field -> {
+        fields.forEach(field -> {
             try {
                 children.add(field.get(entity));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         });
-        lists.stream().forEach(field -> {
+        lists.forEach(field -> {
             try {
                 List<Object> list = (List<Object>) field.get(entity);
                 if (!CollectionUtils.isEmpty(list)) {
@@ -139,12 +143,13 @@ public class EntityAgeAccelerator {
 
     private static List<Field> getNonEntityFieldsInHtbhfPackage(Class entityClass) {
         List<Field> matching = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
+        List<Field> fields = getDeclaredFields(entityClass);
         for (Field field : fields) {
             Class<?> fieldType = field.getType();
             if (fieldType.getName().startsWith(BASE_PACKAGE_NAME)
                     && !BaseEntity.class.isAssignableFrom(fieldType)
                     && !fieldType.isEnum()
+                    && !Modifier.isStatic(field.getModifiers())
             ) {
                 field.setAccessible(true);
                 matching.add(field);
@@ -155,9 +160,9 @@ public class EntityAgeAccelerator {
 
     private static List<Field> getNonEntityListsInHtbhfPackage(Class entityClass) {
         List<Field> matching = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
+        List<Field> fields = getDeclaredFields(entityClass);
         for (Field field : fields) {
-            if (List.class.isAssignableFrom(field.getType())) {
+            if (List.class.isAssignableFrom(field.getType()) && !Modifier.isStatic(field.getModifiers())) {
                 ParameterizedType listType = (ParameterizedType) field.getGenericType();
                 Class<?> actualClass = (Class<?>) listType.getActualTypeArguments()[0];
                 if (actualClass.getName().startsWith(BASE_PACKAGE_NAME) && !BaseEntity.class.isAssignableFrom(actualClass)) {
@@ -168,4 +173,16 @@ public class EntityAgeAccelerator {
         }
         return matching;
     }
+
+
+    private static List<Field> getDeclaredFields(Class entityClass) {
+        List<Field> fields = new ArrayList<>();
+        Field[] declaredFields = entityClass.getDeclaredFields();
+        fields.addAll(Arrays.asList(declaredFields));
+        if (entityClass.getSuperclass() != null) {
+            fields.addAll(getDeclaredFields(entityClass.getSuperclass()));
+        }
+        return fields;
+    }
+
 }
