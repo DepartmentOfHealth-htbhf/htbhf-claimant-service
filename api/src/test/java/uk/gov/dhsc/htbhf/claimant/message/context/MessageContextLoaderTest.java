@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
@@ -419,6 +420,7 @@ class MessageContextLoaderTest {
                 .claimAction(ClaimAction.NEW)
                 .timestamp(LocalDateTime.now())
                 .datesOfBirthOfChildren(singletonList(LocalDate.now().minusYears(1)))
+                .updatedClaimantFields(List.of(FIRST_NAME))
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(payloadMapper.getPayload(message, ReportClaimMessagePayload.class)).willReturn(payload);
@@ -431,6 +433,7 @@ class MessageContextLoaderTest {
         assertThat(context.getClaimAction()).isEqualTo(payload.getClaimAction());
         assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
+        assertThat(context.getUpdatedClaimFields()).isEqualTo(payload.getUpdatedClaimantFields());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verifyZeroInteractions(paymentCycleRepository);
