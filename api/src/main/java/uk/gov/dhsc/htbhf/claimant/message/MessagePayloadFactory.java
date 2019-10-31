@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
 import java.time.LocalDate;
@@ -35,12 +36,16 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim, List<LocalDate> dateOfBirthOfChildren, ClaimAction claimAction) {
+    public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim,
+                                                                           List<LocalDate> dateOfBirthOfChildren,
+                                                                           ClaimAction claimAction,
+                                                                           List<UpdatableClaimantField> updatedClaimantFields) {
         return ReportClaimMessagePayload.builder()
                 .claimId(claim.getId())
                 .datesOfBirthOfChildren(dateOfBirthOfChildren)
                 .claimAction(claimAction)
                 .timestamp(LocalDateTime.now())
+                .updatedClaimantFields(updatedClaimantFields)
                 .build();
     }
 }

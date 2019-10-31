@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
@@ -25,6 +26,8 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -54,6 +57,25 @@ class ClaimMessageSenderTest {
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getClaimAction()).isEqualTo(claimAction);
+    }
+
+    @Test
+    void shouldSendReportClaimMessageWithUpdatedClaimantFields() {
+        Claim claim = aValidClaim();
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusYears(1));
+        List<UpdatableClaimantField> updatedClaimantFields = List.of(LAST_NAME);
+        LocalDateTime now = LocalDateTime.now();
+
+        claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, datesOfBirthOfChildren, updatedClaimantFields);
+
+        ArgumentCaptor<ReportClaimMessagePayload> argumentCaptor = ArgumentCaptor.forClass(ReportClaimMessagePayload.class);
+        verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(REPORT_CLAIM));
+        ReportClaimMessagePayload payload = argumentCaptor.getValue();
+        assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
+        assertThat(payload.getClaimAction()).isEqualTo(UPDATED);
+        assertThat(payload.getUpdatedClaimantFields()).isEqualTo(updatedClaimantFields);
     }
 
     @Test
