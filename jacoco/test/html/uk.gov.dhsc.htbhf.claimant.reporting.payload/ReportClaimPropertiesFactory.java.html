@@ -34,7 +34,7 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
 <span class="fc" id="L34">        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));</span>
 <span class="fc" id="L35">        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, 0)));</span>
 <span class="fc bfc" id="L36" title="All 2 branches covered.">        if (updatedClaimFieldsExists(context)) {</span>
-<span class="fc" id="L37">            reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimFields()));</span>
+<span class="fc" id="L37">            reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimantFields()));</span>
         }
 <span class="fc" id="L39">        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));</span>
 <span class="fc" id="L40">        reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));</span>
@@ -42,7 +42,7 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
     }
 
     private boolean updatedClaimFieldsExists(ReportClaimMessageContext context) {
-<span class="fc bfc" id="L45" title="All 2 branches covered.">        return !isEmpty(context.getUpdatedClaimFields());</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        return !isEmpty(context.getUpdatedClaimantFields());</span>
     }
 
     private String convertToCommaSeparatedString(List&lt;UpdatableClaimantField&gt; updatedClaimFields) {

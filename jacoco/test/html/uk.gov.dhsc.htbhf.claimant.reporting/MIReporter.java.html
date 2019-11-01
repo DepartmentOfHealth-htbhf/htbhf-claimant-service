@@ -53,7 +53,7 @@ public class MIReporter {
     }
 
     private boolean addressHasBeenUpdated(ReportClaimMessageContext context) {
-<span class="fc" id="L56">        List&lt;UpdatableClaimantField&gt; updatedClaimFields = context.getUpdatedClaimFields();</span>
+<span class="fc" id="L56">        List&lt;UpdatableClaimantField&gt; updatedClaimFields = context.getUpdatedClaimantFields();</span>
 <span class="fc bfc" id="L57" title="All 4 branches covered.">        return updatedClaimFields != null &amp;&amp; updatedClaimFields.contains(UpdatableClaimantField.ADDRESS);</span>
     }
 
