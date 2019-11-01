@@ -34,7 +34,7 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
         reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
         reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, CLAIM, 0)));
         if (updatedClaimFieldsExists(context)) {
-            reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimFields()));
+            reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimantFields()));
         }
         reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
         reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));
@@ -42,7 +42,7 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
     }
 
     private boolean updatedClaimFieldsExists(ReportClaimMessageContext context) {
-        return !isEmpty(context.getUpdatedClaimFields());
+        return !isEmpty(context.getUpdatedClaimantFields());
     }
 
     private String convertToCommaSeparatedString(List<UpdatableClaimantField> updatedClaimFields) {

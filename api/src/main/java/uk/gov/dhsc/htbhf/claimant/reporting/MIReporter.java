@@ -53,7 +53,7 @@ public class MIReporter {
     }
 
     private boolean addressHasBeenUpdated(ReportClaimMessageContext context) {
-        List<UpdatableClaimantField> updatedClaimFields = context.getUpdatedClaimFields();
+        List<UpdatableClaimantField> updatedClaimFields = context.getUpdatedClaimantFields();
         return updatedClaimFields != null && updatedClaimFields.contains(UpdatableClaimantField.ADDRESS);
     }
 
