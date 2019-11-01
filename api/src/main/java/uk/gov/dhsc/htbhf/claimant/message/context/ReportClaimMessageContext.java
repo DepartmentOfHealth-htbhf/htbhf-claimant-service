@@ -14,8 +14,7 @@ import java.util.List;
 public class ReportClaimMessageContext extends ReportEventMessageContext {
 
     private ClaimAction claimAction;
-    // TODO DW HTBHF-2011 Rename to updatedClaimantFields in own PR.
-    private List<UpdatableClaimantField> updatedClaimFields;
+    private List<UpdatableClaimantField> updatedClaimantFields;
 
     @Override
     public String getEventAction() {
