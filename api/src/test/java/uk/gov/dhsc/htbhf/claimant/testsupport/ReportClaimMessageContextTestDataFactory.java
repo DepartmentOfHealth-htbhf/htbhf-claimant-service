@@ -17,7 +17,7 @@ public class ReportClaimMessageContextTestDataFactory {
 
     public static ReportClaimMessageContext aReportClaimMessageContextWithClaimAndUpdatedFields(Claim claim, List<UpdatableClaimantField> updatedFields) {
         return aReportClaimMessageContextBuilder()
-                .updatedClaimFields(updatedFields)
+                .updatedClaimantFields(updatedFields)
                 .claim(claim)
                 .build();
     }
@@ -27,7 +27,7 @@ public class ReportClaimMessageContextTestDataFactory {
     private static ReportClaimMessageContext.ReportClaimMessageContextBuilder<?, ?> aReportClaimMessageContextBuilder() {
         return ReportClaimMessageContext.builder()
                 .claim(aValidClaim())
-                .updatedClaimFields(List.of(FIRST_NAME, LAST_NAME))
+                .updatedClaimantFields(List.of(FIRST_NAME, LAST_NAME))
                 .timestamp(LocalDateTime.now())
                 .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
                 .claimAction(NEW);

@@ -168,7 +168,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                                                                                   LocalDate expectedDeliveryDate,
                                                                                   List<UpdatableClaimantField> updatedClaimantFields) {
         return aReportClaimMessageContextBuilder(timestamp, datesOfBirthOfChildren, expectedDeliveryDate)
-                .updatedClaimFields(updatedClaimantFields)
+                .updatedClaimantFields(updatedClaimantFields)
                 .claimAction(UPDATED)
                 .build();
     }
