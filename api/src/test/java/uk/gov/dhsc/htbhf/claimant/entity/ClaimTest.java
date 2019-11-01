@@ -105,6 +105,7 @@ class ClaimTest extends AbstractValidationTest {
 
         claim.updateClaimStatus(ClaimStatus.ACTIVE);
 
+        Assertions.assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         Assertions.assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
     }
 
@@ -117,6 +118,7 @@ class ClaimTest extends AbstractValidationTest {
 
         claim.updateClaimStatus(ClaimStatus.ACTIVE);
 
+        Assertions.assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         Assertions.assertThat(claim.getClaimStatusTimestamp()).isEqualTo(ONE_HOUR_AGO);
     }
 
@@ -130,6 +132,7 @@ class ClaimTest extends AbstractValidationTest {
 
         claim.updateEligibilityStatus(EligibilityStatus.ELIGIBLE);
 
+        Assertions.assertThat(claim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         Assertions.assertThat(claim.getEligibilityStatusTimestamp()).isAfterOrEqualTo(now);
     }
 
@@ -142,6 +145,34 @@ class ClaimTest extends AbstractValidationTest {
 
         claim.updateEligibilityStatus(EligibilityStatus.ELIGIBLE);
 
+        Assertions.assertThat(claim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ELIGIBLE);
         Assertions.assertThat(claim.getEligibilityStatusTimestamp()).isEqualTo(ONE_HOUR_AGO);
+    }
+
+    @Test
+    void shouldUpdateCardStatusAndTimestamp() {
+        Claim claim = Claim.builder()
+                .cardStatus(CardStatus.ACTIVE)
+                .cardStatusTimestamp(ONE_HOUR_AGO)
+                .build();
+        LocalDateTime now = LocalDateTime.now();
+
+        claim.updateCardStatus(CardStatus.PENDING_CANCELLATION);
+
+        Assertions.assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        Assertions.assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+    }
+
+    @Test
+    void shouldNotUpdateCardStatusTimestampWhenStatusUnchanged() {
+        Claim claim = Claim.builder()
+                .cardStatus(CardStatus.ACTIVE)
+                .cardStatusTimestamp(ONE_HOUR_AGO)
+                .build();
+
+        claim.updateCardStatus(CardStatus.ACTIVE);
+
+        Assertions.assertThat(claim.getCardStatus()).isEqualTo(CardStatus.ACTIVE);
+        Assertions.assertThat(claim.getCardStatusTimestamp()).isEqualTo(ONE_HOUR_AGO);
     }
 }
