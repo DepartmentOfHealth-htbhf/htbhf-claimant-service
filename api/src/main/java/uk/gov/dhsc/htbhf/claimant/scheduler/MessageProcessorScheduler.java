@@ -22,90 +22,90 @@ import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 @Component
 public class MessageProcessorScheduler {
 
-    private static final String EVERY_30_SECONDS = "*/30 * * * * *";
-    private static final String ONE_HOUR = "PT60M";
-    private static final String FIFTEEN_SECONDS = "PT15S";
+    private static final String DEFAULT_SCHEDULE = "${message-processor.default-schedule}";
+    private static final String MAX_LOCK_TIME = "${message-processor.default-max-lock-time}";
+    private static final String MIN_LOCK_TIME = "${message-processor.default-min-lock-time}";
     // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with other scheduled processes
-    private static final String EVERY_30_SECONDS_OFFSET_BY_5_SECONDS = "05/35 * * * * *";
-    private static final String EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM = "*/30 * 8-18 * * *";
+    private static final String OFFSET_SCHEDULE = "${message-processor.offset-schedule}";
+    private static final String WORKING_HOURS_SCHEDULE = "${message-processor.working-hours-schedule}";
 
     private final MessageProcessor messageProcessor;
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process ADDITIONAL_PREGNANCY_PAYMENT messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:ADDITIONAL_PREGNANCY_PAYMENT")
     public void processAdditionalPregnancyPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS_BETWEEN_8AM_AND_6PM)
+    @Scheduled(cron = WORKING_HOURS_SCHEDULE)
     @SchedulerLock(
             name = "Process SEND_EMAIL messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:SEND_EMAIL")
     public void processSendEmailMessages() {
         messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process CREATE_NEW_CARD messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:CREATE_NEW_CARD")
     public void processCreateNewCardMessages() {
         messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process DETERMINE_ENTITLEMENT messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:DETERMINE_ENTITLEMENT")
     public void processDetermineEntitlementMessages() {
         messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process MAKE_FIRST_PAYMENT messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:MAKE_FIRST_PAYMENT")
     public void processFirstPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process MAKE_PAYMENT messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:MAKE_PAYMENT")
     public void processPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS_OFFSET_BY_5_SECONDS)
+    @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
             name = "Process REPORT_CLAIM messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REPORT_CLAIM")
     public void processReportClaimMessages() {
         messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);
     }
 
-    @Scheduled(cron = EVERY_30_SECONDS)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process REPORT_PAYMENT messages",
-            lockAtLeastForString = FIFTEEN_SECONDS,
-            lockAtMostForString = ONE_HOUR)
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REPORT_PAYMENT")
     public void processReportPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);
