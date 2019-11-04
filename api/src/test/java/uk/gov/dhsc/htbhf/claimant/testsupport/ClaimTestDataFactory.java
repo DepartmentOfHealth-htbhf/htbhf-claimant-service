@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -83,6 +84,13 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
+    public static Claim aClaimWithCardStatusAndCardStatusTimestamp(CardStatus cardStatus, LocalDateTime cardStatusTimestamp) {
+        return aValidClaimBuilder()
+                .cardStatus(cardStatus)
+                .cardStatusTimestamp(cardStatusTimestamp)
+                .build();
+    }
+
     public static Claim.ClaimBuilder aValidClaimBuilder() {
         return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE);
     }
@@ -96,7 +104,9 @@ public class ClaimTestDataFactory {
                 .claimStatusTimestamp(LocalDateTime.now())
                 .eligibilityStatusTimestamp(LocalDateTime.now())
                 .claimStatus(claimStatus)
-                .cardAccountId(CARD_ACCOUNT_ID);
+                .cardAccountId(CARD_ACCOUNT_ID)
+                .cardStatus(CardStatus.ACTIVE)
+                .cardStatusTimestamp(LocalDateTime.now());
     }
 
 }
