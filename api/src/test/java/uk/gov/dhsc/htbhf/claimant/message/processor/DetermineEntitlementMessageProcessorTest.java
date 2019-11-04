@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -43,6 +44,8 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
@@ -123,8 +126,7 @@ class DetermineEntitlementMessageProcessorTest {
 
     @ParameterizedTest(name = "Qualifying benefit status={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenIneligibleWithNoChildrenAndNotPregnant(
-            QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
+    void shouldExpireClaimWhenIneligibleWithNoChildrenAndNotPregnant(QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
         //Given
         //Test for HTBHF-2182 has the following context:
         // Previous cycle: children exist and are under 4 but will be 4 in the next cycle, not pregnant
@@ -153,7 +155,7 @@ class DetermineEntitlementMessageProcessorTest {
         MessageStatus messageStatus = processor.processMessage(message);
 
         //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED);
+        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         LocalDate currentPaymentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
@@ -165,7 +167,7 @@ class DetermineEntitlementMessageProcessorTest {
 
     @ParameterizedTest(name = "Expected delivery date previous cycle={0}")
     @MethodSource("provideArgumentsForPreviousCycleExpectedDeliveryDate")
-    void shouldExpireClaimAndSendNoLongerOnSchemeEmailWhenChildDisappearsFromFeedAndNotPregnant(LocalDate previousCycleExpectedDeliveryDate) {
+    void shouldExpireClaimWhenChildDisappearsFromFeedAndNotPregnant(LocalDate previousCycleExpectedDeliveryDate) {
         //Given
         //Test for HTBHF-2185 has the following context:
         // Previous cycle: children exist and are under 4, not pregnant or pregnant (parameterised)
@@ -194,7 +196,7 @@ class DetermineEntitlementMessageProcessorTest {
         MessageStatus messageStatus = processor.processMessage(message);
 
         //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED);
+        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(context.getClaim());
         LocalDate currentPaymentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
@@ -208,7 +210,7 @@ class DetermineEntitlementMessageProcessorTest {
     //HTBHF-1757 Children in current cycle, DWP returns ineligible, varying on pregnancy and children in previous cycle
     @ParameterizedTest(name = "Children DOB previous cycle={0}, expected delivery date previous cycle={1}, expected delivery date current cycle={2}")
     @MethodSource("provideArgumentsForPendingExpiryTestsWithChildrenInCurrentCycle")
-    void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleWithChildrenInCurrentCycle(
+    void shouldUpdateClaimToPendingExpiryWhenClaimantIsNotEligibleWithChildrenInCurrentCycle(
             List<LocalDate> previousCycleChildrenDobs,
             LocalDate previousCycleExpectedDeliveryDate,
             LocalDate currentCycleExpectedDeliveryDate) {
@@ -236,7 +238,7 @@ class DetermineEntitlementMessageProcessorTest {
         MessageStatus messageStatus = processor.processMessage(message);
 
         //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY);
+        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
         LocalDate currentCycleStartDate = context.getCurrentPaymentCycle().getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
@@ -249,7 +251,7 @@ class DetermineEntitlementMessageProcessorTest {
     //HTBHF-1757 No children in current cycle, are pregnant but ineligible from DWP
     @ParameterizedTest(name = "Children DOB in previous cycle={0}")
     @MethodSource("provideArgumentsForChildrenInPreviousCycle")
-    void shouldUpdateClaimToPendingExpiryAndSendNoLongerEligibleEmailWhenClaimantIsNotEligibleButStillPregnant(List<LocalDate> previousCycleChildrenDobs) {
+    void shouldUpdateClaimToPendingExpiryWhenClaimantIsNotEligibleButStillPregnant(List<LocalDate> previousCycleChildrenDobs) {
         //Given
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         DetermineEntitlementMessageContext context = buildMessageContext(
@@ -271,7 +273,7 @@ class DetermineEntitlementMessageProcessorTest {
         MessageStatus messageStatus = processor.processMessage(message);
 
         //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY);
+        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(context.getClaim());
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, context.getCurrentPaymentCycle().getCycleStartDate());
         verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
@@ -308,7 +310,7 @@ class DetermineEntitlementMessageProcessorTest {
         MessageStatus messageStatus = processor.processMessage(message);
 
         //Then
-        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED);
+        runCommonVerifications(context, decision, message, messageStatus, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(context.getPreviousPaymentCycle());
         InOrder inOrder = inOrder(pregnancyEntitlementCalculator, pregnancyEntitlementCalculator);
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
@@ -318,15 +320,16 @@ class DetermineEntitlementMessageProcessorTest {
         verifyZeroInteractions(determineEntitlementNotificationHandler, messageQueueClient);
     }
 
-    private void verifyClaimSavedAtStatus(ClaimStatus claimStatus) {
+    private void verifyClaimSavedWithStatus(ClaimStatus claimStatus, CardStatus cardStatus) {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
-        verify(claimRepository).save(argumentCaptor.capture());
-        Claim claim = argumentCaptor.getValue();
-        assertThat(claim.getClaimStatus()).isEqualTo(claimStatus);
+        verify(claimRepository, times(2)).save(argumentCaptor.capture());
+        List<Claim> claims = argumentCaptor.getAllValues();
+        assertThat(claims.get(0).getClaimStatus()).isEqualTo(claimStatus);
+        assertThat(claims.get(1).getCardStatus()).isEqualTo(cardStatus);
     }
 
     private void runCommonVerifications(DetermineEntitlementMessageContext context, EligibilityAndEntitlementDecision decision,
-                                        Message message, MessageStatus messageStatus, ClaimStatus expectedClaimStatus) {
+                                        Message message, MessageStatus messageStatus, ClaimStatus expectedClaimStatus, CardStatus expectedCardStatus) {
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
         verify(eligibilityAndEntitlementService).evaluateExistingClaimant(context.getClaim().getClaimant(),
@@ -334,7 +337,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getPreviousPaymentCycle());
 
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
-        verifyClaimSavedAtStatus(expectedClaimStatus);
+        verifyClaimSavedWithStatus(expectedClaimStatus, expectedCardStatus);
     }
 
     private DetermineEntitlementMessageContext buildMessageContext(LocalDate previousCycleExpectedDeliveryDate,
