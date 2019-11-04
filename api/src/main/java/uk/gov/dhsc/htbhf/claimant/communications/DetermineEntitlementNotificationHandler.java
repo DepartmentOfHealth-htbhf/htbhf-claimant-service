@@ -3,8 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
@@ -12,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.createEmailPersonalisationWithFirstAndLastNameOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
 @Component
@@ -39,18 +38,11 @@ public class DetermineEntitlementNotificationHandler {
     }
 
     private EmailMessagePayload buildNoLongerEligibleEmailPayload(Claim claim, EmailType emailType) {
-        Map<String, Object> emailPersonalisation = createClaimNoLongerEligibleEmailPersonalisationMap(claim.getClaimant());
+        Map<String, Object> emailPersonalisation = createEmailPersonalisationWithFirstAndLastNameOnly(claim.getClaimant());
         return EmailMessagePayload.builder()
                 .claimId(claim.getId())
                 .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
-    }
-
-    private static Map<String, Object> createClaimNoLongerEligibleEmailPersonalisationMap(Claimant claimant) {
-        return Map.of(
-                EmailTemplateKey.FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
-                EmailTemplateKey.LAST_NAME.getTemplateKeyName(), claimant.getLastName()
-        );
     }
 }
