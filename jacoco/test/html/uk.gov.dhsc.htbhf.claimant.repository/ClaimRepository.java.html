@@ -4,17 +4,23 @@ import org.javers.spring.annotation.JaversSpringDataAuditable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+
 /**
  * JPA repository for the Claim table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  * All updates to a {@link Claim} and it's child entities are audited using Javers.
+ *
  * @see &lt;a href=&quot;https://javers.org/&quot;&gt;https://javers.org/&lt;/a&gt; for more information.
  */
 @JaversSpringDataAuditable
@@ -42,18 +48,31 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
     @Query(&quot;SELECT claim.id FROM Claim claim where claim.claimStatus = 'NEW'&quot;)
     List&lt;UUID&gt; getNewClaimIds();
 
+    /**
+     * Gets the claims that have a card_status of PENDING_CANCELLATION and a card_status_timestamp older than or equal to than the given period.
+     *
+     * @param period length of time the card status has been PENDING_CANCELLATION.
+     * @return list of claims
+     */
+    default List&lt;Claim&gt; getClaimsWithCardStatusPendingCancellationOlderThan(Period period) {
+<span class="fc" id="L58">        LocalDateTime timestamp = LocalDateTime.now().minus(period);</span>
+<span class="fc" id="L59">        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);</span>
+    }
+
+    @Query(&quot;SELECT claim FROM Claim claim where claim.cardStatus = :cardStatus and claim.cardStatusTimestamp &lt;= :date&quot;)
+    List&lt;Claim&gt; getClaimsWithCardStatusBeforeGivenTimestamp(@Param(&quot;cardStatus&quot;) CardStatus cardStatus, @Param(&quot;date&quot;) LocalDateTime localDateTime);
+
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L46" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
     default Claim findClaim(UUID claimId) {
-<span class="fc" id="L54">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
-<span class="fc" id="L55">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+<span class="fc" id="L74">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
+<span class="fc" id="L75">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
