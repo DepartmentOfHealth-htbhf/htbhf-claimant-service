@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +35,7 @@ class PayloadMapperTest {
     void shouldThrownExceptionWhenMappingFails() throws IOException {
         //Given
         Message message = aValidMessage();
-        IOException testException = new IOException("Error reading value");
+        JsonMappingException testException = new JsonMappingException(() -> { }, "Error reading value");
         given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willThrow(testException);
 
         //When
