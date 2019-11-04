@@ -13,3 +13,11 @@ payment-cycle:
     maximum-lock-time: "PT2M"
 
 enable-scheduler: true
+
+card-cancellation:
+  grace-period: P16W
+  schedule:
+    # run every hour
+    cron-schedule: "*/5 * * * * *"
+    minimum-lock-time: "PT10S"
+    maximum-lock-time: "PT2M"
