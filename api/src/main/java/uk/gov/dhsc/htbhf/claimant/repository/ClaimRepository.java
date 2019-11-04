@@ -4,17 +4,23 @@ import org.javers.spring.annotation.JaversSpringDataAuditable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityNotFoundException;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+
 /**
  * JPA repository for the Claim table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  * All updates to a {@link Claim} and it's child entities are audited using Javers.
+ *
  * @see <a href="https://javers.org/">https://javers.org/</a> for more information.
  */
 @JaversSpringDataAuditable
@@ -42,6 +48,20 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
     @Query("SELECT claim.id FROM Claim claim where claim.claimStatus = 'NEW'")
     List<UUID> getNewClaimIds();
 
+    /**
+     * Gets the claims that have a card_status of PENDING_CANCELLATION and a card_status_timestamp older than or equal to than the given period.
+     *
+     * @param period length of time the card status has been PENDING_CANCELLATION.
+     * @return list of claims
+     */
+    default List<Claim> getClaimsWithCardStatusPendingCancellationOlderThan(Period period) {
+        LocalDateTime timestamp = LocalDateTime.now().minus(period);
+        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);
+    }
+
+    @Query("SELECT claim FROM Claim claim where claim.cardStatus = :cardStatus and claim.cardStatusTimestamp <= :date")
+    List<Claim> getClaimsWithCardStatusBeforeGivenTimestamp(@Param("cardStatus") CardStatus cardStatus, @Param("date") LocalDateTime localDateTime);
+
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
         return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;
     }
@@ -54,5 +74,4 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
         Optional<Claim> optionalClaim = findById(claimId);
         return optionalClaim.orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
     }
-
 }

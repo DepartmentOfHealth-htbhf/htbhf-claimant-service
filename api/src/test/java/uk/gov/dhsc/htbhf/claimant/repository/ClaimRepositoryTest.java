@@ -13,9 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -25,10 +28,7 @@ import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithLastName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithTooLongFirstName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 
 @SpringBootTest
@@ -321,4 +321,29 @@ class ClaimRepositoryTest {
         assertThat(thrown.getMessage()).contains(claimId.toString());
     }
 
+    @Test
+    void shouldGetClaimsThatHaveBeenInPendingCancellationForMoreThanGivenPeriod() {
+        int numberOfWeeks = 16;
+        LocalDateTime now = LocalDateTime.now();
+        Claim activeClaim = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.ACTIVE, now.minusWeeks(17));
+        Claim pendingClaimOlderThan16Weeks = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.PENDING_CANCELLATION, now.minusWeeks(17));
+        Claim pendingClaimLessThan16Weeks = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
+        claimRepository.saveAll(List.of(activeClaim, pendingClaimOlderThan16Weeks, pendingClaimLessThan16Weeks));
+
+        List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(numberOfWeeks));
+
+        assertThat(claims).containsOnly(pendingClaimOlderThan16Weeks);
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenThereAreNoClaimsThatHaveBeenInPendingCancellationForMoreThanGivenPeriod() {
+        LocalDateTime now = LocalDateTime.now();
+        Claim activeClaim = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.ACTIVE, now.minusWeeks(17));
+        claimRepository.save(activeClaim);
+
+        List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(16));
+
+        assertThat(claims).isNotNull();
+        assertThat(claims).isEmpty();
+    }
 }
