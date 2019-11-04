@@ -12,6 +12,7 @@ public enum EmailType {
     NEW_CHILD_FROM_PREGNANCY("1ed5d338-828e-428b-b537-3b9e285fd947"),
     CLAIM_NO_LONGER_ELIGIBLE("2c69f4ae-3f42-4e71-b305-247c23affb44"),
     NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE("8be94eb0-5cd0-4191-8b99-9190f80bcc53"),
+    CARD_IS_ABOUT_TO_BE_CANCELLED("c4818a9f-564d-40de-adbf-c8b1a6594d75"),
     // TODO HTBHF-1296 add template ID when it exists in Notify
     CLAIM_CLOSED("TODO");
 

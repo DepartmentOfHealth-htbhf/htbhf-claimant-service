@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
@@ -32,8 +33,20 @@ public class EmailMessagePayloadFactory {
         return formatPaymentAmount(summaryTemplate, numberOfVouchers, voucherAmountInPence);
     }
 
-    public static String formatRegularPaymentAmount(int numberOfVouchers, int voucherAmountInPence) {
-        return formatPaymentAmount("%s", numberOfVouchers, voucherAmountInPence);
+    public static EmailMessagePayload buildEmailMessagePayloadWithFirstAndLastNameOnly(Claim claim, EmailType emailType) {
+        Map<String, Object> emailPersonalisation = createEmailPersonalisationWithFirstAndLastNameOnly(claim.getClaimant());
+
+        return EmailMessagePayload.builder()
+                .emailPersonalisation(emailPersonalisation)
+                .emailType(emailType)
+                .claimId(claim.getId())
+                .build();
+    }
+
+    public static Map<String, Object> createEmailPersonalisationWithFirstAndLastNameOnly(Claimant claimant) {
+        return Map.of(
+                FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
+                LAST_NAME.getTemplateKeyName(), claimant.getLastName());
     }
 
     private static String formatPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
@@ -109,6 +122,6 @@ public class EmailMessagePayloadFactory {
 
     private String getRegularPaymentAmountForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
         int totalVouchersForRegularPayment = voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfCalculationPeriods;
-        return formatRegularPaymentAmount(totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
+        return formatPaymentAmount("%s", totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
     }
 }

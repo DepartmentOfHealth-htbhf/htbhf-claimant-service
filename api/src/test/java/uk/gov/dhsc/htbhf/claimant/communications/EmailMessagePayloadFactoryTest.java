@@ -3,18 +3,26 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithAllVouchers;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertThatEmailPayloadCorrectForBackdatedPayment;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.LAST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CARD_IS_ABOUT_TO_BE_CANCELLED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
@@ -90,5 +98,30 @@ class EmailMessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CHILD_FROM_PREGNANCY);
         assertThatEmailPayloadCorrectForBackdatedPayment(payload.getEmailPersonalisation(), paymentCycle);
+    }
+
+    @Test
+    void shouldCreateEmailPersonalisationWithFirstAndLastName() {
+        Claimant claimant = aValidClaimant();
+
+        Map<String, Object> emailPersonalisation = EmailMessagePayloadFactory.createEmailPersonalisationWithFirstAndLastNameOnly(claimant);
+
+        assertThat(emailPersonalisation).containsOnly(
+                entry(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName()),
+                entry(LAST_NAME.getTemplateKeyName(), claimant.getLastName())
+        );
+    }
+
+    @Test
+    void shouldBuildEmailMessagePayloadWithFirstAndLastName() {
+        Claim claim = aValidClaim();
+
+        EmailMessagePayload payload = EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, CARD_IS_ABOUT_TO_BE_CANCELLED);
+
+        assertThat(payload.getEmailPersonalisation()).containsOnly(
+                entry(FIRST_NAME.getTemplateKeyName(), claim.getClaimant().getFirstName()),
+                entry(LAST_NAME.getTemplateKeyName(), claim.getClaimant().getLastName()));
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getEmailType()).isEqualTo(CARD_IS_ABOUT_TO_BE_CANCELLED);
     }
 }
