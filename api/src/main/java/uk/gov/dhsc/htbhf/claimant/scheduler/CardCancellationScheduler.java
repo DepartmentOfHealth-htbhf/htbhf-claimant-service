@@ -42,7 +42,7 @@ public class CardCancellationScheduler {
             lockAtLeastForString = "${card-cancellation.schedule.minimum-lock-time}",
             lockAtMostForString = "${card-cancellation.schedule.maximum-lock-time}")
     @NewRequestContextWithSessionId(sessionId = "CardCancellationScheduler")
-    public void handleCardsToBeCancelled() {
+    public void handleCardsPendingCancellation() {
         log.debug("Querying for claims with a card status of pending cancellation since {}", LocalDate.now().minus(gracePeriod));
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(gracePeriod);
 

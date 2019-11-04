@@ -3,6 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -74,6 +76,15 @@ public class EmailPayloadAssertions {
                 entry("next_payment_date", EMAIL_DATE_FORMATTER.format(paymentCycle.getCycleEndDate().plusDays(1))),
                 entry("regular_payment", formatVoucherAmount(voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4))
         );
+    }
+
+    public static void assertEmailPayloadCorrectWithFirstAndLastName(EmailMessagePayload payload, Claim claim, EmailType expectedEmailType) {
+        assertThat(payload.getEmailType()).isEqualTo(expectedEmailType);
+        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
+        assertThat(payload.getEmailPersonalisation())
+                .containsOnly(
+                        entry("First_name", claim.getClaimant().getFirstName()),
+                        entry("Last_name", claim.getClaimant().getLastName()));
     }
 
     private static String formatListEntry(int voucherCount, String voucherReason) {

@@ -43,7 +43,7 @@ class CardCancellationSchedulerTest {
         Claim claim = aClaimWithCardStatusAndCardStatusTimestamp(PENDING_CANCELLATION, sixteenWeeksAgo);
         given(claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(any())).willReturn(List.of(claim));
 
-        cardCancellationScheduler.handleCardsToBeCancelled();
+        cardCancellationScheduler.handleCardsPendingCancellation();
 
         verify(claimRepository).getClaimsWithCardStatusPendingCancellationOlderThan(GRACE_PERIOD);
         verify(job).handleCardPendingCancellation(claim);
@@ -60,7 +60,7 @@ class CardCancellationSchedulerTest {
                 .doNothing()
                 .when(job).handleCardPendingCancellation(any());
 
-        cardCancellationScheduler.handleCardsToBeCancelled();
+        cardCancellationScheduler.handleCardsPendingCancellation();
 
         verify(claimRepository).getClaimsWithCardStatusPendingCancellationOlderThan(GRACE_PERIOD);
         verify(job).handleCardPendingCancellation(claim1);

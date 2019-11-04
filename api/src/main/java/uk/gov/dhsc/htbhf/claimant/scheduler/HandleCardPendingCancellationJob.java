@@ -25,7 +25,7 @@ public class HandleCardPendingCancellationJob {
 
     /**
      * Notifies claimants that their card is soon to be cancelled and sets the claim's card status to SCHEDULED_FOR_CANCELLATION.
-     * @param claim the claim whose's card is to be scheduled for cancellation
+     * @param claim the claim whose card is to be scheduled for cancellation
      */
     @Transactional
     public void handleCardPendingCancellation(Claim claim) {

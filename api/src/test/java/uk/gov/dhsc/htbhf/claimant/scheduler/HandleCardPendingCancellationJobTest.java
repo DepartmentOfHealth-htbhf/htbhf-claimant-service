@@ -15,13 +15,11 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.SCHEDULED_FOR_CANCELLATION;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.LAST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectWithFirstAndLastName;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CARD_IS_ABOUT_TO_BE_CANCELLED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithCardStatusAndCardStatusTimestamp;
 
@@ -49,13 +47,7 @@ class HandleCardPendingCancellationJobTest {
     private void assertEmailSent(Claim claim) {
         ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(MessageType.SEND_EMAIL));
-        EmailMessagePayload payload = argumentCaptor.getValue();
-        assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getEmailType()).isEqualTo(CARD_IS_ABOUT_TO_BE_CANCELLED);
-        assertThat(payload.getEmailPersonalisation()).containsOnly(
-                entry(FIRST_NAME.getTemplateKeyName(), claim.getClaimant().getFirstName()),
-                entry(LAST_NAME.getTemplateKeyName(), claim.getClaimant().getLastName())
-        );
+        assertEmailPayloadCorrectWithFirstAndLastName(argumentCaptor.getValue(), claim, CARD_IS_ABOUT_TO_BE_CANCELLED);
     }
 
     private void assertClaimCardStatusUpdated() {
