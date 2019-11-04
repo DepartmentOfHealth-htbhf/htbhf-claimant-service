@@ -85,6 +85,15 @@ payment-cycle:
     maximum-lock-time: "PT59M"
     end-date-offset-days: -1
 
+card-cancellation:
+  grace-period: P16W
+  schedule:
+    # run every hour
+    cron-schedule: "0 0 * * * *"
+    minimum-lock-time: "PT1M"
+    maximum-lock-time: "PT59M"
+
+
 enable-scheduler: true
 
 server:
