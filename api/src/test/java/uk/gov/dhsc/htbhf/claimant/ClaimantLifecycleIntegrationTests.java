@@ -57,6 +57,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * ........................................................| email about upcoming changes to payment
      */
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     void shouldProcessClaimFromPregnancyToChildTurningFour() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusDays(70); // 2.5 cycles before due date
 
