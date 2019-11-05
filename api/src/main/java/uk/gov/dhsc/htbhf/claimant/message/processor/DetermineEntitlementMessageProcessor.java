@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.util.List;
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
@@ -98,6 +99,8 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
             } else {
                 handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());
             }
+
+            setCardStatusToPendingCancellation(claim);
         }
         //TODO HTBHF-1296: If not ACTIVE, PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
     }
@@ -145,6 +148,11 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         updateClaimStatus(claim, ClaimStatus.EXPIRED);
         eventAuditor.auditExpiredClaim(claim);
         claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+    }
+
+    private void setCardStatusToPendingCancellation(Claim claim) {
+        claim.updateCardStatus(PENDING_CANCELLATION);
+        claimRepository.save(claim);
     }
 
     private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
