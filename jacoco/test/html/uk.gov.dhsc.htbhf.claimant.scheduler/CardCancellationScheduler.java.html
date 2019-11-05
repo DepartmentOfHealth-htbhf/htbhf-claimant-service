@@ -46,8 +46,8 @@ public class CardCancellationScheduler {
 <span class="fc" id="L46">        log.debug(&quot;Querying for claims with a card status of pending cancellation since {}&quot;, LocalDate.now().minus(gracePeriod));</span>
 <span class="fc" id="L47">        List&lt;Claim&gt; claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(gracePeriod);</span>
 
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (claims.isEmpty()) {</span>
-<span class="nc" id="L50">            log.debug(&quot;No cards to be scheduled for cancellation&quot;);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (claims.isEmpty()) {</span>
+<span class="fc" id="L50">            log.debug(&quot;No cards to be scheduled for cancellation&quot;);</span>
         } else {
 <span class="fc" id="L52">            log.debug(&quot;Processing {} cards to be scheduled for cancellation&quot;, claims.size());</span>
 <span class="fc" id="L53">            claims.forEach(this::handleCardPendingCancellation);</span>
