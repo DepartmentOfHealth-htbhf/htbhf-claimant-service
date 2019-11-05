@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -114,7 +115,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
                 LocalDate.now(), currentPaymentCycleChildrenDobs, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsFullyPaid(newCycle, currentPaymentCycleChildrenDobs, expectedVoucherEntitlement);
 
-        assertStatusOnClaim(claim, ACTIVE);
+        assertClaimStatus(claim, ACTIVE);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
@@ -287,7 +288,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, EXPIRED);
+        assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -315,7 +316,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, PENDING_EXPIRY);
+        assertClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -344,7 +345,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, EXPIRED);
+        assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -377,7 +378,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, EXPIRED);
+        assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -412,7 +413,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, EXPIRED);
+        assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -446,7 +447,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
 
-        assertStatusOnClaim(claim, PENDING_EXPIRY);
+        assertClaimStatus(claim, PENDING_EXPIRY);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -499,9 +500,15 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         );
     }
 
-    private void assertStatusOnClaim(Claim claim, ClaimStatus expectedClaimStatus) {
+    private void assertClaimStatus(Claim claim, ClaimStatus expectedClaimStatus) {
         Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
         assertThat(updatedClaim.getClaimStatus()).isEqualTo(expectedClaimStatus);
+    }
+
+    private void assertClaimAndCardStatus(Claim claim, ClaimStatus expectedClaimStatus, CardStatus expectedCardStatus) {
+        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
+        assertThat(updatedClaim.getClaimStatus()).isEqualTo(expectedClaimStatus);
+        assertThat(updatedClaim.getCardStatus()).isEqualTo(expectedCardStatus);
     }
 
     private void invokeAllSchedulers() {
