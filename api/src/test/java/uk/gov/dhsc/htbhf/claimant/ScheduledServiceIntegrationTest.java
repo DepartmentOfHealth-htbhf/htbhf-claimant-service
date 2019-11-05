@@ -14,6 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.scheduler.CardCancellationScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
@@ -50,6 +51,8 @@ abstract class ScheduledServiceIntegrationTest {
     PaymentCycleScheduler paymentCycleScheduler;
     @Autowired
     MessageProcessorScheduler messageProcessorScheduler;
+    @Autowired
+    CardCancellationScheduler cardCancellationScheduler;
 
     @MockBean
     NotificationClient notificationClient;

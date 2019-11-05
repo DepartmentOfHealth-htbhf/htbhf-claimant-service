@@ -47,7 +47,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     /**
      * Run a simple claim through its entire lifecycle and confirm the correct events happen & right emails sent.
-     * Each vertical bar is the start of a payment cycle. 
+     * Each vertical bar is the start of a payment cycle.
      *                                                     | one year
      * |...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|
      * | claim starts
@@ -57,6 +57,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * ........................................................| email about upcoming changes to payment
      */
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     void shouldProcessClaimFromPregnancyToChildTurningFour() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusDays(70); // 2.5 cycles before due date
 
@@ -94,10 +95,19 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusYears(4));
 
         // should expire the claim
+        LocalDateTime now = LocalDateTime.now();
         ageByOneCycle(childrenDob);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.EXPIRED);
-        assertThat(claim.getClaimStatusTimestamp()).isAfter(LocalDateTime.now().minusHours(1));
+        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // should schedule the card for cancellation after four cycles
+        ageByFourCycles(childrenDob);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
@@ -157,6 +167,12 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         wiremockManager.stubSuccessfulEligibilityResponse(newDobs);
         invokeAllSchedulers();
         return newDobs;
+    }
+
+    private void ageByFourCycles(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
+        for (int i = 0;i < 4;i++) {
+            ageByOneCycle(initialChildrenDobs);
+        }
     }
 
     private void assertFirstCyclePaidCorrectly(UUID claimId) throws NotificationClientException {
@@ -219,6 +235,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         messageProcessorScheduler.processDetermineEntitlementMessages();
         messageProcessorScheduler.processPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        cardCancellationScheduler.handleCardsPendingCancellation();
     }
 
     private void resetNotificationClient() throws NotificationClientException {
