@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
 import java.time.LocalDateTime;
+import java.time.Period;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.NEW;
 
@@ -20,31 +21,35 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.NEW;
  */
 @Component
 @RequiredArgsConstructor
-<span class="fc" id="L23">@Slf4j</span>
+<span class="fc" id="L24">@Slf4j</span>
 public class MessageQueueDAO implements MessageQueueClient {
 
     private final MessageRepository messageRepository;
-
     private final ObjectMapper objectMapper;
 
     @Override
     public void sendMessage(MessagePayload messagePayload, MessageType messageType) {
+<span class="fc" id="L32">        sendMessageWithDelay(messagePayload, messageType, Period.ZERO);</span>
+<span class="fc" id="L33">    }</span>
+
+    @Override
+    public void sendMessageWithDelay(MessagePayload messagePayload, MessageType messageType, Period messageDelay) {
         try {
-<span class="fc" id="L33">            messageRepository.save(buildMessage(messagePayload, messageType));</span>
-<span class="fc" id="L34">        } catch (JsonProcessingException e) {</span>
-<span class="fc" id="L35">            throw new MessageProcessingException(&quot;Unable to create JSON payload from object&quot;, e);</span>
-<span class="fc" id="L36">        }</span>
-<span class="fc" id="L37">    }</span>
+<span class="fc" id="L38">            messageRepository.save(buildMessage(messagePayload, messageType, messageDelay));</span>
+<span class="fc" id="L39">        } catch (JsonProcessingException e) {</span>
+<span class="fc" id="L40">            throw new MessageProcessingException(&quot;Unable to create JSON payload from object&quot;, e);</span>
+<span class="fc" id="L41">        }</span>
+<span class="fc" id="L42">    }</span>
 
-    private Message buildMessage(MessagePayload messagePayload, MessageType messageType) throws JsonProcessingException {
-<span class="fc" id="L40">        String json = objectMapper.writeValueAsString(messagePayload);</span>
-<span class="fc" id="L41">        return Message.builder()</span>
-<span class="fc" id="L42">                .messagePayload(json)</span>
-<span class="fc" id="L43">                .messageType(messageType)</span>
-<span class="fc" id="L44">                .messageTimestamp(LocalDateTime.now())</span>
-<span class="fc" id="L45">                .status(NEW)</span>
-<span class="fc" id="L46">                .build();</span>
+    private Message buildMessage(MessagePayload messagePayload, MessageType messageType, Period messageDelay) throws JsonProcessingException {
+<span class="fc" id="L45">        String json = objectMapper.writeValueAsString(messagePayload);</span>
+<span class="fc" id="L46">        LocalDateTime messageTimestamp = LocalDateTime.now().plus(messageDelay);</span>
+<span class="fc" id="L47">        return Message.builder()</span>
+<span class="fc" id="L48">                .messagePayload(json)</span>
+<span class="fc" id="L49">                .messageType(messageType)</span>
+<span class="fc" id="L50">                .messageTimestamp(messageTimestamp)</span>
+<span class="fc" id="L51">                .status(NEW)</span>
+<span class="fc" id="L52">                .build();</span>
     }
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
