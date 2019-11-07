@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ class UpcomingBirthdayEmailHandlerTest {
     private static final LocalDate TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1);
     private static final Integer NUMBER_OF_CALCULATION_PERIODS = 4;
     private static final Map<String, Object> COMMON_EMAIL_MAP = Map.of(FIRST_NAME.getTemplateKeyName(), VALID_FIRST_NAME);
+    private static final Period CHANGE_IN_PAYMENT_MESSAGE_DELAY = Period.ofDays(3);
 
     @Mock
     private MessageQueueClient messageQueueClient;
@@ -58,6 +60,7 @@ class UpcomingBirthdayEmailHandlerTest {
     void init() {
         upcomingBirthdayEmailHandler = new UpcomingBirthdayEmailHandler(
                 NUMBER_OF_CALCULATION_PERIODS,
+                CHANGE_IN_PAYMENT_MESSAGE_DELAY,
                 messageQueueClient,
                 paymentCycleEntitlementCalculator,
                 emailMessagePayloadFactory);
@@ -82,7 +85,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 paymentCycle.getVoucherEntitlement()
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
+        verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
         verify(emailMessagePayloadFactory).createCommonEmailPersonalisationMap(paymentCycle, nextEntitlement);
         verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInNextCycle(paymentCycle, payloadCaptor.getValue(), false);
     }
@@ -107,7 +110,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 paymentCycle.getVoucherEntitlement()
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
+        verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
         verify(emailMessagePayloadFactory).createCommonEmailPersonalisationMap(paymentCycle, nextEntitlement);
         verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInNextCycle(paymentCycle, payloadCaptor.getValue(), true);
     }
@@ -130,7 +133,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 paymentCycle.getVoucherEntitlement()
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
+        verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
         verify(emailMessagePayloadFactory).createCommonEmailPersonalisationMap(paymentCycle, nextEntitlement);
         verifyChildTurnsOneEmailNotificationSentWhenChildTurnsOneInNextCycle(paymentCycle, payloadCaptor.getValue());
     }

@@ -14,6 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
+import java.time.LocalDateTime;
+import java.time.Period;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +23,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.NEW_CARD_PAYLOAD_JSON;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aValidNewCardRequestMessagePayload;
@@ -41,10 +43,13 @@ class MessageQueueDAOTest {
     private MessageQueueDAO messageQueueDAO;
 
     @Test
+    @SuppressWarnings("VariableDeclarationUsageDistance")
     void sendNewCardRequestMessage() throws JsonProcessingException {
         //Given
         NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
         given(objectMapper.writeValueAsString(any(NewCardRequestMessagePayload.class))).willReturn(NEW_CARD_PAYLOAD_JSON);
+        LocalDateTime testStart = LocalDateTime.now();
+
         //When
         messageQueueDAO.sendMessage(payload, CREATE_NEW_CARD);
 
@@ -56,7 +61,7 @@ class MessageQueueDAOTest {
         Message actualMessage = messageArgumentCaptor.getValue();
         assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
-        assertThat(actualMessage.getMessageTimestamp()).isNotNull();
+        assertThat(actualMessage.getMessageTimestamp()).isAfterOrEqualTo(testStart);
         assertThat(actualMessage.getStatus()).isEqualTo(MessageStatus.NEW);
         assertThat(TestTransaction.isActive()).isTrue();
     }
@@ -74,8 +79,33 @@ class MessageQueueDAOTest {
         assertThat(thrown)
                 .hasMessage("Unable to create JSON payload from object")
                 .hasCause(testException);
-        verifyZeroInteractions(messageRepository);
+        verifyNoMoreInteractions(messageRepository);
         verify(objectMapper).writeValueAsString(payload);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
+    }
+
+    @Test
+    @SuppressWarnings("VariableDeclarationUsageDistance")
+    void shouldSendMessageWithGivenDelay() throws JsonProcessingException {
+        //Given
+        NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
+        given(objectMapper.writeValueAsString(any(NewCardRequestMessagePayload.class))).willReturn(NEW_CARD_PAYLOAD_JSON);
+        Period messageDelay = Period.ofDays(3);
+        LocalDateTime testStart = LocalDateTime.now();
+
+        //When
+        messageQueueDAO.sendMessageWithDelay(payload, CREATE_NEW_CARD, messageDelay);
+
+        //Then
+        verify(objectMapper).writeValueAsString(payload);
+        ArgumentCaptor<Message> messageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
+        verify(messageRepository).save(messageArgumentCaptor.capture());
+        assertThat(messageArgumentCaptor.getAllValues()).hasSize(1);
+        Message actualMessage = messageArgumentCaptor.getValue();
+        assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
+        assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
+        assertThat(actualMessage.getMessageTimestamp()).isAfterOrEqualTo(testStart.plus(messageDelay));
+        assertThat(actualMessage.getStatus()).isEqualTo(MessageStatus.NEW);
+        assertThat(TestTransaction.isActive()).isTrue();
     }
 }
