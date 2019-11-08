@@ -99,10 +99,7 @@ public class ClaimantLoader {
         return UCAdult.builder()
                 .household(ucHousehold)
                 .addressLine1(claimantInfo.getAddressDTO().getAddressLine1())
-                .addressLine2(claimantInfo.getAddressDTO().getAddressLine2())
-                .townOrCity(claimantInfo.getAddressDTO().getTownOrCity())
                 .postcode(claimantInfo.getAddressDTO().getPostcode())
-                .forename(claimantInfo.getFirstName())
                 .surname(claimantInfo.getLastName())
                 .nino(claimantInfo.getNino())
                 .build();

@@ -19,7 +19,7 @@ public interface UCHouseholdRepository extends CrudRepository<UCHousehold, UUID>
      * @return A stream containing all households found
      */
     @Query("SELECT household FROM UCHousehold household INNER JOIN FETCH household.adults adult "
-            + "WHERE adult.nino = :nino ORDER BY household.fileImportNumber DESC")
+            + "WHERE adult.nino = :nino")
     List<UCHousehold> findAllHouseholdsByAdultWithNino(@Param("nino") String nino);
 
 }
