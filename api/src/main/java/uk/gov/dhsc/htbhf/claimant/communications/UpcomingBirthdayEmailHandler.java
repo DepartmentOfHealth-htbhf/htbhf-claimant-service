@@ -12,8 +12,8 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
+import java.time.Duration;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,13 +31,13 @@ import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.MULTIPLE_CHILD
 public class UpcomingBirthdayEmailHandler {
 
     private final Integer numberOfCalculationPeriods;
-    private final Period changeInPaymentEmailDelay;
+    private final Duration changeInPaymentEmailDelay;
     private final MessageQueueClient messageQueueClient;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     public UpcomingBirthdayEmailHandler(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods,
-                                        @Value("${payment-cycle.change-in-payment-email-delay}") Period changeInPaymentEmailDelay,
+                                        @Value("${payment-cycle.change-in-payment-email-delay}") Duration changeInPaymentEmailDelay,
                                         MessageQueueClient messageQueueClient,
                                         PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator,
                                         EmailMessagePayloadFactory emailMessagePayloadFactory) {
