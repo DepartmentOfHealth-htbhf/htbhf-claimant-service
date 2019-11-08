@@ -24,8 +24,8 @@ public class Message extends BaseEntity {
     private LocalDateTime createdTimestamp = LocalDateTime.now();
 
     @NotNull
-    @Column(name = "message_timestamp")
-    private LocalDateTime messageTimestamp;
+    @Column(name = "process_after")
+    private LocalDateTime processAfter;
 
     @NotNull
     @Enumerated(EnumType.STRING)

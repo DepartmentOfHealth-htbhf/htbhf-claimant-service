@@ -52,7 +52,7 @@ class MessageTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Message>> violations = validator.validate(message);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "messageTimestamp");
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "processAfter");
     }
 
     @Test

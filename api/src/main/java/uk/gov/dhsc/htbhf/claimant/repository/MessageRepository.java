@@ -18,8 +18,8 @@ public interface MessageRepository extends CrudRepository<Message, UUID> {
 
     @Query("SELECT m "
             + "FROM Message m "
-            + "where m.messageType = :messageType and m.messageTimestamp < :olderThan "
-            + "order by m.messageTimestamp")
+            + "where m.messageType = :messageType and m.processAfter < :olderThan "
+            + "order by m.processAfter")
     List<Message> findAllMessagesByTypeOlderThan(
             @Param("messageType") MessageType messageType,
             @Param("olderThan") LocalDateTime olderThan,

@@ -114,7 +114,7 @@ class MessageStatusProcessorTest {
         verify(messageRepository).save(captor.capture());
         Message savedMessage = captor.getValue();
         assertThat(savedMessage.getDeliveryCount()).isEqualTo(initialDeliveryCount + 1);
-        assertThat(savedMessage.getMessageTimestamp()).isBetween(expectedTimestampStart, expectedTimestampStart.plusSeconds(1));
+        assertThat(savedMessage.getProcessAfter()).isBetween(expectedTimestampStart, expectedTimestampStart.plusSeconds(1));
     }
 
     @Test
@@ -129,13 +129,13 @@ class MessageStatusProcessorTest {
         verify(messageRepository).save(captor.capture());
         Message savedMessage = captor.getValue();
         assertThat(savedMessage.getDeliveryCount()).isEqualTo(1001);
-        assertThat(savedMessage.getMessageTimestamp()).isBetween(expectedTimestampStart, expectedTimestampStart.plusSeconds(1));
+        assertThat(savedMessage.getProcessAfter()).isBetween(expectedTimestampStart, expectedTimestampStart.plusSeconds(1));
     }
 
     private void assertMessageUpdated(Message savedMessage, UUID messageId, LocalDateTime originalTimestamp, MessageStatus messageStatus) {
         assertThat(savedMessage.getDeliveryCount()).isEqualTo(1);
         assertThat(savedMessage.getId()).isEqualTo(messageId);
-        assertThat(savedMessage.getMessageTimestamp()).isAfter(originalTimestamp);
+        assertThat(savedMessage.getProcessAfter()).isAfter(originalTimestamp);
         assertThat(savedMessage.getStatus()).isEqualTo(messageStatus);
     }
 }
