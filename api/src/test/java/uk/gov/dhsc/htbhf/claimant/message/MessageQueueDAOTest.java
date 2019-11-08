@@ -14,8 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +90,7 @@ class MessageQueueDAOTest {
         //Given
         NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
         given(objectMapper.writeValueAsString(any(NewCardRequestMessagePayload.class))).willReturn(NEW_CARD_PAYLOAD_JSON);
-        Period messageDelay = Period.ofDays(3);
+        Duration messageDelay = Duration.ofDays(3);
         LocalDateTime testStart = LocalDateTime.now();
 
         //When

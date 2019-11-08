@@ -16,8 +16,8 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
+import java.time.Duration;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ class UpcomingBirthdayEmailHandlerTest {
     private static final LocalDate TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1);
     private static final Integer NUMBER_OF_CALCULATION_PERIODS = 4;
     private static final Map<String, Object> COMMON_EMAIL_MAP = Map.of(FIRST_NAME.getTemplateKeyName(), VALID_FIRST_NAME);
-    private static final Period CHANGE_IN_PAYMENT_MESSAGE_DELAY = Period.ofDays(3);
+    private static final Duration CHANGE_IN_PAYMENT_MESSAGE_DELAY = Duration.ofDays(3);
 
     @Mock
     private MessageQueueClient messageQueueClient;
