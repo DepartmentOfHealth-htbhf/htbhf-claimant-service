@@ -61,7 +61,7 @@ class MessageQueueDAOTest {
         Message actualMessage = messageArgumentCaptor.getValue();
         assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
-        assertThat(actualMessage.getMessageTimestamp()).isAfterOrEqualTo(testStart);
+        assertThat(actualMessage.getProcessAfter()).isAfterOrEqualTo(testStart);
         assertThat(actualMessage.getStatus()).isEqualTo(MessageStatus.NEW);
         assertThat(TestTransaction.isActive()).isTrue();
     }
@@ -104,7 +104,7 @@ class MessageQueueDAOTest {
         Message actualMessage = messageArgumentCaptor.getValue();
         assertThat(actualMessage.getMessagePayload()).isEqualTo(NEW_CARD_PAYLOAD_JSON);
         assertThat(actualMessage.getMessageType()).isEqualTo(CREATE_NEW_CARD);
-        assertThat(actualMessage.getMessageTimestamp()).isAfterOrEqualTo(testStart.plus(messageDelay));
+        assertThat(actualMessage.getProcessAfter()).isAfterOrEqualTo(testStart.plus(messageDelay));
         assertThat(actualMessage.getStatus()).isEqualTo(MessageStatus.NEW);
         assertThat(TestTransaction.isActive()).isTrue();
     }

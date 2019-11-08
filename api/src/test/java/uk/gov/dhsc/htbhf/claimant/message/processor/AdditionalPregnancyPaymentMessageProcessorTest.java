@@ -93,7 +93,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
         verify(voucherCalculator)
-                .getAdditionalPregnancyVouchers(claim.getClaimant().getExpectedDeliveryDate(), paymentCycle, message.getMessageTimestamp().toLocalDate());
+                .getAdditionalPregnancyVouchers(claim.getClaimant().getExpectedDeliveryDate(), paymentCycle, message.getProcessAfter().toLocalDate());
     }
 
     @Test

@@ -19,7 +19,7 @@ public class MessageTestDataFactory {
     }
 
     public static Message aValidMessageWithTypeAndTimestamp(MessageType type, LocalDateTime timestamp) {
-        return buildValidMessageBuilder().messageType(type).messageTimestamp(timestamp).build();
+        return buildValidMessageBuilder().messageType(type).processAfter(timestamp).build();
     }
 
     public static Message aMessageWithCreatedTimestamp(LocalDateTime localDateTime) {
@@ -27,12 +27,12 @@ public class MessageTestDataFactory {
     }
 
     public static Message aMessageWithMessageTimestamp(LocalDateTime localDateTime) {
-        return buildValidMessageBuilder().messageTimestamp(localDateTime).build();
+        return buildValidMessageBuilder().processAfter(localDateTime).build();
     }
 
     public static Message aMessageWithMessageTimestampAndDeliveryCount(LocalDateTime localDateTime, int deliveryCount) {
         return buildValidMessageBuilder()
-                .messageTimestamp(localDateTime)
+                .processAfter(localDateTime)
                 .deliveryCount(deliveryCount)
                 .build();
     }
@@ -45,7 +45,7 @@ public class MessageTestDataFactory {
         return Message.builder()
                 .createdTimestamp(LocalDateTime.now())
                 .messageType(MessageType.CREATE_NEW_CARD)
-                .messageTimestamp(LocalDateTime.now())
+                .processAfter(LocalDateTime.now())
                 .messagePayload(MESSAGE_PAYLOAD);
     }
 }

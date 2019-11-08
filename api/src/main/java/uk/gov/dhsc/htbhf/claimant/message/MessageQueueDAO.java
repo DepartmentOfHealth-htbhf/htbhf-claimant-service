@@ -47,7 +47,7 @@ public class MessageQueueDAO implements MessageQueueClient {
         return Message.builder()
                 .messagePayload(json)
                 .messageType(messageType)
-                .messageTimestamp(messageTimestamp)
+                .processAfter(messageTimestamp)
                 .status(NEW)
                 .build();
     }
