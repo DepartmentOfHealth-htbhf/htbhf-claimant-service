@@ -9,8 +9,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.MessageRepository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.NEW;
 
@@ -29,11 +29,11 @@ public class MessageQueueDAO implements MessageQueueClient {
 
     @Override
     public void sendMessage(MessagePayload messagePayload, MessageType messageType) {
-        sendMessageWithDelay(messagePayload, messageType, Period.ZERO);
+        sendMessageWithDelay(messagePayload, messageType, Duration.ZERO);
     }
 
     @Override
-    public void sendMessageWithDelay(MessagePayload messagePayload, MessageType messageType, Period messageDelay) {
+    public void sendMessageWithDelay(MessagePayload messagePayload, MessageType messageType, Duration messageDelay) {
         try {
             messageRepository.save(buildMessage(messagePayload, messageType, messageDelay));
         } catch (JsonProcessingException e) {
@@ -41,7 +41,7 @@ public class MessageQueueDAO implements MessageQueueClient {
         }
     }
 
-    private Message buildMessage(MessagePayload messagePayload, MessageType messageType, Period messageDelay) throws JsonProcessingException {
+    private Message buildMessage(MessagePayload messagePayload, MessageType messageType, Duration messageDelay) throws JsonProcessingException {
         String json = objectMapper.writeValueAsString(messagePayload);
         LocalDateTime messageTimestamp = LocalDateTime.now().plus(messageDelay);
         return Message.builder()
