@@ -61,7 +61,7 @@ public class MessageStatusProcessor {
 <span class="fc" id="L61">        LocalDateTime newTimestamp = LocalDateTime.now().plusSeconds(getRetryDelayInSeconds(initialDeliveryCount));</span>
 
 <span class="fc" id="L63">        message.setDeliveryCount(initialDeliveryCount + 1);</span>
-<span class="fc" id="L64">        message.setMessageTimestamp(newTimestamp);</span>
+<span class="fc" id="L64">        message.setProcessAfter(newTimestamp);</span>
 <span class="fc" id="L65">        message.setStatus(status);</span>
 <span class="fc" id="L66">        messageRepository.save(message);</span>
 <span class="fc" id="L67">    }</span>
