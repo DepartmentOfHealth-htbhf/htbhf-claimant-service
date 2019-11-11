@@ -27,7 +27,6 @@ public class MessageProcessorScheduler {
     private static final String MIN_LOCK_TIME = "${message-processor.default-min-lock-time}";
     // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with other scheduled processes
     private static final String OFFSET_SCHEDULE = "${message-processor.offset-schedule}";
-    private static final String WORKING_HOURS_SCHEDULE = "${message-processor.working-hours-schedule}";
 
     private final MessageProcessor messageProcessor;
 
@@ -41,7 +40,7 @@ public class MessageProcessorScheduler {
         messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);
     }
 
-    @Scheduled(cron = WORKING_HOURS_SCHEDULE)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = "Process SEND_EMAIL messages",
             lockAtLeastForString = MIN_LOCK_TIME,
@@ -101,7 +100,7 @@ public class MessageProcessorScheduler {
         messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);
     }
 
-    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
             name = "Process REPORT_PAYMENT messages",
             lockAtLeastForString = MIN_LOCK_TIME,
