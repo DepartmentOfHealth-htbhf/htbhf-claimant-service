@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds
  * single blank line so that we don't have any empty bullet point in the email.
  */
 @Component
+@SuppressWarnings("PMD.TooManyMethods")
 public class EmailMessagePayloadFactory {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy");
@@ -62,9 +64,20 @@ public class EmailMessagePayloadFactory {
     }
 
     public EmailMessagePayload buildEmailMessagePayload(PaymentCycle paymentCycle, EmailType emailType) {
-        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(paymentCycle, paymentCycle.getVoucherEntitlement());
+        Claim claim = paymentCycle.getClaim();
+        LocalDate nextPaymentDate = paymentCycle.getCycleEndDate().plusDays(1);
+        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
+        return buildEmailMessagePayload(claim, voucherEntitlement, nextPaymentDate, emailType);
+    }
+
+    public EmailMessagePayload buildEmailMessagePayload(
+            Claim claim,
+            PaymentCycleVoucherEntitlement voucherEntitlement,
+            LocalDate nextPaymentDate,
+            EmailType emailType) {
+        Map<String, Object> emailPersonalisation = createPaymentEmailPersonalisationMap(claim.getClaimant(), voucherEntitlement, nextPaymentDate);
         return EmailMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
+                .claimId(claim.getId())
                 .emailType(emailType)
                 .emailPersonalisation(emailPersonalisation)
                 .build();
@@ -78,20 +91,31 @@ public class EmailMessagePayloadFactory {
      */
     public Map<String, Object> createCommonEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
         Claimant claimant = paymentCycle.getClaim().getClaimant();
+        LocalDate nextPaymentDate = paymentCycle.getCycleEndDate().plusDays(1);
+        return createCommonEmailPersonalisationMap(claimant, voucherEntitlement, nextPaymentDate);
+    }
+
+    private Map<String, Object> createCommonEmailPersonalisationMap(
+            Claimant claimant,
+            PaymentCycleVoucherEntitlement voucherEntitlement,
+            LocalDate nextPaymentDate) {
         Map<String, Object> emailPersonalisation = new HashMap<>();
         emailPersonalisation.put(FIRST_NAME.getTemplateKeyName(), claimant.getFirstName());
         emailPersonalisation.put(LAST_NAME.getTemplateKeyName(), claimant.getLastName());
         String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());
         emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
-        String formattedCycleEndDate = paymentCycle.getCycleEndDate().plusDays(1).format(DATE_FORMATTER);
-        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedCycleEndDate);
+        String formattedNextPaymentDate = nextPaymentDate.format(DATE_FORMATTER);
+        emailPersonalisation.put(NEXT_PAYMENT_DATE.getTemplateKeyName(), formattedNextPaymentDate);
         emailPersonalisation.put(REGULAR_PAYMENT.getTemplateKeyName(), getRegularPaymentAmountForNextCycle(voucherEntitlement));
         emailPersonalisation.put(PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement));
         return emailPersonalisation;
     }
 
-    private Map<String, Object> createPaymentEmailPersonalisationMap(PaymentCycle paymentCycle, PaymentCycleVoucherEntitlement voucherEntitlement) {
-        Map<String, Object> emailPersonalisation = createCommonEmailPersonalisationMap(paymentCycle, voucherEntitlement);
+    private Map<String, Object> createPaymentEmailPersonalisationMap(
+            Claimant claimant,
+            PaymentCycleVoucherEntitlement voucherEntitlement,
+            LocalDate nextPaymentDate) {
+        Map<String, Object> emailPersonalisation = createCommonEmailPersonalisationMap(claimant, voucherEntitlement, nextPaymentDate);
         emailPersonalisation.put(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement));
         emailPersonalisation.put(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement));
         String backdateAmount = convertPenceToPounds(voucherEntitlement.getBackdatedVouchersValueInPence());
