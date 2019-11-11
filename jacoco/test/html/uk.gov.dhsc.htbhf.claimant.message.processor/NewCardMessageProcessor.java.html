@@ -72,7 +72,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L72">    }</span>
 
     private void sendNewCardSuccessEmailMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L75">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);</span>
+<span class="fc" id="L75">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.INSTANT_SUCCESS);</span>
 <span class="fc" id="L76">        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
 <span class="fc" id="L77">    }</span>
 
