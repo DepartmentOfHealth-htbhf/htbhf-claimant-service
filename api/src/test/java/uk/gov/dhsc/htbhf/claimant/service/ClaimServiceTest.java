@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
@@ -80,7 +81,7 @@ class ClaimServiceTest {
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
     @Test
-    void shouldSaveNonExistingEligibleClaimantAndSendNewCardMessage() {
+    void shouldSaveNonExistingEligibleClaimantAndSendMessages() {
         //given
         Claimant claimant = aValidClaimant();
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
@@ -104,8 +105,10 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -162,8 +165,10 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
     }
 
     /**
@@ -190,6 +195,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
+            verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
         }
@@ -224,6 +230,7 @@ class ClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME));
         verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), List.of(LAST_NAME));
+        verifyNoMoreInteractions(claimMessageSender);
     }
 
     @Test
@@ -255,6 +262,7 @@ class ClaimServiceTest {
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
         verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), emptyList());
+        verifyNoMoreInteractions(claimMessageSender);
     }
 
     @Test
@@ -289,6 +297,7 @@ class ClaimServiceTest {
 
         // then
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+        verifyNoMoreInteractions(claimMessageSender);
     }
 
     private void shouldSendAdditionalPregnancyPaymentMessage(Claimant existingClaimant, Claimant newClaimant) {
