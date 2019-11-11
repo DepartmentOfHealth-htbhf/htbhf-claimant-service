@@ -136,7 +136,7 @@ abstract class ScheduledServiceIntegrationTest {
     void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
-                eq(EmailType.NEW_CARD.getTemplateId()), eq(claim.getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
+                eq(EmailType.INSTANT_SUCCESS.getTemplateId()), eq(claim.getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
 
         Map personalisationMap = mapArgumentCaptor.getValue();
         assertNameEmailFields(claim, personalisationMap);

@@ -71,7 +71,7 @@ class EmailMessageProcessorTest {
                 .claim(claim)
                 .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.NEW_CARD)
+                .emailType(EmailType.INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         given(client.sendEmail(any(), any(), any(), any(), any())).willReturn(mock(SendEmailResponse.class));
@@ -96,7 +96,7 @@ class EmailMessageProcessorTest {
                 .claim(claim)
                 .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.NEW_CARD)
+                .emailType(EmailType.INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         SendEmailResponse response = mock(SendEmailResponse.class);
@@ -131,7 +131,7 @@ class EmailMessageProcessorTest {
                 .claim(claim)
                 .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.NEW_CARD)
+                .emailType(EmailType.INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         Message message = aValidMessageWithType(SEND_EMAIL);

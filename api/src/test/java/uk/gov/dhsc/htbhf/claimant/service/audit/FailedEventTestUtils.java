@@ -52,13 +52,13 @@ public class FailedEventTestUtils {
                                                                            NotificationClientException testException,
                                                                            EventFailedException exception,
                                                                            String templateId) {
-        String expectedFailureMessage = "Failed to send NEW_CARD email message, exception is: Test exception from message send";
+        String expectedFailureMessage = "Failed to send INSTANT_SUCCESS email message, exception is: Test exception from message send";
         verifyCommonEventFailureDetail(exception, testException, expectedFailureMessage, claim, ClaimEventType.FAILED_EMAIL);
         Map<String, Object> metadata = exception.getFailureEvent().getEventMetadata();
         assertExceptionDetailCorrect(metadata, "Test exception from message send", "EmailMessageProcessor.processMessage");
         assertThat(metadata).contains(
                 entry(EMAIL_TEMPLATE_ID.getKey(), templateId),
-                entry(EMAIL_TYPE.getKey(), EmailType.NEW_CARD.name()));
+                entry(EMAIL_TYPE.getKey(), EmailType.INSTANT_SUCCESS.name()));
     }
 
 
