@@ -72,7 +72,7 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     }
 
     private void sendNewCardSuccessEmailMessage(PaymentCycle paymentCycle) {
-        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.INSTANT_SUCCESS);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 

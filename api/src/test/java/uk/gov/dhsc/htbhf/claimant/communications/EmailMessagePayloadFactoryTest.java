@@ -35,33 +35,33 @@ class EmailMessagePayloadFactoryTest {
     private EmailMessagePayloadFactory emailMessagePayloadFactory = new EmailMessagePayloadFactory(NUMBER_OF_CALCULATION_PERIODS);
 
     @Test
-    void shouldBuildSendNewCardSuccessEmailPayloadWithAllPaymentTypes() {
+    void shouldBuildEmailMessagePayloadWithAllVouchers() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
 
-        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.INSTANT_SUCCESS);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 
     @Test
-    void shouldBuildSendNewCardSuccessEmailPayloadWithOnlyPregnancyPayment() {
+    void shouldBuildEmailPayloadWithOnlyPregnancyPayment() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithPregnancyVouchersOnly(startDate, endDate);
 
-        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CARD);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.INSTANT_SUCCESS);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 
     @Test
-    void shouldBuildPaymentNotificationEmailPayloadWithAllPaymentTypes() {
+    void shouldBuildPaymentNotificationEmailPayloadWithAllVouchers() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
@@ -71,19 +71,6 @@ class EmailMessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
         assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
-    }
-
-    @Test
-    void shouldBuildPaymentNotificationEmailPayloadWithOnlyPregnancyPayment() {
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(28);
-        PaymentCycle paymentCycle = aPaymentCycleWithPregnancyVouchersOnly(startDate, endDate);
-
-        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
-
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
-        assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 
     @Test

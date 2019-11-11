@@ -116,7 +116,7 @@ class NewCardMessageProcessorTest {
         verify(messageQueueDAO).sendMessage(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL));
         assertThat(payloadCaptor.getValue()).isInstanceOf(EmailMessagePayload.class);
         EmailMessagePayload payload = (EmailMessagePayload) payloadCaptor.getValue();
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.NEW_CARD);
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), paymentCycle.getCycleEndDate().plusDays(1));
     }

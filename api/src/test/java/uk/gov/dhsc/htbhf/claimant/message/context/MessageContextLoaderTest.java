@@ -391,7 +391,7 @@ class MessageContextLoaderTest {
         Message message = aValidMessageWithType(SEND_EMAIL);
         EmailMessagePayload payload = EmailMessagePayload.builder()
                 .claimId(claimId)
-                .emailType(EmailType.NEW_CARD)
+                .emailType(EmailType.INSTANT_SUCCESS)
                 .emailPersonalisation(buildEmailPersonalisation())
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
@@ -404,7 +404,7 @@ class MessageContextLoaderTest {
         assertThat(context.getTemplateId()).isEqualTo("bbbd8805-b020-41c9-b43f-c0e62318a6d5");
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEmailPersonalisation()).isEqualTo(buildEmailPersonalisation());
-        assertThat(context.getEmailType()).isEqualTo(EmailType.NEW_CARD);
+        assertThat(context.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
         verify(claimRepository).findById(claimId);
         verifyZeroInteractions(paymentCycleRepository);
