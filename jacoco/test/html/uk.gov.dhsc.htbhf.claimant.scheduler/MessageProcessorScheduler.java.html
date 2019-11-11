@@ -27,7 +27,6 @@ public class MessageProcessorScheduler {
     private static final String MIN_LOCK_TIME = &quot;${message-processor.default-min-lock-time}&quot;;
     // every 30 seconds, offset from other schedules by 5 seconds to prevent clashes with other scheduled processes
     private static final String OFFSET_SCHEDULE = &quot;${message-processor.offset-schedule}&quot;;
-    private static final String WORKING_HOURS_SCHEDULE = &quot;${message-processor.working-hours-schedule}&quot;;
 
     private final MessageProcessor messageProcessor;
 
@@ -38,18 +37,18 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:ADDITIONAL_PREGNANCY_PAYMENT&quot;)
     public void processAdditionalPregnancyPaymentMessages() {
-<span class="fc" id="L41">        messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);</span>
-<span class="fc" id="L42">    }</span>
+<span class="fc" id="L40">        messageProcessor.processMessagesOfType(MessageType.ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc" id="L41">    }</span>
 
-    @Scheduled(cron = WORKING_HOURS_SCHEDULE)
+    @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
             name = &quot;Process SEND_EMAIL messages&quot;,
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:SEND_EMAIL&quot;)
     public void processSendEmailMessages() {
-<span class="fc" id="L51">        messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L50">        messageProcessor.processMessagesOfType(MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L51">    }</span>
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
@@ -58,8 +57,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:CREATE_NEW_CARD&quot;)
     public void processCreateNewCardMessages() {
-<span class="fc" id="L61">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L60">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
+<span class="fc" id="L61">    }</span>
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
@@ -68,8 +67,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:DETERMINE_ENTITLEMENT&quot;)
     public void processDetermineEntitlementMessages() {
-<span class="fc" id="L71">        messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L70">        messageProcessor.processMessagesOfType(MessageType.DETERMINE_ENTITLEMENT);</span>
+<span class="fc" id="L71">    }</span>
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
@@ -78,8 +77,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_FIRST_PAYMENT&quot;)
     public void processFirstPaymentMessages() {
-<span class="fc" id="L81">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L80">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L81">    }</span>
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
@@ -88,8 +87,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_PAYMENT&quot;)
     public void processPaymentMessages() {
-<span class="fc" id="L91">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L92">    }</span>
+<span class="fc" id="L90">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L91">    }</span>
 
     @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
@@ -98,17 +97,17 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_CLAIM&quot;)
     public void processReportClaimMessages() {
-<span class="fc" id="L101">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
-<span class="fc" id="L102">    }</span>
+<span class="fc" id="L100">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
+<span class="fc" id="L101">    }</span>
 
-    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
             name = &quot;Process REPORT_PAYMENT messages&quot;,
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_PAYMENT&quot;)
     public void processReportPaymentMessages() {
-<span class="fc" id="L111">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
-<span class="fc" id="L112">    }</span>
+<span class="fc" id="L110">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
+<span class="fc" id="L111">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
