@@ -109,6 +109,15 @@ abstract class ScheduledServiceIntegrationTest {
         assertPaymentEmailPersonalisationMap(newCycle, personalisationMap);
     }
 
+    void assertThatReportABirthReminderEmailWasSent(Claim claim) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(REPORT_A_BIRTH_REMINDER.getTemplateId()), eq(claim.getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
+
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertNameEmailFields(claim, personalisationMap);
+    }
+
     void assertThatNewChildEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(

@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,6 +57,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * ..................| New baby reported to DWP
      * ....................| Backdated vouchers paid
      * ........................................................| email about upcoming changes to payment
+     * ........................................................................| email that the card will be cancelled in one week
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -105,6 +108,52 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // should schedule the card for cancellation after four cycles
         ageByFourCycles(childrenDob);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+    }
+
+    /**
+     * Run through the lifecycle of a claim where a claimant becomes pregnant but no children ever appear on the feed.
+     *                                                     | one year
+     * |...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|
+     * | claim starts (due date in 25 weeks)
+     * |........................| Due date
+     * |...............................| email asking claimant to tell their benefit agency about new child
+     * |.......................................| email about coming off the scheme
+     * |.......................................................| email that the card will be cancelled in one week
+     */
+    @Test
+    @Disabled("HTBHF-2377")
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
+        assertFirstCyclePaidCorrectly(claimId);
+
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
+        // to contact their benefit agency about a new child.
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancy(expectedDeliveryDate, claimId, 8);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThatReportABirthReminderEmailWasSent(claim);
+
+        // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
+        progressThroughPaymentCyclesForPregnancy(expectedDeliveryDate, claimId, 1);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+
+        // should expire the claim
+        LocalDateTime now = LocalDateTime.now();
+        ageByOneCycle();
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.EXPIRED);
+        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // should schedule the card for cancellation after four cycles
+        ageByFourCycles(emptyList());
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
@@ -167,6 +216,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         wiremockManager.stubSuccessfulEligibilityResponse(newDobs);
         invokeAllSchedulers();
         return newDobs;
+    }
+
+    private void ageByOneCycle() {
+        repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+        invokeAllSchedulers();
     }
 
     private void ageByFourCycles(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
