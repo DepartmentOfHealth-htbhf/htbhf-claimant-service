@@ -60,6 +60,7 @@ public class ClaimService {
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
+                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
