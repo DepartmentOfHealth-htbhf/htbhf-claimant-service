@@ -28,7 +28,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
@@ -43,6 +42,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
@@ -300,6 +300,38 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
+    @DisplayName("Integration test for HTBHF-2377 for a claimant with a due date in the past, but still receiving pregnancy vouchers due to the 12 week grace "
+            + "period. On their penultimate payment cycle which they will receive pregnancy vouchers, the claimant is sent an email reminder about reporting"
+            + "a birth.")
+    @Test
+    @Disabled("HTBHF-2377")
+    void shouldSendReportABirthReminderEmailWhenClaimantIsReceivesSecondToLastPregnancyVoucher() throws JsonProcessingException, NotificationClientException {
+        // The claimant will receive pregnancy vouchers for this cycle and the one after but not after that (given a 12 week grace period and four week cycles).
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        LocalDate expectedDueDate = LocalDate.now().minusWeeks(5);
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(NO_CHILDREN, expectedDueDate);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with a payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
+        assertPaymentCycleIsFullyPaid(newCycle, emptyList(), expectedVoucherEntitlement);
+
+        // confirm card service called to make payment
+        Payment payment = newCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatReportABirthReminderEmailWasSent(claim);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
     @DisplayName("Integration test for HTBHF-1757 status set to Pending Expiry and email sent to Claimant to tell them they are no longer eligible")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}")
     @MethodSource("provideArgumentsForClaimantBecomingIneligibleTest")
@@ -353,7 +385,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
-        verifyZeroInteractions(notificationClient);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @DisplayName("Integration test for HTBHF-2182 where a claimant that was pregnant in the previous cycle but is considered no longer pregnant in this cycle, "
@@ -386,7 +418,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
-        verifyZeroInteractions(notificationClient);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @Disabled("HTBHF-1296")
@@ -453,7 +485,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
         // confirm notify component not invoked as no emails sent
-        verifyZeroInteractions(notificationClient);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date.
