@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message.processor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.entitlement.IneligibleEntitlementDecisionHandler;
+import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -35,7 +35,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private MessageQueueClient messageQueueClient;
 
-    private IneligibleEntitlementDecisionHandler ineligibleEntitlementDecisionHandler;
+    private EligibilityDecisionHandler eligibilityDecisionHandler;
 
     @Override
     public MessageType supportsMessageType() {
@@ -71,7 +71,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
         } else if (claim.getClaimStatus() == ACTIVE) {
-            ineligibleEntitlementDecisionHandler.handleIneligibleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);
+            eligibilityDecisionHandler.handleIneligibleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);
         }
         //TODO HTBHF-1296: If not ACTIVE, PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
     }

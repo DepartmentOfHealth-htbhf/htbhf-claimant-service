@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.entitlement;
+package uk.gov.dhsc.htbhf.claimant.eligibility;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -47,7 +48,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
-class IneligibleEntitlementDecisionHandlerTest {
+class EligibilityDecisionHandlerTest {
 
     @Mock
     private ClaimRepository claimRepository;
@@ -63,7 +64,7 @@ class IneligibleEntitlementDecisionHandlerTest {
     private ClaimMessageSender claimMessageSender;
 
     @InjectMocks
-    private IneligibleEntitlementDecisionHandler handler;
+    private EligibilityDecisionHandler handler;
 
     //Test for HTBHF-2182 has the following context:
     // Previous cycle: children exist and are under 4 but will be 4 in the next cycle, not pregnant

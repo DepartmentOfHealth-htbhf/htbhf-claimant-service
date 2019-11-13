@@ -159,6 +159,10 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
     }
 
+    void assertThatCardIsAboutToBeCancelledEmailWasSent(Claim claim) throws NotificationClientException {
+        assertThatEmailWithNameOnlyWasSent(claim, CARD_IS_ABOUT_TO_BE_CANCELLED);
+    }
+
     private void assertThatEmailWithNameOnlyWasSent(Claim claim, EmailType emailType) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(

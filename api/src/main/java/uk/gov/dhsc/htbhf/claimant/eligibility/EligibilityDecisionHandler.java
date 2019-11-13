@@ -1,8 +1,9 @@
-package uk.gov.dhsc.htbhf.claimant.entitlement;
+package uk.gov.dhsc.htbhf.claimant.eligibility;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
@@ -21,7 +22,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTI
 
 @Component
 @AllArgsConstructor
-public class IneligibleEntitlementDecisionHandler {
+public class EligibilityDecisionHandler {
 
     private ClaimRepository claimRepository;
     private DetermineEntitlementNotificationHandler determineEntitlementNotificationHandler;

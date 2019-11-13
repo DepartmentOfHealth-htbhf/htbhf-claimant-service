@@ -5,7 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.IneligibleEntitlementDecisionHandler;
+import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -53,7 +53,7 @@ class DetermineEntitlementMessageProcessorTest {
     @Mock
     private MessageQueueClient messageQueueClient;
     @Mock
-    private IneligibleEntitlementDecisionHandler ineligibleEntitlementDecisionHandler;
+    private EligibilityDecisionHandler eligibilityDecisionHandler;
 
     @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
@@ -88,7 +88,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(context.getCurrentPaymentCycle());
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
-        verifyNoMoreInteractions(ineligibleEntitlementDecisionHandler);
+        verifyNoMoreInteractions(eligibilityDecisionHandler);
     }
 
     @Test
@@ -118,7 +118,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getPreviousPaymentCycle());
 
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
-        verify(ineligibleEntitlementDecisionHandler)
+        verify(eligibilityDecisionHandler)
                 .handleIneligibleDecision(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
         verifyNoMoreInteractions(messageQueueClient);
     }
