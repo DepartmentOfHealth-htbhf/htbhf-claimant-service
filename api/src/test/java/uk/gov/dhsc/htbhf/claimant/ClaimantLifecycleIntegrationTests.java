@@ -111,6 +111,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // invoke schedulers to process send email for card is about to be cancelled
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
     /**
@@ -157,6 +161,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // invoke schedulers to process send email for card is about to be cancelled
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
