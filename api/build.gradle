@@ -5,7 +5,6 @@ buildscript {
         hikariCPVersion = '3.3.1'
         flywayVersion = '5.2.4'
         postgresJdbcVersion = '42.2.5'
-        jacksonDataformatVersion = '2.9.9'
     }
     repositories {
         mavenCentral()
@@ -86,10 +85,8 @@ dependencies {
     testImplementation "org.junit.vintage:junit-vintage-engine:${junitVersion}"
     testImplementation "org.assertj:assertj-core:3.11.1"
     testImplementation "io.zonky.test:embedded-database-spring-test:1.4.1"
-    testImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonDataformatVersion}"
     testImplementation "org.springframework.cloud:spring-cloud-starter-contract-stub-runner:2.1.1.RELEASE"
     testImplementation "uk.gov.dhsc.htbhf:htbhf-common-test:latest.release"
-
 
     // When editing the api documentation, this is useful to be able to view the swagger-ui on http://localhost:8080/swagger-ui.html
     // implementation "io.springfox:springfox-swagger-ui:${springFoxVersion}"
