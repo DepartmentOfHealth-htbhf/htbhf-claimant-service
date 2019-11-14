@@ -10,16 +10,19 @@ import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 
 /**
  * Responsible for sending messages related to claims (new or updated).
@@ -30,42 +33,50 @@ public class ClaimMessageSender {
     private final MessageQueueClient messageQueueClient;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
     private final Integer cycleDurationInDays;
+    private final Duration reportABirthMessageDelay;
 
     public ClaimMessageSender(MessageQueueClient messageQueueClient,
                               EmailMessagePayloadFactory emailMessagePayloadFactory,
-<span class="fc" id="L36">                              @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays) {</span>
-<span class="fc" id="L37">        this.messageQueueClient = messageQueueClient;</span>
-<span class="fc" id="L38">        this.emailMessagePayloadFactory = emailMessagePayloadFactory;</span>
-<span class="fc" id="L39">        this.cycleDurationInDays = cycleDurationInDays;</span>
-<span class="fc" id="L40">    }</span>
+                              @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays,
+<span class="fc" id="L41">                              @Value(&quot;${payment-cycle.report-a-birth-message-delay}&quot;) Duration reportABirthMessageDelay) {</span>
+<span class="fc" id="L42">        this.messageQueueClient = messageQueueClient;</span>
+<span class="fc" id="L43">        this.emailMessagePayloadFactory = emailMessagePayloadFactory;</span>
+<span class="fc" id="L44">        this.cycleDurationInDays = cycleDurationInDays;</span>
+<span class="fc" id="L45">        this.reportABirthMessageDelay = reportABirthMessageDelay;</span>
+<span class="fc" id="L46">    }</span>
 
     public void sendReportClaimMessage(Claim claim, List&lt;LocalDate&gt; datesOfBirthOfChildren, ClaimAction claimAction) {
-<span class="fc" id="L43">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, emptyList());</span>
-<span class="fc" id="L44">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
-<span class="fc" id="L45">    }</span>
+<span class="fc" id="L49">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, emptyList());</span>
+<span class="fc" id="L50">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
+<span class="fc" id="L51">    }</span>
 
     public void sendReportClaimMessageWithUpdatedClaimantFields(Claim claim,
                                                                 List&lt;LocalDate&gt; datesOfBirthOfChildren,
                                                                 List&lt;UpdatableClaimantField&gt; updatedClaimantFields) {
-<span class="fc" id="L50">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, ClaimAction.UPDATED, updatedClaimantFields);</span>
-<span class="fc" id="L51">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
-<span class="fc" id="L52">    }</span>
+<span class="fc" id="L56">        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, ClaimAction.UPDATED, updatedClaimantFields);</span>
+<span class="fc" id="L57">        messageQueueClient.sendMessage(payload, REPORT_CLAIM);</span>
+<span class="fc" id="L58">    }</span>
 
     public void sendAdditionalPaymentMessage(Claim claim) {
-<span class="fc" id="L55">        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.withClaimId(claim.getId());</span>
-<span class="fc" id="L56">        messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L61">        AdditionalPregnancyPaymentMessagePayload payload = AdditionalPregnancyPaymentMessagePayload.withClaimId(claim.getId());</span>
+<span class="fc" id="L62">        messageQueueClient.sendMessage(payload, ADDITIONAL_PREGNANCY_PAYMENT);</span>
+<span class="fc" id="L63">    }</span>
 
     public void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L60">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
-<span class="fc" id="L61">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L66">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L67">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
+<span class="fc" id="L68">    }</span>
 
     public void sendInstantSuccessEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L65">        LocalDate nextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(cycleDurationInDays);</span>
-<span class="fc" id="L66">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(</span>
-<span class="fc" id="L67">                claim, decision.getVoucherEntitlement(), nextPaymentDate, EmailType.INSTANT_SUCCESS);</span>
-<span class="fc" id="L68">        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
-<span class="fc" id="L69">    }</span>
+<span class="fc" id="L71">        LocalDate nextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(cycleDurationInDays);</span>
+<span class="fc" id="L72">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(</span>
+<span class="fc" id="L73">                claim, decision.getVoucherEntitlement(), nextPaymentDate, EmailType.INSTANT_SUCCESS);</span>
+<span class="fc" id="L74">        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
+<span class="fc" id="L75">    }</span>
+
+    public void sendReportABirthEmailMessage(Claim claim) {
+<span class="fc" id="L78">        MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);</span>
+<span class="fc" id="L79">        messageQueueClient.sendMessageWithDelay(payload, SEND_EMAIL, reportABirthMessageDelay);</span>
+<span class="fc" id="L80">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
