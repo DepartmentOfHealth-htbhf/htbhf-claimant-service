@@ -16,6 +16,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersFromDate;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class PaymentCycleTestDataFactory {
 
@@ -28,38 +29,44 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithCycleEntitlementAndClaim(PaymentCycleVoucherEntitlement paymentCycleVoucherEntitlement,
                                                                          Claim claim) {
+        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(paymentCycleVoucherEntitlement)
                 .totalVouchers(paymentCycleVoucherEntitlement.getTotalVoucherEntitlement())
                 .claim(claim)
-                .childrenDob(nullSafeGetChildrenDob(claim))
+                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithStartDateAndClaim(LocalDate startDate,
                                                                   Claim claim) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
+        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(voucherEntitlement)
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .claim(claim)
-                .childrenDob(nullSafeGetChildrenDob(claim))
+                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithStartDateClaimAndExpectedDeliveryDate(LocalDate startDate,
                                                                                       Claim claim) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
+        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(voucherEntitlement)
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .claim(claim)
-                .childrenDob(nullSafeGetChildrenDob(claim))
+                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -75,6 +82,7 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithPregnancyVouchersOnly(LocalDate startDate, LocalDate endDate) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
+        List<LocalDate> childrenDobs = emptyList();
         return aValidPaymentCycleBuilder()
                 .voucherEntitlement(voucherEntitlement)
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
@@ -82,25 +90,30 @@ public class PaymentCycleTestDataFactory {
                 .cycleEndDate(endDate)
                 .totalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence())
                 .totalVouchers(4)
-                .childrenDob(emptyList())
+                .childrenDob(childrenDobs)
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithPaymentAndClaim(Payment payment, Claim claim) {
+        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(nullSafeGetChildrenDob(claim))
+                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
         paymentCycle.addPayment(payment);
         return paymentCycle;
     }
 
     public static PaymentCycle aPaymentCycleWithClaim(Claim claim) {
+        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         return aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(nullSafeGetChildrenDob(claim))
+                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -109,19 +122,26 @@ public class PaymentCycleTestDataFactory {
     }
 
     public static PaymentCycle aPaymentCycleWithChildrenDobs(List<LocalDate> childrenDobs) {
-        return aValidPaymentCycleBuilder().childrenDob(childrenDobs).build();
+        return aValidPaymentCycleBuilder()
+                .childrenDob(childrenDobs)
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .build();
     }
 
     public static PaymentCycle aPaymentCycleWithClaimAndChildrenDobs(Claim claim, List<LocalDate> childrenDobs) {
         return aValidPaymentCycleBuilder()
                 .claim(claim)
                 .childrenDob(childrenDobs)
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
     public static PaymentCycle.PaymentCycleBuilder aValidPaymentCycleBuilder() {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         Claim claim = aValidClaim();
+        List<LocalDate> childrenDobs = List.of(
+                LocalDate.now().minusMonths(6),
+                LocalDate.now().minusYears(3).minusMonths(6));
         return PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
@@ -132,11 +152,10 @@ public class PaymentCycleTestDataFactory {
                 //Next cycle starts 4 weeks after the current one so last day of current cycle is one day less
                 .cycleEndDate(LocalDate.now().plusDays(27))
                 .totalVouchers(TOTAL_VOUCHERS)
-                .childrenDob(List.of(
-                        LocalDate.now().minusMonths(6),
-                        LocalDate.now().minusYears(3).minusMonths(6)))
+                .childrenDob(childrenDobs)
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE)
-                .expectedDeliveryDate(claim.getClaimant().getExpectedDeliveryDate());
+                .expectedDeliveryDate(claim.getClaimant().getExpectedDeliveryDate())
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs));
     }
 
     private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
