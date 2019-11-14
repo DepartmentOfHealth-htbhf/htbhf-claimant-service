@@ -10,16 +10,19 @@ import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 
 /**
  * Responsible for sending messages related to claims (new or updated).
@@ -30,13 +33,16 @@ public class ClaimMessageSender {
     private final MessageQueueClient messageQueueClient;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
     private final Integer cycleDurationInDays;
+    private final Duration reportABirthMessageDelay;
 
     public ClaimMessageSender(MessageQueueClient messageQueueClient,
                               EmailMessagePayloadFactory emailMessagePayloadFactory,
-                              @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays) {
+                              @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays,
+                              @Value("${payment-cycle.report-a-birth-message-delay}") Duration reportABirthMessageDelay) {
         this.messageQueueClient = messageQueueClient;
         this.emailMessagePayloadFactory = emailMessagePayloadFactory;
         this.cycleDurationInDays = cycleDurationInDays;
+        this.reportABirthMessageDelay = reportABirthMessageDelay;
     }
 
     public void sendReportClaimMessage(Claim claim, List<LocalDate> datesOfBirthOfChildren, ClaimAction claimAction) {
@@ -66,5 +72,10 @@ public class ClaimMessageSender {
         EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(
                 claim, decision.getVoucherEntitlement(), nextPaymentDate, EmailType.INSTANT_SUCCESS);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+    }
+
+    public void sendReportABirthEmailMessage(Claim claim) {
+        MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
+        messageQueueClient.sendMessageWithDelay(payload, SEND_EMAIL, reportABirthMessageDelay);
     }
 }
