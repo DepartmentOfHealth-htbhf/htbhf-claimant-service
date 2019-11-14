@@ -6,6 +6,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -17,6 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -37,6 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -54,6 +57,10 @@ class DetermineEntitlementMessageProcessorTest {
     private MessageQueueClient messageQueueClient;
     @Mock
     private EligibilityDecisionHandler eligibilityDecisionHandler;
+    @Mock
+    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+    @Mock
+    private ClaimMessageSender claimMessageSender;
 
     @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
@@ -72,6 +79,9 @@ class DetermineEntitlementMessageProcessorTest {
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
 
+        // current payment cycle is not second to last one with vouchers
+        given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(false);
+
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
 
@@ -88,6 +98,35 @@ class DetermineEntitlementMessageProcessorTest {
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(context.getCurrentPaymentCycle());
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
+        verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(context.getCurrentPaymentCycle());
+        verifyNoMoreInteractions(eligibilityDecisionHandler, claimMessageSender);
+    }
+
+    @Test
+    void shouldSendReportABirthReminderEmailWhenClaimantReceivesSecondToLastPregnancyVouchers() {
+        //Given
+        // The claimant will receive pregnancy vouchers for this cycle and the one after but not after that (given a 12 week grace period and four week cycles).
+        LocalDate expectedDeliveryDate = LocalDate.now().minusWeeks(5);
+        DetermineEntitlementMessageContext context = buildMessageContext(expectedDeliveryDate, NO_CHILDREN, expectedDeliveryDate, NO_CHILDREN);
+        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
+
+        //Eligibility response with no children returned
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateExistingClaimant(any(), any(), any())).willReturn(decision);
+
+        // current payment cycle is second to last one with vouchers
+        given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(true);
+
+        //Current payment cycle voucher entitlement mocking
+        Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
+
+        //When
+        MessageStatus messageStatus = processor.processMessage(message);
+
+        //Then
+        assertThat(messageStatus).isEqualTo(COMPLETED);
+        verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(context.getCurrentPaymentCycle());
+        verify(claimMessageSender).sendReportABirthEmailMessage(context.getClaim());
         verifyNoMoreInteractions(eligibilityDecisionHandler);
     }
 
@@ -120,7 +159,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         verify(eligibilityDecisionHandler)
                 .handleIneligibleDecision(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
-        verifyNoMoreInteractions(messageQueueClient);
+        verifyNoMoreInteractions(messageQueueClient, pregnancyEntitlementCalculator, claimMessageSender);
     }
 
     private DetermineEntitlementMessageContext buildMessageContext(LocalDate previousCycleExpectedDeliveryDate,
@@ -144,5 +183,4 @@ class DetermineEntitlementMessageProcessorTest {
                 previousPaymentCycle,
                 claimAtCurrentCycle);
     }
-
 }

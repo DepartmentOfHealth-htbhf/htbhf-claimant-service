@@ -1,17 +1,26 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 
 class PregnancyEntitlementCalculatorTest {
 
     private static final int PREGNANCY_GRACE_PERIOD_IN_WEEKS = 12;
+    private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 28;
 
-    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_WEEKS);
+    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_WEEKS, PAYMENT_CYCLE_DURATION_IN_DAYS);
 
     @Test
     void shouldReturnTrueForDueDateInFuture() {
@@ -73,5 +82,37 @@ class PregnancyEntitlementCalculatorTest {
         IllegalArgumentException thrown = catchThrowableOfType(() -> calculator.isEntitledToVoucher(LocalDate.now(), null), IllegalArgumentException.class);
 
         assertThat(thrown.getMessage()).isEqualTo("entitlementDate must not be null");
+    }
+
+    @Test
+    void shouldReturnTrueWhenPaymentCycleIsSecondToLastOneWithPregnancyVouchers() {
+        // The claimant will receive pregnancy vouchers for this cycle and the one after but not after that (given a 12 week grace period and four week cycles).
+        LocalDate expectedDeliveryDate = LocalDate.now().minusWeeks(5);
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+
+        boolean result = calculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(paymentCycle);
+
+        assertThat(result).isTrue();
+    }
+
+    @ParameterizedTest
+    @MethodSource("expectedDeliveryDatesNotRequiringReminderEmail")
+    void shouldReturnFalseWhenPaymentCycleIsNotSecondToLastOneWithPregnancyVouchers(LocalDate expectedDeliveryDate) {
+        Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+
+        boolean result = calculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(paymentCycle);
+
+        assertThat(result).isFalse();
+    }
+
+    private static Stream<Arguments> expectedDeliveryDatesNotRequiringReminderEmail() {
+        return Stream.of(
+                Arguments.of(LocalDate.now().minusWeeks(3)), // current payment cycle is last cycle with pregnancy vouchers
+                Arguments.of(LocalDate.now().plusWeeks(7)), // current payment cycle is third to last cycle with vouchers
+                Arguments.of(LocalDate.now().plusWeeks(16)), // will receive pregnancy vouchers for seven more cycles
+                Arguments.of(LocalDate.now().minusWeeks(16)) // due date is too far in the past, will receive no pregnancy vouchers
+        );
     }
 }

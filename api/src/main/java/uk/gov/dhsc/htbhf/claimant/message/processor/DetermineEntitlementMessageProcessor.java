@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -12,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -36,6 +38,10 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private MessageQueueClient messageQueueClient;
 
     private EligibilityDecisionHandler eligibilityDecisionHandler;
+
+    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
+    private ClaimMessageSender claimMessageSender;
 
     @Override
     public MessageType supportsMessageType() {
@@ -70,6 +76,10 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private void handleDecision(Claim claim, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
         if (decision.getEligibilityStatus() == ELIGIBLE) {
             createMakePaymentMessage(currentPaymentCycle);
+            if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {
+                // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
+                claimMessageSender.sendReportABirthEmailMessage(claim);
+            }
         } else if (claim.getClaimStatus() == ACTIVE) {
             eligibilityDecisionHandler.handleIneligibleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);
         }
