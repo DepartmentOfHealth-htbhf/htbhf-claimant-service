@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidNewCardMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
@@ -69,7 +69,7 @@ class NewCardMessageProcessorTest {
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
         verify(messageContextLoader).loadNewCardContext(message);
-        verifyZeroInteractions(newCardService);
+        verifyNoInteractions(newCardService);
     }
 
     @Test
@@ -79,7 +79,7 @@ class NewCardMessageProcessorTest {
         LocalDate cycleStartDate = context.getClaim().getClaimStatusTimestamp().toLocalDate();
         given(messageContextLoader.loadNewCardContext(any())).willReturn(context);
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(context.getClaim());
-        given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any(), any())).willReturn(paymentCycle);
+        given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any())).willReturn(paymentCycle);
         Message message = aValidMessage();
 
         //When
@@ -89,12 +89,11 @@ class NewCardMessageProcessorTest {
         assertThat(status).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
         verify(messageContextLoader).loadNewCardContext(message);
-        verify(newCardService).createNewCard(context.getClaim(), context.getDatesOfBirthOfChildren());
+        verify(newCardService).createNewCard(context.getClaim(), context.getEligibilityAndEntitlementDecision().getDateOfBirthOfChildren());
         verify(paymentCycleService).createAndSavePaymentCycleForEligibleClaim(
                 context.getClaim(),
                 cycleStartDate,
-                context.getPaymentCycleVoucherEntitlement(),
-                context.getDatesOfBirthOfChildren());
+                context.getEligibilityAndEntitlementDecision());
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
         verifyMakeFirstPaymentMessageSent(payloadCaptor, context.getClaim(), paymentCycle);
     }

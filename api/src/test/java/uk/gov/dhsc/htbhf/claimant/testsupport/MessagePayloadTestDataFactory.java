@@ -3,12 +3,14 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 public class MessagePayloadTestDataFactory {
@@ -32,17 +34,20 @@ public class MessagePayloadTestDataFactory {
     public static NewCardRequestMessagePayload aNewCardRequestMessagePayload(UUID claimId,
                                                                              PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                              List<LocalDate> datesOfBirth) {
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = aValidDecisionBuilder()
+                .voucherEntitlement(voucherEntitlement)
+                .dateOfBirthOfChildren(datesOfBirth)
+                .build();
         return defaultNewCardRequestMessagePayloadBuilder()
                 .claimId(claimId)
-                .voucherEntitlement(voucherEntitlement)
-                .datesOfBirthOfChildren(datesOfBirth)
+                .eligibilityAndEntitlementDecision(eligibilityAndEntitlementDecision)
                 .build();
     }
 
     private static NewCardRequestMessagePayload.NewCardRequestMessagePayloadBuilder defaultNewCardRequestMessagePayloadBuilder() {
         return NewCardRequestMessagePayload.builder()
                 .claimId(CLAIM_ID)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers());
+                .eligibilityAndEntitlementDecision(anEligibleDecision());
     }
 
 }

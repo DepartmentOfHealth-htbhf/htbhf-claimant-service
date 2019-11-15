@@ -2,10 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.message.payload;
 
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -13,6 +11,5 @@ import java.util.UUID;
 public class NewCardRequestMessagePayload implements MessagePayload {
 
     private UUID claimId;
-    private PaymentCycleVoucherEntitlement voucherEntitlement;
-    private List<LocalDate> datesOfBirthOfChildren;
+    private EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision;
 }

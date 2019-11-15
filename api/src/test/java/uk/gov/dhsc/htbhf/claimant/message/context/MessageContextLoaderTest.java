@@ -137,7 +137,7 @@ class MessageContextLoaderTest {
 
         //Then
         assertThat(thrown).isEqualTo(testException);
-        verifyZeroInteractions(paymentCycleRepository, claimRepository);
+        verifyNoInteractions(paymentCycleRepository, claimRepository);
         verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
     }
 
@@ -353,8 +353,7 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
-        assertThat(context.getPaymentCycleVoucherEntitlement()).isEqualTo(voucherEntitlement);
-        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirth);
+        assertThat(context.getEligibilityAndEntitlementDecision()).isEqualTo(payload.getEligibilityAndEntitlementDecision());
         verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
         verify(claimRepository).findById(claimId);
     }
@@ -407,7 +406,7 @@ class MessageContextLoaderTest {
         assertThat(context.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
         verify(claimRepository).findById(claimId);
-        verifyZeroInteractions(paymentCycleRepository);
+        verifyNoInteractions(paymentCycleRepository);
     }
 
     @Test
@@ -436,7 +435,7 @@ class MessageContextLoaderTest {
         assertThat(context.getUpdatedClaimantFields()).isEqualTo(payload.getUpdatedClaimantFields());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
-        verifyZeroInteractions(paymentCycleRepository);
+        verifyNoInteractions(paymentCycleRepository);
     }
 
     @Test

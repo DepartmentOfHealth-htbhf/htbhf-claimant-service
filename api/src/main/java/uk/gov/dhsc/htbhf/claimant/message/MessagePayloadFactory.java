@@ -1,12 +1,12 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
 import java.time.LocalDate;
@@ -19,12 +19,10 @@ import java.util.List;
 public class MessagePayloadFactory {
 
     public static NewCardRequestMessagePayload buildNewCardMessagePayload(Claim claim,
-                                                                          PaymentCycleVoucherEntitlement voucherEntitlement,
-                                                                          List<LocalDate> datesOfBirthOfChildren) {
+                                                                          EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision) {
         return NewCardRequestMessagePayload.builder()
                 .claimId(claim.getId())
-                .voucherEntitlement(voucherEntitlement)
-                .datesOfBirthOfChildren(datesOfBirthOfChildren)
+                .eligibilityAndEntitlementDecision(eligibilityAndEntitlementDecision)
                 .build();
     }
 

@@ -17,6 +17,10 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 public class EligibilityAndEntitlementTestDataFactory {
 
+    public static EligibilityAndEntitlementDecision anEligibleDecision() {
+        return aDecisionWithStatus(ELIGIBLE);
+    }
+
     public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
         EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
         removeEligibilityStatusIfAppropriate(eligibilityStatus, builder);
