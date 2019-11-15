@@ -252,7 +252,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
 
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(SINGLE_THREE_YEAR_OLD, LocalDate.now().minusWeeks(7));
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(SINGLE_THREE_YEAR_OLD, LocalDate.now().minusWeeks(9));
 
         invokeAllSchedulers();
 
@@ -304,8 +304,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
             + "period. On their penultimate payment cycle which they will receive pregnancy vouchers, the claimant is sent an email reminder about reporting"
             + "a birth.")
     @Test
-    @Disabled("HTBHF-2377")
-    void shouldSendReportABirthReminderEmailWhenClaimantIsReceivesSecondToLastPregnancyVoucher() throws JsonProcessingException, NotificationClientException {
+    void shouldSendReportABirthReminderEmailWhenClaimantReceivesSecondToLastPregnancyVoucher() throws JsonProcessingException, NotificationClientException {
         // The claimant will receive pregnancy vouchers for this cycle and the one after but not after that (given a 12 week grace period and four week cycles).
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
@@ -328,6 +327,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
+        assertThatPaymentEmailWasSent(newCycle);
         assertThatReportABirthReminderEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
     }

@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,8 +68,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // run through 4 cycles while pregnant (we pay vouchers for up to 12 weeks after due date
         // - their due date is during the 3rd cycle so the claim would expire during 6th if no birth reported)
-        // TODO: HTBHD-2377 & HTBHF-1503 reminder email sent at second payment after due date
         expectedDeliveryDate = progressThroughPaymentCyclesForPregnancy(expectedDeliveryDate, claimId, 4);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThatReportABirthReminderEmailWasSent(claim);
+        verifyNoMoreInteractions(notificationClient);
 
         // child was born exactly on due date - one and a half cycles ago - notify in time to get backdated vouchers
         List<LocalDate> childrenDob = ageByOneCycle(asList(expectedDeliveryDate));
@@ -93,7 +94,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 1);
 
         // the claim should have been in ACTIVE status for over 4 years by now (including pregnancy)
-        Claim claim = repositoryMediator.loadClaim(claimId);
+        claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusYears(4));
 
@@ -128,7 +129,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * |.......................................................| email that the card will be cancelled in one week
      */
     @Test
-    @Disabled("HTBHF-2377")
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
@@ -140,9 +140,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         expectedDeliveryDate = progressThroughPaymentCyclesForPregnancy(expectedDeliveryDate, claimId, 8);
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThatReportABirthReminderEmailWasSent(claim);
+        verifyNoMoreInteractions(notificationClient);
 
         // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
         progressThroughPaymentCyclesForPregnancy(expectedDeliveryDate, claimId, 1);
+        verifyNoMoreInteractions(notificationClient);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
@@ -175,7 +177,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
             wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
             invokeAllSchedulers();
             assertRegularPaymentCyclePaidCorrectly(claimId, NO_CHILDREN);
-            verifyNoMoreInteractions(notificationClient);
         }
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
     }
