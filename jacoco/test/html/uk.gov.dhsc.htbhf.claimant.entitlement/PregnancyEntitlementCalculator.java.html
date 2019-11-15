@@ -2,6 +2,7 @@
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
 
@@ -14,20 +15,50 @@ import java.time.LocalDate;
 public class PregnancyEntitlementCalculator {
 
     private final int pregnancyGracePeriodInWeeks;
+    private final int paymentCycleDurationInDays;
 
-<span class="fc" id="L18">    public PregnancyEntitlementCalculator(@Value(&quot;${entitlement.pregnancy-grace-period-in-weeks}&quot;) int pregnancyGracePeriodInWeeks) {</span>
-<span class="fc" id="L19">        this.pregnancyGracePeriodInWeeks = pregnancyGracePeriodInWeeks;</span>
-<span class="fc" id="L20">    }</span>
+    public PregnancyEntitlementCalculator(@Value(&quot;${entitlement.pregnancy-grace-period-in-weeks}&quot;) int pregnancyGracePeriodInWeeks,
+<span class="fc" id="L21">                                          @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) int paymentCycleDurationInDays) {</span>
+<span class="fc" id="L22">        this.pregnancyGracePeriodInWeeks = pregnancyGracePeriodInWeeks;</span>
+<span class="fc" id="L23">        this.paymentCycleDurationInDays = paymentCycleDurationInDays;</span>
+<span class="fc" id="L24">    }</span>
 
     public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate) {
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (entitlementDate == null) {</span>
-<span class="fc" id="L24">            throw new IllegalArgumentException(&quot;entitlementDate must not be null&quot;);</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if (entitlementDate == null) {</span>
+<span class="fc" id="L28">            throw new IllegalArgumentException(&quot;entitlementDate must not be null&quot;);</span>
         }
-<span class="fc bfc" id="L26" title="All 2 branches covered.">        if (dueDate == null) {</span>
-<span class="fc" id="L27">            return false;</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (dueDate == null) {</span>
+<span class="fc" id="L31">            return false;</span>
         }
-<span class="fc" id="L29">        LocalDate endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);</span>
-<span class="fc bfc" id="L30" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(entitlementDate);</span>
+<span class="fc" id="L33">        LocalDate endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        return !endOfGracePeriod.isBefore(entitlementDate);</span>
+    }
+
+    /**
+     * Determines if the current cycle is the claimant's second to last cycle with pregnancy vouchers. i.e if the current and next payment cycle are
+     * entitled to pregnancy vouchers, and the one after that is not entitled to vouchers.
+     * &lt;p&gt;
+     * Example illustrated below:
+     * |...|...|...|...| four payment cycles (16 weeks)
+     *   ^ due date
+     *         |...| second to last cycle with pregnancy vouchers
+     *               ^ end of grace period for pregnancy vouchers
+     *             |...| last cycle with pregnancy vouchers
+     * &lt;/p&gt;
+     * @param currentPaymentCycle the current payment cycle
+     * @return true if the current and next payment cycle are entitled to pregnancy vouchers, and the one after that is not entitled to vouchers.
+     */
+    public boolean currentCycleIsSecondToLastCycleWithPregnancyVouchers(PaymentCycle currentPaymentCycle) {
+<span class="fc" id="L52">        LocalDate expectedDeliveryDate = currentPaymentCycle.getExpectedDeliveryDate();</span>
+<span class="fc" id="L53">        LocalDate cycleStartDate = currentPaymentCycle.getCycleStartDate();</span>
+
+<span class="fc" id="L55">        boolean entitledToVouchersInCurrentCycle = isEntitledToVoucher(expectedDeliveryDate, cycleStartDate);</span>
+<span class="fc" id="L56">        LocalDate nextCycleStartDate = cycleStartDate.plusDays(paymentCycleDurationInDays);</span>
+<span class="fc" id="L57">        boolean entitledToVouchersInNextCycle = isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);</span>
+<span class="fc" id="L58">        LocalDate cycleAfterNextStartDate = nextCycleStartDate.plusDays(paymentCycleDurationInDays);</span>
+<span class="fc" id="L59">        boolean entitledToVouchersInCycleAfterNext = isEntitledToVoucher(expectedDeliveryDate, cycleAfterNextStartDate);</span>
+
+<span class="fc bfc" id="L61" title="All 6 branches covered.">        return entitledToVouchersInCurrentCycle &amp;&amp; entitledToVouchersInNextCycle &amp;&amp; !entitledToVouchersInCycleAfterNext;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

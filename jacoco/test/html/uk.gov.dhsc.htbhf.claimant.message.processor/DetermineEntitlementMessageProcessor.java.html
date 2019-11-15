@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -12,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -22,7 +24,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEME
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
-<span class="fc" id="L25">@Slf4j</span>
+<span class="fc" id="L27">@Slf4j</span>
 @Component
 @AllArgsConstructor
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
@@ -37,9 +39,13 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
     private EligibilityDecisionHandler eligibilityDecisionHandler;
 
+    private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+
+    private ClaimMessageSender claimMessageSender;
+
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L42">        return DETERMINE_ENTITLEMENT;</span>
+<span class="fc" id="L48">        return DETERMINE_ENTITLEMENT;</span>
     }
 
     /**
@@ -52,33 +58,37 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L55">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
-<span class="fc" id="L56">        Claim claim = messageContext.getClaim();</span>
-<span class="fc" id="L57">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
-<span class="fc" id="L58">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
+<span class="fc" id="L61">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
+<span class="fc" id="L62">        Claim claim = messageContext.getClaim();</span>
+<span class="fc" id="L63">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
+<span class="fc" id="L64">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
 
-<span class="fc" id="L60">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(</span>
-<span class="fc" id="L61">                claim.getClaimant(),</span>
-<span class="fc" id="L62">                currentPaymentCycle.getCycleStartDate(),</span>
+<span class="fc" id="L66">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateExistingClaimant(</span>
+<span class="fc" id="L67">                claim.getClaimant(),</span>
+<span class="fc" id="L68">                currentPaymentCycle.getCycleStartDate(),</span>
                 previousPaymentCycle);
 
-<span class="fc" id="L65">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
-<span class="fc" id="L66">        handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
-<span class="fc" id="L67">        return COMPLETED;</span>
+<span class="fc" id="L71">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
+<span class="fc" id="L72">        handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
+<span class="fc" id="L73">        return COMPLETED;</span>
     }
 
     private void handleDecision(Claim claim, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle, EligibilityAndEntitlementDecision decision) {
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
-<span class="fc" id="L72">            createMakePaymentMessage(currentPaymentCycle);</span>
-<span class="pc bpc" id="L73" title="1 of 2 branches missed.">        } else if (claim.getClaimStatus() == ACTIVE) {</span>
-<span class="fc" id="L74">            eligibilityDecisionHandler.handleIneligibleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
+<span class="fc" id="L78">            createMakePaymentMessage(currentPaymentCycle);</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">            if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {</span>
+                // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
+<span class="fc" id="L81">                claimMessageSender.sendReportABirthEmailMessage(claim);</span>
+            }
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        } else if (claim.getClaimStatus() == ACTIVE) {</span>
+<span class="fc" id="L84">            eligibilityDecisionHandler.handleIneligibleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
         }
         //TODO HTBHF-1296: If not ACTIVE, PENDING_EXPIRY will be moved to EXPIRED after 16 weeks.
-<span class="fc" id="L77">    }</span>
+<span class="fc" id="L87">    }</span>
 
     private void createMakePaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L80">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L81">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L82">    }</span>
+<span class="fc" id="L90">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L91">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L92">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
