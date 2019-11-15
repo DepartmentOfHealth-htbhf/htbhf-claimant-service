@@ -10,15 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
-import uk.gov.dhsc.htbhf.claimant.message.payload.AdditionalPregnancyPaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,11 +28,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -45,6 +45,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 class ClaimMessageSenderTest {
 
     private static final int CYCLE_DURATION_IN_DAYS = 28;
+    private static final Duration REPORT_A_BIRTH_MESSAGE_DELAY = Duration.ZERO;
 
     @Mock
     private MessageQueueClient messageQueueClient;
@@ -55,8 +56,8 @@ class ClaimMessageSenderTest {
     private ClaimMessageSender claimMessageSender;
 
     @BeforeEach
-    private void setup() {
-        claimMessageSender = new ClaimMessageSender(messageQueueClient, emailMessagePayloadFactory, CYCLE_DURATION_IN_DAYS);
+    void setup() {
+        claimMessageSender = new ClaimMessageSender(messageQueueClient, emailMessagePayloadFactory, CYCLE_DURATION_IN_DAYS, REPORT_A_BIRTH_MESSAGE_DELAY);
     }
 
     @Test
@@ -135,6 +136,16 @@ class ClaimMessageSenderTest {
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
         verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate, INSTANT_SUCCESS);
+    }
+
+    @Test
+    void shouldSendReportABirthMessage() {
+        Claim claim  = aValidClaim();
+
+        claimMessageSender.sendReportABirthEmailMessage(claim);
+
+        MessagePayload emailMessagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
+        verify(messageQueueClient).sendMessageWithDelay(emailMessagePayload, SEND_EMAIL, REPORT_A_BIRTH_MESSAGE_DELAY);
     }
 
 }
