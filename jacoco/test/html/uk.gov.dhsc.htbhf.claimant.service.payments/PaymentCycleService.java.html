@@ -2,7 +2,6 @@
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -12,10 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
@@ -27,11 +24,11 @@ public class PaymentCycleService {
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
                                @Value(&quot;${payment-cycle.cycle-duration-in-days}&quot;) Integer cycleDurationInDays,
-<span class="fc" id="L30">                               PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {</span>
-<span class="fc" id="L31">        this.paymentCycleRepository = paymentCycleRepository;</span>
-<span class="fc" id="L32">        this.cycleDurationInDays = cycleDurationInDays;</span>
-<span class="fc" id="L33">        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;</span>
-<span class="fc" id="L34">    }</span>
+<span class="fc" id="L27">                               PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {</span>
+<span class="fc" id="L28">        this.paymentCycleRepository = paymentCycleRepository;</span>
+<span class="fc" id="L29">        this.cycleDurationInDays = cycleDurationInDays;</span>
+<span class="fc" id="L30">        this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;</span>
+<span class="fc" id="L31">    }</span>
 
     /**
      * Creates a new payment cycle for the given claim and cycle start date, saving it in the database.
@@ -42,14 +39,14 @@ public class PaymentCycleService {
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
-<span class="fc" id="L45">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L46">                .claim(claim)</span>
-<span class="fc" id="L47">                .paymentCycleStatus(NEW)</span>
-<span class="fc" id="L48">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L49">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
-<span class="fc" id="L50">                .build();</span>
-<span class="fc" id="L51">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L52">        return paymentCycle;</span>
+<span class="fc" id="L42">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L43">                .claim(claim)</span>
+<span class="fc" id="L44">                .paymentCycleStatus(NEW)</span>
+<span class="fc" id="L45">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L46">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
+<span class="fc" id="L47">                .build();</span>
+<span class="fc" id="L48">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L49">        return paymentCycle;</span>
     }
 
     /**
@@ -58,37 +55,35 @@ public class PaymentCycleService {
      * The expected due date is set only if the voucher entitlement contains pregnancy vouchers.
      * EligibilityStatus is set to ELIGIBLE, QualifyingBenefitEligibilityStatus to CONFIRMED.
      *
-     * @param claim                  claim to create a payment cycle for
-     * @param cycleStartDate         the start date of the new payment cycle
-     * @param voucherEntitlement     the vouchers the claimant is entitled to during this cycle
-     * @param datesOfBirthOfChildren the dates of birth of children present during this cycle
+     * @param claim                             claim to create a payment cycle for
+     * @param cycleStartDate                    the start date of the new payment cycle
+     * @param eligibilityAndEntitlementDecision the eligibility and entitlement decision
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycleForEligibleClaim(Claim claim,
                                                                   LocalDate cycleStartDate,
-                                                                  PaymentCycleVoucherEntitlement voucherEntitlement,
-                                                                  List&lt;LocalDate&gt; datesOfBirthOfChildren) {
-<span class="fc" id="L71">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
-<span class="fc" id="L72">                .claim(claim)</span>
-<span class="fc" id="L73">                .paymentCycleStatus(NEW)</span>
-<span class="fc" id="L74">                .cycleStartDate(cycleStartDate)</span>
-<span class="fc" id="L75">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
-<span class="fc" id="L76">                .eligibilityStatus(ELIGIBLE)</span>
-<span class="fc" id="L77">                .qualifyingBenefitEligibilityStatus(CONFIRMED)</span>
-<span class="fc" id="L78">                .childrenDob(datesOfBirthOfChildren)</span>
-<span class="fc" id="L79">                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))</span>
-<span class="fc" id="L80">                .build();</span>
+                                                                  EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision) {
+<span class="fc" id="L66">        PaymentCycle paymentCycle = PaymentCycle.builder()</span>
+<span class="fc" id="L67">                .claim(claim)</span>
+<span class="fc" id="L68">                .paymentCycleStatus(NEW)</span>
+<span class="fc" id="L69">                .cycleStartDate(cycleStartDate)</span>
+<span class="fc" id="L70">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
+<span class="fc" id="L71">                .eligibilityStatus(ELIGIBLE)</span>
+<span class="fc" id="L72">                .qualifyingBenefitEligibilityStatus(eligibilityAndEntitlementDecision.getQualifyingBenefitEligibilityStatus())</span>
+<span class="fc" id="L73">                .childrenDob(eligibilityAndEntitlementDecision.getDateOfBirthOfChildren())</span>
+<span class="fc" id="L74">                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))</span>
+<span class="fc" id="L75">                .build();</span>
 
-<span class="fc" id="L82">        paymentCycle.applyVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc" id="L83">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L84">        return paymentCycle;</span>
+<span class="fc" id="L77">        paymentCycle.applyVoucherEntitlement(eligibilityAndEntitlementDecision.getVoucherEntitlement());</span>
+<span class="fc" id="L78">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L79">        return paymentCycle;</span>
     }
 
     private LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, LocalDate cycleStartDate) {
-<span class="fc bfc" id="L88" title="All 2 branches covered.">        if (pregnancyEntitlementCalculator.isEntitledToVoucher(claim.getClaimant().getExpectedDeliveryDate(), cycleStartDate)) {</span>
-<span class="fc" id="L89">            return claim.getClaimant().getExpectedDeliveryDate();</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (pregnancyEntitlementCalculator.isEntitledToVoucher(claim.getClaimant().getExpectedDeliveryDate(), cycleStartDate)) {</span>
+<span class="fc" id="L84">            return claim.getClaimant().getExpectedDeliveryDate();</span>
         }
-<span class="fc" id="L91">        return null;</span>
+<span class="fc" id="L86">        return null;</span>
     }
 
     /**
@@ -97,8 +92,8 @@ public class PaymentCycleService {
      * @param paymentCycle The {@link PaymentCycle} to save
      */
     public void savePaymentCycle(PaymentCycle paymentCycle) {
-<span class="fc" id="L100">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L101">    }</span>
+<span class="fc" id="L95">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L96">    }</span>
 
     /**
      * Update and saves the payment cycle with the given calculation and card balance.
@@ -108,10 +103,10 @@ public class PaymentCycleService {
      * @param cardBalanceInPence card balance in pence
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus, int cardBalanceInPence) {
-<span class="fc" id="L111">        paymentCycle.setCardBalanceInPence(cardBalanceInPence);</span>
-<span class="fc" id="L112">        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L113">        updatePaymentCycle(paymentCycle, paymentCycleStatus);</span>
-<span class="fc" id="L114">    }</span>
+<span class="fc" id="L106">        paymentCycle.setCardBalanceInPence(cardBalanceInPence);</span>
+<span class="fc" id="L107">        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());</span>
+<span class="fc" id="L108">        updatePaymentCycle(paymentCycle, paymentCycleStatus);</span>
+<span class="fc" id="L109">    }</span>
 
     /**
      * Update and saves the payment cycle with the decision.
@@ -120,16 +115,16 @@ public class PaymentCycleService {
      * @param decision     decision to update the payment cycle with
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L123">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
-<span class="fc" id="L124">        paymentCycle.setQualifyingBenefitEligibilityStatus(decision.getQualifyingBenefitEligibilityStatus());</span>
-<span class="fc" id="L125">        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());</span>
-<span class="fc" id="L126">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
-<span class="fc" id="L127">        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());</span>
-<span class="fc" id="L128">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
-<span class="fc" id="L129">        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), paymentCycle.getCycleStartDate());</span>
-<span class="fc" id="L130">        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);</span>
-<span class="fc" id="L131">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L132">    }</span>
+<span class="fc" id="L118">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
+<span class="fc" id="L119">        paymentCycle.setQualifyingBenefitEligibilityStatus(decision.getQualifyingBenefitEligibilityStatus());</span>
+<span class="fc" id="L120">        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L121">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
+<span class="fc" id="L122">        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());</span>
+<span class="fc" id="L123">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
+<span class="fc" id="L124">        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), paymentCycle.getCycleStartDate());</span>
+<span class="fc" id="L125">        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);</span>
+<span class="fc" id="L126">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L127">    }</span>
 
     /**
      * Update and saves the payment cycle with the given calculation.
@@ -138,8 +133,8 @@ public class PaymentCycleService {
      * @param paymentCycleStatus payment cycle status
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
-<span class="fc" id="L141">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
-<span class="fc" id="L142">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L143">    }</span>
+<span class="fc" id="L136">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
+<span class="fc" id="L137">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L138">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

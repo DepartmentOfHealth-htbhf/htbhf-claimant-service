@@ -63,7 +63,7 @@ public class ClaimMessageSender {
 <span class="fc" id="L63">    }</span>
 
     public void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L66">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L66">        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision);</span>
 <span class="fc" id="L67">        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);</span>
 <span class="fc" id="L68">    }</span>
 

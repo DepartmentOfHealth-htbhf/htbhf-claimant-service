@@ -3,7 +3,6 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -14,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
@@ -39,18 +39,18 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
     private MessageContextLoader messageContextLoader;
     private PaymentCycleService paymentCycleService;
     private MessageQueueClient messageQueueClient;
-    private EmailMessagePayloadFactory emailMessagePayloadFactory;
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L46">        return CREATE_NEW_CARD;</span>
+<span class="fc" id="L45">        return CREATE_NEW_CARD;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L52">        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);</span>
-<span class="fc" id="L53">        newCardService.createNewCard(context.getClaim(), context.getDatesOfBirthOfChildren());</span>
+<span class="fc" id="L51">        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);</span>
+<span class="fc" id="L52">        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = context.getEligibilityAndEntitlementDecision();</span>
+<span class="fc" id="L53">        newCardService.createNewCard(context.getClaim(), eligibilityAndEntitlementDecision.getDateOfBirthOfChildren());</span>
 <span class="fc" id="L54">        PaymentCycle paymentCycle = createAndSavePaymentCycle(context);</span>
 <span class="fc" id="L55">        sendMakeFirstPaymentMessage(paymentCycle);</span>
 <span class="fc" id="L56">        return COMPLETED;</span>
@@ -61,14 +61,13 @@ public class NewCardMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L61">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(</span>
                 claim,
 <span class="fc" id="L63">                claim.getClaimStatusTimestamp().toLocalDate(),</span>
-<span class="fc" id="L64">                context.getPaymentCycleVoucherEntitlement(),</span>
-<span class="fc" id="L65">                context.getDatesOfBirthOfChildren());</span>
+<span class="fc" id="L64">                context.getEligibilityAndEntitlementDecision());</span>
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L69">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L70">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L71">    }</span>
+<span class="fc" id="L68">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L69">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
+<span class="fc" id="L70">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
