@@ -1,0 +1,1 @@
+alter table payment_cycle drop column qualifying_benefit_eligibility_status;
