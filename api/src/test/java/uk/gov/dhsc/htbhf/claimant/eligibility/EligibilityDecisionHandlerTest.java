@@ -18,10 +18,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,8 +36,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.NOT_CONFIRMED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
@@ -71,14 +69,14 @@ class EligibilityDecisionHandlerTest {
     // Current cycle: no children and not pregnant
     @ParameterizedTest(name = "Qualifying benefit status={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimWhenIneligibleWithNoChildrenAndNotPregnant(QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
+    void shouldExpireClaimWhenIneligibleWithNoChildrenAndNotPregnant(EligibilityOutcome eligibilityOutcome) {
         //Given
         //Claimant has children under 4 at the previous payment cycle that would still over 4 now (but not reported by DWP).
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
         given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
 
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, qualifyingBenefitEligibilityStatus, currentCycleChildrenDobs);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(NOT_PREGNANT, SINGLE_NEARLY_FOUR_YEAR_OLD);
@@ -119,7 +117,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, CONFIRMED, currentCycleChildrenDobs);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.CONFIRMED, currentCycleChildrenDobs);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         //When
@@ -156,7 +154,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, NOT_CONFIRMED, currentCycleChildrenDobs);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.NOT_CONFIRMED, currentCycleChildrenDobs);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         //When
@@ -187,7 +185,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, NOT_CONFIRMED, currentCycleChildrenDobs);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.NOT_CONFIRMED, currentCycleChildrenDobs);
 
         //When
         handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
@@ -202,7 +200,7 @@ class EligibilityDecisionHandlerTest {
 
     @ParameterizedTest(name = "Qualifying benefit status={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
-    void shouldExpireClaimWhenClaimantWasPregnantWithNoChildrenButNoLongerPregnant(QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus) {
+    void shouldExpireClaimWhenClaimantWasPregnantWithNoChildrenButNoLongerPregnant(EligibilityOutcome eligibilityOutcome) {
         //Given
         //Had children in last cycle who are under 4 at the start of the current payment cycle.
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(false);
@@ -218,7 +216,7 @@ class EligibilityDecisionHandlerTest {
         lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycle.getCycleStartDate()))
                 .thenReturn(true);
 
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, qualifyingBenefitEligibilityStatus, currentCycleChildrenDobs);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
 
         //When
         handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);

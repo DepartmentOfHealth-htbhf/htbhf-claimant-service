@@ -12,9 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
+import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
+import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -28,13 +31,17 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.NOT_CONFIRMED;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.LISA_DOB;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
+import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -76,7 +83,7 @@ class EligibilityAndEntitlementServiceTest {
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
-        verifyZeroInteractions(duplicateClaimChecker);
+        verifyNoInteractions(duplicateClaimChecker);
     }
 
     @Test
@@ -199,7 +206,7 @@ class EligibilityAndEntitlementServiceTest {
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        verifyZeroInteractions(duplicateClaimChecker, claimRepository);
+        verifyNoInteractions(duplicateClaimChecker, claimRepository);
     }
 
     @Test
@@ -221,7 +228,7 @@ class EligibilityAndEntitlementServiceTest {
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        verifyZeroInteractions(duplicateClaimChecker, claimRepository);
+        verifyNoInteractions(duplicateClaimChecker, claimRepository);
     }
 
     @Test
@@ -259,7 +266,7 @@ class EligibilityAndEntitlementServiceTest {
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        verifyZeroInteractions(duplicateClaimChecker, claimRepository);
+        verifyNoInteractions(duplicateClaimChecker, claimRepository);
     }
 
     private void assertCorrectEligibleResult(EligibilityAndEntitlementDecision result,
@@ -270,29 +277,40 @@ class EligibilityAndEntitlementServiceTest {
     }
 
     private void assertCorrectDuplicateResult(EligibilityAndEntitlementDecision result,
-                                             EligibilityResponse eligibilityResponse,
-                                             PaymentCycleVoucherEntitlement voucherEntitlement) {
+                                              EligibilityResponse eligibilityResponse,
+                                              PaymentCycleVoucherEntitlement voucherEntitlement) {
         assertDecisionResultCorrectApartFromVoucherEntitlement(result, DUPLICATE, CONFIRMED, eligibilityResponse);
         assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
     }
 
     private void assertCorrectIneligibleResultWithNoVoucherEntitlement(EligibilityAndEntitlementDecision result,
-                                                                       QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus,
+                                                                       EligibilityOutcome eligibilityOutcome,
                                                                        EligibilityResponse eligibilityResponse) {
-        assertDecisionResultCorrectApartFromVoucherEntitlement(result, INELIGIBLE, qualifyingBenefitEligibilityStatus, eligibilityResponse);
+        assertDecisionResultCorrectApartFromVoucherEntitlement(result, INELIGIBLE, eligibilityOutcome, eligibilityResponse);
         assertThat(result.getVoucherEntitlement()).isNull();
     }
 
     private void assertDecisionResultCorrectApartFromVoucherEntitlement(EligibilityAndEntitlementDecision result,
                                                                         EligibilityStatus eligibilityStatus,
-                                                                        QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus,
+                                                                        EligibilityOutcome eligibilityOutcome,
                                                                         EligibilityResponse eligibilityResponse) {
         assertThat(result).isNotNull();
         assertThat(result.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        assertThat(result.getQualifyingBenefitEligibilityStatus()).isEqualTo(qualifyingBenefitEligibilityStatus);
+        List<LocalDate> childrenDobs = List.of(MAGGIE_DOB, LISA_DOB);
+        IdentityAndEligibilityResponse identityAndEligibilityResponse = buildIdentityAndEligibilityResponse(childrenDobs, eligibilityOutcome);
+        assertThat(result.getIdentityAndEligibilityResponse()).isEqualTo(identityAndEligibilityResponse);
         assertThat(result.getDateOfBirthOfChildren()).isEqualTo(eligibilityResponse.getDateOfBirthOfChildren());
         assertThat(result.getDwpHouseholdIdentifier()).isEqualTo(eligibilityResponse.getDwpHouseholdIdentifier());
         assertThat(result.getHmrcHouseholdIdentifier()).isEqualTo(eligibilityResponse.getHmrcHouseholdIdentifier());
+    }
+
+    private IdentityAndEligibilityResponse buildIdentityAndEligibilityResponse(List<LocalDate> childrenDobs, EligibilityOutcome eligibilityOutcome) {
+        IdentityAndEligibilityResponse identityAndEligibilityResponse = (CONFIRMED == eligibilityOutcome)
+                ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(VerificationOutcome.NOT_SUPPLIED, childrenDobs)
+                : anIdentityMatchedEligibilityNotConfirmedResponse();
+        return identityAndEligibilityResponse.toBuilder()
+                .householdIdentifier(TestConstants.DWP_HOUSEHOLD_IDENTIFIER)
+                .build();
     }
 
 }

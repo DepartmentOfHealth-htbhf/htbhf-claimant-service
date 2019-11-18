@@ -10,7 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -98,7 +97,7 @@ public class EligibilityAndEntitlementService {
         PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
-                .qualifyingBenefitEligibilityStatus(QualifyingBenefitEligibilityStatus.fromEligibilityStatus(eligibilityResponse.getEligibilityStatus()))
+                .identityAndEligibilityResponse(IdentityAndEligibilityResponseFactory.fromEligibilityResponse(eligibilityResponse))
                 .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
                 .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())

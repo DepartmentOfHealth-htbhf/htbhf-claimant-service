@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
-    private final QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus;
+    private final IdentityAndEligibilityResponse identityAndEligibilityResponse;
     private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
