@@ -69,7 +69,7 @@ public class PaymentCycleService {
 <span class="fc" id="L69">                .cycleStartDate(cycleStartDate)</span>
 <span class="fc" id="L70">                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))</span>
 <span class="fc" id="L71">                .eligibilityStatus(ELIGIBLE)</span>
-<span class="fc" id="L72">                .qualifyingBenefitEligibilityStatus(eligibilityAndEntitlementDecision.getQualifyingBenefitEligibilityStatus())</span>
+<span class="fc" id="L72">                .identityAndEligibilityResponse(eligibilityAndEntitlementDecision.getIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L73">                .childrenDob(eligibilityAndEntitlementDecision.getDateOfBirthOfChildren())</span>
 <span class="fc" id="L74">                .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))</span>
 <span class="fc" id="L75">                .build();</span>
@@ -116,7 +116,7 @@ public class PaymentCycleService {
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
 <span class="fc" id="L118">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
-<span class="fc" id="L119">        paymentCycle.setQualifyingBenefitEligibilityStatus(decision.getQualifyingBenefitEligibilityStatus());</span>
+<span class="fc" id="L119">        paymentCycle.setIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse());</span>
 <span class="fc" id="L120">        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());</span>
 <span class="fc" id="L121">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
 <span class="fc" id="L122">        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());</span>

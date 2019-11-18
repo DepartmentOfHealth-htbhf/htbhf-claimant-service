@@ -47,7 +47,7 @@ public class EligibilityDecisionHandler {
 
 <span class="fc bfc" id="L48" title="All 2 branches covered.">        if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {</span>
 <span class="fc" id="L49">            expireActiveClaim(claim, decision.getDateOfBirthOfChildren());</span>
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        } else if (decision.getQualifyingBenefitEligibilityStatus().isNotEligible()) {</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {</span>
 <span class="fc" id="L51">            handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());</span>
         } else {
 <span class="fc" id="L53">            handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());</span>

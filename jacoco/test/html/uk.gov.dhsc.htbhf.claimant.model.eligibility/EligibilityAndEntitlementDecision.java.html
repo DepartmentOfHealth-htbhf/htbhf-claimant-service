@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class EligibilityAndEntitlementDecision {
 
     private final EligibilityStatus eligibilityStatus;
-    private final QualifyingBenefitEligibilityStatus qualifyingBenefitEligibilityStatus;
+    private final IdentityAndEligibilityResponse identityAndEligibilityResponse;
     private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
@@ -25,17 +26,17 @@ public class EligibilityAndEntitlementDecision {
     private final PaymentCycleVoucherEntitlement voucherEntitlement;
 
     public static EligibilityAndEntitlementDecision buildWithStatus(EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L28">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L29">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L30">                .build();</span>
+<span class="fc" id="L29">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L30">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L31">                .build();</span>
     }
 
     public boolean claimExistsAndIsEligible() {
-<span class="fc bfc" id="L34" title="All 4 branches covered.">        return existingClaimId != null &amp;&amp; eligibilityStatus == EligibilityStatus.ELIGIBLE;</span>
+<span class="fc bfc" id="L35" title="All 4 branches covered.">        return existingClaimId != null &amp;&amp; eligibilityStatus == EligibilityStatus.ELIGIBLE;</span>
     }
 
     public boolean childrenPresent() {
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
