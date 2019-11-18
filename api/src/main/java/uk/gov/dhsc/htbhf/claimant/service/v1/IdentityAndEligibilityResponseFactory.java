@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.service.v1;
 
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
