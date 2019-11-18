@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -19,14 +20,16 @@ import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEm
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertThatEmailPayloadCorrectForBackdatedPayment;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.LAST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CARD_IS_ABOUT_TO_BE_CANCELLED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 class EmailMessagePayloadFactoryTest {
 
@@ -111,4 +114,23 @@ class EmailMessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getEmailType()).isEqualTo(CARD_IS_ABOUT_TO_BE_CANCELLED);
     }
+
+
+    @Test
+    void shouldBuildEmailMessageWithZeroAmountForNextCycle() {
+        Claim claim = aClaimWithExpectedDeliveryDateAndChildrenDobs(LocalDate.now().minusYears(4), List.of(LocalDate.now().minusYears(4).plusDays(1)));
+        PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
+                .claim(claim)
+                .childrenDob(claim.getClaimant().getChildrenDob())
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(claim.getClaimant().getChildrenDob()))
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), claim.getClaimant().getChildrenDob()))
+                .build();
+
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.CHILD_TURNS_FOUR);
+
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.CHILD_TURNS_FOUR);
+        assertThat(payload.getEmailPersonalisation()).contains(entry(REGULAR_PAYMENT.getTemplateKeyName(), "£0.00"));
+    }
+
 }
