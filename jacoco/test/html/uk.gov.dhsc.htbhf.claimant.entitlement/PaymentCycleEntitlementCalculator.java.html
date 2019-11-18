@@ -108,8 +108,8 @@ public class PaymentCycleEntitlementCalculator {
 <span class="fc" id="L108">        return expectedDueDate.isEmpty();</span>
     }
 
-    private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement vouchersForPregnancy) {
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        return vouchersForPregnancy.getVouchersForPregnancy() == 0;</span>
+    private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement entitlement) {
+<span class="fc bfc" id="L112" title="All 4 branches covered.">        return entitlement == null || entitlement.getVouchersForPregnancy() == 0;</span>
     }
 
     private boolean isWithinPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
