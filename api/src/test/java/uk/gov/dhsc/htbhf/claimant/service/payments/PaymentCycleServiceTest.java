@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -23,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
@@ -67,7 +68,7 @@ class PaymentCycleServiceTest {
         assertThat(result.getQualifyingBenefitEligibilityStatus()).isNull();
         assertThat(result.getCycleStartDate()).isEqualTo(today);
         assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test
@@ -77,9 +78,14 @@ class PaymentCycleServiceTest {
         Claim claim = aClaimWithExpectedDeliveryDate(dueDate);
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder()
+                .existingClaimId(claim.getId())
+                .voucherEntitlement(entitlement)
+                .dateOfBirthOfChildren(datesOfBirth)
+                .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
 
-        PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, entitlement, datesOfBirth);
+        PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, today, decision);
 
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
@@ -101,9 +107,14 @@ class PaymentCycleServiceTest {
         Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder()
+                .existingClaimId(claim.getId())
+                .voucherEntitlement(entitlement)
+                .dateOfBirthOfChildren(datesOfBirth)
+                .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
-        PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, expectedDeliveryDate, entitlement, datesOfBirth);
+        PaymentCycle result = paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, expectedDeliveryDate, decision);
 
         verifyPaymentCycleSavedCorrectly(claim, result);
         assertThat(result.getVoucherEntitlement()).isEqualTo(entitlement);
@@ -124,7 +135,7 @@ class PaymentCycleServiceTest {
         paymentCycleService.savePaymentCycle(paymentCycle);
 
         verify(paymentCycleRepository).save(paymentCycle);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test
@@ -141,7 +152,7 @@ class PaymentCycleServiceTest {
         assertThat(paymentCycle.getCardBalanceTimestamp()).isAfterOrEqualTo(now);
         assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(newCardBalance);
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test

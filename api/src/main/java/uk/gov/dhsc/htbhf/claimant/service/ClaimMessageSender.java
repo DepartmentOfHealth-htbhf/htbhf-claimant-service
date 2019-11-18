@@ -63,7 +63,7 @@ public class ClaimMessageSender {
     }
 
     public void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision.getVoucherEntitlement(), decision.getDateOfBirthOfChildren());
+        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision);
         messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);
     }
 

@@ -106,8 +106,7 @@ class ClaimMessageSenderTest {
 
         NewCardRequestMessagePayload newCardRequestMessagePayload = NewCardRequestMessagePayload.builder()
                 .claimId(claim.getId())
-                .voucherEntitlement(decision.getVoucherEntitlement())
-                .datesOfBirthOfChildren(decision.getDateOfBirthOfChildren())
+                .eligibilityAndEntitlementDecision(decision)
                 .build();
         verify(messageQueueClient).sendMessage(newCardRequestMessagePayload, CREATE_NEW_CARD);
     }

@@ -79,8 +79,7 @@ public class MessageContextLoader {
         Claim claim = getAndCheckClaim(payload.getClaimId());
         return NewCardMessageContext.builder()
                 .claim(claim)
-                .paymentCycleVoucherEntitlement(payload.getVoucherEntitlement())
-                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())
                 .build();
     }
 

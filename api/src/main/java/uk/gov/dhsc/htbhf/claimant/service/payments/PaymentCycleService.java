@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -12,10 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
-import static uk.gov.dhsc.htbhf.claimant.model.eligibility.QualifyingBenefitEligibilityStatus.CONFIRMED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @Service
@@ -58,28 +55,26 @@ public class PaymentCycleService {
      * The expected due date is set only if the voucher entitlement contains pregnancy vouchers.
      * EligibilityStatus is set to ELIGIBLE, QualifyingBenefitEligibilityStatus to CONFIRMED.
      *
-     * @param claim                  claim to create a payment cycle for
-     * @param cycleStartDate         the start date of the new payment cycle
-     * @param voucherEntitlement     the vouchers the claimant is entitled to during this cycle
-     * @param datesOfBirthOfChildren the dates of birth of children present during this cycle
+     * @param claim                             claim to create a payment cycle for
+     * @param cycleStartDate                    the start date of the new payment cycle
+     * @param eligibilityAndEntitlementDecision the eligibility and entitlement decision
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycleForEligibleClaim(Claim claim,
                                                                   LocalDate cycleStartDate,
-                                                                  PaymentCycleVoucherEntitlement voucherEntitlement,
-                                                                  List<LocalDate> datesOfBirthOfChildren) {
+                                                                  EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision) {
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .eligibilityStatus(ELIGIBLE)
-                .qualifyingBenefitEligibilityStatus(CONFIRMED)
-                .childrenDob(datesOfBirthOfChildren)
+                .qualifyingBenefitEligibilityStatus(eligibilityAndEntitlementDecision.getQualifyingBenefitEligibilityStatus())
+                .childrenDob(eligibilityAndEntitlementDecision.getDateOfBirthOfChildren())
                 .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))
                 .build();
 
-        paymentCycle.applyVoucherEntitlement(voucherEntitlement);
+        paymentCycle.applyVoucherEntitlement(eligibilityAndEntitlementDecision.getVoucherEntitlement());
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
     }
