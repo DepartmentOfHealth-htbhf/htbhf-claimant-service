@@ -108,8 +108,8 @@ public class PaymentCycleEntitlementCalculator {
         return expectedDueDate.isEmpty();
     }
 
-    private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement vouchersForPregnancy) {
-        return vouchersForPregnancy.getVouchersForPregnancy() == 0;
+    private boolean noPregnancyVouchers(PaymentCycleVoucherEntitlement entitlement) {
+        return entitlement == null || entitlement.getVouchersForPregnancy() == 0;
     }
 
     private boolean isWithinPregnancyMatchPeriod(LocalDate expectedDueDate, LocalDate dateOfBirth) {
