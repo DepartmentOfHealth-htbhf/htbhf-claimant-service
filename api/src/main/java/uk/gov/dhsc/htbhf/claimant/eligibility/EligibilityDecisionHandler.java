@@ -47,7 +47,7 @@ public class EligibilityDecisionHandler {
 
         if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
             expireActiveClaim(claim, decision.getDateOfBirthOfChildren());
-        } else if (decision.getQualifyingBenefitEligibilityStatus().isNotEligible()) {
+        } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {
             handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());
         } else {
             handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());
