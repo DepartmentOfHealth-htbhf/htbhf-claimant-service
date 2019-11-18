@@ -32,7 +32,7 @@ public class EmailMessagePayloadFactory {
     private final Integer numberOfCalculationPeriods;
 
     public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-        return formatPaymentAmount(summaryTemplate, numberOfVouchers, voucherAmountInPence);
+        return formatOptionalPaymentAmount(summaryTemplate, numberOfVouchers, voucherAmountInPence);
     }
 
     public static EmailMessagePayload buildEmailMessagePayloadWithFirstAndLastNameOnly(Claim claim, EmailType emailType) {
@@ -51,10 +51,14 @@ public class EmailMessagePayloadFactory {
                 LAST_NAME.getTemplateKeyName(), claimant.getLastName());
     }
 
-    private static String formatPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
+    private static String formatOptionalPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
         if (numberOfVouchers == 0) {
             return "";
         }
+        return formatRequiredPaymentAmount(template, numberOfVouchers, voucherAmountInPence);
+    }
+
+    private static String formatRequiredPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
         int totalAmount = numberOfVouchers * voucherAmountInPence;
         return String.format(template, convertPenceToPounds(totalAmount));
     }
@@ -146,6 +150,6 @@ public class EmailMessagePayloadFactory {
 
     private String getRegularPaymentAmountForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {
         int totalVouchersForRegularPayment = voucherEntitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * numberOfCalculationPeriods;
-        return formatPaymentAmount("%s", totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
+        return formatRequiredPaymentAmount("%s", totalVouchersForRegularPayment, voucherEntitlement.getSingleVoucherValueInPence());
     }
 }
