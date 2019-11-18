@@ -109,6 +109,21 @@ class PaymentCycleEntitlementCalculatorTest {
     }
 
     @Test
+    void shouldCallEntitlementCalculatorWithExpectedDueDateWhenPreviousEntitlementIsNullDueToIneligibilityInPreviousCycle() {
+        VoucherEntitlement voucherEntitlement = aValidVoucherEntitlement();
+        given(entitlementCalculator.calculateVoucherEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
+        List<LocalDate> dateOfBirthsOfChildren = singletonList(LocalDate.now().minusMonths(8));
+        Optional<LocalDate> expectedDueDate = Optional.of(LocalDate.now().plusMonths(8));
+        PaymentCycleVoucherEntitlement previousVoucherEntitlement = null;
+
+        PaymentCycleVoucherEntitlement result =
+                paymentCycleEntitlementCalculator.calculateEntitlement(expectedDueDate, dateOfBirthsOfChildren, LocalDate.now(), previousVoucherEntitlement);
+
+        assertEntitlement(voucherEntitlement, result);
+        verifyEntitlementCalculatorCalled(expectedDueDate, dateOfBirthsOfChildren);
+    }
+
+    @Test
     void shouldGetVoucherEntitlementDatesForCycleStartDate() {
         //Given
         LocalDate startDate = LocalDate.now();
