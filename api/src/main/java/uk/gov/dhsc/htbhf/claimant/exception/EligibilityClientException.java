@@ -2,9 +2,10 @@ package uk.gov.dhsc.htbhf.claimant.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClientException;
+import uk.gov.dhsc.htbhf.claimant.service.v1.EligibilityClient;
 
 /**
- * Exception used when calling the Eligibility Service from the {@link uk.gov.dhsc.htbhf.claimant.service.EligibilityClient}.
+ * Exception used when calling the Eligibility Service from the {@link EligibilityClient}.
  */
 public class EligibilityClientException extends RuntimeException {
 
