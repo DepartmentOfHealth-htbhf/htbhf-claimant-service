@@ -7,7 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -16,7 +15,6 @@ import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,10 +40,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
     @Override
     public EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
-        List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
-        if (liveClaimsWithNino.size() > 1) {
-            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);
-        }
+        Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
         log.debug("Checking eligibility");
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         log.debug("Calculating entitlement");
@@ -53,8 +48,8 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
-        if (!liveClaimsWithNino.isEmpty()) {
-            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(0));
+        if (liveClaimsWithNino.isPresent()) {
+            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get());
         }
 
         EligibilityAndEntitlementDecision decision = buildDecision(eligibilityResponse, entitlement);

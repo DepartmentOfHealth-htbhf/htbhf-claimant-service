@@ -15,21 +15,25 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import javax.validation.ConstraintViolationException;
 
 import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V1;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -345,5 +349,43 @@ class ClaimRepositoryTest {
 
         assertThat(claims).isNotNull();
         assertThat(claims).isEmpty();
+    }
+
+    @Test
+    void shouldReturnSingleUUIDForNino() {
+        //Given
+        Claim claim = aValidClaim();
+        claimRepository.save(claim);
+
+        //When
+        Optional<UUID> claimId = claimRepository.findLiveClaimWithNino(HOMER_NINO_V1);
+
+        //Then
+        assertThat(claimId).hasValue(claim.getId());
+    }
+
+    @Test
+    void shouldReturnEmptyForNoMatchingNino() {
+        //Given - no claims
+
+        //When
+        Optional<UUID> claimIds = claimRepository.findLiveClaimWithNino(HOMER_NINO_V1);
+
+        //Then
+        assertThat(claimIds).isEmpty();
+    }
+
+    @Test
+    void shouldThrowExceptionForMultipleMatchesForNino() {
+        //Given
+        claimRepository.save(aValidClaim());
+        claimRepository.save(aValidClaim());
+
+        //When
+        Throwable thrown = catchThrowableOfType(() -> claimRepository.findLiveClaimWithNino(HOMER_NINO_V1), MultipleClaimsWithSameNinoException.class);
+
+        //Then
+        assertThat(thrown).isNotNull();
+
     }
 }
