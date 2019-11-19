@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 
 public class CreateNewCardDummyMessageTypeProcessor implements MessageTypeProcessor {
 
@@ -13,6 +13,6 @@ public class CreateNewCardDummyMessageTypeProcessor implements MessageTypeProces
 
     @Override
     public MessageType supportsMessageType() {
-        return CREATE_NEW_CARD;
+        return REQUEST_NEW_CARD;
     }
 }

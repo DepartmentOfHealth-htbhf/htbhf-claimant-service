@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
 import java.time.LocalDate;
@@ -27,11 +27,11 @@ public class MessagePayloadTestDataFactory {
                 .build();
     }
 
-    public static NewCardRequestMessagePayload aValidNewCardRequestMessagePayload() {
+    public static RequestNewCardMessagePayload aValidNewCardRequestMessagePayload() {
         return defaultNewCardRequestMessagePayloadBuilder().build();
     }
 
-    public static NewCardRequestMessagePayload aNewCardRequestMessagePayload(UUID claimId,
+    public static RequestNewCardMessagePayload aNewCardRequestMessagePayload(UUID claimId,
                                                                              PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                              List<LocalDate> datesOfBirth) {
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = aValidDecisionBuilder()
@@ -44,8 +44,8 @@ public class MessagePayloadTestDataFactory {
                 .build();
     }
 
-    private static NewCardRequestMessagePayload.NewCardRequestMessagePayloadBuilder defaultNewCardRequestMessagePayloadBuilder() {
-        return NewCardRequestMessagePayload.builder()
+    private static RequestNewCardMessagePayload.RequestNewCardMessagePayloadBuilder defaultNewCardRequestMessagePayloadBuilder() {
+        return RequestNewCardMessagePayload.builder()
                 .claimId(CLAIM_ID)
                 .eligibilityAndEntitlementDecision(anEligibleDecision());
     }

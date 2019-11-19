@@ -343,18 +343,18 @@ class MessageContextLoaderTest {
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         List<LocalDate> datesOfBirth = List.of(LocalDate.now().minusDays(1), LocalDate.now());
-        NewCardRequestMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement, datesOfBirth);
-        given(payloadMapper.getPayload(any(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(CREATE_NEW_CARD);
+        RequestNewCardMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement, datesOfBirth);
+        given(payloadMapper.getPayload(any(), eq(RequestNewCardMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(REQUEST_NEW_CARD);
 
         //When
-        NewCardMessageContext context = loader.loadNewCardContext(message);
+        RequestNewCardMessageContext context = loader.loadRequestNewCardContext(message);
 
         //Then
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEligibilityAndEntitlementDecision()).isEqualTo(payload.getEligibilityAndEntitlementDecision());
-        verify(payloadMapper).getPayload(message, NewCardRequestMessagePayload.class);
+        verify(payloadMapper).getPayload(message, RequestNewCardMessagePayload.class);
         verify(claimRepository).findById(claimId);
     }
 

@@ -4,8 +4,8 @@ import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
@@ -28,7 +28,7 @@ class MessagePayloadFactoryTest {
     void shouldCreateNewCardMessagePayload() {
         Claim claim = aValidClaim();
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = anEligibleDecision();
-        NewCardRequestMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, eligibilityAndEntitlementDecision);
+        RequestNewCardMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, eligibilityAndEntitlementDecision);
 
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getEligibilityAndEntitlementDecision()).isEqualTo(eligibilityAndEntitlementDecision);
