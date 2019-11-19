@@ -53,7 +53,7 @@ public class UpcomingBirthdayEmailHandler {
         boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
         EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
                 entitlement, multipleChildrenTurningFourInNextMonth, EmailType.CHILD_TURNS_FOUR);
-        log.info("Sending email for child turns 4 for Payment Cycle after cycle with id: [{}], with a delay of {}",
+        log.debug("Sending email for child turns 4 for Payment Cycle after cycle with id: [{}], with a delay of {}",
                 paymentCycle.getId(), changeInPaymentEmailDelay);
         messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);
     }
@@ -63,7 +63,7 @@ public class UpcomingBirthdayEmailHandler {
         boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();
         EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,
                 entitlement, multipleChildrenTurningOneInNextMonth, EmailType.CHILD_TURNS_ONE);
-        log.info("Sending email for child turns 1 for Payment Cycle after cycle with id: [{}], with a delay of {}",
+        log.debug("Sending email for child turns 1 for Payment Cycle after cycle with id: [{}], with a delay of {}",
                 paymentCycle.getId(), changeInPaymentEmailDelay);
         messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);
     }

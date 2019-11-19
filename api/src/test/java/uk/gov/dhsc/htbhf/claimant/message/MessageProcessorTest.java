@@ -30,10 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
@@ -95,7 +92,7 @@ class MessageProcessorTest {
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
-        verifyZeroInteractions(eventAuditor);
+        verifyNoInteractions(eventAuditor);
     }
 
     @Test
@@ -122,7 +119,7 @@ class MessageProcessorTest {
         verify(messageStatusProcessor).processStatusForMessage(cardMessage2, FAILED);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage3, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor, createNewCardDummyMessageTypeProcessor);
-        verifyZeroInteractions(eventAuditor);
+        verifyNoInteractions(eventAuditor);
     }
 
     @Test
@@ -161,7 +158,7 @@ class MessageProcessorTest {
         verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE);
         verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
-        verifyZeroInteractions(eventAuditor);
+        verifyNoInteractions(eventAuditor);
     }
 
     @Test
@@ -173,7 +170,7 @@ class MessageProcessorTest {
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
         assertThat(events).hasSize(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 message(s) of type CREATE_NEW_CARD");
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 CREATE_NEW_CARD message(s)");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
         assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 CREATE_NEW_CARD message(s) with status COMPLETED");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
@@ -188,7 +185,7 @@ class MessageProcessorTest {
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
         assertThat(events).hasSize(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 message(s) of type SEND_EMAIL");
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 1 SEND_EMAIL message(s)");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
         // use startsWith instead of isEqualTo because the full class name contains mockito text.
         assertThat(events.get(1).getFormattedMessage()).startsWith("Received null message status from MessageTypeProcessor:"

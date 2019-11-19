@@ -43,13 +43,13 @@ public class CardCancellationScheduler {
             lockAtMostForString = "${card-cancellation.schedule.maximum-lock-time}")
     @NewRequestContextWithSessionId(sessionId = "CardCancellationScheduler")
     public void handleCardsPendingCancellation() {
-        log.debug("Querying for claims with a card status of pending cancellation since {}", LocalDate.now().minus(gracePeriod));
+        log.trace("Querying for claims with a card status of pending cancellation since {}", LocalDate.now().minus(gracePeriod));
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(gracePeriod);
 
         if (claims.isEmpty()) {
-            log.debug("No cards to be scheduled for cancellation");
+            log.trace("No cards to be scheduled for cancellation");
         } else {
-            log.debug("Processing {} cards to be scheduled for cancellation", claims.size());
+            log.info("Processing {} cards to be scheduled for cancellation", claims.size());
             claims.forEach(this::handleCardPendingCancellation);
             log.debug("Finished scheduling {} cards for cancellation", claims.size());
         }
