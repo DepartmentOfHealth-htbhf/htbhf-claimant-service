@@ -47,11 +47,11 @@ public class PaymentCycleScheduler {
     @NewRequestContextWithSessionId(sessionId = "PaymentCycleScheduler")
     public void createNewPaymentCycles() {
         LocalDate cycleEndDate = LocalDate.now().plusDays(endDateOffsetDays);
-        log.debug("Querying for active claims with cycles ending on {}", cycleEndDate);
+        log.trace("Querying for active claims with cycles ending on {}", cycleEndDate);
         List<ClosingPaymentCycle> cycles = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(cycleEndDate);
 
         if (CollectionUtils.isEmpty(cycles)) {
-            log.info("No new PaymentCycles to create");
+            log.trace("No new PaymentCycles to create");
         } else {
             log.info("Creating new PaymentCycles for {} claims", cycles.size());
             cycles.forEach(this::createNewPaymentCycle);

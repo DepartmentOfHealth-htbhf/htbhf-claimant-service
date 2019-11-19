@@ -45,7 +45,7 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
                     messageReference.toString(),
                     replyToAddressId
             );
-            log.info("Email message sent, reference={}, id={}", messageReference, sendEmailResponse.getNotificationId());
+            log.debug("{} email sent, reference={}, id={}", messageContext.getEmailType(), messageReference, sendEmailResponse.getNotificationId());
         } catch (NotificationClientException e) {
             log.error("Failed to send email message", e);
             String failureMessage = String.format("Failed to send %s email message, exception is: %s", messageContext.getEmailType(), e.getMessage());
