@@ -2,24 +2,25 @@
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClientException;
+import uk.gov.dhsc.htbhf.claimant.service.v1.EligibilityClient;
 
 /**
- * Exception used when calling the Eligibility Service from the {@link uk.gov.dhsc.htbhf.claimant.service.EligibilityClient}.
+ * Exception used when calling the Eligibility Service from the {@link EligibilityClient}.
  */
 public class EligibilityClientException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
     public EligibilityClientException(HttpStatus httpStatus) {
-<span class="fc" id="L14">        super(&quot;Response code from Eligibility service was not OK, received: &quot; + httpStatus.value());</span>
-<span class="fc" id="L15">    }</span>
+<span class="fc" id="L15">        super(&quot;Response code from Eligibility service was not OK, received: &quot; + httpStatus.value());</span>
+<span class="fc" id="L16">    }</span>
 
     public EligibilityClientException(HttpStatus httpStatus, Exception exception) {
-<span class="nc" id="L18">        super(&quot;Response code from Eligibility service was not OK, received: &quot; + httpStatus.value(), exception);</span>
-<span class="nc" id="L19">    }</span>
+<span class="nc" id="L19">        super(&quot;Response code from Eligibility service was not OK, received: &quot; + httpStatus.value(), exception);</span>
+<span class="nc" id="L20">    }</span>
 
     public EligibilityClientException(RestClientException restClientException, String endpointUrl) {
-<span class="fc" id="L22">        super(&quot;Exception caught trying to call eligibility service at: &quot; + endpointUrl, restClientException);</span>
-<span class="fc" id="L23">    }</span>
+<span class="fc" id="L23">        super(&quot;Exception caught trying to call eligibility service at: &quot; + endpointUrl, restClientException);</span>
+<span class="fc" id="L24">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
