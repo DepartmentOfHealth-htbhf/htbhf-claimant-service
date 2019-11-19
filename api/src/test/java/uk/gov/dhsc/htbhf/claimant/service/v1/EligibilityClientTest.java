@@ -23,7 +23,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.service.v1.EligibilityClient.ELIGIBILITY_ENDPOINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonDTOTestDataFactory.aValidPerson;
@@ -33,7 +32,8 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.NO_MATCH;
 @ExtendWith(MockitoExtension.class)
 class EligibilityClientTest {
 
-    private static final String BASE_URI = "/v1/eligibility/";
+    private static final String BASE_URI = "http://localhost:8100";
+    private static final String FULL_URI = "http://localhost:8100/v1/eligibility";
 
     @Mock
     private RestTemplate restTemplate;
@@ -62,7 +62,7 @@ class EligibilityClientTest {
         assertThat(actualResponse).isNotNull();
         assertThat(actualResponse).isEqualTo(eligibilityResponse);
         verify(claimantToPersonDTOConverter).convert(claimant);
-        verify(restTemplate).postForEntity(BASE_URI + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, person, EligibilityResponse.class);
     }
 
     @Test
@@ -78,7 +78,7 @@ class EligibilityClientTest {
         assertThat(actualResponse).isNotNull();
         assertThat(actualResponse.getEligibilityStatus()).isEqualTo(NO_MATCH);
         verify(claimantToPersonDTOConverter).convert(claimant);
-        verify(restTemplate).postForEntity(BASE_URI + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, person, EligibilityResponse.class);
     }
 
     @Test
@@ -93,9 +93,9 @@ class EligibilityClientTest {
         EligibilityClientException thrown = catchThrowableOfType(() -> client.checkEligibility(claimant), EligibilityClientException.class);
 
         assertThat(thrown).as("Should throw an Exception when response code is not OK").isNotNull();
-        assertThat(thrown.getMessage()).isEqualTo("Response code from Eligibility service was not OK, received: 400");
+        assertThat(thrown).hasMessage("Response code from Eligibility service was not OK, received: 400");
         verify(claimantToPersonDTOConverter).convert(claimant);
-        verify(restTemplate).postForEntity(BASE_URI + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, person, EligibilityResponse.class);
     }
 
     @Test
@@ -109,8 +109,8 @@ class EligibilityClientTest {
         EligibilityClientException thrown = catchThrowableOfType(() -> client.checkEligibility(claimant), EligibilityClientException.class);
 
         assertThat(thrown).as("Should throw an Exception when post call returns error").isNotNull();
-        assertThat(thrown.getMessage()).isEqualTo("Exception caught trying to call eligibility service at: " + BASE_URI + ELIGIBILITY_ENDPOINT);
+        assertThat(thrown).hasMessage("Exception caught trying to call eligibility service at: " + FULL_URI);
         verify(claimantToPersonDTOConverter).convert(claimant);
-        verify(restTemplate).postForEntity(BASE_URI + ELIGIBILITY_ENDPOINT, person, EligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, person, EligibilityResponse.class);
     }
 }
