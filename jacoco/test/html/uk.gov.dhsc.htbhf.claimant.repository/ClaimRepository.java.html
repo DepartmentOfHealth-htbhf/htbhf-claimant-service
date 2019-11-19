@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -55,24 +56,32 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
      * @return list of claims
      */
     default List&lt;Claim&gt; getClaimsWithCardStatusPendingCancellationOlderThan(Period period) {
-<span class="fc" id="L58">        LocalDateTime timestamp = LocalDateTime.now().minus(period);</span>
-<span class="fc" id="L59">        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);</span>
+<span class="fc" id="L59">        LocalDateTime timestamp = LocalDateTime.now().minus(period);</span>
+<span class="fc" id="L60">        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);</span>
     }
 
     @Query(&quot;SELECT claim FROM Claim claim where claim.cardStatus = :cardStatus and claim.cardStatusTimestamp &lt;= :date&quot;)
     List&lt;Claim&gt; getClaimsWithCardStatusBeforeGivenTimestamp(@Param(&quot;cardStatus&quot;) CardStatus cardStatus, @Param(&quot;date&quot;) LocalDateTime localDateTime);
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L66" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L70" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
     default Claim findClaim(UUID claimId) {
-<span class="fc" id="L74">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
-<span class="fc" id="L75">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+<span class="fc" id="L75">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
+<span class="fc" id="L76">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+    }
+
+    default Optional&lt;UUID&gt; findLiveClaimWithNino(String nino) {
+<span class="fc" id="L80">        List&lt;UUID&gt; liveClaimsWithNino = findLiveClaimsWithNino(nino);</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (liveClaimsWithNino.size() &gt; 1) {</span>
+<span class="fc" id="L82">            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);</span>
+        }
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
