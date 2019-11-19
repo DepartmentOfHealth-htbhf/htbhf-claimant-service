@@ -48,10 +48,10 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityAndEntitlementServiceTest {
+class EligibilityAndEntitlementServiceV1Test {
 
     @InjectMocks
-    EligibilityAndEntitlementService eligibilityAndEntitlementService;
+    EligibilityAndEntitlementServiceV1 eligibilityAndEntitlementServiceV1;
 
     @Mock
     EligibilityClient client;
@@ -75,7 +75,7 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(List.of(existingClaimId));
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectEligibleResult(decision, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -93,7 +93,7 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimsWithNino(any())).willReturn(existingIds);
         Claimant claimant = aValidClaimant();
 
-        MultipleClaimsWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementService.evaluateClaimant(claimant),
+        MultipleClaimsWithSameNinoException exception = catchThrowableOfType(() -> eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant),
                 MultipleClaimsWithSameNinoException.class);
 
         assertThat(exception).isNotNull();
@@ -110,7 +110,7 @@ class EligibilityAndEntitlementServiceTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, NOT_CONFIRMED, eligibilityResponse);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -132,7 +132,7 @@ class EligibilityAndEntitlementServiceTest {
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectEligibleResult(result, eligibilityResponse, voucherEntitlement);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -154,7 +154,7 @@ class EligibilityAndEntitlementServiceTest {
         given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, CONFIRMED, eligibilityResponse);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -176,7 +176,7 @@ class EligibilityAndEntitlementServiceTest {
         given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, NOT_CONFIRMED, eligibilityResponse);
         verify(claimRepository).findLiveClaimsWithNino(claimant.getNino());
@@ -198,7 +198,7 @@ class EligibilityAndEntitlementServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
         assertCorrectEligibleResult(result, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
@@ -220,7 +220,7 @@ class EligibilityAndEntitlementServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, CONFIRMED, eligibilityResponse);
         verify(client).checkEligibility(claimant);
@@ -242,7 +242,7 @@ class EligibilityAndEntitlementServiceTest {
         Claimant claimant = aValidClaimant();
         given(duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse)).willReturn(true);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimant(claimant);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
         assertCorrectDuplicateResult(result, eligibilityResponse, voucherEntitlement);
         verify(client).checkEligibility(claimant);
@@ -258,7 +258,7 @@ class EligibilityAndEntitlementServiceTest {
         given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(voucherEntitlement);
 
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateExistingClaimant(claimant, cycleStartDate, previousCycle);
 
         assertCorrectIneligibleResultWithNoVoucherEntitlement(result, NOT_CONFIRMED, eligibilityResponse);
         verify(client).checkEligibility(claimant);

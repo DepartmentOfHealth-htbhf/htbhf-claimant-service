@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class EligibilityAndEntitlementService {
+public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
     private final DuplicateClaimChecker duplicateClaimChecker;
@@ -38,6 +39,7 @@ public class EligibilityAndEntitlementService {
      * @param claimant the claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
+    @Override
     public EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         List<UUID> liveClaimsWithNino = claimRepository.findLiveClaimsWithNino(claimant.getNino());
@@ -74,6 +76,7 @@ public class EligibilityAndEntitlementService {
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
+    @Override
     public EligibilityAndEntitlementDecision evaluateExistingClaimant(
             Claimant claimant,
             LocalDate cycleStartDate,
