@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -73,5 +74,13 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
     default Claim findClaim(UUID claimId) {
         Optional<Claim> optionalClaim = findById(claimId);
         return optionalClaim.orElseThrow(() -> new EntityNotFoundException("Unable to find claim with id " + claimId));
+    }
+
+    default Optional<UUID> findLiveClaimWithNino(String nino) {
+        List<UUID> liveClaimsWithNino = findLiveClaimsWithNino(nino);
+        if (liveClaimsWithNino.size() > 1) {
+            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);
+        }
+        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));
     }
 }
