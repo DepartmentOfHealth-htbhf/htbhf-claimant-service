@@ -19,7 +19,6 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
-import uk.gov.dhsc.htbhf.claimant.service.v1.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -39,8 +38,8 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
@@ -514,7 +513,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
-        verifyZeroInteractions(claimMessageSender);
+        verifyNoInteractions(claimMessageSender);
     }
 
     private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
