@@ -43,13 +43,13 @@ public class CardCancellationScheduler {
             lockAtMostForString = &quot;${card-cancellation.schedule.maximum-lock-time}&quot;)
     @NewRequestContextWithSessionId(sessionId = &quot;CardCancellationScheduler&quot;)
     public void handleCardsPendingCancellation() {
-<span class="fc" id="L46">        log.debug(&quot;Querying for claims with a card status of pending cancellation since {}&quot;, LocalDate.now().minus(gracePeriod));</span>
+<span class="fc" id="L46">        log.trace(&quot;Querying for claims with a card status of pending cancellation since {}&quot;, LocalDate.now().minus(gracePeriod));</span>
 <span class="fc" id="L47">        List&lt;Claim&gt; claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(gracePeriod);</span>
 
 <span class="fc bfc" id="L49" title="All 2 branches covered.">        if (claims.isEmpty()) {</span>
-<span class="fc" id="L50">            log.debug(&quot;No cards to be scheduled for cancellation&quot;);</span>
+<span class="fc" id="L50">            log.trace(&quot;No cards to be scheduled for cancellation&quot;);</span>
         } else {
-<span class="fc" id="L52">            log.debug(&quot;Processing {} cards to be scheduled for cancellation&quot;, claims.size());</span>
+<span class="fc" id="L52">            log.info(&quot;Processing {} cards to be scheduled for cancellation&quot;, claims.size());</span>
 <span class="fc" id="L53">            claims.forEach(this::handleCardPendingCancellation);</span>
 <span class="fc" id="L54">            log.debug(&quot;Finished scheduling {} cards for cancellation&quot;, claims.size());</span>
         }

@@ -123,7 +123,7 @@ public class PaymentService {
 <span class="fc" id="L123">            paymentCycleService.updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus(), balance.getAvailableBalanceInPence());</span>
 <span class="fc bfc" id="L124" title="All 2 branches covered.">            if (paymentCalculation.getPaymentAmount() == 0) {</span>
 <span class="fc" id="L125">                eventAuditor.auditBalanceTooHighForPayment(paymentCycle);</span>
-<span class="fc" id="L126">                log.info(&quot;No payment will be made as the existing balance on the card is too high&quot;);</span>
+<span class="fc" id="L126">                log.debug(&quot;No payment will be made as the existing balance on the card is too high for PaymentCycle {}&quot;, paymentCycle.getId());</span>
 <span class="fc" id="L127">                return null;</span>
             }
 <span class="fc" id="L129">            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());</span>

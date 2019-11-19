@@ -56,7 +56,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
 <span class="fc" id="L56">        AdditionalPregnancyPaymentMessageContext context = messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(message);</span>
 <span class="fc" id="L57">        Optional&lt;PaymentCycle&gt; paymentCycle = context.getPaymentCycle();</span>
 <span class="fc bfc" id="L58" title="All 4 branches covered.">        if (paymentCycle.isEmpty() || hasPregnancyVouchers(paymentCycle)) {</span>
-<span class="fc" id="L59">            log.debug(&quot;Making no additional payments as there is no payment cycle or payment cycle already contains pregnancy vouchers.&quot;);</span>
+<span class="fc" id="L59">            log.debug(&quot;Making no additional payments as there is no payment cycle or it already contains pregnancy vouchers.&quot;);</span>
 <span class="fc" id="L60">            return COMPLETED;</span>
         }
 

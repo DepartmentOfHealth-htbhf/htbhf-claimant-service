@@ -46,11 +46,11 @@ public class MessageProcessor {
 
     private void processMessagesOfType(List&lt;Message&gt; messages, MessageType messageType) {
 <span class="fc bfc" id="L48" title="All 2 branches covered.">        if (CollectionUtils.isEmpty(messages)) {</span>
-<span class="fc" id="L49">            log.debug(&quot;No messages found to process for type: [{}]&quot;, messageType);</span>
+<span class="fc" id="L49">            log.trace(&quot;No {} messages found to process&quot;, messageType);</span>
 <span class="fc" id="L50">            return;</span>
         }
 
-<span class="fc" id="L53">        log.info(&quot;Processing {} message(s) of type {}&quot;, messages.size(), messageType);</span>
+<span class="fc" id="L53">        log.info(&quot;Processing {} {} message(s)&quot;, messages.size(), messageType);</span>
 <span class="fc" id="L54">        MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);</span>
 <span class="fc" id="L55">        List&lt;MessageStatus&gt; statuses = messages.stream()</span>
 <span class="fc" id="L56">                .map(message -&gt; processMessage(message, messageTypeProcessor))</span>

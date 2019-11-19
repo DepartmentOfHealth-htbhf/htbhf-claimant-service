@@ -53,7 +53,7 @@ public class UpcomingBirthdayEmailHandler {
 <span class="fc" id="L53">        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();</span>
 <span class="fc" id="L54">        EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,</span>
                 entitlement, multipleChildrenTurningFourInNextMonth, EmailType.CHILD_TURNS_FOUR);
-<span class="fc" id="L56">        log.info(&quot;Sending email for child turns 4 for Payment Cycle after cycle with id: [{}], with a delay of {}&quot;,</span>
+<span class="fc" id="L56">        log.debug(&quot;Sending email for child turns 4 for Payment Cycle after cycle with id: [{}], with a delay of {}&quot;,</span>
 <span class="fc" id="L57">                paymentCycle.getId(), changeInPaymentEmailDelay);</span>
 <span class="fc" id="L58">        messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);</span>
 <span class="fc" id="L59">    }</span>
@@ -63,7 +63,7 @@ public class UpcomingBirthdayEmailHandler {
 <span class="fc" id="L63">        boolean multipleChildrenTurningOneInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningOne();</span>
 <span class="fc" id="L64">        EmailMessagePayload messagePayload = buildChildTurnsAgeNotificationEmailPayload(paymentCycle,</span>
                 entitlement, multipleChildrenTurningOneInNextMonth, EmailType.CHILD_TURNS_ONE);
-<span class="fc" id="L66">        log.info(&quot;Sending email for child turns 1 for Payment Cycle after cycle with id: [{}], with a delay of {}&quot;,</span>
+<span class="fc" id="L66">        log.debug(&quot;Sending email for child turns 1 for Payment Cycle after cycle with id: [{}], with a delay of {}&quot;,</span>
 <span class="fc" id="L67">                paymentCycle.getId(), changeInPaymentEmailDelay);</span>
 <span class="fc" id="L68">        messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);</span>
 <span class="fc" id="L69">    }</span>
