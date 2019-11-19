@@ -19,8 +19,8 @@ import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
-import uk.gov.dhsc.htbhf.claimant.service.v1.EligibilityAndEntitlementService;
 
 import java.time.LocalDate;
 import java.util.List;
