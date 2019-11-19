@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.SINGLE_THREE_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SINGLE_THREE_YEAR_OLD;
 
 public class ReportPaymentMessageContextTestDataFactory {
 

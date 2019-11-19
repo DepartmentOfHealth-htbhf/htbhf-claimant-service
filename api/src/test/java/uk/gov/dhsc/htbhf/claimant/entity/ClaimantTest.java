@@ -15,7 +15,7 @@ import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 
 class ClaimantTest extends AbstractValidationTest {
 
@@ -303,7 +303,7 @@ class ClaimantTest extends AbstractValidationTest {
     @Test
     void shouldValidateClaimantWithChildrenDob() {
         //Given
-        Claimant claimant = aClaimantWithChildrenDob(MAGGIE_DOB);
+        Claimant claimant = aClaimantWithChildrenDob(MAGGIE_DATE_OF_BIRTH);
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then

@@ -292,7 +292,7 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(changes.size()).isEqualTo(1);
-        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'addressLine1' value changed from 'Flat b' to 'test' }");
+        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'addressLine1' value changed from '742 Evergreen Terrace' to 'test' }");
     }
 
     @Test

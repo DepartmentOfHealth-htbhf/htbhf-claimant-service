@@ -33,10 +33,10 @@ import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.veri
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_EMAIL_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.getLogEvents;
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.startRecordingLogsFor;
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.stopRecordingLogsFor;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_EMAIL;
 
 @ExtendWith(MockitoExtension.class)
 class EmailMessageProcessorTest {
@@ -83,7 +83,7 @@ class EmailMessageProcessorTest {
         //Then
         assertThat(status).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadEmailMessageContext(message);
-        verify(client).sendEmail(eq(templateId), eq(VALID_EMAIL_ADDRESS), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
+        verify(client).sendEmail(eq(templateId), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
     }
 
     @Test
@@ -145,7 +145,7 @@ class EmailMessageProcessorTest {
         //Then
         verifySendEmailEventFailExceptionAndEventAreCorrect(claim, testException, thrown, templateId);
         verify(messageContextLoader).loadEmailMessageContext(message);
-        verify(client).sendEmail(eq(templateId), eq(VALID_EMAIL_ADDRESS), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
+        verify(client).sendEmail(eq(templateId), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
     }
 
 }

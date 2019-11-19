@@ -7,9 +7,9 @@ import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.JAMES_DATE_OF_BIRTH;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.JAMES_FIRST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.JAMES_LAST_NAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_DATE_OF_BIRTH;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSON_SURNAME;
 
 public class CardRequestTestDataFactory {
 
@@ -21,9 +21,9 @@ public class CardRequestTestDataFactory {
         return CardRequest.builder()
                 .address(aValidAddressDTO())
                 .claimId(CLAIM_ID)
-                .dateOfBirth(JAMES_DATE_OF_BIRTH)
-                .firstName(JAMES_FIRST_NAME)
-                .lastName(JAMES_LAST_NAME)
+                .dateOfBirth(HOMER_DATE_OF_BIRTH)
+                .firstName(HOMER_FORENAME)
+                .lastName(SIMPSON_SURNAME)
                 .email(EMAIL)
                 .mobile(MOBILE)
                 .build();

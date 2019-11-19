@@ -27,8 +27,8 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREG
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TWENTY_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.TWENTY_YEAR_OLD;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimantCategoryCalculatorTest {
