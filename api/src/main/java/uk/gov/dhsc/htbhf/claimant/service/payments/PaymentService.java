@@ -123,7 +123,7 @@ public class PaymentService {
             paymentCycleService.updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus(), balance.getAvailableBalanceInPence());
             if (paymentCalculation.getPaymentAmount() == 0) {
                 eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
-                log.info("No payment will be made as the existing balance on the card is too high");
+                log.debug("No payment will be made as the existing balance on the card is too high for PaymentCycle {}", paymentCycle.getId());
                 return null;
             }
             payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());

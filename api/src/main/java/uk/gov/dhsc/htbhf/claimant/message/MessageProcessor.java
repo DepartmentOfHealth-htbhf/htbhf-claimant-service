@@ -46,11 +46,11 @@ public class MessageProcessor {
 
     private void processMessagesOfType(List<Message> messages, MessageType messageType) {
         if (CollectionUtils.isEmpty(messages)) {
-            log.debug("No messages found to process for type: [{}]", messageType);
+            log.trace("No {} messages found to process", messageType);
             return;
         }
 
-        log.info("Processing {} message(s) of type {}", messages.size(), messageType);
+        log.info("Processing {} {} message(s)", messages.size(), messageType);
         MessageTypeProcessor messageTypeProcessor = getMessageTypeProcessor(messageType, messages);
         List<MessageStatus> statuses = messages.stream()
                 .map(message -> processMessage(message, messageTypeProcessor))
