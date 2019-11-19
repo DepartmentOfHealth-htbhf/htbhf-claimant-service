@@ -2,13 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
-public class AddressDTOTestDataFactory {
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
-    private static final String ADDRESS_LINE_1 = "Flat b";
-    private static final String ADDRESS_LINE_2 = "123 Fake street";
-    private static final String TOWN_OR_CITY = "Springfield";
-    private static final String COUNTY = "Devon";
-    private static final String POSTCODE = "AA1 1AA";
+public class AddressDTOTestDataFactory {
 
     public static AddressDTO aValidAddressDTO() {
         return aValidAddressDTOBuilder()
@@ -47,10 +43,10 @@ public class AddressDTOTestDataFactory {
 
     public static AddressDTO.AddressDTOBuilder aValidAddressDTOBuilder() {
         return AddressDTO.builder()
-                .addressLine1(ADDRESS_LINE_1)
-                .addressLine2(ADDRESS_LINE_2)
-                .townOrCity(TOWN_OR_CITY)
-                .county(COUNTY)
-                .postcode(POSTCODE);
+                .addressLine1(SIMPSONS_ADDRESS_LINE_1)
+                .addressLine2(SIMPSONS_ADDRESS_LINE_2)
+                .townOrCity(SIMPSONS_TOWN)
+                .county(SIMPSONS_COUNTY)
+                .postcode(SIMPSONS_POSTCODE);
     }
 }

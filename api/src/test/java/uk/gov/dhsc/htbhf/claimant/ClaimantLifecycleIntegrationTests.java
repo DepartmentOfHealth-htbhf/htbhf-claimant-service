@@ -32,7 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_CHILDREN;
 
 /**
  * Runs a claim through the entire lifecycle, preforming (limited) tests at each payment cycle to confirm the correct
@@ -233,7 +233,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private void ageByFourCycles(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
-        for (int i = 0;i < 4;i++) {
+        for (int i = 0; i < 4; i++) {
             ageByOneCycle(initialChildrenDobs);
         }
     }

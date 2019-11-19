@@ -8,7 +8,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
 public final class ClaimantTestDataFactory {
 
@@ -73,12 +74,12 @@ public final class ClaimantTestDataFactory {
 
     public static Claimant.ClaimantBuilder aValidClaimantBuilder() {
         return Claimant.builder()
-                .firstName(VALID_FIRST_NAME)
-                .lastName(VALID_LAST_NAME)
-                .nino(VALID_NINO)
-                .dateOfBirth(VALID_DOB)
-                .phoneNumber(VALID_PHONE_NUMBER)
-                .emailAddress(VALID_EMAIL_ADDRESS)
+                .firstName(HOMER_FORENAME)
+                .lastName(SIMPSON_SURNAME)
+                .nino(HOMER_NINO_V1)
+                .dateOfBirth(HOMER_DATE_OF_BIRTH)
+                .phoneNumber(HOMER_MOBILE)
+                .emailAddress(HOMER_EMAIL)
                 .address(aValidAddress())
                 .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
     }
@@ -89,7 +90,7 @@ public final class ClaimantTestDataFactory {
                 .lastName("Smith")
                 .nino("BE654321B")
                 .dateOfBirth(LocalDate.parse("1990-11-20"))
-                .phoneNumber(VALID_PHONE_NUMBER)
-                .emailAddress(VALID_EMAIL_ADDRESS);
+                .phoneNumber(HOMER_MOBILE)
+                .emailAddress(HOMER_EMAIL);
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 import static java.time.LocalDate.now;
 import static java.util.Collections.singletonList;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
 public class ClaimantDTOTestDataFactory {
 
@@ -20,7 +20,7 @@ public class ClaimantDTOTestDataFactory {
     public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
                 .expectedDeliveryDate(now().plusMonths(4))
-                .childrenDob(singletonList(MAGGIE_DOB))
+                .childrenDob(singletonList(MAGGIE_DATE_OF_BIRTH))
                 .build();
     }
 
@@ -80,14 +80,14 @@ public class ClaimantDTOTestDataFactory {
 
     private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()
-                .firstName(VALID_FIRST_NAME)
-                .lastName(VALID_LAST_NAME)
-                .nino(VALID_NINO)
-                .dateOfBirth(VALID_DOB)
+                .firstName(HOMER_FORENAME)
+                .lastName(SIMPSON_SURNAME)
+                .nino(HOMER_NINO_V1)
+                .dateOfBirth(HOMER_DATE_OF_BIRTH)
                 .address(aValidAddressDTO())
                 .expectedDeliveryDate(now().plusMonths(1))
-                .phoneNumber(VALID_PHONE_NUMBER)
-                .emailAddress(VALID_EMAIL_ADDRESS);
+                .phoneNumber(HOMER_MOBILE)
+                .emailAddress(HOMER_EMAIL);
     }
 
 }

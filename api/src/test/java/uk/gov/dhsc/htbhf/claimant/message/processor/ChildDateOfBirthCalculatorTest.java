@@ -22,7 +22,7 @@ import static org.mockito.Mockito.lenient;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChildDateOfBirthCalculatorTest {

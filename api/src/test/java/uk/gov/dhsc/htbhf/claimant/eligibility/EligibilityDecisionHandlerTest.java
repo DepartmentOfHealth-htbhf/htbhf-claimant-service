@@ -42,7 +42,12 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaim
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SINGLE_NEARLY_FOUR_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)

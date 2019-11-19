@@ -15,7 +15,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
 import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
-import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
 import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome;
@@ -37,10 +36,11 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.LISA_DOB;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.CONFIRMED;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.LISA_DOB;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
@@ -297,7 +297,7 @@ class EligibilityAndEntitlementServiceV1Test {
                                                                         EligibilityResponse eligibilityResponse) {
         assertThat(result).isNotNull();
         assertThat(result.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        List<LocalDate> childrenDobs = List.of(MAGGIE_DOB, LISA_DOB);
+        List<LocalDate> childrenDobs = List.of(MAGGIE_DATE_OF_BIRTH, LISA_DOB);
         IdentityAndEligibilityResponse identityAndEligibilityResponse = buildIdentityAndEligibilityResponse(childrenDobs, eligibilityOutcome);
         assertThat(result.getIdentityAndEligibilityResponse()).isEqualTo(identityAndEligibilityResponse);
         assertThat(result.getDateOfBirthOfChildren()).isEqualTo(eligibilityResponse.getDateOfBirthOfChildren());
@@ -310,7 +310,7 @@ class EligibilityAndEntitlementServiceV1Test {
                 ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(VerificationOutcome.NOT_SUPPLIED, childrenDobs)
                 : anIdentityMatchedEligibilityNotConfirmedResponse();
         return identityAndEligibilityResponse.toBuilder()
-                .householdIdentifier(TestConstants.DWP_HOUSEHOLD_IDENTIFIER)
+                .householdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .build();
     }
 

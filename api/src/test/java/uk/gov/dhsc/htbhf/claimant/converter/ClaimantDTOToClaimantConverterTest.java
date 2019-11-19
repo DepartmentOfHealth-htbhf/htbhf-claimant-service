@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimantDTOToClaimantConverterTest {
@@ -47,7 +47,7 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getAddress()).isEqualTo(ADDRESS);
         assertThat(result.getPhoneNumber()).isEqualTo(claimantDTO.getPhoneNumber());
         assertThat(result.getEmailAddress()).isEqualTo(claimantDTO.getEmailAddress());
-        assertThat(result.getChildrenDob()).containsExactly(MAGGIE_DOB);
+        assertThat(result.getChildrenDob()).containsExactly(MAGGIE_DATE_OF_BIRTH);
         verify(addressConverter).convert(claimantDTO.getAddress());
     }
 

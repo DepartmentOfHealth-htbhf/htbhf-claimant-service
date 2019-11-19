@@ -15,9 +15,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_POSTCODE;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSONS_POSTCODE;
 
 public class ClaimTestDataFactory {
 
@@ -80,7 +80,7 @@ public class ClaimTestDataFactory {
         Claimant claimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         return aValidClaimBuilder()
                 .claimant(claimant)
-                .postcodeData(aPostcodeDataObjectForPostcode(VALID_POSTCODE))
+                .postcodeData(aPostcodeDataObjectForPostcode(SIMPSONS_POSTCODE))
                 .build();
     }
 

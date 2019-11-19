@@ -13,8 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse.buildWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.LISA_DOB;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MAGGIE_DOB;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.LISA_DOB;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 
 class EligibilityResponseTest {
 
@@ -34,7 +34,7 @@ class EligibilityResponseTest {
 
         assertThat(dateOfBirthOfChildren).isNotEmpty();
         assertThat(dateOfBirthOfChildren).hasSize(2);
-        assertThat(dateOfBirthOfChildren).containsExactly(MAGGIE_DOB, LISA_DOB);
+        assertThat(dateOfBirthOfChildren).containsExactly(MAGGIE_DATE_OF_BIRTH, LISA_DOB);
     }
 
     @Test

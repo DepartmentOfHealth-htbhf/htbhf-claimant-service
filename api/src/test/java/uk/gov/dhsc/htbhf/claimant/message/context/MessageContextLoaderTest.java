@@ -40,7 +40,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.SINGLE_THREE_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SINGLE_THREE_YEAR_OLD;
 
 @ExtendWith(MockitoExtension.class)
 class MessageContextLoaderTest {

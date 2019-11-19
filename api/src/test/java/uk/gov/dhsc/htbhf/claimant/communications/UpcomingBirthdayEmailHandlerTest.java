@@ -33,7 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
 
 @ExtendWith(MockitoExtension.class)
 class UpcomingBirthdayEmailHandlerTest {
@@ -44,7 +44,7 @@ class UpcomingBirthdayEmailHandlerTest {
     private static final LocalDate TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(4);
     private static final LocalDate TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE = START_OF_NEXT_CYCLE.minusYears(1);
     private static final Integer NUMBER_OF_CALCULATION_PERIODS = 4;
-    private static final Map<String, Object> COMMON_EMAIL_MAP = Map.of(FIRST_NAME.getTemplateKeyName(), VALID_FIRST_NAME);
+    private static final Map<String, Object> COMMON_EMAIL_MAP = Map.of(FIRST_NAME.getTemplateKeyName(), HOMER_FORENAME);
     private static final Duration CHANGE_IN_PAYMENT_MESSAGE_DELAY = Duration.ofDays(3);
 
     @Mock

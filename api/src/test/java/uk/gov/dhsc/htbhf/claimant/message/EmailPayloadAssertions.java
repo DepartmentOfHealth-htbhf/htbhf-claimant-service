@@ -14,8 +14,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSON_SURNAME;
 
 public class EmailPayloadAssertions {
 
@@ -31,8 +31,8 @@ public class EmailPayloadAssertions {
      */
     public static void assertEmailPayloadCorrectForClaimantWithPregnancyVouchersOnly(Map<String, Object> emailPersonalisation, LocalDate nextPaymentDate) {
         assertThat(emailPersonalisation).contains(
-                entry("First_name", VALID_FIRST_NAME),
-                entry("Last_name", VALID_LAST_NAME),
+                entry("First_name", HOMER_FORENAME),
+                entry("Last_name", SIMPSON_SURNAME),
                 entry("payment_amount", "£12.40"),
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", ""),
@@ -50,8 +50,8 @@ public class EmailPayloadAssertions {
      */
     public static void assertEmailPayloadCorrectForClaimantWithAllVouchers(Map<String, Object> emailPersonalisation, LocalDate nextPaymentDate) {
         assertThat(emailPersonalisation).contains(
-                entry("First_name", VALID_FIRST_NAME),
-                entry("Last_name", VALID_LAST_NAME),
+                entry("First_name", HOMER_FORENAME),
+                entry("Last_name", SIMPSON_SURNAME),
                 entry("payment_amount", "£49.60"),
                 entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
                 entry("children_under_1_payment", "\n* £24.80 for children under 1"),

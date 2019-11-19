@@ -2,8 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_FIRST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VALID_LAST_NAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSON_SURNAME;
 
 public class EmailPersonalisationMapTestDataFactory {
 
@@ -13,8 +13,8 @@ public class EmailPersonalisationMapTestDataFactory {
      * @return The Map of email parameters and their values for testing.
      */
     public static Map<String, Object> buildEmailPersonalisation() {
-        return Map.of("First_name", VALID_FIRST_NAME,
-                "Last_name", VALID_LAST_NAME,
+        return Map.of("First_name", HOMER_FORENAME,
+                "Last_name", SIMPSON_SURNAME,
                 "first_payment_amount", "£13.60",
                 "pregnancy_payment", "\n* £3.40 for a pregnancy",
                 "children_under_1_payment", "",
