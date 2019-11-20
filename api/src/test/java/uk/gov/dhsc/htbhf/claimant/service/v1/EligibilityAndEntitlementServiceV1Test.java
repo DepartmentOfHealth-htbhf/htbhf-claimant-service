@@ -29,13 +29,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantServiceIdentityAndEligibilityResponseTestDataFactory.addHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.CONFIRMED;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_CONFIRMED;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.LISA_DOB;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -293,9 +293,7 @@ class EligibilityAndEntitlementServiceV1Test {
         IdentityAndEligibilityResponse identityAndEligibilityResponse = (CONFIRMED == eligibilityOutcome)
                 ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(VerificationOutcome.NOT_SUPPLIED, childrenDobs)
                 : anIdentityMatchedEligibilityNotConfirmedResponse();
-        return identityAndEligibilityResponse.toBuilder()
-                .householdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
-                .build();
+        return addHouseholdIdentifier(identityAndEligibilityResponse);
     }
 
 }
