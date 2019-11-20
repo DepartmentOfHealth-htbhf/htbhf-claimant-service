@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
@@ -54,5 +55,33 @@ class DuplicateClaimCheckerTest {
         assertThat(result).isFalse();
         verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
         verify(claimRepository).liveClaimExistsForHmrcHousehold(HMRC_HOUSEHOLD_IDENTIFIER);
+    }
+
+    @Test
+    void shouldReturnTrueForMatchingDwpHousehold() {
+        given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(true);
+
+        boolean result = duplicateClaimChecker.liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+
+        assertThat(result).isTrue();
+        verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+    }
+
+    @Test
+    void shouldReturnFalseWhenNoMatchingDwpHousehold() {
+        given(claimRepository.liveClaimExistsForDwpHousehold(anyString())).willReturn(false);
+
+        boolean result = duplicateClaimChecker.liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+
+        assertThat(result).isFalse();
+        verify(claimRepository).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+    }
+
+    @Test
+    void shouldReturnFalseWhenNoHouseholdIdentifier() {
+        boolean result = duplicateClaimChecker.liveClaimExistsForDwpHousehold(null);
+
+        assertThat(result).isFalse();
+        verifyNoInteractions(claimRepository);
     }
 }
