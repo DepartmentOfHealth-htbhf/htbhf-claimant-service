@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.service.v2.EligibilityOutcomeToEligibilityStatusConverter.fromEligibilityOutcome;
@@ -26,21 +27,24 @@ public class EligibilityAndEntitlementDecisionFactory {
      * @param identityAndEligibilityResponse The response from DWP.
      * @param entitlement                    The already calculated entitlement.
      * @param existingClaimId                The matching live claim id from the db.
+     * @param hmrcHouseholdIdentifier        The optional HMRC household identifier to set
      * @return The built decision.
      */
     public EligibilityAndEntitlementDecision buildDecision(IdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                           UUID existingClaimId) {
+                                                           UUID existingClaimId,
+                                                           Optional<String> hmrcHouseholdIdentifier) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(identityAndEligibilityResponse, entitlement);
         PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
-        return EligibilityAndEntitlementDecision.builder()
+        EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(identityAndEligibilityResponse.getDobOfChildrenUnder4())
                 .dwpHouseholdIdentifier(identityAndEligibilityResponse.getHouseholdIdentifier())
-                .existingClaimId(existingClaimId)
-                .build();
+                .existingClaimId(existingClaimId);
+        hmrcHouseholdIdentifier.ifPresent(builder::hmrcHouseholdIdentifier);
+        return builder.build();
     }
 
     /**
@@ -48,11 +52,13 @@ public class EligibilityAndEntitlementDecisionFactory {
      *
      * @param identityAndEligibilityResponse The response from DWP.
      * @param entitlement                    The already calculated entitlement.
+     * @param hmrcHouseholdIdentifier        The optional HMRC household identifier to set
      * @return The built decision.
      */
     public EligibilityAndEntitlementDecision buildDecision(IdentityAndEligibilityResponse identityAndEligibilityResponse,
-                                                           PaymentCycleVoucherEntitlement entitlement) {
-        return buildDecision(identityAndEligibilityResponse, entitlement, null);
+                                                           PaymentCycleVoucherEntitlement entitlement,
+                                                           Optional<String> hmrcHouseholdIdentifier) {
+        return buildDecision(identityAndEligibilityResponse, entitlement, null, hmrcHouseholdIdentifier);
     }
 
     private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,

@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantServiceIdentityAndEligibil
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_HOUSEHOLD_IDENTIFIER_PROVIDED;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse;
 
@@ -30,7 +32,8 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         UUID existingClaimId = UUID.randomUUID();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, existingClaimId);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, existingClaimId,
+                Optional.empty());
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -42,12 +45,31 @@ class EligibilityAndEntitlementDecisionFactoryTest {
     }
 
     @Test
+    void shouldBuildDecisionWithExistingClaimUUIDAndHmrcHouseholdIdentifier() {
+        //Given
+        PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
+        UUID existingClaimId = UUID.randomUUID();
+
+        //When
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, existingClaimId,
+                Optional.of(HMRC_HOUSEHOLD_IDENTIFIER));
+
+        //Then
+        EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
+                .identityAndEligibilityResponse(eligibilityResponse)
+                .existingClaimId(existingClaimId)
+                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
+                .build();
+        assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
+    }
+
+    @Test
     void shouldBuildDecisionWithoutExistingClaimUUID() {
         //Given
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, Optional.empty());
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -63,7 +85,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, Optional.empty());
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -82,7 +104,8 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement,
+                Optional.empty());
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
