@@ -34,8 +34,8 @@ import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithMessageTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
@@ -69,7 +69,7 @@ class MessageProcessorTest {
     @BeforeEach
     void init() {
         Map<MessageType, MessageTypeProcessor> messageTypeProcessorMap = Map.of(
-                CREATE_NEW_CARD, createNewCardDummyMessageTypeProcessor,
+                REQUEST_NEW_CARD, createNewCardDummyMessageTypeProcessor,
                 SEND_EMAIL, sendEmailDummyMessageTypeProcessor);
         messageProcessor = new MessageProcessor(messageStatusProcessor, messageRepository, eventAuditor, messageTypeProcessorMap, MESSAGE_PROCESSING_LIMIT);
     }
@@ -84,11 +84,11 @@ class MessageProcessorTest {
     @Test
     void shouldCallDummyProcessors() {
         Message cardMessage = aValidMessage();
-        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE)).thenReturn(singletonList(cardMessage));
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(REQUEST_NEW_CARD, PAGEABLE)).thenReturn(singletonList(cardMessage));
         //When
-        messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
+        messageProcessor.processMessagesOfType(REQUEST_NEW_CARD);
         //Then
-        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE);
+        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(REQUEST_NEW_CARD, PAGEABLE);
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
         verify(messageStatusProcessor).processStatusForMessage(cardMessage, COMPLETED);
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
@@ -109,7 +109,7 @@ class MessageProcessorTest {
                 .willReturn(COMPLETED);
 
         //When
-        messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
+        messageProcessor.processMessagesOfType(REQUEST_NEW_CARD);
 
         //Then
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage1);
@@ -135,7 +135,7 @@ class MessageProcessorTest {
         given(createNewCardDummyMessageTypeProcessor.processMessage(any())).willThrow(eventFailedException);
 
         //When
-        messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
+        messageProcessor.processMessagesOfType(REQUEST_NEW_CARD);
 
         //Then
         verify(createNewCardDummyMessageTypeProcessor).processMessage(cardMessage);
@@ -163,16 +163,16 @@ class MessageProcessorTest {
 
     @Test
     void shouldLogMessageProcessResults() {
-        Message cardMessage = aValidMessageWithType(CREATE_NEW_CARD);
-        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(CREATE_NEW_CARD, PAGEABLE)).thenReturn(asList(cardMessage, cardMessage));
+        Message cardMessage = aValidMessageWithType(REQUEST_NEW_CARD);
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(REQUEST_NEW_CARD, PAGEABLE)).thenReturn(asList(cardMessage, cardMessage));
         //When
-        messageProcessor.processMessagesOfType(CREATE_NEW_CARD);
+        messageProcessor.processMessagesOfType(REQUEST_NEW_CARD);
         //Then
         List<ILoggingEvent> events = TestAppender.getEvents();
         assertThat(events).hasSize(2);
-        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 CREATE_NEW_CARD message(s)");
+        assertThat(events.get(0).getFormattedMessage()).isEqualTo("Processing 2 REQUEST_NEW_CARD message(s)");
         assertThat(events.get(0).getLevel()).isEqualTo(Level.INFO);
-        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 CREATE_NEW_CARD message(s) with status COMPLETED");
+        assertThat(events.get(1).getFormattedMessage()).isEqualTo("Processed 2 REQUEST_NEW_CARD message(s) with status COMPLETED");
         assertThat(events.get(1).getLevel()).isEqualTo(Level.INFO);
     }
 
