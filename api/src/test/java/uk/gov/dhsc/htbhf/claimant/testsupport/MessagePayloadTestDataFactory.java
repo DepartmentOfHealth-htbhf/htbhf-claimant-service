@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.SaveNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
 import java.time.LocalDate;
@@ -41,6 +42,14 @@ public class MessagePayloadTestDataFactory {
         return defaultNewCardRequestMessagePayloadBuilder()
                 .claimId(claimId)
                 .eligibilityAndEntitlementDecision(eligibilityAndEntitlementDecision)
+                .build();
+    }
+
+    public static SaveNewCardMessagePayload aSaveCardMessagePayload(UUID claimId) {
+        return SaveNewCardMessagePayload.builder()
+                .claimId(claimId)
+                .cardAccountId(CARD_ACCOUNT_ID)
+                .eligibilityAndEntitlementDecision(anEligibleDecision())
                 .build();
     }
 

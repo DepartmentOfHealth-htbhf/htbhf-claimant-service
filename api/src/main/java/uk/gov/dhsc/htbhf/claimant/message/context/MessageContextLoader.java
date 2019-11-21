@@ -83,6 +83,17 @@ public class MessageContextLoader {
                 .build();
     }
 
+    public SaveNewCardMessageContext loadSaveNewCardContext(Message message) {
+        SaveNewCardMessagePayload payload = payloadMapper.getPayload(message, SaveNewCardMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        return SaveNewCardMessageContext.builder()
+                .claim(claim)
+                .cardAccountId(payload.getCardAccountId())
+                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())
+                .build();
+    }
+
     /**
      * Method used to inflate the contents of a SEND_EMAIL message.
      *

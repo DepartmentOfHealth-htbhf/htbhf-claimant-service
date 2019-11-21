@@ -35,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aSaveCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -336,7 +337,7 @@ class MessageContextLoaderTest {
     }
 
     @Test
-    void shouldSuccessfullyLoadNewCardContext() {
+    void shouldSuccessfullyLoadRequestNewCardContext() {
         //Given
         Claim claim = aValidClaim();
         UUID claimId = claim.getId();
@@ -355,6 +356,27 @@ class MessageContextLoaderTest {
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEligibilityAndEntitlementDecision()).isEqualTo(payload.getEligibilityAndEntitlementDecision());
         verify(payloadMapper).getPayload(message, RequestNewCardMessagePayload.class);
+        verify(claimRepository).findById(claimId);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadSaveNewCardContext() {
+        //Given
+        Claim claim = aValidClaim();
+        UUID claimId = claim.getId();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        SaveNewCardMessagePayload payload = aSaveCardMessagePayload(claimId);
+        given(payloadMapper.getPayload(any(), eq(SaveNewCardMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(REQUEST_NEW_CARD);
+
+        //When
+        SaveNewCardMessageContext context = loader.loadSaveNewCardContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getEligibilityAndEntitlementDecision()).isEqualTo(payload.getEligibilityAndEntitlementDecision());
+        assertThat(context.getCardAccountId()).isEqualTo(payload.getCardAccountId());
+        verify(payloadMapper).getPayload(message, SaveNewCardMessagePayload.class);
         verify(claimRepository).findById(claimId);
     }
 
