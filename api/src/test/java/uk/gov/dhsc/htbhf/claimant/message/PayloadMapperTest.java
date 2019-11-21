@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 
 import java.io.IOException;
 
@@ -36,31 +36,31 @@ class PayloadMapperTest {
         //Given
         Message message = aValidMessage();
         JsonMappingException testException = new JsonMappingException(() -> { }, "Error reading value");
-        given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willThrow(testException);
+        given(objectMapper.readValue(anyString(), eq(RequestNewCardMessagePayload.class))).willThrow(testException);
 
         //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> payloadMapper.getPayload(message, NewCardRequestMessagePayload.class),
+        MessageProcessingException thrown = catchThrowableOfType(() -> payloadMapper.getPayload(message, RequestNewCardMessagePayload.class),
                 MessageProcessingException.class);
 
         //Then
         assertThat(thrown).hasMessage("Unable to create message payload for message with id: %s, payload is: %s",
                 message.getId(), MESSAGE_PAYLOAD);
         assertThat(thrown).hasCause(testException);
-        verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
+        verify(objectMapper).readValue(MESSAGE_PAYLOAD, RequestNewCardMessagePayload.class);
     }
 
     @Test
     void shouldSuccessfullyMapPayload() throws IOException {
         //Given
         Message message = aValidMessage();
-        NewCardRequestMessagePayload payload = aValidNewCardRequestMessagePayload();
-        given(objectMapper.readValue(anyString(), eq(NewCardRequestMessagePayload.class))).willReturn(payload);
+        RequestNewCardMessagePayload payload = aValidNewCardRequestMessagePayload();
+        given(objectMapper.readValue(anyString(), eq(RequestNewCardMessagePayload.class))).willReturn(payload);
 
         //When
-        NewCardRequestMessagePayload newCardRequestMessagePayload = payloadMapper.getPayload(message, NewCardRequestMessagePayload.class);
+        RequestNewCardMessagePayload requestNewCardMessagePayload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);
 
         //Then
-        assertThat(newCardRequestMessagePayload).isEqualTo(payload);
-        verify(objectMapper).readValue(MESSAGE_PAYLOAD, NewCardRequestMessagePayload.class);
+        assertThat(requestNewCardMessagePayload).isEqualTo(payload);
+        verify(objectMapper).readValue(MESSAGE_PAYLOAD, RequestNewCardMessagePayload.class);
     }
 }

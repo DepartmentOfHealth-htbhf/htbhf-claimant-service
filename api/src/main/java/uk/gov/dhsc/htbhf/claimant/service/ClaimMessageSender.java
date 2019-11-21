@@ -19,8 +19,8 @@ import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFacto
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 
@@ -63,8 +63,8 @@ public class ClaimMessageSender {
     }
 
     public void sendNewCardMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-        NewCardRequestMessagePayload payload = buildNewCardMessagePayload(claim, decision);
-        messageQueueClient.sendMessage(payload, CREATE_NEW_CARD);
+        RequestNewCardMessagePayload payload = buildNewCardMessagePayload(claim, decision);
+        messageQueueClient.sendMessage(payload, REQUEST_NEW_CARD);
     }
 
     public void sendInstantSuccessEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {

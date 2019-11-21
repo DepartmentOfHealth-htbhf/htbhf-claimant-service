@@ -44,7 +44,7 @@ public class MessageTestDataFactory {
     private static Message.MessageBuilder buildValidMessageBuilder() {
         return Message.builder()
                 .createdTimestamp(LocalDateTime.now())
-                .messageType(MessageType.CREATE_NEW_CARD)
+                .messageType(MessageType.REQUEST_NEW_CARD)
                 .processAfter(LocalDateTime.now())
                 .messagePayload(MESSAGE_PAYLOAD);
     }

@@ -22,7 +22,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_
 @Service
 @AllArgsConstructor
 @Slf4j
-public class NewCardService {
+public class RequestNewCardService {
 
     private CardClient cardClient;
     private CardRequestFactory cardRequestFactory;
