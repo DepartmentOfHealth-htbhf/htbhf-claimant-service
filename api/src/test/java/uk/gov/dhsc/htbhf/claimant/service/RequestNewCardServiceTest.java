@@ -36,7 +36,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 
 @ExtendWith(MockitoExtension.class)
-class NewCardServiceTest {
+class RequestNewCardServiceTest {
 
     @Mock
     private CardClient cardClient;
@@ -54,7 +54,7 @@ class NewCardServiceTest {
     private ClaimMessageSender claimMessageSender;
 
     @InjectMocks
-    private NewCardService newCardService;
+    private RequestNewCardService requestNewCardService;
 
     @Test
     void shouldCallCardClientAndUpdateClaim() {
@@ -65,7 +65,7 @@ class NewCardServiceTest {
         Claim claim = aClaimWithClaimStatus(NEW);
         List<LocalDate> datesOfBirthOfChildren = emptyList();
 
-        newCardService.createNewCard(claim, datesOfBirthOfChildren);
+        requestNewCardService.createNewCard(claim, datesOfBirthOfChildren);
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
@@ -87,7 +87,7 @@ class NewCardServiceTest {
         given(cardRequestFactory.createCardRequest(any())).willReturn(cardRequest);
         given(cardClient.requestNewCard(any())).willThrow(TEST_EXCEPTION);
 
-        EventFailedException exception = catchThrowableOfType(() -> newCardService.createNewCard(claim, emptyList()), EventFailedException.class);
+        EventFailedException exception = catchThrowableOfType(() -> requestNewCardService.createNewCard(claim, emptyList()), EventFailedException.class);
 
         assertThat(claim.getClaimStatus()).isEqualTo(NEW);
         assertThat(claim.getCardAccountId()).isNull();
@@ -108,7 +108,7 @@ class NewCardServiceTest {
         given(cardClient.requestNewCard(any())).willReturn(cardResponse);
         doThrow(TEST_EXCEPTION).when(claimRepository).save(any());
 
-        EventFailedException exception = catchThrowableOfType(() -> newCardService.createNewCard(claim, emptyList()), EventFailedException.class);
+        EventFailedException exception = catchThrowableOfType(() -> requestNewCardService.createNewCard(claim, emptyList()), EventFailedException.class);
 
         //simulating save failed so Claim will be modified but not saved as save() threw an Exception
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);

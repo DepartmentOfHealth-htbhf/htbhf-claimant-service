@@ -5,7 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
-import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.RequestNewCardMessageContext;
 
 import java.util.Optional;
 
@@ -33,8 +33,8 @@ public class MessageContextTestDataFactory {
     }
 
 
-    public static NewCardMessageContext aValidNewCardMessageContext() {
-        return NewCardMessageContext.builder()
+    public static RequestNewCardMessageContext aValidNewCardMessageContext() {
+        return RequestNewCardMessageContext.builder()
                 .claim(aValidClaim())
                 .eligibilityAndEntitlementDecision(anEligibleDecision())
                 .build();
