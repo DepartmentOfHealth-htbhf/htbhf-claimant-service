@@ -31,11 +31,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.IdAndEligibilityResponseTestDataFactory.addHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.CONFIRMED;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_CONFIRMED;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.LISA_DOB;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -224,12 +224,18 @@ class EligibilityAndEntitlementServiceV1Test {
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.empty());
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse)).willReturn(true);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(true);
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
-        assertCorrectDuplicateResult(result, eligibilityResponse, voucherEntitlement);
+        assertCorrectDuplicateResult(result, eligibilityResponse);
         verify(client).checkEligibility(claimant);
+        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
+                Optional.of(claimant.getExpectedDeliveryDate()),
+                eligibilityResponse.getDateOfBirthOfChildren(),
+                LocalDate.now());
+        verify(claimRepository).findLiveClaimWithNino(claimant.getNino());
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
     }
 
     @Test
@@ -262,10 +268,9 @@ class EligibilityAndEntitlementServiceV1Test {
     }
 
     private void assertCorrectDuplicateResult(EligibilityAndEntitlementDecision result,
-                                              EligibilityResponse eligibilityResponse,
-                                              PaymentCycleVoucherEntitlement voucherEntitlement) {
+                                              EligibilityResponse eligibilityResponse) {
         assertDecisionResultCorrectApartFromVoucherEntitlement(result, DUPLICATE, CONFIRMED, eligibilityResponse);
-        assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        assertThat(result.getVoucherEntitlement()).isNull();
     }
 
     private void assertCorrectIneligibleResultWithNoVoucherEntitlement(EligibilityAndEntitlementDecision result,
@@ -293,9 +298,7 @@ class EligibilityAndEntitlementServiceV1Test {
         IdentityAndEligibilityResponse identityAndEligibilityResponse = (CONFIRMED == eligibilityOutcome)
                 ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(VerificationOutcome.NOT_SUPPLIED, childrenDobs)
                 : anIdentityMatchedEligibilityNotConfirmedResponse();
-        return identityAndEligibilityResponse.toBuilder()
-                .householdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
-                .build();
+        return addHouseholdIdentifier(identityAndEligibilityResponse);
     }
 
 }
