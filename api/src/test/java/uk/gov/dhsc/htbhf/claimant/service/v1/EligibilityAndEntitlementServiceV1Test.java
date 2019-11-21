@@ -224,12 +224,18 @@ class EligibilityAndEntitlementServiceV1Test {
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.empty());
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(voucherEntitlement);
         Claimant claimant = aValidClaimant();
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse)).willReturn(true);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(true);
 
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(claimant);
 
-        assertCorrectDuplicateResult(result, eligibilityResponse, voucherEntitlement);
+        assertCorrectDuplicateResult(result, eligibilityResponse);
         verify(client).checkEligibility(claimant);
+        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
+                Optional.of(claimant.getExpectedDeliveryDate()),
+                eligibilityResponse.getDateOfBirthOfChildren(),
+                LocalDate.now());
+        verify(claimRepository).findLiveClaimWithNino(claimant.getNino());
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
     }
 
     @Test
@@ -262,10 +268,9 @@ class EligibilityAndEntitlementServiceV1Test {
     }
 
     private void assertCorrectDuplicateResult(EligibilityAndEntitlementDecision result,
-                                              EligibilityResponse eligibilityResponse,
-                                              PaymentCycleVoucherEntitlement voucherEntitlement) {
+                                              EligibilityResponse eligibilityResponse) {
         assertDecisionResultCorrectApartFromVoucherEntitlement(result, DUPLICATE, CONFIRMED, eligibilityResponse);
-        assertThat(result.getVoucherEntitlement()).isEqualTo(voucherEntitlement);
+        assertThat(result.getVoucherEntitlement()).isNull();
     }
 
     private void assertCorrectIneligibleResultWithNoVoucherEntitlement(EligibilityAndEntitlementDecision result,
