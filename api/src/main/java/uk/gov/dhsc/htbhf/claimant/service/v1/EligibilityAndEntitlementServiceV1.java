@@ -49,15 +49,11 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
         if (liveClaimsWithNino.isPresent()) {
-            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get());
+            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(), false);
         }
 
-        EligibilityAndEntitlementDecision decision = buildDecision(eligibilityResponse, entitlement);
         boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
-        EligibilityStatus eligibilityStatus = isDuplicate ? EligibilityStatus.DUPLICATE : decision.getEligibilityStatus();
-        return decision.toBuilder()
-                .eligibilityStatus(eligibilityStatus)
-                .build();
+        return buildDecision(eligibilityResponse, entitlement, isDuplicate);
     }
 
     /**
@@ -82,17 +78,20 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        return buildDecision(eligibilityResponse, entitlement);
-    }
-
-    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse, PaymentCycleVoucherEntitlement entitlement) {
-        return buildDecision(eligibilityResponse, entitlement, null);
+        return buildDecision(eligibilityResponse, entitlement, false);
     }
 
     private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
                                                             PaymentCycleVoucherEntitlement entitlement,
-                                                            UUID existingClaimId) {
-        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement);
+                                                            boolean isDuplicate) {
+        return buildDecision(eligibilityResponse, entitlement, null, isDuplicate);
+    }
+
+    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
+                                                            PaymentCycleVoucherEntitlement entitlement,
+                                                            UUID existingClaimId,
+                                                            boolean isDuplicate) {
+        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement, isDuplicate);
         PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(eligibilityStatus)
@@ -118,9 +117,12 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
     }
 
     private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
-                                                         PaymentCycleVoucherEntitlement voucherEntitlement) {
+                                                         PaymentCycleVoucherEntitlement voucherEntitlement,
+                                                         boolean isDuplicate) {
         if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE && voucherEntitlement.getTotalVoucherEntitlement() == 0) {
             return EligibilityStatus.INELIGIBLE;
+        } else if (isDuplicate) {
+            return EligibilityStatus.DUPLICATE;
         }
         return response.getEligibilityStatus();
     }
