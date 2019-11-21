@@ -25,40 +25,39 @@ class EligibilityAndEntitlementDecisionFactoryTest {
     private static final boolean DUPLICATE = true;
     private EligibilityAndEntitlementDecisionFactory factory = new EligibilityAndEntitlementDecisionFactory();
     private IdentityAndEligibilityResponse eligibilityResponse = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier();
+    private static final UUID EXISTING_CLAIM_UUID = UUID.randomUUID();
 
     @Test
-    void shouldBuildDecisionWithExistingClaimUUID() {
+    void shouldBuildDecisionWithNoHmrcHouseholdIdentifier() {
         //Given
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        UUID existingClaimId = UUID.randomUUID();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, existingClaimId,
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, EXISTING_CLAIM_UUID,
                 Optional.empty(), NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
                 .identityAndEligibilityResponse(eligibilityResponse)
-                .existingClaimId(existingClaimId)
+                .existingClaimId(EXISTING_CLAIM_UUID)
                 .hmrcHouseholdIdentifier(null)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
     }
 
     @Test
-    void shouldBuildDecisionWithExistingClaimUUIDAndHmrcHouseholdIdentifier() {
+    void shouldBuildDecisionWithHmrcHouseholdIdentifier() {
         //Given
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
-        UUID existingClaimId = UUID.randomUUID();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, existingClaimId,
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, EXISTING_CLAIM_UUID,
                 Optional.of(HMRC_HOUSEHOLD_IDENTIFIER), NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
                 .identityAndEligibilityResponse(eligibilityResponse)
-                .existingClaimId(existingClaimId)
+                .existingClaimId(EXISTING_CLAIM_UUID)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
@@ -71,7 +70,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, Optional.empty(), NOT_DUPLICATE);
+                entitlement, null, Optional.empty(), NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -88,7 +87,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, Optional.empty(), DUPLICATE);
+                entitlement, null, Optional.empty(), DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -107,7 +106,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, Optional.empty(), NOT_DUPLICATE);
+                entitlement, EXISTING_CLAIM_UUID, Optional.empty(), NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -115,6 +114,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
                 .identityAndEligibilityResponse(eligibilityResponse)
                 .hmrcHouseholdIdentifier(null)
                 .voucherEntitlement(null)
+                .existingClaimId(EXISTING_CLAIM_UUID)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
     }
@@ -127,7 +127,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement,
-                Optional.empty(), NOT_DUPLICATE);
+                EXISTING_CLAIM_UUID, Optional.empty(), NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -137,6 +137,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
                 .hmrcHouseholdIdentifier(null)
                 .voucherEntitlement(null)
                 .dateOfBirthOfChildren(emptyList())
+                .existingClaimId(EXISTING_CLAIM_UUID)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
     }

@@ -286,7 +286,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -336,9 +336,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}")
     @MethodSource("provideArgumentsForClaimantBecomingIneligibleTest")
     void shouldTestClaimantBecomingIneligible(List<LocalDate> previousCycleChildrenDobs,
-                                              List<LocalDate> currentCycleChildrenDobs,
                                               LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
-        wiremockManager.stubIneligibleEligibilityResponse(currentCycleChildrenDobs);
+        wiremockManager.stubIneligibleEligibilityResponse();
         stubNotificationEmailResponse();
 
         //Create previous PaymentCycle
@@ -346,7 +345,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
 
@@ -375,7 +374,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -408,7 +407,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentPaymentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -443,7 +442,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -477,7 +476,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim, currentCycleChildrenDobs);
+        assertPaymentCycleWithNoPayment(claim);
 
         assertClaimStatus(claim, PENDING_EXPIRY);
 
@@ -488,14 +487,14 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date.
+    //First argument is the previous cycle, second is the expected delivery date.
     private static Stream<Arguments> provideArgumentsForClaimantBecomingIneligibleTest() {
         return Stream.of(
-                Arguments.of(SINGLE_THREE_YEAR_OLD, SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                Arguments.of(NO_CHILDREN, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT)
+                Arguments.of(SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                Arguments.of(NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                Arguments.of(NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NOT_PREGNANT)
         );
     }
 
@@ -569,11 +568,11 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
-    private void assertPaymentCycleWithNoPayment(Claim claim, List<LocalDate> childrenDob) {
+    private void assertPaymentCycleWithNoPayment(Claim claim) {
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
-        assertThat(paymentCycle.getChildrenDob()).isEqualTo(childrenDob);
+        assertThat(paymentCycle.getChildrenDob()).isEmpty();
         assertThat(paymentCycle.getVoucherEntitlement()).isNull();
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.INELIGIBLE);
         assertThat(paymentCycle.getCardBalanceInPence()).isNull();
