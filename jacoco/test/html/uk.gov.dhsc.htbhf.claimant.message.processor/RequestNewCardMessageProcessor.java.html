@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NewCardMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">NewCardMessageProcessor.java</span></div><h1>NewCardMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RequestNewCardMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">RequestNewCardMessageProcessor.java</span></div><h1>RequestNewCardMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,21 +11,21 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.RequestNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+import uk.gov.dhsc.htbhf.claimant.service.RequestNewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 
 /**
- * Responsible for processing CREATE_NEW_CARD messages by:
+ * Responsible for processing {@link MessageType#REQUEST_NEW_CARD} messages by:
  * Creating a new card,
  * Creating a PaymentCycle for the claim,
  * Sending a MAKE_FIRST_PAYMENT message.
@@ -33,30 +33,30 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
 @Component
 @AllArgsConstructor
 <span class="fc" id="L35">@Slf4j</span>
-public class NewCardMessageProcessor implements MessageTypeProcessor {
+public class RequestNewCardMessageProcessor implements MessageTypeProcessor {
 
-    private NewCardService newCardService;
+    private RequestNewCardService requestNewCardService;
     private MessageContextLoader messageContextLoader;
     private PaymentCycleService paymentCycleService;
     private MessageQueueClient messageQueueClient;
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L45">        return CREATE_NEW_CARD;</span>
+<span class="fc" id="L45">        return REQUEST_NEW_CARD;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L51">        NewCardMessageContext context = messageContextLoader.loadNewCardContext(message);</span>
+<span class="fc" id="L51">        RequestNewCardMessageContext context = messageContextLoader.loadRequestNewCardContext(message);</span>
 <span class="fc" id="L52">        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = context.getEligibilityAndEntitlementDecision();</span>
-<span class="fc" id="L53">        newCardService.createNewCard(context.getClaim(), eligibilityAndEntitlementDecision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L53">        requestNewCardService.createNewCard(context.getClaim(), eligibilityAndEntitlementDecision.getDateOfBirthOfChildren());</span>
 <span class="fc" id="L54">        PaymentCycle paymentCycle = createAndSavePaymentCycle(context);</span>
 <span class="fc" id="L55">        sendMakeFirstPaymentMessage(paymentCycle);</span>
 <span class="fc" id="L56">        return COMPLETED;</span>
     }
 
-    private PaymentCycle createAndSavePaymentCycle(NewCardMessageContext context) {
+    private PaymentCycle createAndSavePaymentCycle(RequestNewCardMessageContext context) {
 <span class="fc" id="L60">        Claim claim = context.getClaim();</span>
 <span class="fc" id="L61">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(</span>
                 claim,

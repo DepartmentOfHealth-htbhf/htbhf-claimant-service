@@ -52,12 +52,12 @@ public class MessageProcessorScheduler {
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
-            name = &quot;Process CREATE_NEW_CARD messages&quot;,
+            name = &quot;Process REQUEST_NEW_CARD messages&quot;,
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)
-    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:CREATE_NEW_CARD&quot;)
+    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REQUEST_NEW_CARD&quot;)
     public void processCreateNewCardMessages() {
-<span class="fc" id="L60">        messageProcessor.processMessagesOfType(MessageType.CREATE_NEW_CARD);</span>
+<span class="fc" id="L60">        messageProcessor.processMessagesOfType(MessageType.REQUEST_NEW_CARD);</span>
 <span class="fc" id="L61">    }</span>
 
     @Scheduled(cron = DEFAULT_SCHEDULE)

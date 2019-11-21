@@ -3,8 +3,8 @@
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.NewCardRequestMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
@@ -18,9 +18,9 @@ import java.util.List;
  */
 <span class="nc" id="L19">public class MessagePayloadFactory {</span>
 
-    public static NewCardRequestMessagePayload buildNewCardMessagePayload(Claim claim,
+    public static RequestNewCardMessagePayload buildNewCardMessagePayload(Claim claim,
                                                                           EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision) {
-<span class="fc" id="L23">        return NewCardRequestMessagePayload.builder()</span>
+<span class="fc" id="L23">        return RequestNewCardMessagePayload.builder()</span>
 <span class="fc" id="L24">                .claimId(claim.getId())</span>
 <span class="fc" id="L25">                .eligibilityAndEntitlementDecision(eligibilityAndEntitlementDecision)</span>
 <span class="fc" id="L26">                .build();</span>
