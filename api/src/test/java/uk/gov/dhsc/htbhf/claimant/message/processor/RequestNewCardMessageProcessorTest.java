@@ -15,10 +15,10 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.context.NewCardMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.RequestNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
-import uk.gov.dhsc.htbhf.claimant.service.NewCardService;
+import uk.gov.dhsc.htbhf.claimant.service.RequestNewCardService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
@@ -41,10 +41,10 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
 @Transactional
-class NewCardMessageProcessorTest {
+class RequestNewCardMessageProcessorTest {
 
     @MockBean
-    private NewCardService newCardService;
+    private RequestNewCardService requestNewCardService;
     @MockBean
     private MessageContextLoader messageContextLoader;
     @MockBean
@@ -53,43 +53,45 @@ class NewCardMessageProcessorTest {
     private MessageQueueDAO messageQueueDAO;
 
     @Autowired
-    private NewCardMessageProcessor newCardMessageProcessor;
+    private RequestNewCardMessageProcessor requestNewCardMessageProcessor;
 
     @Test
     void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() {
         //Given
         MessageProcessingException testException = new MessageProcessingException("Error reading value");
-        given(messageContextLoader.loadNewCardContext(any())).willThrow(testException);
+        given(messageContextLoader.loadRequestNewCardContext(any())).willThrow(testException);
         Message message = aValidMessageWithPayload(MESSAGE_PAYLOAD);
 
         //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> newCardMessageProcessor.processMessage(message), MessageProcessingException.class);
+        MessageProcessingException thrown = catchThrowableOfType(
+                () -> requestNewCardMessageProcessor.processMessage(message),
+                MessageProcessingException.class);
 
         //Then
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
-        verify(messageContextLoader).loadNewCardContext(message);
-        verifyNoInteractions(newCardService);
+        verify(messageContextLoader).loadRequestNewCardContext(message);
+        verifyNoInteractions(requestNewCardService);
     }
 
     @Test
     void shouldProcessNewCardMessageAndDeleteMessage() {
         //Given
-        NewCardMessageContext context = aValidNewCardMessageContext();
+        RequestNewCardMessageContext context = aValidNewCardMessageContext();
         LocalDate cycleStartDate = context.getClaim().getClaimStatusTimestamp().toLocalDate();
-        given(messageContextLoader.loadNewCardContext(any())).willReturn(context);
+        given(messageContextLoader.loadRequestNewCardContext(any())).willReturn(context);
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(context.getClaim());
         given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any())).willReturn(paymentCycle);
         Message message = aValidMessage();
 
         //When
-        MessageStatus status = newCardMessageProcessor.processMessage(message);
+        MessageStatus status = requestNewCardMessageProcessor.processMessage(message);
 
         //Then
         assertThat(status).isEqualTo(COMPLETED);
         assertThat(TestTransaction.isActive()).isTrue();
-        verify(messageContextLoader).loadNewCardContext(message);
-        verify(newCardService).createNewCard(context.getClaim(), context.getEligibilityAndEntitlementDecision().getDateOfBirthOfChildren());
+        verify(messageContextLoader).loadRequestNewCardContext(message);
+        verify(requestNewCardService).createNewCard(context.getClaim(), context.getEligibilityAndEntitlementDecision().getDateOfBirthOfChildren());
         verify(paymentCycleService).createAndSavePaymentCycleForEligibleClaim(
                 context.getClaim(),
                 cycleStartDate,

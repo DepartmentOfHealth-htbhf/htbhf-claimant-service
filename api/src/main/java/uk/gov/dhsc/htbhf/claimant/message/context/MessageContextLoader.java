@@ -73,11 +73,11 @@ public class MessageContextLoader {
      * @param message The message to inflate.
      * @return A wrapper object with the inflated objects
      */
-    public NewCardMessageContext loadNewCardContext(Message message) {
-        NewCardRequestMessagePayload payload = payloadMapper.getPayload(message, NewCardRequestMessagePayload.class);
+    public RequestNewCardMessageContext loadRequestNewCardContext(Message message) {
+        RequestNewCardMessagePayload payload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);
 
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        return NewCardMessageContext.builder()
+        return RequestNewCardMessageContext.builder()
                 .claim(claim)
                 .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())
                 .build();

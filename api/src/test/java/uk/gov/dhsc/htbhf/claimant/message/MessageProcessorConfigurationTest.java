@@ -20,10 +20,10 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.CREATE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 
 @SpringJUnitConfig(classes = {MessageProcessorConfigurationTest.TestConfig.class, MessageProcessorConfiguration.class})
@@ -51,13 +51,13 @@ class MessageProcessorConfigurationTest {
         Map<MessageType, MessageTypeProcessor> allMessageProcessorsByType = (Map<MessageType, MessageTypeProcessor>)
                 ReflectionTestUtils.getField(messageProcessor, "messageProcessorsByType");
         assertThat(allMessageProcessorsByType).hasSize(2);
-        assertThat(allMessageProcessorsByType.containsKey(CREATE_NEW_CARD)).isTrue();
+        assertThat(allMessageProcessorsByType.containsKey(REQUEST_NEW_CARD)).isTrue();
         assertThat(allMessageProcessorsByType.containsKey(MAKE_PAYMENT)).isFalse();
         assertThat(allMessageProcessorsByType.containsKey(SEND_EMAIL)).isTrue();
-        assertThat(allMessageProcessorsByType.get(CREATE_NEW_CARD)).isInstanceOf(CreateNewCardDummyMessageTypeProcessor.class);
+        assertThat(allMessageProcessorsByType.get(REQUEST_NEW_CARD)).isInstanceOf(CreateNewCardDummyMessageTypeProcessor.class);
         assertThat(allMessageProcessorsByType.get(SEND_EMAIL)).isInstanceOf(SendEmailDummyMessageTypeProcessor.class);
         assertThat(allMessageProcessorsByType.get(MAKE_PAYMENT)).isNull();
-        verifyZeroInteractions(messageRepository);
+        verifyNoMoreInteractions(messageRepository);
     }
 
     //This test specifically doesn't use the Configuration in the context as we cannot trap the Exception being caught

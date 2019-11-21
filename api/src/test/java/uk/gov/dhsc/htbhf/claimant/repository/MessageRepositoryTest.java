@@ -57,9 +57,9 @@ class MessageRepositoryTest {
 
     @ParameterizedTest
     @CsvSource({
-            "CREATE_NEW_CARD, MAKE_PAYMENT",
+            "REQUEST_NEW_CARD, MAKE_PAYMENT",
             "MAKE_PAYMENT, SEND_EMAIL",
-            "SEND_EMAIL, CREATE_NEW_CARD"
+            "SEND_EMAIL, REQUEST_NEW_CARD"
     })
     void shouldRetrieveAllMessagesOfType(MessageType messageType, MessageType differentMessageType) {
         // Given
@@ -85,7 +85,7 @@ class MessageRepositoryTest {
         messageRepository.save(newCardMessageOneYearAgo);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
+        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.REQUEST_NEW_CARD, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo, newCardMessage);
@@ -102,7 +102,7 @@ class MessageRepositoryTest {
         messageRepository.save(newCardMessageOneYearAgo);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.CREATE_NEW_CARD, Pageable.unpaged());
+        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.REQUEST_NEW_CARD, Pageable.unpaged());
 
         // Then
         assertThat(messages).containsExactly(newCardMessageOneYearAgo, newCardMessageOneMonthAgo);
@@ -119,7 +119,7 @@ class MessageRepositoryTest {
         messageRepository.save(message3);
 
         // When
-        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.CREATE_NEW_CARD, PageRequest.of(0, 2));
+        List<Message> messages = messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MessageType.REQUEST_NEW_CARD, PageRequest.of(0, 2));
 
         // Then
         assertThat(messages).containsExactly(message1, message2);
