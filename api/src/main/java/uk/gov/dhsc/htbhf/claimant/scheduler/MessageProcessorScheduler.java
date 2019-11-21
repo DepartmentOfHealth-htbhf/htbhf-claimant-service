@@ -62,6 +62,16 @@ public class MessageProcessorScheduler {
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
+            name = "Process SAVE_NEW_CARD messages",
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:SAVE_NEW_CARD")
+    public void processSaveNewCardMessages() {
+        messageProcessor.processMessagesOfType(MessageType.SAVE_NEW_CARD);
+    }
+
+    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @SchedulerLock(
             name = "Process DETERMINE_ENTITLEMENT messages",
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)

@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 
 public enum MessageType {
     REQUEST_NEW_CARD,
+    SAVE_NEW_CARD,
     MAKE_FIRST_PAYMENT,
     MAKE_PAYMENT,
     SEND_EMAIL,
