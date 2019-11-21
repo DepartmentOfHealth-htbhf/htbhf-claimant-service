@@ -69,7 +69,7 @@ class RequestNewCardServiceTest {
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
-        verify(eventAuditor).auditNewCard(claim.getId(), cardResponse);
+        verify(eventAuditor).auditNewCard(claim.getId(), cardResponse.getCardAccountId());
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());

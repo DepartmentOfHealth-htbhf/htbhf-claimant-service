@@ -11,7 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
@@ -24,18 +23,18 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.*;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aValidPayment;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 @ExtendWith(MockitoExtension.class)
 class EventAuditorTest {
@@ -75,7 +74,7 @@ class EventAuditorTest {
         //When
         eventAuditor.auditNewClaim(null);
         //Then
-        verifyZeroInteractions(eventLogger);
+        verifyNoMoreInteractions(eventLogger);
     }
 
     @Test
@@ -105,10 +104,10 @@ class EventAuditorTest {
     void shouldLogEventForNewCard() {
         //Given
         UUID claimId = UUID.randomUUID();
-        CardResponse cardResponse = aCardResponse();
+        String cardAccountId = CARD_ACCOUNT_ID;
 
         //When
-        eventAuditor.auditNewCard(claimId, cardResponse);
+        eventAuditor.auditNewCard(claimId, cardAccountId);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -120,7 +119,7 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(2)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CARD_ACCOUNT_ID.getKey(), cardResponse.getCardAccountId()),
+                        entry(ClaimEventMetadataKey.CARD_ACCOUNT_ID.getKey(), cardAccountId),
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId));
 
     }
@@ -128,10 +127,10 @@ class EventAuditorTest {
     @Test
     void shouldNotLogEventForNullClaimId() {
         //When
-        eventAuditor.auditNewCard(null, aCardResponse());
+        eventAuditor.auditNewCard(null, CARD_ACCOUNT_ID);
 
         //Then
-        verifyZeroInteractions(eventLogger);
+        verifyNoMoreInteractions(eventLogger);
     }
 
     @Test
@@ -140,7 +139,7 @@ class EventAuditorTest {
         eventAuditor.auditNewCard(UUID.randomUUID(), null);
 
         //Then
-        verifyZeroInteractions(eventLogger);
+        verifyNoMoreInteractions(eventLogger);
     }
 
     @Test
@@ -225,7 +224,7 @@ class EventAuditorTest {
         //When
         eventAuditor.auditExpiredClaim(claim);
         //Then
-        verifyZeroInteractions(eventLogger);
+        verifyNoMoreInteractions(eventLogger);
 
     }
 }
