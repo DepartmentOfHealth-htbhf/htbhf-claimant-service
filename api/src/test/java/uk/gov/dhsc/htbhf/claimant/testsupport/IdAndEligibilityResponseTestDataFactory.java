@@ -8,7 +8,7 @@ import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponse
 /**
  * Extension of IdentityAndEligibilityResponseTestDataFactory so we can add common values for the claimant-service.
  */
-public class ClaimantServiceIdentityAndEligibilityResponseTestDataFactory {
+public class IdAndEligibilityResponseTestDataFactory {
 
     public static IdentityAndEligibilityResponse anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier() {
         return addHouseholdIdentifier(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches());
