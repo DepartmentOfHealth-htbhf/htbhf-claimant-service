@@ -23,6 +23,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.Collections.emptyList;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
@@ -64,8 +65,8 @@ public class WiremockManager {
         stubEligibilityResponse(childrensDateOfBirth, EligibilityStatus.ELIGIBLE);
     }
 
-    public void stubIneligibleEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
-        stubEligibilityResponse(childrensDateOfBirth, EligibilityStatus.INELIGIBLE);
+    public void stubIneligibleEligibilityResponse() throws JsonProcessingException {
+        stubEligibilityResponse(emptyList(), EligibilityStatus.INELIGIBLE);
     }
 
     public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityStatus eligibilityStatus) throws JsonProcessingException {

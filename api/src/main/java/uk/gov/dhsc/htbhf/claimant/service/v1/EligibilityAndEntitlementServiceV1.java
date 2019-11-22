@@ -11,12 +11,14 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+
+import static uk.gov.dhsc.htbhf.claimant.service.v1.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +29,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
     private final DuplicateClaimChecker duplicateClaimChecker;
     private final ClaimRepository claimRepository;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
+    private final EligibilityAndEntitlementDecisionFactory decisionFactory;
 
     /**
      * Determines the eligibility and entitlement for the given claimant. If the claimant's NINO is not found in the database,
@@ -38,6 +41,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
      * @return the eligibility and entitlement for the claimant
      */
     @Override
+    //TODO MRS 21/11/2019: Rename to evaluateNewClaimant in new PR
     public EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
@@ -49,11 +53,10 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 LocalDate.now());
         if (liveClaimsWithNino.isPresent()) {
-            return buildDecision(eligibilityResponse, entitlement, liveClaimsWithNino.get(), false);
+            return buildDecisionForClaimantAlreadyOnScheme(liveClaimsWithNino.get(), eligibilityResponse, entitlement);
         }
-
-        boolean isDuplicate = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
-        return buildDecision(eligibilityResponse, entitlement, isDuplicate);
+        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);
+        return buildDecisionConsideringDuplicates(eligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);
     }
 
     /**
@@ -68,63 +71,42 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
      * @return the eligibility and entitlement for the claimant
      */
     @Override
-    public EligibilityAndEntitlementDecision evaluateExistingClaimant(
-            Claimant claimant,
-            LocalDate cycleStartDate,
-            PaymentCycle previousCycle) {
+    //TODO MRS 21/11/2019: Rename to evaluateClaimantForPaymentCycle in new PR.
+    public EligibilityAndEntitlementDecision evaluateExistingClaimant(Claimant claimant,
+                                                                      LocalDate cycleStartDate,
+                                                                      PaymentCycle previousCycle) {
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 eligibilityResponse.getDateOfBirthOfChildren(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        return buildDecision(eligibilityResponse, entitlement, false);
+        return buildDecisionForPaymentCycle(eligibilityResponse, entitlement);
     }
 
-    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
-                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                            boolean isDuplicate) {
-        return buildDecision(eligibilityResponse, entitlement, null, isDuplicate);
+    private EligibilityAndEntitlementDecision buildDecisionForPaymentCycle(EligibilityResponse eligibilityResponse,
+                                                                           PaymentCycleVoucherEntitlement entitlement) {
+        return buildDecisionConsideringDuplicates(eligibilityResponse, entitlement, false);
     }
 
-    private EligibilityAndEntitlementDecision buildDecision(EligibilityResponse eligibilityResponse,
-                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                            UUID existingClaimId,
-                                                            boolean isDuplicate) {
-        EligibilityStatus eligibilityStatus = determineEligibilityStatus(eligibilityResponse, entitlement, isDuplicate);
-        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
-        return EligibilityAndEntitlementDecision.builder()
-                .eligibilityStatus(eligibilityStatus)
-                .identityAndEligibilityResponse(IdentityAndEligibilityResponseFactory.fromEligibilityResponse(eligibilityResponse))
-                .voucherEntitlement(voucherEntitlement)
-                .dateOfBirthOfChildren(eligibilityResponse.getDateOfBirthOfChildren())
-                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
-                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
-                .existingClaimId(existingClaimId)
-                .build();
+    private EligibilityAndEntitlementDecision buildDecisionConsideringDuplicates(EligibilityResponse eligibilityResponse,
+                                                                                 PaymentCycleVoucherEntitlement entitlement,
+                                                                                 boolean duplicateHouseholdIdentifierFound) {
+        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
+                entitlement,
+                null,
+                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),
+                duplicateHouseholdIdentifierFound);
     }
 
-    /**
-     * We only return and store a voucher entitlement if the Claimant is ELIGIBLE.
-     *
-     * @param entitlement       Their entitlement
-     * @param eligibilityStatus The status to make the determination
-     * @return The voucher entitlement if they are ELIGIBLE else null
-     */
-    private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
-                                                                                             EligibilityStatus eligibilityStatus) {
-        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;
-    }
-
-    private EligibilityStatus determineEligibilityStatus(EligibilityResponse response,
-                                                         PaymentCycleVoucherEntitlement voucherEntitlement,
-                                                         boolean isDuplicate) {
-        if (response.getEligibilityStatus() == EligibilityStatus.ELIGIBLE && voucherEntitlement.getTotalVoucherEntitlement() == 0) {
-            return EligibilityStatus.INELIGIBLE;
-        } else if (isDuplicate) {
-            return EligibilityStatus.DUPLICATE;
-        }
-        return response.getEligibilityStatus();
+    private EligibilityAndEntitlementDecision buildDecisionForClaimantAlreadyOnScheme(UUID existingClaimId,
+                                                                                      EligibilityResponse eligibilityResponse,
+                                                                                      PaymentCycleVoucherEntitlement entitlement) {
+        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
+                entitlement,
+                existingClaimId,
+                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),
+                false);
     }
 
 }
