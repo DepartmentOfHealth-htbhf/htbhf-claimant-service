@@ -31,10 +31,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.IdAndEligibilityResponseTestDataFactory.anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V1;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -81,14 +84,14 @@ class EligibilityAndEntitlementServiceV1Test {
         //Then
         assertThat(decision).isEqualTo(decisionResponse);
         verifyCommonMocks();
-        verifyDecisionFactoryCalledCorrectly(existingClaimId, NOT_DUPLICATE);
+        verifyDecisionFactoryCalledCorrectly(existingClaimId, NOT_DUPLICATE, HMRC_HOUSEHOLD_IDENTIFIER, DWP_HOUSEHOLD_IDENTIFIER);
         verifyNoInteractions(duplicateClaimChecker);
     }
 
     @Test
     void shouldReturnEligibleWhenNotDuplicateAndEligible() {
         //Given
-        setupCommonMocks(null);
+        setupCommonMocksWithoutClaimId();
         given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
@@ -99,13 +102,49 @@ class EligibilityAndEntitlementServiceV1Test {
         assertThat(result).isEqualTo(decisionResponse);
         verifyCommonMocks();
         verify(duplicateClaimChecker).liveClaimExistsForHousehold(ELIGIBILITY_RESPONSE);
-        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE);
+        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE, HMRC_HOUSEHOLD_IDENTIFIER, DWP_HOUSEHOLD_IDENTIFIER);
+    }
+
+    @Test
+    void shouldReturnSuccessfullyWithoutHmrcHouseholdIdentifier() {
+        //Given
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithHmrcHouseholdIdentifier(null);
+        setupCommonMocks(eligibilityResponse);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+
+        //Then
+        assertThat(result).isEqualTo(decisionResponse);
+        verifyCommonMocks();
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
+        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE, null, DWP_HOUSEHOLD_IDENTIFIER);
+    }
+
+    @Test
+    void shouldReturnSuccessfullyWithoutDwpHouseholdIdentifier() {
+        //Given
+        EligibilityResponse eligibilityResponse = anEligibilityResponseWithDwpHouseholdIdentifier(null);
+        setupCommonMocks(eligibilityResponse);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+
+        //Then
+        assertThat(result).isEqualTo(decisionResponse);
+        verifyCommonMocks();
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(eligibilityResponse);
+        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE, HMRC_HOUSEHOLD_IDENTIFIER, null);
     }
 
     @Test
     void shouldReturnDuplicateForExistingHousehold() {
         //Given
-        setupCommonMocks(null);
+        setupCommonMocksWithoutClaimId();
         given(duplicateClaimChecker.liveClaimExistsForHousehold(ELIGIBILITY_RESPONSE)).willReturn(DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
@@ -116,7 +155,7 @@ class EligibilityAndEntitlementServiceV1Test {
         assertThat(result).isEqualTo(decisionResponse);
         verifyCommonMocks();
         verify(duplicateClaimChecker).liveClaimExistsForHousehold(ELIGIBILITY_RESPONSE);
-        verifyDecisionFactoryCalledCorrectly(null, DUPLICATE);
+        verifyDecisionFactoryCalledCorrectly(null, DUPLICATE, HMRC_HOUSEHOLD_IDENTIFIER, DWP_HOUSEHOLD_IDENTIFIER);
     }
 
     @Test
@@ -139,7 +178,7 @@ class EligibilityAndEntitlementServiceV1Test {
                 DATE_OF_BIRTH_OF_CHILDREN,
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE);
+        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE, HMRC_HOUSEHOLD_IDENTIFIER, DWP_HOUSEHOLD_IDENTIFIER);
         verifyNoInteractions(duplicateClaimChecker, claimRepository);
     }
 
@@ -149,17 +188,30 @@ class EligibilityAndEntitlementServiceV1Test {
         return decisionResponse;
     }
 
+    private void setupCommonMocksWithoutClaimId() {
+        setupCommonMocks(ELIGIBILITY_RESPONSE, null);
+    }
+
     private void setupCommonMocks(UUID existingClaimId) {
-        given(client.checkEligibility(any())).willReturn(ELIGIBILITY_RESPONSE);
+        setupCommonMocks(ELIGIBILITY_RESPONSE, existingClaimId);
+    }
+
+    private void setupCommonMocks(EligibilityResponse eligibilityResponse) {
+        setupCommonMocks(eligibilityResponse, null);
+    }
+
+    private void setupCommonMocks(EligibilityResponse eligibilityResponse, UUID existingClaimId) {
+        given(client.checkEligibility(any())).willReturn(eligibilityResponse);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.ofNullable(existingClaimId));
     }
 
-    private void verifyDecisionFactoryCalledCorrectly(UUID existingClaimId, boolean duplicate) {
+    private void verifyDecisionFactoryCalledCorrectly(UUID existingClaimId, boolean duplicate,
+                                                      String hmrcHouseholdIdentifier, String dwpHouseholdIdentifier) {
         IdentityAndEligibilityResponse expectedIdentityAndEligibilityResponse = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier(
-                DATE_OF_BIRTH_OF_CHILDREN);
+                DATE_OF_BIRTH_OF_CHILDREN, dwpHouseholdIdentifier);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(expectedIdentityAndEligibilityResponse,
-                VOUCHER_ENTITLEMENT, existingClaimId, Optional.of(HMRC_HOUSEHOLD_IDENTIFIER), duplicate);
+                VOUCHER_ENTITLEMENT, existingClaimId, hmrcHouseholdIdentifier, duplicate);
     }
 
     private void verifyCommonMocks() {

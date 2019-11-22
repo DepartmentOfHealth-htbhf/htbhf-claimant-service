@@ -6,7 +6,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -34,7 +33,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, EXISTING_CLAIM_UUID,
-                Optional.empty(), NOT_DUPLICATE);
+                null, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -52,7 +51,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse, entitlement, EXISTING_CLAIM_UUID,
-                Optional.of(HMRC_HOUSEHOLD_IDENTIFIER), NOT_DUPLICATE);
+                HMRC_HOUSEHOLD_IDENTIFIER, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -70,7 +69,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, null, Optional.empty(), NOT_DUPLICATE);
+                entitlement, null, null, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -87,7 +86,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, null, Optional.empty(), DUPLICATE);
+                entitlement, null, null, DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -106,7 +105,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(eligibilityResponse,
-                entitlement, EXISTING_CLAIM_UUID, Optional.empty(), NOT_DUPLICATE);
+                entitlement, EXISTING_CLAIM_UUID, null, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -127,7 +126,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
 
         //When
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement,
-                EXISTING_CLAIM_UUID, Optional.empty(), NOT_DUPLICATE);
+                EXISTING_CLAIM_UUID, null, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()

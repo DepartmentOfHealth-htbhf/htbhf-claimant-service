@@ -95,7 +95,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
         return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
                 entitlement,
                 null,
-                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),
+                eligibilityResponse.getHmrcHouseholdIdentifier(),
                 duplicateHouseholdIdentifierFound);
     }
 
@@ -105,7 +105,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
         return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
                 entitlement,
                 existingClaimId,
-                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),
+                eligibilityResponse.getHmrcHouseholdIdentifier(),
                 false);
     }
 
