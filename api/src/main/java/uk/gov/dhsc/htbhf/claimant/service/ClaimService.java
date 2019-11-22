@@ -48,7 +48,7 @@ public class ClaimService {
 
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
             if (decision.claimExistsAndIsEligible()) {
                 Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
                 List<UpdatableClaimantField> updatedFields = updateClaim(claim, claimRequest.getClaimant());

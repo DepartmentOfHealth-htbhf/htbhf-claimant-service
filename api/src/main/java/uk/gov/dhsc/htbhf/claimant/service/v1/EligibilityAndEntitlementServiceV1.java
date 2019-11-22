@@ -32,7 +32,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
     private final EligibilityAndEntitlementDecisionFactory decisionFactory;
 
     /**
-     * Determines the eligibility and entitlement for the given claimant. If the claimant's NINO is not found in the database,
+     * Determines the eligibility and entitlement for the given new claimant. If the claimant's NINO is not found in the database,
      * the external eligibility service is called.
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
@@ -41,8 +41,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
      * @return the eligibility and entitlement for the claimant
      */
     @Override
-    //TODO MRS 21/11/2019: Rename to evaluateNewClaimant in new PR
-    public EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant) {
+    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
         log.debug("Checking eligibility");
@@ -71,10 +70,9 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
      * @return the eligibility and entitlement for the claimant
      */
     @Override
-    //TODO MRS 21/11/2019: Rename to evaluateClaimantForPaymentCycle in new PR.
-    public EligibilityAndEntitlementDecision evaluateExistingClaimant(Claimant claimant,
-                                                                      LocalDate cycleStartDate,
-                                                                      PaymentCycle previousCycle) {
+    public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
+                                                                             LocalDate cycleStartDate,
+                                                                             PaymentCycle previousCycle) {
         EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
