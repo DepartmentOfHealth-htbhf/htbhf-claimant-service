@@ -15,17 +15,19 @@ import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponse
 public class IdAndEligibilityResponseTestDataFactory {
 
     public static IdentityAndEligibilityResponse anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier() {
-        return addHouseholdIdentifier(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches());
+        return addHouseholdIdentifier(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(), DWP_HOUSEHOLD_IDENTIFIER);
     }
 
-    public static IdentityAndEligibilityResponse anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier(List<LocalDate> dateOfBirthOfChildren) {
+    public static IdentityAndEligibilityResponse anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier(List<LocalDate> dateOfBirthOfChildren,
+                                                                                                                   String householdIdentifier) {
         return addHouseholdIdentifier(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(
-                VerificationOutcome.NOT_SUPPLIED, dateOfBirthOfChildren));
+                VerificationOutcome.NOT_SUPPLIED, dateOfBirthOfChildren),
+                householdIdentifier);
     }
 
-    public static IdentityAndEligibilityResponse addHouseholdIdentifier(IdentityAndEligibilityResponse originalResponse) {
+    public static IdentityAndEligibilityResponse addHouseholdIdentifier(IdentityAndEligibilityResponse originalResponse, String householdIdentifier) {
         return originalResponse.toBuilder()
-                .householdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
+                .householdIdentifier(householdIdentifier)
                 .build();
     }
 

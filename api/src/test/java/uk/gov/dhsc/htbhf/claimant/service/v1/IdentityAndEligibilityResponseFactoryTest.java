@@ -17,6 +17,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.IdAndEligibilityResponseTestDataFactory.addHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome.NOT_SUPPLIED;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.TWO_CHILDREN;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchFailedResponse;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -33,7 +34,7 @@ class IdentityAndEligibilityResponseFactoryTest {
         IdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
         IdentityAndEligibilityResponse expectedResponse = addHouseholdIdentifier(
-                anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(NOT_SUPPLIED, TWO_CHILDREN));
+                anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(NOT_SUPPLIED, TWO_CHILDREN), DWP_HOUSEHOLD_IDENTIFIER);
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 
@@ -44,7 +45,7 @@ class IdentityAndEligibilityResponseFactoryTest {
         //When
         IdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
-        IdentityAndEligibilityResponse expectedResponse = addHouseholdIdentifier(anIdentityMatchedEligibilityNotConfirmedResponse());
+        IdentityAndEligibilityResponse expectedResponse = addHouseholdIdentifier(anIdentityMatchedEligibilityNotConfirmedResponse(), DWP_HOUSEHOLD_IDENTIFIER);
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 
@@ -56,7 +57,7 @@ class IdentityAndEligibilityResponseFactoryTest {
         //When
         IdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
-        IdentityAndEligibilityResponse expectedResponse = addHouseholdIdentifier(anIdentityMatchFailedResponse());
+        IdentityAndEligibilityResponse expectedResponse = addHouseholdIdentifier(anIdentityMatchFailedResponse(), DWP_HOUSEHOLD_IDENTIFIER);
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 
