@@ -14,8 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageProcessingException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueDAO;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.context.CompleteNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.context.SaveNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidSaveNewCardMessageContext;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidCompleteNewCardMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.MESSAGE_PAYLOAD;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithPayload;
@@ -45,7 +45,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
 @Transactional
-class SaveNewCardMessageProcessorTest {
+class CompleteNewCardMessageProcessorTest {
 
     @MockBean
     private MessageContextLoader messageContextLoader;
@@ -61,40 +61,40 @@ class SaveNewCardMessageProcessorTest {
     private ClaimMessageSender claimMessageSender;
 
     @Autowired
-    private SaveNewCardMessageProcessor saveNewCardMessageProcessor;
+    private CompleteNewCardMessageProcessor completeNewCardMessageProcessor;
 
     @Test
     void shouldRollBackTransactionAndReturnErrorWhenExceptionIsThrown() {
         //Given
         MessageProcessingException testException = new MessageProcessingException("Error reading value");
-        given(messageContextLoader.loadSaveNewCardContext(any())).willThrow(testException);
+        given(messageContextLoader.loadCompleteNewCardContext(any())).willThrow(testException);
         Message message = aValidMessageWithPayload(MESSAGE_PAYLOAD);
 
         //When
         MessageProcessingException thrown = catchThrowableOfType(
-                () -> saveNewCardMessageProcessor.processMessage(message),
+                () -> completeNewCardMessageProcessor.processMessage(message),
                 MessageProcessingException.class);
 
         //Then
         assertThat(thrown).isEqualTo(testException);
         assertThat(TestTransaction.isFlaggedForRollback()).isTrue();
-        verify(messageContextLoader).loadSaveNewCardContext(message);
+        verify(messageContextLoader).loadCompleteNewCardContext(message);
         verifyNoMoreInteractions(claimRepository);
     }
 
     @Test
-    void shouldProcessSaveNewCardMessage() {
+    void shouldProcessCompleteNewCardMessage() {
         //Given
-        SaveNewCardMessageContext context = aValidSaveNewCardMessageContext();
+        CompleteNewCardMessageContext context = aValidCompleteNewCardMessageContext();
         Claim claim = context.getClaim();
         LocalDate cycleStartDate = claim.getClaimStatusTimestamp().toLocalDate();
-        given(messageContextLoader.loadSaveNewCardContext(any())).willReturn(context);
+        given(messageContextLoader.loadCompleteNewCardContext(any())).willReturn(context);
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         given(paymentCycleService.createAndSavePaymentCycleForEligibleClaim(any(), any(), any())).willReturn(paymentCycle);
         Message message = aValidMessage();
 
         //When
-        MessageStatus status = saveNewCardMessageProcessor.processMessage(message);
+        MessageStatus status = completeNewCardMessageProcessor.processMessage(message);
 
         //Then
         assertThat(status).isEqualTo(COMPLETED);
@@ -102,7 +102,7 @@ class SaveNewCardMessageProcessorTest {
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
         assertThat(TestTransaction.isActive()).isTrue();
 
-        verify(messageContextLoader).loadSaveNewCardContext(message);
+        verify(messageContextLoader).loadCompleteNewCardContext(message);
         verify(claimRepository).save(claim);
         verify(eventAuditor).auditNewCard(claim.getId(), context.getCardAccountId());
         verify(claimMessageSender)

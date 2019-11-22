@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V1;
 
 @SpringBootTest
@@ -278,7 +279,7 @@ class ClaimRepositoryTest {
         assertThat(changes.size()).isEqualTo(2);
         // most recent change first
         assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from 'ID1' to 'ID2' }");
-        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from '123456789' to 'ID1' }");
+        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from '" + CARD_ACCOUNT_ID + "' to 'ID1' }");
     }
 
     @Test

@@ -360,23 +360,23 @@ class MessageContextLoaderTest {
     }
 
     @Test
-    void shouldSuccessfullyLoadSaveNewCardContext() {
+    void shouldSuccessfullyLoadCompleteNewCardContext() {
         //Given
         Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        SaveNewCardMessagePayload payload = aSaveCardMessagePayload(claimId);
-        given(payloadMapper.getPayload(any(), eq(SaveNewCardMessagePayload.class))).willReturn(payload);
+        CompleteNewCardMessagePayload payload = aSaveCardMessagePayload(claimId);
+        given(payloadMapper.getPayload(any(), eq(CompleteNewCardMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(REQUEST_NEW_CARD);
 
         //When
-        SaveNewCardMessageContext context = loader.loadSaveNewCardContext(message);
+        CompleteNewCardMessageContext context = loader.loadCompleteNewCardContext(message);
 
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEligibilityAndEntitlementDecision()).isEqualTo(payload.getEligibilityAndEntitlementDecision());
         assertThat(context.getCardAccountId()).isEqualTo(payload.getCardAccountId());
-        verify(payloadMapper).getPayload(message, SaveNewCardMessagePayload.class);
+        verify(payloadMapper).getPayload(message, CompleteNewCardMessagePayload.class);
         verify(claimRepository).findById(claimId);
     }
 

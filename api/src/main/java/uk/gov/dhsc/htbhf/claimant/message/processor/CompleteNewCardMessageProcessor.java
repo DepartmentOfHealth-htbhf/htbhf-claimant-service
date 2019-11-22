@@ -10,25 +10,27 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.CompleteNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.context.SaveNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
+import java.time.LocalDate;
+import java.util.List;
 import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_NEW_CARD_PROCESS;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SAVE_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE;
 
 /**
- * Responsible for processing {@link MessageType#SAVE_NEW_CARD} messages by:
+ * Responsible for processing {@link MessageType#COMPLETE_NEW_CARD_PROCESS} messages by:
  * Saving the card account id to the claim,
  * Creating a PaymentCycle for the claim,
  * Sending a {@link MessageType#MAKE_FIRST_PAYMENT} message.
@@ -36,7 +38,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_
 @Component
 @AllArgsConstructor
 @Slf4j
-public class SaveNewCardMessageProcessor implements MessageTypeProcessor {
+public class CompleteNewCardMessageProcessor implements MessageTypeProcessor {
 
     private MessageContextLoader messageContextLoader;
     private ClaimRepository claimRepository;
@@ -47,23 +49,29 @@ public class SaveNewCardMessageProcessor implements MessageTypeProcessor {
 
     @Override
     public MessageType supportsMessageType() {
-        return SAVE_NEW_CARD;
+        return COMPLETE_NEW_CARD_PROCESS;
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-        SaveNewCardMessageContext context = messageContextLoader.loadSaveNewCardContext(message);
-        saveCardAccountIdToClaim(context);
-        eventAuditor.auditNewCard(context.getClaim().getId(), context.getCardAccountId());
-        claimMessageSender.sendReportClaimMessage(context.getClaim(), context.getEligibilityAndEntitlementDecision().getDateOfBirthOfChildren(),
-                UPDATED_FROM_NEW_TO_ACTIVE);
+        CompleteNewCardMessageContext context = messageContextLoader.loadCompleteNewCardContext(message);
+        Claim claim = context.getClaim();
+        String cardAccountId = context.getCardAccountId();
+        updateClaim(claim, cardAccountId);
         PaymentCycle paymentCycle = createAndSavePaymentCycle(context);
+        reportClaimUpdated(claim, cardAccountId, context.getEligibilityAndEntitlementDecision().getDateOfBirthOfChildren());
         sendMakeFirstPaymentMessage(paymentCycle);
         return COMPLETED;
     }
 
-    private PaymentCycle createAndSavePaymentCycle(SaveNewCardMessageContext context) {
+    private void updateClaim(Claim claim, String cardAccountId) {
+        claim.setCardAccountId(cardAccountId);
+        claim.updateClaimStatus(ACTIVE);
+        claimRepository.save(claim);
+    }
+
+    private PaymentCycle createAndSavePaymentCycle(CompleteNewCardMessageContext context) {
         Claim claim = context.getClaim();
         return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(
                 claim,
@@ -71,11 +79,9 @@ public class SaveNewCardMessageProcessor implements MessageTypeProcessor {
                 context.getEligibilityAndEntitlementDecision());
     }
 
-    private void saveCardAccountIdToClaim(SaveNewCardMessageContext context) {
-        Claim claim = context.getClaim();
-        claim.setCardAccountId(context.getCardAccountId());
-        claim.updateClaimStatus(ACTIVE);
-        claimRepository.save(claim);
+    private void reportClaimUpdated(Claim claim, String cardAccountId, List<LocalDate> dateOfBirthOfChildren) {
+        eventAuditor.auditNewCard(claim.getId(), cardAccountId);
+        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_NEW_TO_ACTIVE);
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {

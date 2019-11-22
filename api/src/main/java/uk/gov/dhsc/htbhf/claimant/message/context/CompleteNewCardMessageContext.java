@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 
 @Value
 @Builder
-public class SaveNewCardMessageContext {
+public class CompleteNewCardMessageContext {
 
     private Claim claim;
     private String cardAccountId;

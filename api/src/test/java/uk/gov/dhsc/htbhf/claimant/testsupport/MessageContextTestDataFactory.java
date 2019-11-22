@@ -38,8 +38,8 @@ public class MessageContextTestDataFactory {
                 .build();
     }
 
-    public static SaveNewCardMessageContext aValidSaveNewCardMessageContext() {
-        return SaveNewCardMessageContext.builder()
+    public static CompleteNewCardMessageContext aValidCompleteNewCardMessageContext() {
+        return CompleteNewCardMessageContext.builder()
                 .claim(aValidClaim())
                 .eligibilityAndEntitlementDecision(anEligibleDecision())
                 .cardAccountId(CARD_ACCOUNT_ID)

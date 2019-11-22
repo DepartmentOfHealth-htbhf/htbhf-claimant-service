@@ -104,10 +104,9 @@ class EventAuditorTest {
     void shouldLogEventForNewCard() {
         //Given
         UUID claimId = UUID.randomUUID();
-        String cardAccountId = CARD_ACCOUNT_ID;
 
         //When
-        eventAuditor.auditNewCard(claimId, cardAccountId);
+        eventAuditor.auditNewCard(claimId, CARD_ACCOUNT_ID);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -119,7 +118,7 @@ class EventAuditorTest {
                 .isNotNull()
                 .hasSize(2)
                 .containsExactly(
-                        entry(ClaimEventMetadataKey.CARD_ACCOUNT_ID.getKey(), cardAccountId),
+                        entry(ClaimEventMetadataKey.CARD_ACCOUNT_ID.getKey(), CARD_ACCOUNT_ID),
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId));
 
     }
