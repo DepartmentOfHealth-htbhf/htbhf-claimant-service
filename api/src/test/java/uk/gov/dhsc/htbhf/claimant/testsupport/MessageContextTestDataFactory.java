@@ -2,13 +2,11 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.context.*;
+import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 
 import java.util.Optional;
-
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 public class MessageContextTestDataFactory {
 
@@ -27,22 +25,6 @@ public class MessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .claim(claim)
                 .cardAccountId(claim.getCardAccountId())
-                .build();
-    }
-
-
-    public static RequestNewCardMessageContext aValidNewCardMessageContext() {
-        return RequestNewCardMessageContext.builder()
-                .claim(aValidClaim())
-                .eligibilityAndEntitlementDecision(anEligibleDecision())
-                .build();
-    }
-
-    public static CompleteNewCardMessageContext aValidCompleteNewCardMessageContext() {
-        return CompleteNewCardMessageContext.builder()
-                .claim(aValidClaim())
-                .eligibilityAndEntitlementDecision(anEligibleDecision())
-                .cardAccountId(CARD_ACCOUNT_ID)
                 .build();
     }
 

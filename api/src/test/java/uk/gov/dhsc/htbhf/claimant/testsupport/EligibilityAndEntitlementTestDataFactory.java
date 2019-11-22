@@ -30,7 +30,7 @@ public class EligibilityAndEntitlementTestDataFactory {
 
     public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
         EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
-        removeEligibilityStatusIfAppropriate(eligibilityStatus, builder);
+        removeVoucherEntitlementIfAppropriate(eligibilityStatus, builder);
         return builder.build();
     }
 
@@ -38,7 +38,7 @@ public class EligibilityAndEntitlementTestDataFactory {
                                                                                    EligibilityOutcome eligibilityOutcome,
                                                                                    List<LocalDate> childrenDobs) {
         EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
-        removeEligibilityStatusIfAppropriate(eligibilityStatus, builder);
+        removeVoucherEntitlementIfAppropriate(eligibilityStatus, builder);
         IdentityAndEligibilityResponse identityAndEligibilityResponse = (EligibilityOutcome.CONFIRMED == eligibilityOutcome)
                 ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs)
                 : anIdentityMatchedEligibilityNotConfirmedResponse();
@@ -48,8 +48,8 @@ public class EligibilityAndEntitlementTestDataFactory {
                 .build();
     }
 
-    private static void removeEligibilityStatusIfAppropriate(EligibilityStatus eligibilityStatus,
-                                                             EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder) {
+    private static void removeVoucherEntitlementIfAppropriate(EligibilityStatus eligibilityStatus,
+                                                              EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder) {
         if (eligibilityStatus != ELIGIBLE) {
             builder.voucherEntitlement(null);
         }
