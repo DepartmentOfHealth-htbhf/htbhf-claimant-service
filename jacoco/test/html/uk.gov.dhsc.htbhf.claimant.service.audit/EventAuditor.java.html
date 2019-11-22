@@ -8,7 +8,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -21,7 +20,7 @@ import java.util.UUID;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L24">@Slf4j</span>
+<span class="fc" id="L23">@Slf4j</span>
 public class EventAuditor {
 
     private final EventLogger eventLogger;
@@ -32,13 +31,13 @@ public class EventAuditor {
      * @param claim The claim to audit
      */
     public void auditNewClaim(Claim claim) {
-<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (claim == null) {</span>
-<span class="fc" id="L36">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
-<span class="fc" id="L37">            return;</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (claim == null) {</span>
+<span class="fc" id="L35">            log.warn(&quot;Unable to audit null Claim&quot;);</span>
+<span class="fc" id="L36">            return;</span>
         }
-<span class="fc" id="L39">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
-<span class="fc" id="L40">        eventLogger.logEvent(newClaimEvent);</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L38">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L39">        eventLogger.logEvent(newClaimEvent);</span>
+<span class="fc" id="L40">    }</span>
 
     /**
      * Audit that a claim has been updated.
@@ -47,51 +46,51 @@ public class EventAuditor {
      * @param updatedFields the fields on the claim that have been updated
      */
     public void auditUpdatedClaim(Claim claim, List&lt;UpdatableClaimantField&gt; updatedFields) {
-<span class="fc" id="L50">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
-<span class="fc" id="L51">        UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()</span>
-<span class="fc" id="L52">                .claimId(claim.getId())</span>
-<span class="fc" id="L53">                .updatedFields(updatedFieldsAsStrings)</span>
-<span class="fc" id="L54">                .build();</span>
-<span class="fc" id="L55">        eventLogger.logEvent(updatedClaimEvent);</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L49">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
+<span class="fc" id="L50">        UpdatedClaimEvent updatedClaimEvent = UpdatedClaimEvent.builder()</span>
+<span class="fc" id="L51">                .claimId(claim.getId())</span>
+<span class="fc" id="L52">                .updatedFields(updatedFieldsAsStrings)</span>
+<span class="fc" id="L53">                .build();</span>
+<span class="fc" id="L54">        eventLogger.logEvent(updatedClaimEvent);</span>
+<span class="fc" id="L55">    }</span>
 
     /**
      * Audit a new card event given a card response.
      *
-     * @param claimId      The claim id
-     * @param cardResponse The card response which must not be null
+     * @param claimId      The claim id which must not be null
+     * @param cardAccountId The card account id which must not be null
      */
-    public void auditNewCard(UUID claimId, CardResponse cardResponse) {
-<span class="fc bfc" id="L65" title="All 4 branches covered.">        if (claimId == null || cardResponse == null) {</span>
-<span class="fc" id="L66">            log.warn(&quot;Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null&quot;, claimId, cardResponse);</span>
-<span class="fc" id="L67">            return;</span>
+    public void auditNewCard(UUID claimId, String cardAccountId) {
+<span class="fc bfc" id="L64" title="All 4 branches covered.">        if (claimId == null || cardAccountId == null) {</span>
+<span class="fc" id="L65">            log.warn(&quot;Unable to audit new card event with claimId: {} and cardAccountId: {}. Both fields must be provided&quot;, claimId, cardAccountId);</span>
+<span class="fc" id="L66">            return;</span>
         }
-<span class="fc" id="L69">        NewCardEvent newCardEvent = NewCardEvent.builder()</span>
-<span class="fc" id="L70">                .claimId(claimId)</span>
-<span class="fc" id="L71">                .cardAccountId(cardResponse.getCardAccountId())</span>
-<span class="fc" id="L72">                .build();</span>
-<span class="fc" id="L73">        eventLogger.logEvent(newCardEvent);</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L68">        NewCardEvent newCardEvent = NewCardEvent.builder()</span>
+<span class="fc" id="L69">                .claimId(claimId)</span>
+<span class="fc" id="L70">                .cardAccountId(cardAccountId)</span>
+<span class="fc" id="L71">                .build();</span>
+<span class="fc" id="L72">        eventLogger.logEvent(newCardEvent);</span>
+<span class="fc" id="L73">    }</span>
 
     public void auditMakePayment(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
-<span class="fc" id="L77">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
-<span class="fc" id="L78">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L79">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
-<span class="fc" id="L80">                .paymentAmountInPence(payment.getPaymentAmountInPence())</span>
-<span class="fc" id="L81">                .paymentId(payment.getId())</span>
-<span class="fc" id="L82">                .reference(depositFundsResponse.getReferenceId())</span>
-<span class="fc" id="L83">                .build();</span>
-<span class="fc" id="L84">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L76">        MakePaymentEvent event = MakePaymentEvent.builder()</span>
+<span class="fc" id="L77">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L78">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L79">                .paymentAmountInPence(payment.getPaymentAmountInPence())</span>
+<span class="fc" id="L80">                .paymentId(payment.getId())</span>
+<span class="fc" id="L81">                .reference(depositFundsResponse.getReferenceId())</span>
+<span class="fc" id="L82">                .build();</span>
+<span class="fc" id="L83">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L84">    }</span>
 
     public void auditBalanceTooHighForPayment(PaymentCycle paymentCycle) {
-<span class="fc" id="L88">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
-<span class="fc" id="L89">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L90">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
-<span class="fc" id="L91">                .balanceOnCard(paymentCycle.getCardBalanceInPence())</span>
-<span class="fc" id="L92">                .build();</span>
-<span class="fc" id="L93">        eventLogger.logEvent(event);</span>
-<span class="fc" id="L94">    }</span>
+<span class="fc" id="L87">        BalanceTooHighForPaymentEvent event = BalanceTooHighForPaymentEvent.builder()</span>
+<span class="fc" id="L88">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L89">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L90">                .balanceOnCard(paymentCycle.getCardBalanceInPence())</span>
+<span class="fc" id="L91">                .build();</span>
+<span class="fc" id="L92">        eventLogger.logEvent(event);</span>
+<span class="fc" id="L93">    }</span>
 
     /**
      * Audit a failure event.
@@ -99,8 +98,8 @@ public class EventAuditor {
      * @param failureEvent The event that has failed
      */
     public void auditFailedEvent(FailureEvent failureEvent) {
-<span class="fc" id="L102">        eventLogger.logEvent(failureEvent);</span>
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L101">        eventLogger.logEvent(failureEvent);</span>
+<span class="fc" id="L102">    }</span>
 
     /**
      * Audits when a claim has been expired.
@@ -108,12 +107,12 @@ public class EventAuditor {
      * @param claim The claim that has been expired
      */
     public void auditExpiredClaim(Claim claim) {
-<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (claim == null) {</span>
-<span class="fc" id="L112">            log.warn(&quot;Unable to audit expired claim event, claim is null&quot;);</span>
-<span class="fc" id="L113">            return;</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (claim == null) {</span>
+<span class="fc" id="L111">            log.warn(&quot;Unable to audit expired claim event, claim is null&quot;);</span>
+<span class="fc" id="L112">            return;</span>
         }
-<span class="fc" id="L115">        ExpiredClaimEvent expiredClaimEvent = ExpiredClaimEvent.builder().claimId(claim.getId()).build();</span>
-<span class="fc" id="L116">        eventLogger.logEvent(expiredClaimEvent);</span>
-<span class="fc" id="L117">    }</span>
+<span class="fc" id="L114">        ExpiredClaimEvent expiredClaimEvent = ExpiredClaimEvent.builder().claimId(claim.getId()).build();</span>
+<span class="fc" id="L115">        eventLogger.logEvent(expiredClaimEvent);</span>
+<span class="fc" id="L116">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

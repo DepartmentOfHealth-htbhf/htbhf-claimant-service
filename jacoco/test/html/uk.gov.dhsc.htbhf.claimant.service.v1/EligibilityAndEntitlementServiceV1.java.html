@@ -95,7 +95,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
 <span class="fc" id="L95">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
                 entitlement,
                 null,
-<span class="fc" id="L98">                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),</span>
+<span class="fc" id="L98">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
                 duplicateHouseholdIdentifierFound);
     }
 
@@ -105,7 +105,7 @@ public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitle
 <span class="fc" id="L105">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
                 entitlement,
                 existingClaimId,
-<span class="fc" id="L108">                Optional.of(eligibilityResponse.getHmrcHouseholdIdentifier()),</span>
+<span class="fc" id="L108">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
                 false);
     }
 

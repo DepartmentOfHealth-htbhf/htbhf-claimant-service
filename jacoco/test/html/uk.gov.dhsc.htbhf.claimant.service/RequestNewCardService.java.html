@@ -49,7 +49,7 @@ public class RequestNewCardService {
 <span class="fc" id="L49">            CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);</span>
 <span class="fc" id="L50">            cardResponse = cardClient.requestNewCard(cardRequest);</span>
 <span class="fc" id="L51">            updateAndSaveClaim(claim, cardResponse);</span>
-<span class="fc" id="L52">            eventAuditor.auditNewCard(claim.getId(), cardResponse);</span>
+<span class="fc" id="L52">            eventAuditor.auditNewCard(claim.getId(), cardResponse.getCardAccountId());</span>
 <span class="fc" id="L53">            claimMessageSender.sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_NEW_TO_ACTIVE);</span>
 <span class="fc" id="L54">        } catch (RuntimeException e) {</span>
 <span class="fc" id="L55">            String failureMessage = String.format(&quot;Card creation failed for claim %s, exception is: %s&quot;, claim.getId(), e.getMessage());</span>
