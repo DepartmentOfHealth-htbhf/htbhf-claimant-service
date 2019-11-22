@@ -79,7 +79,7 @@ class EligibilityAndEntitlementServiceV1Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(INELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV1.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(decision).isEqualTo(decisionResponse);
@@ -96,7 +96,7 @@ class EligibilityAndEntitlementServiceV1Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -114,7 +114,7 @@ class EligibilityAndEntitlementServiceV1Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -132,7 +132,7 @@ class EligibilityAndEntitlementServiceV1Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -149,7 +149,7 @@ class EligibilityAndEntitlementServiceV1Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -168,7 +168,7 @@ class EligibilityAndEntitlementServiceV1Test {
         LocalDate cycleStartDate = LocalDate.now().minusDays(1);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateExistingClaimant(CLAIMANT, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV1.evaluateClaimantForPaymentCycle(CLAIMANT, cycleStartDate, previousCycle);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);

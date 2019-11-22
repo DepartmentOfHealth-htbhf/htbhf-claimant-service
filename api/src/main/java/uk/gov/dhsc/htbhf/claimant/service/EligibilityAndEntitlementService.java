@@ -9,12 +9,12 @@ import java.time.LocalDate;
 public interface EligibilityAndEntitlementService {
 
     /**
-     * Determines the eligibility and entitlement for the given claimant.
+     * Determines the eligibility and entitlement for the given new claimant.
      *
-     * @param claimant the claimant to check the eligibility for
+     * @param claimant the new claimant to check the eligibility for
      * @return the eligibility and entitlement for the claimant
      */
-    EligibilityAndEntitlementDecision evaluateClaimant(Claimant claimant);
+    EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant);
 
     /**
      * Determines the eligibility and entitlement for the given existing claimant.
@@ -24,6 +24,6 @@ public interface EligibilityAndEntitlementService {
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
-    EligibilityAndEntitlementDecision evaluateExistingClaimant(Claimant claimant, LocalDate cycleStartDate, PaymentCycle previousCycle);
+    EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant, LocalDate cycleStartDate, PaymentCycle previousCycle);
 
 }
