@@ -8,7 +8,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
-import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -58,17 +57,17 @@ public class EventAuditor {
     /**
      * Audit a new card event given a card response.
      *
-     * @param claimId      The claim id
-     * @param cardResponse The card response which must not be null
+     * @param claimId      The claim id which must not be null
+     * @param cardAccountId The card account id which must not be null
      */
-    public void auditNewCard(UUID claimId, CardResponse cardResponse) {
-        if (claimId == null || cardResponse == null) {
-            log.warn("Unable to audit new card event with claimId: {} and cardResponse: {}. Both fields must not be null", claimId, cardResponse);
+    public void auditNewCard(UUID claimId, String cardAccountId) {
+        if (claimId == null || cardAccountId == null) {
+            log.warn("Unable to audit new card event with claimId: {} and cardAccountId: {}. Both fields must be provided", claimId, cardAccountId);
             return;
         }
         NewCardEvent newCardEvent = NewCardEvent.builder()
                 .claimId(claimId)
-                .cardAccountId(cardResponse.getCardAccountId())
+                .cardAccountId(cardAccountId)
                 .build();
         eventLogger.logEvent(newCardEvent);
     }

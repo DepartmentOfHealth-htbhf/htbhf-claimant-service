@@ -83,11 +83,11 @@ public class MessageContextLoader {
                 .build();
     }
 
-    public SaveNewCardMessageContext loadSaveNewCardContext(Message message) {
-        SaveNewCardMessagePayload payload = payloadMapper.getPayload(message, SaveNewCardMessagePayload.class);
+    public CompleteNewCardMessageContext loadCompleteNewCardContext(Message message) {
+        CompleteNewCardMessagePayload payload = payloadMapper.getPayload(message, CompleteNewCardMessagePayload.class);
 
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        return SaveNewCardMessageContext.builder()
+        return CompleteNewCardMessageContext.builder()
                 .claim(claim)
                 .cardAccountId(payload.getCardAccountId())
                 .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())

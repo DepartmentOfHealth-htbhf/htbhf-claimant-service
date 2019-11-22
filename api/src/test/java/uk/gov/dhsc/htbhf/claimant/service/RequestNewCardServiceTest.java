@@ -33,6 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 
 @ExtendWith(MockitoExtension.class)
@@ -69,7 +70,7 @@ class RequestNewCardServiceTest {
 
         verify(cardRequestFactory).createCardRequest(claim);
         verify(cardClient).requestNewCard(cardRequest);
-        verify(eventAuditor).auditNewCard(claim.getId(), cardResponse);
+        verify(eventAuditor).auditNewCard(claim.getId(), CARD_ACCOUNT_ID);
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(argumentCaptor.capture());
         assertThat(claim.getCardAccountId()).isEqualTo(cardResponse.getCardAccountId());

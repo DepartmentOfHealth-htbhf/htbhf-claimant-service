@@ -18,7 +18,7 @@ public class TestConstants {
     public static final LocalDate EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST = LocalDate.now().minusWeeks(13);
     public static final LocalDate NOT_PREGNANT = null;
 
-    public static final String CARD_ACCOUNT_ID = "123456789";
+    public static final String CARD_ACCOUNT_ID = "bc78da28-4918-45fd-95ca-8bd82979c584";
 
     public static final int AVAILABLE_BALANCE_IN_PENCE = 100;
     public static final int LEDGER_BALANCE_IN_PENCE = 100;

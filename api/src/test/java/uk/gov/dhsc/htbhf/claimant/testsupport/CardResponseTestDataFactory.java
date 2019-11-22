@@ -2,10 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+
 public class CardResponseTestDataFactory {
 
     public static CardResponse aCardResponse() {
-        return aCardResponse("bc78da28-4918-45fd-95ca-8bd82979c584");
+        return aCardResponse(CARD_ACCOUNT_ID);
     }
 
     public static CardResponse aCardResponse(String cardAccountId) {

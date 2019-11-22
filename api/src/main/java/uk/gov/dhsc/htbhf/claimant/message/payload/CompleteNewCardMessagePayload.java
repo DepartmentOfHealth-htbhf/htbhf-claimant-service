@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Value
 @Builder
-public class SaveNewCardMessagePayload implements MessagePayload {
+public class CompleteNewCardMessagePayload implements MessagePayload {
 
     private UUID claimId;
     private EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision;
