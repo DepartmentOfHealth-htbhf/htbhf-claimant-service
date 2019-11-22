@@ -48,7 +48,7 @@ public class ClaimService {
 
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
         try {
-<span class="fc" id="L51">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimant(claimRequest.getClaimant());</span>
+<span class="fc" id="L51">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());</span>
 <span class="fc bfc" id="L52" title="All 2 branches covered.">            if (decision.claimExistsAndIsEligible()) {</span>
 <span class="fc" id="L53">                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());</span>
 <span class="fc" id="L54">                List&lt;UpdatableClaimantField&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
