@@ -39,7 +39,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityAndEntitlementServiceV2Test {
+class EligibilityAndEntitlementServiceV3Test {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
@@ -49,10 +49,10 @@ class EligibilityAndEntitlementServiceV2Test {
     private static final Claimant CLAIMANT = aValidClaimant();
 
     @InjectMocks
-    EligibilityAndEntitlementServiceV2 eligibilityAndEntitlementServiceV2;
+    EligibilityAndEntitlementServiceV3 eligibilityAndEntitlementServiceV3;
 
     @Mock
-    EligibilityClientV2 client;
+    EligibilityClientV3 client;
 
     @Mock
     DuplicateClaimChecker duplicateClaimChecker;
@@ -74,7 +74,7 @@ class EligibilityAndEntitlementServiceV2Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(INELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV2.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(decision).isEqualTo(decisionResponse);
@@ -90,7 +90,7 @@ class EligibilityAndEntitlementServiceV2Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV2.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -106,7 +106,7 @@ class EligibilityAndEntitlementServiceV2Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV2.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -124,7 +124,7 @@ class EligibilityAndEntitlementServiceV2Test {
         LocalDate cycleStartDate = LocalDate.now().minusDays(1);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV2.evaluateClaimantForPaymentCycle(CLAIMANT, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateClaimantForPaymentCycle(CLAIMANT, cycleStartDate, previousCycle);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
