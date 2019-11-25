@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v2;
+package uk.gov.dhsc.htbhf.claimant.service.v3;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +31,7 @@ public class EligibilityClientV2 {
     }
 
     public IdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
+        log.debug("Checking V2 eligibility");
         PersonDTOV2 person = buildPersonDTOV2(claimant);
         try {
             ResponseEntity<IdentityAndEligibilityResponse> response = restTemplate.postForEntity(

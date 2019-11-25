@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v1;
+package uk.gov.dhsc.htbhf.claimant.service.v2;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.v1.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 
 @Service
 @AllArgsConstructor
