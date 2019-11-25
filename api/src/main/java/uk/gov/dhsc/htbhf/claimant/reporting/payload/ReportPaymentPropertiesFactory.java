@@ -34,7 +34,7 @@ public class ReportPaymentPropertiesFactory extends ReportPropertiesFactory {
         reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));
         int totalPaymentAmount = context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne() + context.getPaymentForChildrenBetweenOneAndFour();
         reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, totalPaymentAmount)));
-        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
+        reportProperties.putAll(mapValuesToString(createCommonCustomDimensions(context)));
         reportProperties.putAll(mapValuesToString(createCustomMetricMapForPaymentEvent(context)));
         return reportProperties;
     }
