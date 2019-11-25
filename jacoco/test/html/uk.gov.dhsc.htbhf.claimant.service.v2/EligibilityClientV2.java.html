@@ -31,34 +31,35 @@ public class EligibilityClientV2 {
 <span class="fc" id="L31">    }</span>
 
     public IdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
-<span class="fc" id="L34">        PersonDTOV2 person = buildPersonDTOV2(claimant);</span>
+<span class="fc" id="L34">        log.debug(&quot;Checking V2 eligibility&quot;);</span>
+<span class="fc" id="L35">        PersonDTOV2 person = buildPersonDTOV2(claimant);</span>
         try {
-<span class="fc" id="L36">            ResponseEntity&lt;IdentityAndEligibilityResponse&gt; response = restTemplate.postForEntity(</span>
+<span class="fc" id="L37">            ResponseEntity&lt;IdentityAndEligibilityResponse&gt; response = restTemplate.postForEntity(</span>
                     eligibilityUri,
                     person,
                     IdentityAndEligibilityResponse.class
             );
 
-<span class="fc bfc" id="L42" title="All 2 branches covered.">            if (HttpStatus.OK != response.getStatusCode()) {</span>
-<span class="fc" id="L43">                throw new EligibilityClientException(response.getStatusCode());</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            if (HttpStatus.OK != response.getStatusCode()) {</span>
+<span class="fc" id="L44">                throw new EligibilityClientException(response.getStatusCode());</span>
             }
-<span class="fc" id="L45">            return response.getBody();</span>
-<span class="fc" id="L46">        } catch (RestClientException e) {</span>
-<span class="fc" id="L47">            log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
-<span class="fc" id="L48">            throw new EligibilityClientException(e, eligibilityUri);</span>
+<span class="fc" id="L46">            return response.getBody();</span>
+<span class="fc" id="L47">        } catch (RestClientException e) {</span>
+<span class="fc" id="L48">            log.error(&quot;Exception caught trying to post to {}&quot;, eligibilityUri);</span>
+<span class="fc" id="L49">            throw new EligibilityClientException(e, eligibilityUri);</span>
         }
     }
 
     private PersonDTOV2 buildPersonDTOV2(Claimant claimant) {
-<span class="fc" id="L53">        return PersonDTOV2.builder()</span>
-<span class="fc" id="L54">                .surname(claimant.getLastName())</span>
-<span class="fc" id="L55">                .nino(claimant.getNino())</span>
-<span class="fc" id="L56">                .dateOfBirth(claimant.getDateOfBirth())</span>
-<span class="fc" id="L57">                .addressLine1(claimant.getAddress().getAddressLine1())</span>
-<span class="fc" id="L58">                .postcode(claimant.getAddress().getPostcode())</span>
-<span class="fc" id="L59">                .emailAddress(claimant.getEmailAddress())</span>
-<span class="fc" id="L60">                .mobilePhoneNumber(claimant.getPhoneNumber())</span>
-<span class="fc" id="L61">                .build();</span>
+<span class="fc" id="L54">        return PersonDTOV2.builder()</span>
+<span class="fc" id="L55">                .surname(claimant.getLastName())</span>
+<span class="fc" id="L56">                .nino(claimant.getNino())</span>
+<span class="fc" id="L57">                .dateOfBirth(claimant.getDateOfBirth())</span>
+<span class="fc" id="L58">                .addressLine1(claimant.getAddress().getAddressLine1())</span>
+<span class="fc" id="L59">                .postcode(claimant.getAddress().getPostcode())</span>
+<span class="fc" id="L60">                .emailAddress(claimant.getEmailAddress())</span>
+<span class="fc" id="L61">                .mobilePhoneNumber(claimant.getPhoneNumber())</span>
+<span class="fc" id="L62">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
