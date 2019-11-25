@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v2;
+package uk.gov.dhsc.htbhf.claimant.service.v3;
 
 import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;

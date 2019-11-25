@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v1;
+package uk.gov.dhsc.htbhf.claimant.service.v2;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

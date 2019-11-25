@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.controller;
+package uk.gov.dhsc.htbhf.claimant.controller.v2;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;

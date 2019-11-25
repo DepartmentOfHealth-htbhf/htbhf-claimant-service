@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v1;
+package uk.gov.dhsc.htbhf.claimant.service.v2;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,7 +11,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.service.v1.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
