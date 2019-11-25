@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import static java.util.Collections.emptyList;
  * periods would result in entitlement being calculated four times, each one week apart.
  */
 @Component
+@Slf4j
 public class PaymentCycleEntitlementCalculator {
 
     private final Integer entitlementCalculationDuration;
@@ -54,6 +56,7 @@ public class PaymentCycleEntitlementCalculator {
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
                                                                List<LocalDate> dateOfBirthOfChildren,
                                                                LocalDate cycleStartDate) {
+        log.debug("Calculating entitlement");
         List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
@@ -71,6 +74,7 @@ public class PaymentCycleEntitlementCalculator {
                                                                List<LocalDate> dateOfBirthOfChildren,
                                                                LocalDate cycleStartDate,
                                                                PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
+        log.debug("Calculating entitlement using the previous voucher entitlement");
         List<LocalDate> newChildren = newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement);
         if (newChildren.isEmpty()) {
             return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);

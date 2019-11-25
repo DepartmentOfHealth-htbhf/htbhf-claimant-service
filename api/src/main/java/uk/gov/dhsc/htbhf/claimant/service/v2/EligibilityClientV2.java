@@ -31,6 +31,7 @@ public class EligibilityClientV2 {
     }
 
     public IdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
+        log.debug("Checking V2 eligibility");
         PersonDTOV2 person = buildPersonDTOV2(claimant);
         try {
             ResponseEntity<IdentityAndEligibilityResponse> response = restTemplate.postForEntity(
