@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
@@ -103,13 +105,13 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         LocalDateTime now = LocalDateTime.now();
         ageByOneCycle(childrenDob);
         claim = repositoryMediator.loadClaim(claimId);
-        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.EXPIRED);
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
 
         // should schedule the card for cancellation after four cycles
-        ageByFourCycles(childrenDob);
+        ageByNumberOfCycles(4, childrenDob);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
@@ -154,13 +156,13 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         LocalDateTime now = LocalDateTime.now();
         ageByOneCycle();
         claim = repositoryMediator.loadClaim(claimId);
-        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.EXPIRED);
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
 
         // should schedule the card for cancellation after four cycles
-        ageByFourCycles(emptyList());
+        ageByNumberOfCycles(4);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
@@ -195,7 +197,44 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Optional<PaymentCycle> paymentCycle = repositoryMediator.getOptionalPaymentCycleForClaim(claim);
         assertThat(paymentCycle).isNotEmpty();
         assertThat(paymentCycle.get().getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+    }
 
+    /**
+     * Run through a lifecycle where an active claim becomes ineligible due to not being on a qualifying benefit.
+     * The claim will go from active to pending expiry, after 16 weeks the claim will become expired and their card
+     * status will be set to {@link CardStatus#SCHEDULED_FOR_CANCELLATION}.
+     *                                                     | one year
+     * |...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|
+     * | active claim becomes ineligible (due to not being on qualifying benefit). Claim status set to pending expiry, card status set to pending_cancellation
+     * |...............| Claim status set to expired. Card status set to scheduled_for_cancellation
+     */
+    @Test
+    @Disabled("HTBHF-2656")
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    void shouldProcessClaimWhoBecomesIneligibleDueToNoQualifyingBenefit() throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
+        assertFirstCyclePaidCorrectly(claimId);
+
+        // Claim becomes ineligible
+        wiremockManager.stubIneligibleEligibilityResponse();
+        ageByOneCycle();
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+
+        // 16 weeks pass
+        LocalDateTime now = LocalDateTime.now();
+        ageByNumberOfCycles(4);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
+        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // invoke schedulers to process send email for card is about to be cancelled
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
@@ -242,7 +281,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return claim.getId();
     }
 
-    private void makeNewClaimRestRequest(ClaimDTO claimDTO) throws JsonProcessingException, NotificationClientException {
+    private void makeNewClaimRestRequest(ClaimDTO claimDTO) {
         restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
     }
 
@@ -267,8 +306,14 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         invokeAllSchedulers();
     }
 
-    private void ageByFourCycles(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
-        for (int i = 0; i < 4; i++) {
+    private void ageByNumberOfCycles(int numberOfCycles) {
+        for (int i = 0;i < numberOfCycles;i++) {
+            ageByOneCycle();
+        }
+    }
+
+    private void ageByNumberOfCycles(int numberOfCycles, List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
+        for (int i = 0; i < numberOfCycles; i++) {
             ageByOneCycle(initialChildrenDobs);
         }
     }
