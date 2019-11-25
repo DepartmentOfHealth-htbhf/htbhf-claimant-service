@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.claim</a> &gt; <span class="el_source">ClaimService.java</span></div><h1>ClaimService.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.claim;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
+import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
+
+@Service
+<span class="fc" id="L35">@Slf4j</span>
+@RequiredArgsConstructor
+public class ClaimService {
+
+    private final ClaimRepository claimRepository;
+    private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
+    private final EventAuditor eventAuditor;
+    private final ClaimMessageSender claimMessageSender;
+
+<span class="fc" id="L44">    private static final Map&lt;EligibilityStatus, ClaimStatus&gt; STATUS_MAP = Map.of(</span>
+            EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
+            EligibilityStatus.PENDING, ClaimStatus.PENDING,
+            EligibilityStatus.NO_MATCH, ClaimStatus.REJECTED,
+            EligibilityStatus.ERROR, ClaimStatus.ERROR,
+            EligibilityStatus.DUPLICATE, ClaimStatus.REJECTED,
+            EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
+    );
+
+    public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
+        try {
+<span class="fc" id="L55">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">            if (decision.claimExistsAndIsEligible()) {</span>
+<span class="fc" id="L57">                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());</span>
+<span class="fc" id="L58">                List&lt;UpdatableClaimantField&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
+<span class="fc" id="L59">                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);</span>
+<span class="fc" id="L60">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
+<span class="fc" id="L61">                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);</span>
+<span class="fc" id="L62">                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);</span>
+            }
+
+<span class="fc" id="L65">            Claim claim = createAndSaveClaim(claimRequest, decision);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
+<span class="fc" id="L67">                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);</span>
+<span class="fc" id="L68">                claimMessageSender.sendNewCardMessage(claim, decision);</span>
+<span class="fc" id="L69">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
+<span class="fc" id="L70">                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);</span>
+<span class="fc" id="L71">                return ClaimResult.withEntitlement(claim, weeklyEntitlement);</span>
+            }
+
+<span class="fc" id="L74">            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);</span>
+<span class="fc" id="L75">            return ClaimResult.withNoEntitlement(claim);</span>
+<span class="fc" id="L76">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L77">            handleFailedClaim(claimRequest, e);</span>
+<span class="fc" id="L78">            throw e;</span>
+        }
+    }
+
+    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List&lt;UpdatableClaimantField&gt; updatedFields) {
+<span class="fc bfc" id="L83" title="All 4 branches covered.">        if (claim.getClaimant().getExpectedDeliveryDate() != null &amp;&amp; updatedFields.contains(EXPECTED_DELIVERY_DATE)) {</span>
+<span class="fc" id="L84">            claimMessageSender.sendAdditionalPaymentMessage(claim);</span>
+        }
+<span class="fc" id="L86">    }</span>
+
+    private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
+<span class="fc" id="L89">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
+<span class="fc" id="L90">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L91">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L92">        FailureEvent failureEvent = FailureEvent.builder()</span>
+<span class="fc" id="L93">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
+<span class="fc" id="L94">                .failedEvent(newClaimEvent)</span>
+<span class="fc" id="L95">                .exception(e)</span>
+<span class="fc" id="L96">                .build();</span>
+<span class="fc" id="L97">        eventAuditor.auditFailedEvent(failureEvent);</span>
+<span class="fc" id="L98">        claimRepository.save(claim);</span>
+<span class="fc" id="L99">    }</span>
+
+    private List&lt;UpdatableClaimantField&gt; updateClaim(Claim claim, Claimant claimant) {
+<span class="fc" id="L102">        List&lt;UpdatableClaimantField&gt; updatedFields = updateClaimantFields(claim, claimant);</span>
+<span class="fc" id="L103">        log.info(&quot;Updating claim: {},  fields updated {}&quot;, claim.getId(), updatedFields);</span>
+<span class="fc" id="L104">        claimRepository.save(claim);</span>
+<span class="fc" id="L105">        eventAuditor.auditUpdatedClaim(claim, updatedFields);</span>
+<span class="fc" id="L106">        return updatedFields;</span>
+    }
+
+    private List&lt;UpdatableClaimantField&gt; updateClaimantFields(Claim claim, Claimant claimant) {
+<span class="fc" id="L110">        Claimant originalClaimant = claim.getClaimant();</span>
+<span class="fc" id="L111">        List&lt;UpdatableClaimantField&gt; updatedFields = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            if (field.valueIsDifferent(originalClaimant, claimant)) {</span>
+<span class="fc" id="L114">                field.updateOriginal(originalClaimant, claimant);</span>
+<span class="fc" id="L115">                updatedFields.add(field);</span>
+            }
+        }
+<span class="fc" id="L118">        return updatedFields;</span>
+    }
+
+    private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L122">        Claim claim = buildClaim(claimRequest, decision);</span>
+<span class="fc" id="L123">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L124">        claimRepository.save(claim);</span>
+<span class="fc" id="L125">        eventAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L126">        return claim;</span>
+    }
+
+    @SuppressFBWarnings(value = &quot;SECMD5&quot;,
+            justification = &quot;Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption&quot;)
+    private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L132">        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());</span>
+<span class="fc" id="L133">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
+<span class="fc" id="L134">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
+<span class="fc" id="L136">        return Claim.builder()</span>
+<span class="fc" id="L137">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L138">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L139">                .eligibilityStatus(decision.getEligibilityStatus())</span>
+<span class="fc" id="L140">                .eligibilityStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L141">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L142">                .claimStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L143">                .claimant(claimRequest.getClaimant())</span>
+<span class="fc" id="L144">                .deviceFingerprint(deviceFingerprint)</span>
+<span class="fc" id="L145">                .deviceFingerprintHash(fingerprintHash)</span>
+<span class="fc" id="L146">                .webUIVersion(claimRequest.getWebUIVersion())</span>
+<span class="fc" id="L147">                .build();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimActivationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.claim</a> &gt; <span class="el_source">ClaimActivationService.java</span></div><h1>ClaimActivationService.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.claim;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
+
+import java.time.LocalDate;
+
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE;
+
+@Service
+@AllArgsConstructor
+<span class="fc" id="L21">@Slf4j</span>
+public class ClaimActivationService {
+
+    private ClaimRepository claimRepository;
+    private PaymentCycleService paymentCycleService;
+    private EventAuditor eventAuditor;
+    private ClaimMessageSender claimMessageSender;
+
+    /**
+     * Saves the new cardAccountId on the claim, sets the status of the claim to active, and creates a new {@link PaymentCycle}.
+     * Also records an audit event for the new card, and sends a message to report the change in claim status from new to active.
+     * @param claim the claim to update
+     * @param cardAccountId the account id
+     * @param decision used to create the new {@link PaymentCycle}.
+     * @return the first payment cycle for the claim.
+     */
+    public PaymentCycle updateClaimAndCreatePaymentCycle(Claim claim,
+                                                         String cardAccountId,
+                                                         EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L40">        LocalDate firstCycleStartDate = claim.getClaimStatusTimestamp().toLocalDate();</span>
+<span class="fc" id="L41">        updateClaim(claim, cardAccountId);</span>
+<span class="fc" id="L42">        reportUpdatedClaim(claim, cardAccountId, decision);</span>
+<span class="fc" id="L43">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, firstCycleStartDate, decision);</span>
+    }
+
+    private void updateClaim(Claim claim, String cardAccountId) {
+<span class="fc" id="L47">        claim.setCardAccountId(cardAccountId);</span>
+<span class="fc" id="L48">        claim.updateClaimStatus(ACTIVE);</span>
+<span class="fc" id="L49">        claimRepository.save(claim);</span>
+<span class="fc" id="L50">    }</span>
+
+    private void reportUpdatedClaim(Claim claim, String cardAccountId, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L53">        eventAuditor.auditNewCard(claim.getId(), cardAccountId);</span>
+<span class="fc" id="L54">        claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_NEW_TO_ACTIVE);</span>
+<span class="fc" id="L55">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
