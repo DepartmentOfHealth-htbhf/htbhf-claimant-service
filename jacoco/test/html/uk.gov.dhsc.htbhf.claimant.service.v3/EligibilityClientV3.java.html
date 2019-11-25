@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityClientV2.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.v3</a> &gt; <span class="el_source">EligibilityClientV2.java</span></div><h1>EligibilityClientV2.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.v3;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityClientV3.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.v3</a> &gt; <span class="el_source">EligibilityClientV3.java</span></div><h1>EligibilityClientV3.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.v3;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +18,13 @@ import uk.gov.dhsc.htbhf.dwp.model.v2.PersonDTOV2;
  */
 @Component
 <span class="fc" id="L20">@Slf4j</span>
-public class EligibilityClientV2 {
+public class EligibilityClientV3 {
 
     private static final String ELIGIBILITY_ENDPOINT = &quot;/v2/eligibility&quot;;
     private final RestTemplate restTemplate;
     private final String eligibilityUri;
 
-    public EligibilityClientV2(@Value(&quot;${eligibility.base-uri}&quot;) String baseUri,
+    public EligibilityClientV3(@Value(&quot;${eligibility.base-uri}&quot;) String baseUri,
 <span class="fc" id="L28">                               RestTemplate restTemplate) {</span>
 <span class="fc" id="L29">        this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;</span>
 <span class="fc" id="L30">        this.restTemplate = restTemplate;</span>
