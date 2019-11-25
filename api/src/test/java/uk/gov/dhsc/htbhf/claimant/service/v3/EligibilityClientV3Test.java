@@ -28,7 +28,7 @@ import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponse
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.PersonDTOV2TestDataFactory.aPersonDTOV2WithPregnantDependantDob;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityClientV2Test {
+class EligibilityClientV3Test {
 
     private static final String BASE_URI = "http://localhost:8100";
     private static final String FULL_URI = "http://localhost:8100/v2/eligibility";
@@ -37,11 +37,11 @@ class EligibilityClientV2Test {
     @Mock
     private RestTemplate restTemplate;
 
-    private EligibilityClientV2 client;
+    private EligibilityClientV3 client;
 
     @BeforeEach
     void setup() {
-        client = new EligibilityClientV2(BASE_URI, restTemplate);
+        client = new EligibilityClientV3(BASE_URI, restTemplate);
     }
 
     @Test

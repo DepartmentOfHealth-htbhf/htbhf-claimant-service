@@ -18,13 +18,13 @@ import uk.gov.dhsc.htbhf.dwp.model.v2.PersonDTOV2;
  */
 @Component
 @Slf4j
-public class EligibilityClientV2 {
+public class EligibilityClientV3 {
 
     private static final String ELIGIBILITY_ENDPOINT = "/v2/eligibility";
     private final RestTemplate restTemplate;
     private final String eligibilityUri;
 
-    public EligibilityClientV2(@Value("${eligibility.base-uri}") String baseUri,
+    public EligibilityClientV3(@Value("${eligibility.base-uri}") String baseUri,
                                RestTemplate restTemplate) {
         this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;
         this.restTemplate = restTemplate;

@@ -19,16 +19,16 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Slf4j
-public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitlementService {
+public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitlementService {
 
-    private final EligibilityClientV2 client;
+    private final EligibilityClientV3 client;
     private final DuplicateClaimChecker duplicateClaimChecker;
     private final ClaimRepository claimRepository;
     private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
     private final EligibilityAndEntitlementDecisionFactory eligibilityAndEntitlementDecisionFactory;
 
     /**
-     * Determines the eligibility and entitlement for the given new claimant using v2 of the service. If the claimant's NINO is not found in the database,
+     * Determines the eligibility and entitlement for the given new claimant using v3 of the service. If the claimant's NINO is not found in the database,
      * the external eligibility service is called.
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
@@ -56,7 +56,7 @@ public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitle
     }
 
     /**
-     * Determines the eligibility and entitlement for the given existing claimant using v2 of the service. No check is made on the NINO as they already exist
+     * Determines the eligibility and entitlement for the given existing claimant using v3 of the service. No check is made on the NINO as they already exist
      * in the database. The eligibility status is checked by calling the external service.
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
