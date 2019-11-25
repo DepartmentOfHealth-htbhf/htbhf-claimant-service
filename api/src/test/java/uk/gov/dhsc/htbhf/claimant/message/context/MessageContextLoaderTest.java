@@ -33,9 +33,9 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aNewCardRequestMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aSaveCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -344,7 +344,7 @@ class MessageContextLoaderTest {
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchers();
         List<LocalDate> datesOfBirth = List.of(LocalDate.now().minusDays(1), LocalDate.now());
-        RequestNewCardMessagePayload payload = aNewCardRequestMessagePayload(claimId, voucherEntitlement, datesOfBirth);
+        RequestNewCardMessagePayload payload = aRequestNewCardMessagePayload(claimId, voucherEntitlement, datesOfBirth);
         given(payloadMapper.getPayload(any(), eq(RequestNewCardMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(REQUEST_NEW_CARD);
 
@@ -365,7 +365,7 @@ class MessageContextLoaderTest {
         Claim claim = aValidClaim();
         UUID claimId = claim.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        CompleteNewCardMessagePayload payload = aSaveCardMessagePayload(claimId);
+        CompleteNewCardMessagePayload payload = aCompleteNewCardMessagePayload(claimId);
         given(payloadMapper.getPayload(any(), eq(CompleteNewCardMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(REQUEST_NEW_CARD);
 

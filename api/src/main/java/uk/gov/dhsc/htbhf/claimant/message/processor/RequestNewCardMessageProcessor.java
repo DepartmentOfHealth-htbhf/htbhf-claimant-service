@@ -5,23 +5,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.factory.CardRequestFactory;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.context.RequestNewCardMessageContext;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.CompleteNewCardMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
+import uk.gov.dhsc.htbhf.claimant.model.card.CardResponse;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
-import uk.gov.dhsc.htbhf.claimant.service.RequestNewCardService;
-import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
+import uk.gov.dhsc.htbhf.claimant.service.CardClient;
 
 import javax.transaction.Transactional;
 
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_NEW_CARD_PROCESS;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 
 /**
@@ -35,9 +36,9 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 @Slf4j
 public class RequestNewCardMessageProcessor implements MessageTypeProcessor {
 
-    private RequestNewCardService requestNewCardService;
     private MessageContextLoader messageContextLoader;
-    private PaymentCycleService paymentCycleService;
+    private CardClient cardClient;
+    private CardRequestFactory cardRequestFactory;
     private MessageQueueClient messageQueueClient;
 
     @Override
@@ -49,24 +50,20 @@ public class RequestNewCardMessageProcessor implements MessageTypeProcessor {
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
         RequestNewCardMessageContext context = messageContextLoader.loadRequestNewCardContext(message);
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = context.getEligibilityAndEntitlementDecision();
-        requestNewCardService.createNewCard(context.getClaim(), eligibilityAndEntitlementDecision.getDateOfBirthOfChildren());
-        PaymentCycle paymentCycle = createAndSavePaymentCycle(context);
-        sendMakeFirstPaymentMessage(paymentCycle);
+        Claim claim = context.getClaim();
+        CardRequest cardRequest = cardRequestFactory.createCardRequest(claim);
+        CardResponse cardResponse = cardClient.requestNewCard(cardRequest);
+        sendCompleteNewCardMessage(claim, cardResponse.getCardAccountId(), context.getEligibilityAndEntitlementDecision());
         return COMPLETED;
     }
 
-    private PaymentCycle createAndSavePaymentCycle(RequestNewCardMessageContext context) {
-        Claim claim = context.getClaim();
-        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(
-                claim,
-                claim.getClaimStatusTimestamp().toLocalDate(),
-                context.getEligibilityAndEntitlementDecision());
-    }
-
-    private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
-        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);
-        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);
+    private void sendCompleteNewCardMessage(Claim claim, String cardAccountId, EligibilityAndEntitlementDecision decision) {
+        MessagePayload payload = CompleteNewCardMessagePayload.builder()
+                .cardAccountId(cardAccountId)
+                .claimId(claim.getId())
+                .eligibilityAndEntitlementDecision(decision)
+                .build();
+        messageQueueClient.sendMessage(payload, COMPLETE_NEW_CARD_PROCESS);
     }
 
 }

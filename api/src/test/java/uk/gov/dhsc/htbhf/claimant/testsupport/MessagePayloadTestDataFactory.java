@@ -29,23 +29,23 @@ public class MessagePayloadTestDataFactory {
     }
 
     public static RequestNewCardMessagePayload aValidNewCardRequestMessagePayload() {
-        return defaultNewCardRequestMessagePayloadBuilder().build();
+        return defaultRequestNewCardMessagePayloadBuilder().build();
     }
 
-    public static RequestNewCardMessagePayload aNewCardRequestMessagePayload(UUID claimId,
+    public static RequestNewCardMessagePayload aRequestNewCardMessagePayload(UUID claimId,
                                                                              PaymentCycleVoucherEntitlement voucherEntitlement,
                                                                              List<LocalDate> datesOfBirth) {
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = aValidDecisionBuilder()
                 .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(datesOfBirth)
                 .build();
-        return defaultNewCardRequestMessagePayloadBuilder()
+        return defaultRequestNewCardMessagePayloadBuilder()
                 .claimId(claimId)
                 .eligibilityAndEntitlementDecision(eligibilityAndEntitlementDecision)
                 .build();
     }
 
-    public static CompleteNewCardMessagePayload aSaveCardMessagePayload(UUID claimId) {
+    public static CompleteNewCardMessagePayload aCompleteNewCardMessagePayload(UUID claimId) {
         return CompleteNewCardMessagePayload.builder()
                 .claimId(claimId)
                 .cardAccountId(CARD_ACCOUNT_ID)
@@ -53,7 +53,7 @@ public class MessagePayloadTestDataFactory {
                 .build();
     }
 
-    private static RequestNewCardMessagePayload.RequestNewCardMessagePayloadBuilder defaultNewCardRequestMessagePayloadBuilder() {
+    private static RequestNewCardMessagePayload.RequestNewCardMessagePayloadBuilder defaultRequestNewCardMessagePayloadBuilder() {
         return RequestNewCardMessagePayload.builder()
                 .claimId(CLAIM_ID)
                 .eligibilityAndEntitlementDecision(anEligibleDecision());

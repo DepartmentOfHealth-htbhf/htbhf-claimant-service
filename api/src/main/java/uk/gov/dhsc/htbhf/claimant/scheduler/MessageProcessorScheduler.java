@@ -56,7 +56,7 @@ public class MessageProcessorScheduler {
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REQUEST_NEW_CARD")
-    public void processCreateNewCardMessages() {
+    public void processRequestNewCardMessages() {
         messageProcessor.processMessagesOfType(MessageType.REQUEST_NEW_CARD);
     }
 

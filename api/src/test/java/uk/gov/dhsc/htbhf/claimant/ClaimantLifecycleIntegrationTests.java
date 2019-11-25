@@ -17,6 +17,7 @@ import uk.gov.service.notify.NotificationClientException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -169,6 +170,34 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
+    @Test
+    public void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
+        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
+        ClaimantDTO claimant = claimDTO.getClaimant();
+        String cardAccountId = UUID.randomUUID().toString();
+        stubExternalServicesForSuccessfulResponses(cardAccountId);
+        makeNewClaimRestRequest(claimDTO);
+
+        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        assertThat(claim.getCardAccountId()).isNull();
+
+        messageProcessorScheduler.processRequestNewCardMessages();
+        claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        assertThat(claim.getCardAccountId()).isNull();
+        assertThat(repositoryMediator.getOptionalPaymentCycleForClaim(claim)).isEmpty();
+
+        messageProcessorScheduler.processCompleteNewCardMessages();
+        claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getCardAccountId()).isEqualTo(cardAccountId);
+        Optional<PaymentCycle> paymentCycle = repositoryMediator.getOptionalPaymentCycleForClaim(claim);
+        assertThat(paymentCycle).isNotEmpty();
+        assertThat(paymentCycle.get().getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
+
+    }
+
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
             throws NotificationClientException, JsonProcessingException {
         for (int i = 0; i < numCycles; i++) {
@@ -203,20 +232,26 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
-        String cardAccountId = UUID.randomUUID().toString();
-        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
-        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
-        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, 0);
-        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
-        stubNotificationEmailResponse();
-
         ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
-        restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        stubExternalServicesForSuccessfulResponses(UUID.randomUUID().toString());
+        makeNewClaimRestRequest(claimDTO);
         invokeAllSchedulers();
 
         ClaimantDTO claimant = claimDTO.getClaimant();
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         return claim.getId();
+    }
+
+    private void makeNewClaimRestRequest(ClaimDTO claimDTO) throws JsonProcessingException, NotificationClientException {
+        restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+    }
+
+    private void stubExternalServicesForSuccessfulResponses(String cardAccountId) throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
+        wiremockManager.stubSuccessfulCardBalanceResponse(cardAccountId, 0);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        stubNotificationEmailResponse();
     }
 
     private List<LocalDate> ageByOneCycle(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
@@ -292,7 +327,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private void invokeAllSchedulers() {
-        messageProcessorScheduler.processCreateNewCardMessages();
+        messageProcessorScheduler.processRequestNewCardMessages();
+        messageProcessorScheduler.processCompleteNewCardMessages();
         messageProcessorScheduler.processFirstPaymentMessages();
         paymentCycleScheduler.createNewPaymentCycles();
         messageProcessorScheduler.processDetermineEntitlementMessages();

@@ -53,6 +53,11 @@ public class RepositoryMediator {
     }
 
     @Transactional
+    public Optional<PaymentCycle> getOptionalPaymentCycleForClaim(Claim claim) {
+        return paymentCycleRepository.findCurrentCycleForClaim(claim);
+    }
+
+    @Transactional
     public Claim getClaimForNino(String nino) {
         List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(nino);
         assertThat(claimIds).isNotEmpty();
