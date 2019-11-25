@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.v2.EligibilityOutcomeToEligibilityStatusConverter.fromEligibilityOutcome;
+import static uk.gov.dhsc.htbhf.claimant.service.v3.EligibilityOutcomeToEligibilityStatusConverter.fromEligibilityOutcome;
 
 /**
  * Responsible for building {@link uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision}s based

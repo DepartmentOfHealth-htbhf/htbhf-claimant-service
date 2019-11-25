@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityAndEntitlementServiceV1.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.service.v2</a> &gt; <span class="el_source">EligibilityAndEntitlementServiceV1.java</span></div><h1>EligibilityAndEntitlementServiceV1.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.service.v2;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
+import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+
+import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
+
+@Service
+@AllArgsConstructor
+<span class="fc" id="L25">@Slf4j</span>
+public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitlementService {
+
+    private final EligibilityClient client;
+    private final DuplicateClaimChecker duplicateClaimChecker;
+    private final ClaimRepository claimRepository;
+    private final PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
+    private final EligibilityAndEntitlementDecisionFactory decisionFactory;
+
+    /**
+     * Determines the eligibility and entitlement for the given new claimant. If the claimant's NINO is not found in the database,
+     * the external eligibility service is called.
+     * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
+     * otherwise they will be ineligible.
+     *
+     * @param claimant the claimant to check the eligibility for
+     * @return the eligibility and entitlement for the claimant
+     */
+    @Override
+    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
+<span class="fc" id="L45">        log.debug(&quot;Looking for live claims for the given NINO&quot;);</span>
+<span class="fc" id="L46">        Optional&lt;UUID&gt; liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());</span>
+<span class="fc" id="L47">        log.debug(&quot;Checking eligibility&quot;);</span>
+<span class="fc" id="L48">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L49">        log.debug(&quot;Calculating entitlement&quot;);</span>
+<span class="fc" id="L50">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L51">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
+<span class="fc" id="L52">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
+<span class="fc" id="L53">                LocalDate.now());</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (liveClaimsWithNino.isPresent()) {</span>
+<span class="fc" id="L55">            return buildDecisionForClaimantAlreadyOnScheme(liveClaimsWithNino.get(), eligibilityResponse, entitlement);</span>
+        }
+<span class="fc" id="L57">        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(eligibilityResponse);</span>
+<span class="fc" id="L58">        return buildDecisionConsideringDuplicates(eligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);</span>
+    }
+
+    /**
+     * Determines the eligibility and entitlement for the given existing claimant. No check is made on the NINO as they already exist in the
+     * database. The eligibility status is checked by calling the external service.
+     * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
+     * otherwise they will be ineligible.
+     *
+     * @param claimant       the claimant to check the eligibility for
+     * @param cycleStartDate the start date of the payment cycle
+     * @param previousCycle  the previous payment cycle
+     * @return the eligibility and entitlement for the claimant
+     */
+    @Override
+    public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
+                                                                             LocalDate cycleStartDate,
+                                                                             PaymentCycle previousCycle) {
+<span class="fc" id="L76">        EligibilityResponse eligibilityResponse = client.checkEligibility(claimant);</span>
+<span class="fc" id="L77">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L78">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
+<span class="fc" id="L79">                eligibilityResponse.getDateOfBirthOfChildren(),</span>
+                cycleStartDate,
+<span class="fc" id="L81">                previousCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L82">        return buildDecisionForPaymentCycle(eligibilityResponse, entitlement);</span>
+    }
+
+    private EligibilityAndEntitlementDecision buildDecisionForPaymentCycle(EligibilityResponse eligibilityResponse,
+                                                                           PaymentCycleVoucherEntitlement entitlement) {
+<span class="fc" id="L87">        return buildDecisionConsideringDuplicates(eligibilityResponse, entitlement, false);</span>
+    }
+
+    private EligibilityAndEntitlementDecision buildDecisionConsideringDuplicates(EligibilityResponse eligibilityResponse,
+                                                                                 PaymentCycleVoucherEntitlement entitlement,
+                                                                                 boolean duplicateHouseholdIdentifierFound) {
+<span class="fc" id="L93">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
+                entitlement,
+                null,
+<span class="fc" id="L96">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
+                duplicateHouseholdIdentifierFound);
+    }
+
+    private EligibilityAndEntitlementDecision buildDecisionForClaimantAlreadyOnScheme(UUID existingClaimId,
+                                                                                      EligibilityResponse eligibilityResponse,
+                                                                                      PaymentCycleVoucherEntitlement entitlement) {
+<span class="fc" id="L103">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
+                entitlement,
+                existingClaimId,
+<span class="fc" id="L106">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
+                false);
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
