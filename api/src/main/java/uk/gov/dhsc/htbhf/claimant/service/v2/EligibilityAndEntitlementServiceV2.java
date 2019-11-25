@@ -23,7 +23,7 @@ import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityRespon
 @Service
 @AllArgsConstructor
 @Slf4j
-public class EligibilityAndEntitlementServiceV1 implements EligibilityAndEntitlementService {
+public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
     private final DuplicateClaimChecker duplicateClaimChecker;
