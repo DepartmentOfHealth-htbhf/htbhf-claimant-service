@@ -138,10 +138,6 @@ abstract class ScheduledServiceIntegrationTest {
         assertThatEmailWithNameOnlyWasSent(claim, CLAIM_NO_LONGER_ELIGIBLE);
     }
 
-    void assertThatClaimClosedEmailWasSent(Claim claim) throws NotificationClientException {
-        assertThatEmailWithNameOnlyWasSent(claim, CLAIM_CLOSED);
-    }
-
     void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
