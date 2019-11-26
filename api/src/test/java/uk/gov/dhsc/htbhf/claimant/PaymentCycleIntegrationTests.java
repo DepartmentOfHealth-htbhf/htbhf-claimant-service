@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.SCHEDULED_FOR_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -431,20 +432,20 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
             throws JsonProcessingException, NotificationClientException {
 
         wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityStatus);
+        wiremockManager.stubGoogleAnalyticsCall();
         stubNotificationEmailResponse();
 
         // create previous PaymentCycle
         LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(17);
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY,
-                claimStatusTimestamp,
-                previousCycleChildrenDobs,
-                expectedDeliveryDate);
+        LocalDateTime cardStatusTimestamp = LocalDateTime.now().minusWeeks(17);
+        Claim claim = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY, PENDING_CANCELLATION, claimStatusTimestamp, cardStatusTimestamp,
+                previousCycleChildrenDobs, expectedDeliveryDate);
 
         invokeAllSchedulers();
 
         assertPaymentCycleWithNoPayment(claim);
 
-        assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
+        assertClaimAndCardStatus(claim, EXPIRED, SCHEDULED_FOR_CANCELLATION);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -452,7 +453,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, trackingId);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatClaimClosedEmailWasSent(claim);
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -550,6 +552,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         messageProcessorScheduler.processSendEmailMessages();
         messageProcessorScheduler.processReportPaymentMessages();
         messageProcessorScheduler.processReportClaimMessages();
+        cardCancellationScheduler.handleCardsPendingCancellation();
     }
 
     private void assertPaymentCycleIsFullyPaid(PaymentCycle paymentCycle, List<LocalDate> childrensDatesOfBirth,
@@ -587,6 +590,25 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus, List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
         return createClaimWithPaymentCycleEndingYesterday(claimStatus, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
+    }
+
+    private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus,
+                                                             CardStatus cardStatus,
+                                                             LocalDateTime claimStatusTimestamp,
+                                                             LocalDateTime cardStatusTimestamp,
+                                                             List<LocalDate> childrensDateOfBirth,
+                                                             LocalDate expectedDeliveryDate) {
+        Claim claim = aValidClaimBuilder()
+                .claimant(aClaimantWithExpectedDeliveryDate(expectedDeliveryDate))
+                .cardAccountId(CARD_ACCOUNT_ID)
+                .claimStatus(claimStatus)
+                .claimStatusTimestamp(claimStatusTimestamp)
+                .cardStatus(cardStatus)
+                .cardStatusTimestamp(cardStatusTimestamp)
+                .build();
+
+        repositoryMediator.createAndSavePaymentCycle(claim, LocalDate.now().minusDays(28), childrensDateOfBirth);
+        return claim;
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus,
