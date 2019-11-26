@@ -8,12 +8,14 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
+import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomDimension.NUMBER_OF_WEEKS_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.CustomMetric.WEEKS_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventCategory.CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.EventProperties.EVENT_LABEL;
@@ -36,8 +38,9 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
         if (updatedClaimFieldsExists(context)) {
             reportProperties.put(EVENT_LABEL.getFieldName(), convertToCommaSeparatedString(context.getUpdatedClaimantFields()));
         }
-        reportProperties.putAll(mapValuesToString(createCustomDimensionMap(context)));
-        reportProperties.putAll(mapValuesToString(createCustomMetricMapForClaimEvent(context)));
+        reportProperties.putAll(mapValuesToString(createCommonCustomDimensions(context)));
+        reportProperties.putAll(mapValuesToString(createCommonCustomMetrics(context)));
+        reportProperties.putAll(mapValuesToString(createCustomPropertiesMapForClaimEvent(context)));
         return reportProperties;
     }
 
@@ -49,14 +52,16 @@ public class ReportClaimPropertiesFactory extends ReportPropertiesFactory {
         return updatedClaimFields.stream().map(UpdatableClaimantField::getFieldName).collect(Collectors.joining(", "));
     }
 
-    private Map<String, Object> createCustomMetricMapForClaimEvent(ReportClaimMessageContext context) {
-        Map<String, Object> customMetrics = createCommonCustomMetrics(context);
+    private Map<String, Object> createCustomPropertiesMapForClaimEvent(ReportClaimMessageContext context) {
+        Map<String, Object> customProperties = new HashMap();
         LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         if (isClaimantPregnant(expectedDeliveryDate, atDate)) {
             LocalDate conception = expectedDeliveryDate.minusWeeks(PREGNANCY_DURATION_IN_WEEKS);
-            customMetrics.put(WEEKS_PREGNANT.getFieldName(), ChronoUnit.WEEKS.between(conception, atDate));
+            long weeksPregnant = ChronoUnit.WEEKS.between(conception, atDate);
+            customProperties.put(WEEKS_PREGNANT.getFieldName(), weeksPregnant);
+            customProperties.put(NUMBER_OF_WEEKS_PREGNANT.getFieldName(), weeksPregnant);
         }
-        return customMetrics;
+        return customProperties;
     }
 }

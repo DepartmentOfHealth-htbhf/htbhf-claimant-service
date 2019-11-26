@@ -64,7 +64,9 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
         assertCommonProperties(reportProperties, timestamp, claim, "CLAIM", "NEW");
         assertThat(reportProperties).contains(
                 entry("ev", "0"), // event value (set to 0 as it's not used for claim events)
-                entry("cm9", getNumberOfWeeksPregnant(claim, timestamp))); // weeks pregnant
+                entry("cm9", getNumberOfWeeksPregnant(claim, timestamp)), // weeks pregnant
+                entry("cd11", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant is recorded as both a metric and a dimension
+        );
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
         verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
     }
@@ -129,7 +131,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
             "P20W1D, 20",
             "P36W6D, 36"
     })
-    void shouldIncludeMetricsForPregnantClaimant(String timeSinceConception, Long weeksPregnant) {
+    void shouldIncludeReportPropertiesForPregnantClaimant(String timeSinceConception, Long weeksPregnant) {
         LocalDate expectedDeliveryDate = LocalDate.now().minus(Period.parse(timeSinceConception)).plusWeeks(40);
         ReportClaimMessageContext context = aReportClaimMessageContext(LocalDateTime.now(), NO_CHILDREN, expectedDeliveryDate);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
@@ -138,7 +140,8 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
 
         assertThat(reportProperties).contains(
                 entry("cm3", "1"), // PREGNANCIES
-                entry("cm9", String.valueOf(weeksPregnant))
+                entry("cm9", String.valueOf(weeksPregnant)),
+                entry("cd11", String.valueOf(weeksPregnant))
         );
     }
 
@@ -152,6 +155,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
 
         assertThat(reportProperties).contains(entry("cm3", "0"));
         assertThat(reportProperties).doesNotContainKey("cm9");
+        assertThat(reportProperties).doesNotContainKey("cd11");
     }
 
     @Test
@@ -163,6 +167,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
 
         assertThat(reportProperties).contains(entry("cm3", "0"));
         assertThat(reportProperties).doesNotContainKey("cm9");
+        assertThat(reportProperties).doesNotContainKey("cd11");
     }
 
     private ReportClaimMessageContext aReportClaimMessageContextForAnUpdatedClaim(LocalDateTime timestamp,
