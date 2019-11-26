@@ -37,9 +37,13 @@ public class ClaimantServiceAssertionUtils {
     }
 
     public static RequestEntity buildClaimRequestEntity(Object requestObject) {
+        return buildClaimRequestEntityForUri(requestObject, CLAIMANT_ENDPOINT_URI);
+    }
+
+    public static RequestEntity buildClaimRequestEntityForUri(Object requestObject, URI uri) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI);
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, uri);
     }
 
     public static String formatVoucherAmount(int voucherCount) {

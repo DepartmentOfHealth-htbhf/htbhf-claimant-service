@@ -177,6 +177,7 @@ class ClaimantServiceIntegrationTests {
 
         //Then
         assertDuplicateResponse(response);
+        verifyPostToEligibilityService();
     }
 
     @Test
@@ -274,6 +275,7 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1", "hmrcHousehold1");
+        verifyPostToEligibilityService();
     }
 
     private void shouldAcceptAndCreateValidClaimFromJson(String claimJson) throws JsonProcessingException {
@@ -284,6 +286,7 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimJson), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
+        verifyPostToEligibilityService();
     }
 
     private void assertThatClaimResultHasNewClaim(ResponseEntity<ClaimResultDTO> response) {
