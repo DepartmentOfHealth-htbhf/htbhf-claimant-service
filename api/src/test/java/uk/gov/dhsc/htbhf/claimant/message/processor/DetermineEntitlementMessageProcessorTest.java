@@ -1,8 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
@@ -18,23 +18,32 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatusAndClaimStatusTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aDetermineEntitlementMessageContext;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithTypeAndCreatedTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
@@ -46,6 +55,8 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class DetermineEntitlementMessageProcessorTest {
+
+    private static final Period MAXIMUM_PENDING_EXPIRY_DURATION = Period.ofWeeks(16);
 
     @Mock
     private EligibilityAndEntitlementService eligibilityAndEntitlementService;
@@ -61,9 +72,16 @@ class DetermineEntitlementMessageProcessorTest {
     private PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
     @Mock
     private ClaimMessageSender claimMessageSender;
+    @Mock
+    private ClaimRepository claimRepository;
 
-    @InjectMocks
     private DetermineEntitlementMessageProcessor processor;
+
+    @BeforeEach
+    void init() {
+        processor = new DetermineEntitlementMessageProcessor(MAXIMUM_PENDING_EXPIRY_DURATION, eligibilityAndEntitlementService, messageContextLoader,
+                paymentCycleService, messageQueueClient, eligibilityDecisionHandler, pregnancyEntitlementCalculator, claimMessageSender, claimRepository);
+    }
 
     @Test
     void shouldSuccessfullyProcessMessageAndTriggerPaymentWhenClaimantIsEligible() {
@@ -160,6 +178,79 @@ class DetermineEntitlementMessageProcessorTest {
         verify(eligibilityDecisionHandler)
                 .handleIneligibleDecision(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
         verifyNoMoreInteractions(messageQueueClient, pregnancyEntitlementCalculator, claimMessageSender);
+    }
+
+    @Test
+    void shouldExpireClaimInPendingExpiryForExactlyMaximumPendingExpiryDuration() {
+        LocalDateTime messageTimestamp = LocalDateTime.now();
+        LocalDateTime claimStatusTimestamp = messageTimestamp.minus(MAXIMUM_PENDING_EXPIRY_DURATION);
+        shouldExpireClaimInPendingExpiry(messageTimestamp, claimStatusTimestamp);
+    }
+
+    @Test
+    void shouldExpireClaimInPendingExpiryForLongerThanMaximumPendingExpiryDuration() {
+        LocalDateTime messageTimestamp = LocalDateTime.now();
+        LocalDateTime claimStatusTimestamp = messageTimestamp.minus(MAXIMUM_PENDING_EXPIRY_DURATION).minusDays(1);
+        shouldExpireClaimInPendingExpiry(messageTimestamp, claimStatusTimestamp);
+    }
+
+    private void shouldExpireClaimInPendingExpiry(LocalDateTime messageTimestamp, LocalDateTime claimStatusTimestamp) {
+        //Given
+        DetermineEntitlementMessageContext context = buildMessageContextWithClaimInPendingExpiry(claimStatusTimestamp);
+        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
+
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(any(), any(), any())).willReturn(decision);
+
+        //Current payment cycle voucher entitlement mocking
+        Message message = aMessageWithTypeAndCreatedTimestamp(DETERMINE_ENTITLEMENT, messageTimestamp);
+
+        //When
+        MessageStatus messageStatus = processor.processMessage(message);
+
+        //Then
+        assertThat(messageStatus).isEqualTo(COMPLETED);
+        assertThat(context.getClaim().getClaimStatus()).isEqualTo(EXPIRED);
+        verify(messageContextLoader).loadDetermineEntitlementContext(message);
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+                context.getCurrentPaymentCycle().getCycleStartDate(),
+                context.getPreviousPaymentCycle());
+        verify(claimRepository).save(context.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(context.getClaim(), decision.getDateOfBirthOfChildren(), UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+    }
+
+    @Test
+    void shouldNotUpdateClaimInPendingExpiryLessThanMaximumPendingExpiryDuration() {
+        //Given
+        DetermineEntitlementMessageContext context = buildMessageContextWithClaimInPendingExpiry(LocalDateTime.now().minusWeeks(15));
+        given(messageContextLoader.loadDetermineEntitlementContext(any())).willReturn(context);
+
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(any(), any(), any())).willReturn(decision);
+
+        //Current payment cycle voucher entitlement mocking
+        Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
+
+        //When
+        MessageStatus messageStatus = processor.processMessage(message);
+
+        //Then
+        assertThat(messageStatus).isEqualTo(COMPLETED);
+        assertThat(context.getClaim().getClaimStatus()).isEqualTo(PENDING_EXPIRY);
+        verify(messageContextLoader).loadDetermineEntitlementContext(message);
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+                context.getCurrentPaymentCycle().getCycleStartDate(),
+                context.getPreviousPaymentCycle());
+        verifyNoInteractions(claimMessageSender);
+    }
+
+    private DetermineEntitlementMessageContext buildMessageContextWithClaimInPendingExpiry(LocalDateTime claimStatusTimestamp) {
+        Claim claim = aClaimWithClaimStatusAndClaimStatusTimestamp(PENDING_EXPIRY, claimStatusTimestamp);
+        PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
+        LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
+        PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claim);
+
+        return aDetermineEntitlementMessageContext(currentPaymentCycle, previousPaymentCycle, claim);
     }
 
     private DetermineEntitlementMessageContext buildMessageContext(LocalDate previousCycleExpectedDeliveryDate,

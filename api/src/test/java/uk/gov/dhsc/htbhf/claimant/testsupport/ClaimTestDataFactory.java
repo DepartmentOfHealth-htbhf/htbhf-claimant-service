@@ -58,6 +58,12 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
+    public static Claim aClaimWithClaimStatusAndClaimStatusTimestamp(ClaimStatus claimStatus, LocalDateTime claimStatusTimestamp) {
+        return aValidClaimBuilderWithStatus(claimStatus)
+                .claimStatusTimestamp(claimStatusTimestamp)
+                .build();
+    }
+
     public static Claim aClaimWithEligibilityStatus(EligibilityStatus eligibilityStatus) {
         return aValidClaimBuilder()
                 .eligibilityStatus(eligibilityStatus)

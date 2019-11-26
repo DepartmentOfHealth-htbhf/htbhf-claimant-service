@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -209,7 +208,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * |...............| Claim status set to expired. Card status set to scheduled_for_cancellation
      */
     @Test
-    @Disabled("HTBHF-2656")
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     void shouldProcessClaimWhoBecomesIneligibleDueToNoQualifyingBenefit() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);

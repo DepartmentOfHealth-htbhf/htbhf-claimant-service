@@ -26,6 +26,10 @@ public class MessageTestDataFactory {
         return buildValidMessageBuilder().createdTimestamp(localDateTime).build();
     }
 
+    public static Message aMessageWithTypeAndCreatedTimestamp(MessageType type, LocalDateTime localDateTime) {
+        return buildValidMessageBuilder().messageType(type).createdTimestamp(localDateTime).build();
+    }
+
     public static Message aMessageWithMessageTimestamp(LocalDateTime localDateTime) {
         return buildValidMessageBuilder().processAfter(localDateTime).build();
     }
