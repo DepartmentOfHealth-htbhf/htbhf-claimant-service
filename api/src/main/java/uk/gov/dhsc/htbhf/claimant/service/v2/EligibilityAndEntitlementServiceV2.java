@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service.v2;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 
+@Primary
 @Service
 @AllArgsConstructor
 @Slf4j
