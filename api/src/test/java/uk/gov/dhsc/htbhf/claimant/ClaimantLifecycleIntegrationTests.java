@@ -223,9 +223,9 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
 
+        LocalDateTime now = LocalDateTime.now();
         // 16 weeks pass
         ageByNumberOfCycles(4);
-        LocalDateTime now = LocalDateTime.now();
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);

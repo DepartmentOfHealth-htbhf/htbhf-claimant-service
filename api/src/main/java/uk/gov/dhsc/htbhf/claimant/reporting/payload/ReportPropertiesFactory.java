@@ -76,7 +76,7 @@ public abstract class ReportPropertiesFactory {
         return eventPropertiesMap;
     }
 
-    protected Map<String, Object> createCustomDimensionMap(ReportEventMessageContext context) {
+    protected Map<String, Object> createCommonCustomDimensions(ReportEventMessageContext context) {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
         ClaimantCategory claimantCategory = claimantCategoryCalculator
