@@ -100,10 +100,14 @@ abstract class ScheduledServiceIntegrationTest {
         assertChildTurnsFourEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
-    void assertThatPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+    void assertThatRegularPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
+        assertThatPaymentEmailWasSent(newCycle, EmailType.REGULAR_PAYMENT);
+    }
+
+    void assertThatPaymentEmailWasSent(PaymentCycle newCycle, EmailType emailType) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
-                eq(PAYMENT.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
+                eq(emailType.getTemplateId()), eq(newCycle.getClaim().getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());
 
         Map personalisationMap = mapArgumentCaptor.getValue();
         assertPaymentEmailPersonalisationMap(newCycle, personalisationMap);
@@ -181,7 +185,7 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // two vouchers in first week plus one for weeks two, three and four
-        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
     }
 
@@ -193,7 +197,7 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(4)); // one voucher each week
-        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child is turning one in the next payment cycle, so one voucher per week going forward
     }
 
@@ -205,7 +209,7 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(4)); // only one child will be under four
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
-        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
 
@@ -218,7 +222,7 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenUnderOne()));
         assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getVouchersForChildrenBetweenOneAndFour()));
-        assertThat(personalisationMap.get(REGULAR_PAYMENT.getTemplateKeyName())).asString()
+        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(entitlement.getLastVoucherEntitlementForCycle().getTotalVoucherEntitlement() * 4));
     }
 
