@@ -6,6 +6,8 @@ import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
+import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
+import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,29 +20,47 @@ public class ClaimResult {
     private Optional&lt;VoucherEntitlement&gt; voucherEntitlement;
     private Boolean claimUpdated;
     private List&lt;String&gt; updatedFields;
+    private VerificationResult verificationResult;
 
-    public static ClaimResult withNoEntitlement(Claim claim) {
-<span class="fc" id="L23">        return ClaimResult.builder()</span>
-<span class="fc" id="L24">                .claim(claim)</span>
-<span class="fc" id="L25">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L26">                .build();</span>
+    public static ClaimResult withNoEntitlement(Claim claim, IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L26">        return ClaimResult.builder()</span>
+<span class="fc" id="L27">                .claim(claim)</span>
+<span class="fc" id="L28">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L29">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
+<span class="fc" id="L30">                .build();</span>
     }
 
-    public static ClaimResult withEntitlement(Claim claim, VoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L30">        return ClaimResult.builder()</span>
-<span class="fc" id="L31">                .claim(claim)</span>
-<span class="fc" id="L32">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="fc" id="L33">                .build();</span>
+    public static ClaimResult withEntitlement(Claim claim, VoucherEntitlement voucherEntitlement,
+                                              IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L35">        return ClaimResult.builder()</span>
+<span class="fc" id="L36">                .claim(claim)</span>
+<span class="fc" id="L37">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="fc" id="L38">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
+<span class="fc" id="L39">                .build();</span>
     }
 
-    public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List&lt;UpdatableClaimantField&gt; updatedFields) {
-<span class="fc" id="L37">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
-<span class="fc" id="L38">        return ClaimResult.builder()</span>
-<span class="fc" id="L39">                .claim(claim)</span>
-<span class="fc" id="L40">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="fc" id="L41">                .updatedFields(updatedFieldsAsStrings)</span>
-<span class="fc" id="L42">                .claimUpdated(true)</span>
-<span class="fc" id="L43">                .build();</span>
+    public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List&lt;UpdatableClaimantField&gt; updatedFields,
+                                                              IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L44">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
+<span class="fc" id="L45">        return ClaimResult.builder()</span>
+<span class="fc" id="L46">                .claim(claim)</span>
+<span class="fc" id="L47">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="fc" id="L48">                .updatedFields(updatedFieldsAsStrings)</span>
+<span class="fc" id="L49">                .claimUpdated(true)</span>
+<span class="fc" id="L50">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
+<span class="fc" id="L51">                .build();</span>
+    }
+
+    private static VerificationResult buildVerificationResult(IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L55">        return VerificationResult.builder()</span>
+<span class="fc" id="L56">                .addressLine1Match(identityAndEligibilityResponse.getAddressLine1Match())</span>
+<span class="fc" id="L57">                .deathVerificationFlag(identityAndEligibilityResponse.getDeathVerificationFlag())</span>
+<span class="fc" id="L58">                .emailAddressMatch(identityAndEligibilityResponse.getEmailAddressMatch())</span>
+<span class="fc" id="L59">                .mobilePhoneMatch(identityAndEligibilityResponse.getMobilePhoneMatch())</span>
+<span class="fc" id="L60">                .postcodeMatch(identityAndEligibilityResponse.getPostcodeMatch())</span>
+<span class="fc" id="L61">                .pregnantChildDOBMatch(identityAndEligibilityResponse.getPregnantChildDOBMatch())</span>
+<span class="fc" id="L62">                .qualifyingBenefits(identityAndEligibilityResponse.getQualifyingBenefits())</span>
+<span class="fc" id="L63">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
