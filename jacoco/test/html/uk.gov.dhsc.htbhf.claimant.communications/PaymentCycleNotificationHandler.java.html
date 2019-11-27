@@ -22,7 +22,7 @@ public class PaymentCycleNotificationHandler {
     public void sendNotificationEmails(PaymentCycle paymentCycle) {
 <span class="fc bfc" id="L23" title="All 2 branches covered.">        EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
 <span class="fc" id="L24">                ? emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)</span>
-<span class="fc" id="L25">                : emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);</span>
+<span class="fc" id="L25">                : emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.REGULAR_PAYMENT);</span>
 <span class="fc" id="L26">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
 <span class="fc" id="L27">        handleUpcomingBirthdayEmails(paymentCycle);</span>
 <span class="fc" id="L28">    }</span>
