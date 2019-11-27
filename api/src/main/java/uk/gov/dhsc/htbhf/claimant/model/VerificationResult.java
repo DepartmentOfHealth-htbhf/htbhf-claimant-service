@@ -1,5 +1,6 @@
-package uk.gov.dhsc.htbhf.claimant.service;
+package uk.gov.dhsc.htbhf.claimant.model;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.dwp.model.v2.DeathVerificationFlag;
@@ -11,6 +12,7 @@ import uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome;
  */
 @Data
 @Builder
+@ApiModel(description = "The result of verifying the claimant's details")
 public class VerificationResult {
 
     private final DeathVerificationFlag deathVerificationFlag;

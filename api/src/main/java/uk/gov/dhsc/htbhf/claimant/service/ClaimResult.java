@@ -6,6 +6,7 @@ import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
+import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 
 import java.util.List;
