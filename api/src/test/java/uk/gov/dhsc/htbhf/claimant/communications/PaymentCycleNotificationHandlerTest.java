@@ -23,7 +23,7 @@ import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FROM_PREGNANCY;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -123,7 +123,7 @@ class PaymentCycleNotificationHandlerTest {
 
     private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
         verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
-        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, PAYMENT);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, REGULAR_PAYMENT);
     }
 
     private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {

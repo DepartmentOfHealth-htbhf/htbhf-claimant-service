@@ -126,7 +126,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, newCycle.getTotalEntitlementAmountInPence());
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentEmailWasSent(newCycle);
+        assertThatRegularPaymentEmailWasSent(newCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -150,7 +150,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatChildTurnsOneInFirstWeekEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
@@ -175,7 +175,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatChildTurnsOneOnFirstDayEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
@@ -200,7 +200,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentEmailWasSent(currentCycle);
+        assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatChildTurnsFourEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
@@ -241,7 +241,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
-        assertThatPaymentEmailWasSent(newCycle);
+        assertThatRegularPaymentEmailWasSent(newCycle);
     }
 
     @Test
@@ -328,7 +328,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatPaymentEmailWasSent(newCycle);
+        assertThatRegularPaymentEmailWasSent(newCycle);
         assertThatReportABirthReminderEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
     }

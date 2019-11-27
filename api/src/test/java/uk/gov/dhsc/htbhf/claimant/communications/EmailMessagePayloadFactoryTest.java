@@ -69,10 +69,10 @@ class EmailMessagePayloadFactoryTest {
         LocalDate endDate = startDate.plusDays(28);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(startDate, endDate);
 
-        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT);
+        EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.REGULAR_PAYMENT);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT);
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.REGULAR_PAYMENT);
         assertEmailPayloadCorrectForClaimantWithAllVouchers(payload.getEmailPersonalisation(), endDate.plusDays(1));
     }
 

@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
@@ -84,13 +89,13 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 8);
 
         // should get notification about child turning one in the next cycle
-        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, EmailType.CHILD_TURNS_ONE);
+        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, CHILD_TURNS_ONE);
 
         // run through 13 cycles per year until we near the 4th birthday (13 + 13 + 12 = 38)
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 38);
 
         // should get notification about child turning four in the next cycle
-        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, EmailType.CHILD_TURNS_FOUR);
+        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, CHILD_TURNS_FOUR);
 
         // should make a final payment
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 1);
@@ -214,7 +219,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
         assertFirstCyclePaidCorrectly(claimId);
 
-        // Claim becomes ineligible
+        // ineligible decision moves claim into pending expiry
         wiremockManager.stubIneligibleEligibilityResponse();
         ageByOneCycle();
         Claim claim = repositoryMediator.loadClaim(claimId);
@@ -235,6 +240,30 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
+    @Test
+    @Disabled("HTBHF-1758")
+    void shouldProcessClaimWhichBecomesIneligibleThenEligible() throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
+        assertFirstCyclePaidCorrectly(claimId);
+
+        // ineligible decision moves claim into pending expiry
+        wiremockManager.stubIneligibleEligibilityResponse();
+        ageByOneCycle();
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+
+        // eligible decision moves claim back to active
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        ageByOneCycle();
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.ACTIVE);
+
+        assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, EmailType.RESTARTED_PAYMENT);
+    }
+
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
             throws NotificationClientException, JsonProcessingException {
         for (int i = 0; i < numCycles; i++) {
@@ -242,7 +271,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
             repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
             wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
             invokeAllSchedulers();
-            assertRegularPaymentCyclePaidCorrectly(claimId, NO_CHILDREN);
+            assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, REGULAR_PAYMENT);
         }
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
     }
@@ -251,7 +280,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
             throws NotificationClientException, JsonProcessingException {
         resetNotificationClient();
         childrenDob = ageByOneCycle(childrenDob);
-        PaymentCycle paymentCycle = assertRegularPaymentCyclePaidCorrectly(claimId, childrenDob);
+        PaymentCycle paymentCycle = assertPaymentCyclePaidCorrectly(claimId, childrenDob, REGULAR_PAYMENT);
         assertEmailSent(emailType, paymentCycle);
         verifyNoMoreInteractions(notificationClient);
         return childrenDob;
@@ -262,7 +291,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         for (int i = 0; i < numCycles; i++) {
             resetNotificationClient();
             childrenDob = ageByOneCycle(childrenDob);
-            assertRegularPaymentCyclePaidCorrectly(claimId, childrenDob);
+            assertPaymentCyclePaidCorrectly(claimId, childrenDob, REGULAR_PAYMENT);
             verifyNoMoreInteractions(notificationClient);
         }
         return childrenDob;
@@ -325,12 +354,12 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         verifyNoMoreInteractions(notificationClient);
     }
 
-    private PaymentCycle assertRegularPaymentCyclePaidCorrectly(UUID claimId, List<LocalDate> childrenDob) throws NotificationClientException {
+    private PaymentCycle assertPaymentCyclePaidCorrectly(UUID claimId, List<LocalDate> childrenDob, EmailType emailType) throws NotificationClientException {
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = getAndAssertPaymentCycle(claim);
         assertPaymentHasCorrectAmount(claim, paymentCycle, childrenDob);
-        assertThatPaymentEmailWasSent(paymentCycle);
+        assertThatPaymentEmailWasSent(paymentCycle, emailType);
         return paymentCycle;
     }
 
