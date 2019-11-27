@@ -59,7 +59,7 @@ public class ClaimService {
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);
-                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields);
+                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields, decision.getIdentityAndEligibilityResponse());
             }
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
@@ -68,11 +68,11 @@ public class ClaimService {
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
-                return ClaimResult.withEntitlement(claim, weeklyEntitlement);
+                return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());
             }
 
             claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
-            return ClaimResult.withNoEntitlement(claim);
+            return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
             throw e;
