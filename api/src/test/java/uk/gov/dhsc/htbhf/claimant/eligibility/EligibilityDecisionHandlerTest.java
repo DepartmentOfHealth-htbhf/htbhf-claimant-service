@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.eligibility;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,6 +16,10 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -36,9 +41,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
@@ -65,9 +75,43 @@ class EligibilityDecisionHandlerTest {
     private EventAuditor eventAuditor;
     @Mock
     private ClaimMessageSender claimMessageSender;
+    @Mock
+    private MessageQueueClient messageQueueClient;
 
     @InjectMocks
     private EligibilityDecisionHandler handler;
+
+    @Test
+    void shouldMakePaymentAndSendPaymentEmailForClaim() {
+        // Given
+        Claim claim = aValidClaim();
+        PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
+        given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(false);
+
+        // When
+        handler.handleEligibleDecision(claim, currentPaymentCycle);
+
+        // Then
+        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle);
+        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
+        verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
+    }
+
+    @Test
+    void shouldSendReportABirthReminderEmailWhenClaimantReceivesSecondToLastPregnancyVouchers() {
+        // Given
+        Claim claim = aValidClaim();
+        PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
+        // current payment cycle is second to last one with vouchers
+        given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(true);
+
+        // When
+        handler.handleEligibleDecision(claim, currentPaymentCycle);
+
+        // Then
+        verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
+        verify(claimMessageSender).sendReportABirthEmailMessage(claim);
+    }
 
     //Test for HTBHF-2182 has the following context:
     // Previous cycle: children exist and are under 4 but will be 4 in the next cycle, not pregnant
@@ -91,7 +135,7 @@ class EligibilityDecisionHandlerTest {
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
         //When
-        handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
+        handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
@@ -126,7 +170,7 @@ class EligibilityDecisionHandlerTest {
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         //When
-        handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
+        handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
@@ -163,7 +207,7 @@ class EligibilityDecisionHandlerTest {
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         //When
-        handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
+        handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
@@ -193,7 +237,7 @@ class EligibilityDecisionHandlerTest {
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.NOT_CONFIRMED, currentCycleChildrenDobs);
 
         //When
-        handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
+        handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
@@ -224,7 +268,7 @@ class EligibilityDecisionHandlerTest {
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
 
         //When
-        handler.handleIneligibleDecision(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
+        handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
@@ -233,6 +277,21 @@ class EligibilityDecisionHandlerTest {
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycle.getCycleStartDate());
         inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycle.getCycleStartDate());
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
+    }
+
+    @Test
+    void shouldExpirePendingExpiryClaim() {
+        // Given
+        Claim claim = aClaimWithClaimStatus(PENDING_EXPIRY);
+        List<LocalDate> datesOfBirthOfChildren = NO_CHILDREN;
+
+        // When
+        handler.expirePendingExpiryClaim(claim, datesOfBirthOfChildren);
+
+        // Then
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
+        verify(claimRepository).save(claim);
+        verify(claimMessageSender).sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
     }
 
     //Argument order is: previousCycleChildrenDobs, previousCycleExpectedDeliveryDate, currentCycleExpectedDeliveryDate
