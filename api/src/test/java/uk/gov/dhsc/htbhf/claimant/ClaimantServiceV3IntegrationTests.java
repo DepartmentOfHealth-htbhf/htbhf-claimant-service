@@ -30,7 +30,10 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertCla
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.IdAndEligibilityResponseTestDataFactory.anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -63,7 +66,8 @@ class ClaimantServiceV3IntegrationTests {
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         //Given
-        IdentityAndEligibilityResponse identityAndEligibilityResponse = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier();
+        IdentityAndEligibilityResponse identityAndEligibilityResponse = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier(
+                MAGGIE_AND_LISA_DOBS, DWP_HOUSEHOLD_IDENTIFIER);
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
@@ -79,6 +83,7 @@ class ClaimantServiceV3IntegrationTests {
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,

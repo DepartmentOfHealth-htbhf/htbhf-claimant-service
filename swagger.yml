@@ -175,6 +175,9 @@ definitions:
           \ be null if a new claim is created."
         items:
           type: "string"
+      verificationResult:
+        description: "The result of verifying the claimant's details"
+        $ref: "#/definitions/VerificationResult"
       voucherEntitlement:
         description: "Details of the vouchers that the claimant is entitled to"
         $ref: "#/definitions/VoucherEntitlementDTO"
@@ -259,6 +262,73 @@ definitions:
       message:
         type: "string"
     title: "FieldError"
+  VerificationResult:
+    type: "object"
+    properties:
+      addressLine1Match:
+        type: "string"
+        enum:
+          - "matched"
+          - "not_matched"
+          - "not_held"
+          - "not_supplied"
+          - "invalid_format"
+          - "not_set"
+      deathVerificationFlag:
+        type: "string"
+        enum:
+          - "n/a"
+          - "death_not_verified"
+          - "limited_supporting_documentation"
+          - "partial_supporting_documentation"
+          - "full_supporting_documentation"
+      emailAddressMatch:
+        type: "string"
+        enum:
+          - "matched"
+          - "not_matched"
+          - "not_held"
+          - "not_supplied"
+          - "invalid_format"
+          - "not_set"
+      mobilePhoneMatch:
+        type: "string"
+        enum:
+          - "matched"
+          - "not_matched"
+          - "not_held"
+          - "not_supplied"
+          - "invalid_format"
+          - "not_set"
+      postcodeMatch:
+        type: "string"
+        enum:
+          - "matched"
+          - "not_matched"
+          - "not_held"
+          - "not_supplied"
+          - "invalid_format"
+          - "not_set"
+      pregnantChildDOBMatch:
+        type: "string"
+        enum:
+          - "matched"
+          - "not_matched"
+          - "not_held"
+          - "not_supplied"
+          - "invalid_format"
+          - "not_set"
+      qualifyingBenefits:
+        type: "string"
+        enum:
+          - "universal_credit"
+          - "employment_and_support_allowance"
+          - "income_support"
+          - "jobseekers_allowance"
+          - "pension_credit"
+          - "not_set"
+    title: "VerificationResult"
+    description: "The result of verifying the claimant's details"
   VoucherEntitlementDTO:
     type: "object"
     properties:
