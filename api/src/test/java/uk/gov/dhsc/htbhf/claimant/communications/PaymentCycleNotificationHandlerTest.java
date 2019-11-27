@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
@@ -20,11 +21,13 @@ import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NEW_CHILD_FROM_PREGNANCY;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithBackdatedVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithCycleEntitlementAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
@@ -55,10 +58,27 @@ class PaymentCycleNotificationHandlerTest {
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
-        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
-        verifyPaymentEmailNotificationSent(paymentCycle, emailMessagePayload);
-        verifyZeroInteractions(upcomingBirthdayEmailHandler);
+        verifyPaymentEmailNotificationSent(paymentCycle, emailMessagePayload, REGULAR_PAYMENT);
+        verifyNoInteractions(upcomingBirthdayEmailHandler);
+    }
+
+    @Test
+    public void shouldSendRestartedPaymentEmailOnly() {
+        // back dated vouchers would cause a NEW_CHILD_FROM_PREGNANCY email to be sent if the this were a regular payment
+        // therefore adding the vouchers here to ensure that we're handling restarted payments differently than regular payments
+        PaymentCycle paymentCycle = aPaymentCycleWithBackdatedVouchersOnly();
+        given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
+        given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
+        given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
+        EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
+
+        paymentCycleNotificationHandler.sendNotificationEmailsForRestartedPayment(paymentCycle);
+
+        verifyPaymentEmailNotificationSent(paymentCycle, emailMessagePayload, RESTARTED_PAYMENT);
+        verifyNoInteractions(upcomingBirthdayEmailHandler);
     }
 
     @Test
@@ -73,10 +93,10 @@ class PaymentCycleNotificationHandlerTest {
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
-        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
         verifyNewChildFromPregnancyEmailSent(paymentCycle, emailMessagePayload);
-        verifyZeroInteractions(upcomingBirthdayEmailHandler);
+        verifyNoInteractions(upcomingBirthdayEmailHandler);
     }
 
     @Test
@@ -86,7 +106,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(false);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(true);
 
-        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
         verify(upcomingBirthdayEmailHandler).sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
         verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
@@ -99,7 +119,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
 
-        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
         verify(upcomingBirthdayEmailHandler).sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
         verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
@@ -114,16 +134,16 @@ class PaymentCycleNotificationHandlerTest {
         EmailMessagePayload emailMessagePayload = EmailMessagePayload.builder().build();
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any())).willReturn(emailMessagePayload);
 
-        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
         verify(upcomingBirthdayEmailHandler).sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
         verify(upcomingBirthdayEmailHandler).sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
         verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
     }
 
-    private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {
+    private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload, EmailType emailType) {
         verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
-        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, REGULAR_PAYMENT);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, emailType);
     }
 
     private void verifyNewChildFromPregnancyEmailSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload) {

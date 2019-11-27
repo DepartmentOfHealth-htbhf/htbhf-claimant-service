@@ -20,7 +20,7 @@ import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -52,7 +52,7 @@ class MakePaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
-        verify(paymentCycleNotificationHandler).sendNotificationEmails(paymentCycle);
+        verify(paymentCycleNotificationHandler).sendNotificationEmailsForRegularPayment(paymentCycle);
     }
 
     @Test
@@ -68,7 +68,7 @@ class MakePaymentMessageProcessorTest {
 
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).saveFailedPayment(paymentCycle, claim.getCardAccountId(), failureEvent);
-        verifyZeroInteractions(paymentCycleNotificationHandler);
+        verifyNoInteractions(paymentCycleNotificationHandler);
     }
 
 }
