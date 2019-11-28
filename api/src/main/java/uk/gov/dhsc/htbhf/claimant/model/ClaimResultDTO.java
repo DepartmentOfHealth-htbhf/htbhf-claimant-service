@@ -34,4 +34,8 @@ public class ClaimResultDTO {
     @JsonProperty("updatedFields")
     @ApiModelProperty(notes = "List of fields that were updated in the existing claim. May be null if a new claim is created.")
     private List<String> updatedFields;
+
+    @JsonProperty("verificationResult")
+    @ApiModelProperty(notes = "The result of verifying the claimant's details")
+    private VerificationResult verificationResult;
 }

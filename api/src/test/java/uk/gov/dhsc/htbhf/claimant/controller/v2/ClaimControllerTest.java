@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
-import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -32,14 +31,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.anUpdatedClaimResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -79,10 +80,9 @@ class ClaimControllerTest {
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
 
         // Then
-        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatus(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
-        assertThat(response.getBody()).isEqualTo(claimResultDTO);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(dto.getClaimant());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
@@ -106,13 +106,12 @@ class ClaimControllerTest {
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
 
         // Then
-        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
-        assertThat(response.getBody()).isEqualTo(claimResultDTO);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus));
         verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(dto.getClaimant());
-        verifyZeroInteractions(entitlementConverter);
+        verifyNoInteractions(entitlementConverter);
     }
 
     @Test
@@ -121,9 +120,8 @@ class ClaimControllerTest {
         ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
         String updatedField = EXPECTED_DELIVERY_DATE.getFieldName();
-        ClaimResult claimResult = anUpdatedClaimResult(updatedField);
         given(claimantConverter.convert(any())).willReturn(claimant);
-        given(claimService.createOrUpdateClaim(any())).willReturn(claimResult);
+        given(claimService.createOrUpdateClaim(any())).willReturn(anUpdatedClaimResult(updatedField));
 
         // When
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
@@ -131,9 +129,11 @@ class ClaimControllerTest {
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getClaimUpdated()).isTrue();
-        assertThat(response.getBody().getUpdatedFields()).isEqualTo(singletonList(updatedField));
+        ClaimResultDTO claimResult = response.getBody();
+        assertThat(claimResult).isNotNull();
+        assertThat(claimResult.getClaimUpdated()).isTrue();
+        assertThat(claimResult.getUpdatedFields()).isEqualTo(singletonList(updatedField));
+        assertThat(claimResult.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     @Test
@@ -151,10 +151,9 @@ class ClaimControllerTest {
         ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaim(dto);
 
         // Then
-        ClaimResultDTO claimResultDTO = aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.NEW);
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isEqualTo(claimResultDTO);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.NEW));
         verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
         verify(mockStatusMap).get(ClaimStatus.NEW);
         verify(claimantConverter).convert(dto.getClaimant());
@@ -170,19 +169,4 @@ class ClaimControllerTest {
         assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
     }
 
-    private ClaimResult aClaimResult(ClaimStatus claimStatus, Optional<VoucherEntitlement> voucherEntitlement) {
-        return ClaimResult.builder()
-                .claim(aClaimWithClaimStatus(claimStatus))
-                .voucherEntitlement(voucherEntitlement)
-                .build();
-    }
-
-    private ClaimResult anUpdatedClaimResult(String updatedField) {
-        return ClaimResult.builder()
-                .claim(aClaimWithClaimStatus(ClaimStatus.ACTIVE))
-                .claimUpdated(true)
-                .updatedFields(singletonList(updatedField))
-                .voucherEntitlement(Optional.empty())
-                .build();
-    }
 }

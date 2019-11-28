@@ -7,6 +7,7 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
@@ -29,8 +30,18 @@ public class EligibilityAndEntitlementTestDataFactory {
     }
 
     public static EligibilityAndEntitlementDecision aDecisionWithStatus(EligibilityStatus eligibilityStatus) {
-        EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
+        return aDecisionWithStatusAndExistingClaim(eligibilityStatus, null);
+    }
+
+    public static EligibilityAndEntitlementDecision aDecisionWithStatusAndExistingClaim(EligibilityStatus eligibilityStatus, UUID existingClaimId) {
+        EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder()
+                .eligibilityStatus(eligibilityStatus)
+                .existingClaimId(existingClaimId);
+        IdentityAndEligibilityResponse identityAndEligibilityResponse = (ELIGIBLE == eligibilityStatus)
+                ? anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches()
+                : anIdentityMatchedEligibilityNotConfirmedResponse();
         removeVoucherEntitlementIfAppropriate(eligibilityStatus, builder);
+        builder.identityAndEligibilityResponse(identityAndEligibilityResponse);
         return builder.build();
     }
 

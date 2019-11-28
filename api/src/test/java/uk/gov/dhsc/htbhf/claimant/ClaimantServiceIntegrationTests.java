@@ -59,6 +59,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -137,6 +138,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
         assertThat(response.getBody().getClaimUpdated()).isTrue();
         assertThat(response.getBody().getUpdatedFields()).contains(EXPECTED_DELIVERY_DATE.getFieldName());
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         assertClaimUpdatedSuccessfully(expectedDeliveryDate);
         verifyPostToEligibilityService();
     }
@@ -299,6 +301,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
@@ -327,6 +330,7 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException {
