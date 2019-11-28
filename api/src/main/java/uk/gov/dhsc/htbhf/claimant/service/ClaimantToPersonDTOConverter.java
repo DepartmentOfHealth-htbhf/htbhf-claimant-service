@@ -4,8 +4,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 @Component
 public class ClaimantToPersonDTOConverter implements Converter<Claimant, PersonDTO> {

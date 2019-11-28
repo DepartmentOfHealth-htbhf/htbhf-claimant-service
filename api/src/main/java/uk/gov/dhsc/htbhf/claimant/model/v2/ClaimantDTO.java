@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model;
+package uk.gov.dhsc.htbhf.claimant.model.v2;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
