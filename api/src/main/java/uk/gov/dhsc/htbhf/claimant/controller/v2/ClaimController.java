@@ -74,6 +74,7 @@ public class ClaimController {
                 .voucherEntitlement(entitlement)
                 .claimUpdated(result.getClaimUpdated())
                 .updatedFields(result.getUpdatedFields())
+                .verificationResult(result.getVerificationResult())
                 .build();
         return new ResponseEntity<>(body, statusCode);
     }
