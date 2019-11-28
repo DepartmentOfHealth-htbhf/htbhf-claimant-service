@@ -6,8 +6,8 @@ import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.converter.AddressToAddressDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 /**
  * Creates a {@link CardRequest} instance from a given {@link Claim}.

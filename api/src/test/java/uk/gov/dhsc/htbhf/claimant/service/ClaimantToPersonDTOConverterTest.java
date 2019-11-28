@@ -3,8 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.PersonDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;

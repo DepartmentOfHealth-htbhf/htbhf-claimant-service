@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 
 import java.time.LocalDate;
 import java.util.Map;

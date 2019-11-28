@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;

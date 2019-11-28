@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 import java.time.LocalDate;
 import java.util.List;
