@@ -1,11 +1,9 @@
-package uk.gov.dhsc.htbhf.claimant.model;
+package uk.gov.dhsc.htbhf.claimant.model.v2;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
-import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
