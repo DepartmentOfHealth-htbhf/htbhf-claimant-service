@@ -74,25 +74,26 @@ public class ClaimController {
 <span class="fc" id="L74">                .voucherEntitlement(entitlement)</span>
 <span class="fc" id="L75">                .claimUpdated(result.getClaimUpdated())</span>
 <span class="fc" id="L76">                .updatedFields(result.getUpdatedFields())</span>
-<span class="fc" id="L77">                .build();</span>
-<span class="fc" id="L78">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L77">                .verificationResult(result.getVerificationResult())</span>
+<span class="fc" id="L78">                .build();</span>
+<span class="fc" id="L79">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
-<span class="fc" id="L82">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
+<span class="fc" id="L83">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-<span class="fc bfc" id="L86" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
-<span class="fc" id="L87">            return HttpStatus.OK;</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
+<span class="fc" id="L88">            return HttpStatus.OK;</span>
         }
-<span class="fc" id="L89">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
-<span class="fc" id="L90">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
-<span class="fc bfc" id="L91" title="All 2 branches covered.">        if (statusCode == null) {</span>
-<span class="fc" id="L92">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
-<span class="fc" id="L93">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="fc" id="L90">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
+<span class="fc" id="L91">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (statusCode == null) {</span>
+<span class="fc" id="L93">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="fc" id="L94">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L95">        return statusCode;</span>
+<span class="fc" id="L96">        return statusCode;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
