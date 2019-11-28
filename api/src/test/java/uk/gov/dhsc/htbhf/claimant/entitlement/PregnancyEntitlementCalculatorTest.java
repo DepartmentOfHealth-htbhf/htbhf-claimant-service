@@ -22,43 +22,22 @@ class PregnancyEntitlementCalculatorTest {
 
     private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_WEEKS, PAYMENT_CYCLE_DURATION_IN_DAYS);
 
-    @Test
-    void shouldReturnTrueForDueDateInFuture() {
-        LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.plusWeeks(1);
-
+    @ParameterizedTest
+    @MethodSource("isEntitledToVoucherArguments")
+    void shouldReturnTrueWhenClaimantIsEntitledToVoucher(LocalDate entitlementDate, LocalDate dueDate) {
         boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
 
         assertThat(result).isTrue();
     }
 
-    @Test
-    void shouldReturnTrueForDueDateSameAsEntitlementDate() {
-        LocalDate date = LocalDate.now();
-
-        boolean result = calculator.isEntitledToVoucher(date, date);
-
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    void shouldReturnTrueForDueDateLessThanGracePeriodWeeksAgo() {
-        LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.minusWeeks(1);
-
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
-
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    void shouldReturnTrueForDueDateGracePeriodWeeksAgo() {
-        LocalDate entitlementDate = LocalDate.now();
-        LocalDate dueDate = entitlementDate.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS);
-
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
-
-        assertThat(result).isTrue();
+    private static Stream<Arguments> isEntitledToVoucherArguments() {
+        LocalDate today = LocalDate.now();
+        return Stream.of(
+                Arguments.of(today, today.plusWeeks(1)),
+                Arguments.of(today, today),
+                Arguments.of(today, today.minusWeeks(1)),
+                Arguments.of(today, today.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS))
+        );
     }
 
     @Test
@@ -105,6 +84,34 @@ class PregnancyEntitlementCalculatorTest {
         boolean result = calculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(paymentCycle);
 
         assertThat(result).isFalse();
+    }
+
+    @ParameterizedTest
+    @MethodSource("isPregnantInPaymentCycle")
+    void shouldReturnTrueWhenClaimantIsPregnantInPaymentCycle(LocalDate entitlementDate, LocalDate dueDate) {
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void shouldReturnClaimantIsNotPregnantInCycleForNullDueDate() {
+        Claim claim = aClaimWithExpectedDeliveryDate(null);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+
+        boolean result = calculator.claimantIsPregnantInCycle(paymentCycle);
+
+        assertThat(result).isFalse();
+    }
+
+    private static Stream<Arguments> isPregnantInPaymentCycle() {
+        LocalDate today = LocalDate.now();
+        return Stream.of(
+                Arguments.of(today, today.plusWeeks(1)),
+                Arguments.of(today, today),
+                Arguments.of(today, today.minusWeeks(1)),
+                Arguments.of(today, today.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS))
+        );
     }
 
     private static Stream<Arguments> expectedDeliveryDatesNotRequiringReminderEmail() {
