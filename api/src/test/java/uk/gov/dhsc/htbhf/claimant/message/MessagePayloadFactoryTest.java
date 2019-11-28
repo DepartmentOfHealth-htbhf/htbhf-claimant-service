@@ -43,6 +43,19 @@ class MessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
+        assertThat(payload.isPaymentRestarted()).isFalse();
+    }
+
+    @Test
+    void shouldCreateMakePaymentMessagePayloadForRestartedPayment() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+
+        MakePaymentMessagePayload payload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(paymentCycle);
+
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
+        assertThat(payload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
+        assertThat(payload.isPaymentRestarted()).isTrue();
     }
 
     @Test
