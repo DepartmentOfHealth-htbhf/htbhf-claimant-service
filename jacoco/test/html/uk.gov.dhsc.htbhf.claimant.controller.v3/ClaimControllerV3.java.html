@@ -12,7 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.controller.v2.ClaimController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
@@ -22,23 +27,58 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(value = &quot;/v3/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-<span class="fc" id="L25">@Slf4j</span>
+<span class="fc" id="L30">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
-public class ClaimControllerV3 extends ClaimController {
+public class ClaimControllerV3 {
+
+    private final ClaimController claimController;
 
     public ClaimControllerV3(@Qualifier(&quot;v3ClaimService&quot;) ClaimService v3ClaimService,
                              ClaimantDTOToClaimantConverter claimantConverter,
-                             VoucherEntitlementToDTOConverter voucherConverter) {
-<span class="fc" id="L32">        super(v3ClaimService, claimantConverter, voucherConverter);</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L38">                             VoucherEntitlementToDTOConverter voucherConverter) {</span>
+        //TODO MRS 28/11/2019: This is a temporary (ugly) work around to make sure we reuse the existing code without duplication, it will be replaced
+<span class="fc" id="L40">        claimController = new ClaimController(v3ClaimService, claimantConverter, voucherConverter);</span>
+<span class="fc" id="L41">    }</span>
 
     @PostMapping
-    @ApiOperation(&quot;Create or update a claim.&quot;)
+    @ApiOperation(&quot;Create or update a V3 claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
-    @Override
-    public ResponseEntity&lt;ClaimResultDTO&gt; createOrUpdateClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L40">        log.debug(&quot;Received V3 claim&quot;);</span>
-<span class="fc" id="L41">        return super.createOrUpdateClaim(claimDTO);</span>
+    public ResponseEntity&lt;ClaimResultDTO&gt; createOrUpdateClaimV3(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTOV3 claimDTOV3) {
+<span class="fc" id="L47">        log.debug(&quot;Received V3 claim&quot;);</span>
+<span class="fc" id="L48">        return claimController.createOrUpdateClaim(buildClaimDTO(claimDTOV3));</span>
+    }
+
+    //TODO MRS 28/11/2019: BeanUtils copyProperties possibly.
+    private ClaimDTO buildClaimDTO(ClaimDTOV3 v3Claim) {
+<span class="fc" id="L53">        return ClaimDTO.builder()</span>
+<span class="fc" id="L54">                .deviceFingerprint(v3Claim.getDeviceFingerprint())</span>
+<span class="fc" id="L55">                .webUIVersion(v3Claim.getWebUIVersion())</span>
+<span class="fc" id="L56">                .claimant(buildClaimantDTO(v3Claim.getClaimant()))</span>
+<span class="fc" id="L57">                .build();</span>
+    }
+
+    private ClaimantDTO buildClaimantDTO(ClaimantDTOV3 v3Claimant) {
+<span class="fc" id="L61">        return ClaimantDTO.builder()</span>
+<span class="fc" id="L62">                .firstName(v3Claimant.getFirstName())</span>
+<span class="fc" id="L63">                .lastName(v3Claimant.getLastName())</span>
+<span class="fc" id="L64">                .nino(v3Claimant.getNino())</span>
+<span class="fc" id="L65">                .dateOfBirth(v3Claimant.getDateOfBirth())</span>
+<span class="fc" id="L66">                .emailAddress(v3Claimant.getEmailAddress())</span>
+<span class="fc" id="L67">                .phoneNumber(v3Claimant.getPhoneNumber())</span>
+<span class="fc" id="L68">                .address(buildAddressDTO(v3Claimant.getAddress()))</span>
+<span class="fc" id="L69">                .expectedDeliveryDate(v3Claimant.getExpectedDeliveryDate())</span>
+<span class="fc" id="L70">                .childrenDob(v3Claimant.getChildrenDob())</span>
+<span class="fc" id="L71">                .build();</span>
+    }
+
+    private AddressDTO buildAddressDTO(AddressDTOV3 v3Address) {
+<span class="fc" id="L75">        return AddressDTO.builder()</span>
+<span class="fc" id="L76">                .addressLine1(v3Address.getAddressLine1())</span>
+<span class="fc" id="L77">                .addressLine2(v3Address.getAddressLine2())</span>
+<span class="fc" id="L78">                .townOrCity(v3Address.getTownOrCity())</span>
+<span class="fc" id="L79">                .county(v3Address.getCounty())</span>
+<span class="fc" id="L80">                .postcode(v3Address.getPostcode())</span>
+<span class="fc" id="L81">                .build();</span>
     }
 
 }
