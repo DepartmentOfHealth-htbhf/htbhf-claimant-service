@@ -39,7 +39,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -47,6 +46,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTI
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatusAndCardStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
@@ -93,6 +93,23 @@ class EligibilityDecisionHandlerTest {
 
         // Then
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle);
+        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
+        verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
+    }
+
+    @Test
+    void shouldMoveAPendingExpiryClaimToActiveWhenTheClaimantIsEligible() {
+        //Given
+        Claim claim = aClaimWithClaimStatusAndCardStatus(PENDING_EXPIRY, PENDING_CANCELLATION);
+        PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
+        // current payment cycle is not second to last one with vouchers
+        given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(false);
+
+        //When
+        handler.handleEligibleDecision(claim, currentPaymentCycle);
+
+        // Then
+        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(currentPaymentCycle);
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
@@ -319,9 +336,9 @@ class EligibilityDecisionHandlerTest {
 
     private void verifyClaimSavedWithStatus(ClaimStatus claimStatus, CardStatus cardStatus) {
         ArgumentCaptor<Claim> argumentCaptor = ArgumentCaptor.forClass(Claim.class);
-        verify(claimRepository, times(2)).save(argumentCaptor.capture());
-        List<Claim> claims = argumentCaptor.getAllValues();
-        assertThat(claims.get(0).getClaimStatus()).isEqualTo(claimStatus);
-        assertThat(claims.get(1).getCardStatus()).isEqualTo(cardStatus);
+        verify(claimRepository).save(argumentCaptor.capture());
+        Claim claim = argumentCaptor.getValue();
+        assertThat(claim.getClaimStatus()).isEqualTo(claimStatus);
+        assertThat(claim.getCardStatus()).isEqualTo(cardStatus);
     }
 }
