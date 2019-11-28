@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 import uk.gov.dhsc.htbhf.swagger.SwaggerGenerationUtil;
 
 import java.io.IOException;

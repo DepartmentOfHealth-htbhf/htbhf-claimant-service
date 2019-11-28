@@ -3,8 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_DATE_OF_BIRTH;

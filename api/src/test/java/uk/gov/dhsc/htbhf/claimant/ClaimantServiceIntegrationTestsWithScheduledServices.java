@@ -11,7 +11,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
-import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;

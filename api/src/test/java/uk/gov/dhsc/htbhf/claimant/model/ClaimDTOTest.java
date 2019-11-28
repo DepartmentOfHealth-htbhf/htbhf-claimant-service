@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.model;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 
 import java.util.Set;
 import javax.validation.ConstraintViolation;
