@@ -56,21 +56,6 @@ public class PaymentCycleTestDataFactory {
                 .build();
     }
 
-    public static PaymentCycle aPaymentCycleWithStartDateClaimAndExpectedDeliveryDate(LocalDate startDate,
-                                                                                      Claim claim) {
-        PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
-        List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
-        return aValidPaymentCycleBuilder()
-                .voucherEntitlement(voucherEntitlement)
-                .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
-                .cycleStartDate(startDate)
-                .claim(claim)
-                .childrenDob(childrenDobs)
-                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
-                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
-                .build();
-    }
-
     public static PaymentCycle aPaymentCycleWithStartAndEndDate(LocalDate startDate, LocalDate endDate) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
