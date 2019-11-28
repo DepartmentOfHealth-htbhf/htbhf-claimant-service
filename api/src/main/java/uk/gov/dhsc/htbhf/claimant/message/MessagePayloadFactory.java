@@ -31,6 +31,16 @@ public class MessagePayloadFactory {
                 .claimId(paymentCycle.getClaim().getId())
                 .paymentCycleId(paymentCycle.getId())
                 .cardAccountId(paymentCycle.getClaim().getCardAccountId())
+                .paymentRestarted(false)
+                .build();
+    }
+
+    public static MakePaymentMessagePayload buildMakePaymentMessagePayloadForRestartedPayment(PaymentCycle paymentCycle) {
+        return MakePaymentMessagePayload.builder()
+                .claimId(paymentCycle.getClaim().getId())
+                .paymentCycleId(paymentCycle.getId())
+                .cardAccountId(paymentCycle.getClaim().getCardAccountId())
+                .paymentRestarted(true)
                 .build();
     }
 

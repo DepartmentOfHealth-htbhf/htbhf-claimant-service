@@ -19,10 +19,31 @@ public class PaymentCycleNotificationHandler {
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
-    public void sendNotificationEmails(PaymentCycle paymentCycle) {
-        EmailMessagePayload messagePayload = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
-                ? emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.NEW_CHILD_FROM_PREGNANCY)
-                : emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.REGULAR_PAYMENT);
+    /**
+     * Sends a notification for a regular payment (claimant was previously active and is still active).
+     * Sends an email of type {@link EmailType#REGULAR_PAYMENT}.
+     *
+     * @param paymentCycle the current payment cycle
+     */
+    public void sendNotificationEmailsForRegularPayment(PaymentCycle paymentCycle) {
+        EmailType emailType = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
+                ? EmailType.NEW_CHILD_FROM_PREGNANCY
+                : EmailType.REGULAR_PAYMENT;
+        sendNotificationEmail(paymentCycle, emailType);
+    }
+
+    /**
+     * Sends a notification for a restarted payment (claimant was pending_expiry and is now active).
+     * Sends an email of type {@link EmailType#RESTARTED_PAYMENT}.
+     *
+     * @param paymentCycle the current payment cycle
+     */
+    public void sendNotificationEmailsForRestartedPayment(PaymentCycle paymentCycle) {
+        sendNotificationEmail(paymentCycle, EmailType.RESTARTED_PAYMENT);
+    }
+
+    private void sendNotificationEmail(PaymentCycle paymentCycle, EmailType emailType) {
+        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
         messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
         handleUpcomingBirthdayEmails(paymentCycle);
     }
