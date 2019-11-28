@@ -37,7 +37,7 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L37">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
 <span class="fc" id="L38">        PaymentCycle paymentCycle = messageContext.getPaymentCycle();</span>
 <span class="fc" id="L39">        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());</span>
-<span class="fc" id="L40">        paymentCycleNotificationHandler.sendNotificationEmails(paymentCycle);</span>
+<span class="fc" id="L40">        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);</span>
 <span class="fc" id="L41">        return COMPLETED;</span>
     }
 

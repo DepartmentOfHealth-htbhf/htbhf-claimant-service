@@ -30,7 +30,7 @@ public class PaymentCycleVoucherEntitlement {
 <span class="fc" id="L30">        this(voucherEntitlements, 0);</span>
 <span class="fc" id="L31">    }</span>
 
-    @Builder
+    @Builder(toBuilder = true)
 <span class="fc" id="L34">    public PaymentCycleVoucherEntitlement(List&lt;VoucherEntitlement&gt; voucherEntitlements, int backdatedVouchers) {</span>
 <span class="fc bfc" id="L35" title="All 2 branches covered.">        if (isEmpty(voucherEntitlements)) {</span>
 <span class="fc" id="L36">            throw new IllegalArgumentException(&quot;List of voucher entitlements must not be null or empty.&quot;);</span>
