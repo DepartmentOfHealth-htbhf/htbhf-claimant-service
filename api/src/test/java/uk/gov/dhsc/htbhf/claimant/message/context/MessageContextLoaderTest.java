@@ -35,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayloadForRestartedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
@@ -69,7 +70,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayloadForRestartedPayment(claimId, paymentCycleId);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -80,6 +81,7 @@ class MessageContextLoaderTest {
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
+        assertThat(context.isPaymentRestarted()).isTrue();
         verify(claimRepository).findById(claimId);
         verify(paymentCycleRepository).findById(paymentCycleId);
         verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);

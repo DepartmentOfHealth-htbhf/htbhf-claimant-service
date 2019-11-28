@@ -25,6 +25,16 @@ public class MessagePayloadTestDataFactory {
                 .claimId(claimId)
                 .paymentCycleId(paymentCycleId)
                 .cardAccountId(CARD_ACCOUNT_ID)
+                .paymentRestarted(false)
+                .build();
+    }
+
+    public static MakePaymentMessagePayload aMakePaymentPayloadForRestartedPayment(UUID claimId, UUID paymentCycleId) {
+        return MakePaymentMessagePayload.builder()
+                .claimId(claimId)
+                .paymentCycleId(paymentCycleId)
+                .cardAccountId(CARD_ACCOUNT_ID)
+                .paymentRestarted(true)
                 .build();
     }
 
