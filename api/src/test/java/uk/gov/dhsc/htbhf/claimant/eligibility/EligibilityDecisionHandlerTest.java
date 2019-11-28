@@ -292,6 +292,7 @@ class EligibilityDecisionHandlerTest {
         assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         verify(claimRepository).save(claim);
         verify(claimMessageSender).sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+        verify(eventAuditor).auditExpiredClaim(claim);
     }
 
     //Argument order is: previousCycleChildrenDobs, previousCycleExpectedDeliveryDate, currentCycleExpectedDeliveryDate
