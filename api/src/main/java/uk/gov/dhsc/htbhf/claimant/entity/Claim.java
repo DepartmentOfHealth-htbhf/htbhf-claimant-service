@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
@@ -73,6 +74,10 @@ public class Claim extends VersionedEntity {
     @Column(name = "card_status_timestamp")
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime cardStatusTimestamp;
+
+    @Column(name = "initial_identity_and_eligibility_response")
+    @Type(type = "json")
+    private IdentityAndEligibilityResponse initialIdentityAndEligibilityResponse;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
