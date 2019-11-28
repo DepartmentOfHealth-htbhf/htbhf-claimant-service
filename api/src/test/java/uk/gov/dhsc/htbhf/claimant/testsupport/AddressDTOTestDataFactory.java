@@ -1,6 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
 
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 

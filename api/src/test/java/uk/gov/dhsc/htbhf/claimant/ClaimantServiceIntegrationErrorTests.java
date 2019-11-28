@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;

@@ -6,6 +6,10 @@ import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificatio
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -17,8 +21,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
 
 @Component
 @AllArgsConstructor
@@ -30,33 +36,67 @@ public class EligibilityDecisionHandler {
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private EventAuditor eventAuditor;
     private ClaimMessageSender claimMessageSender;
+    private final MessageQueueClient messageQueueClient;
 
     /**
-     * Handles the processing of ineligible {@link EligibilityAndEntitlementDecision}.
+     * Handles the processing of eligible {@link EligibilityAndEntitlementDecision}
      * This includes updating claim/card statuses and sending notifications if necessary.
      *
-     * @param claim the claim the decision relates to
-     * @param previousPaymentCycle the claim's previous payment cycle
+     * @param claim               the claim the decision relates to
      * @param currentPaymentCycle the claim's current payment cycle
-     * @param decision the ineligible entitlement decision
      */
-    public void handleIneligibleDecision(Claim claim,
-                                         PaymentCycle previousPaymentCycle,
-                                         PaymentCycle currentPaymentCycle,
-                                         EligibilityAndEntitlementDecision decision) {
+    public void handleEligibleDecision(Claim claim, PaymentCycle currentPaymentCycle) {
+        createMakePaymentMessage(currentPaymentCycle);
+        if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {
+            // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
+            claimMessageSender.sendReportABirthEmailMessage(claim);
+        }
+    }
 
-        if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
+    /**
+     * Handles the processing of ineligible {@link EligibilityAndEntitlementDecision} for active claims.
+     * This includes updating claim/card statuses and sending notifications if necessary.
+     *
+     * @param claim                the claim the decision relates to
+     * @param previousPaymentCycle the claim's previous payment cycle
+     * @param currentPaymentCycle  the claim's current payment cycle
+     * @param decision             the ineligible entitlement decision
+     */
+    public void handleIneligibleDecisionForActiveClaim(Claim claim,
+                                                       PaymentCycle previousPaymentCycle,
+                                                       PaymentCycle currentPaymentCycle,
+                                                       EligibilityAndEntitlementDecision decision) {
+
+        if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
             expireActiveClaim(claim, decision.getDateOfBirthOfChildren());
         } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {
             handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());
         } else {
-            handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());
+            expireActiveClaim(claim, decision.getDateOfBirthOfChildren());
+            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
         }
 
         setCardStatusToPendingCancellation(claim);
     }
 
-    private boolean shouldExpireClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
+    /**
+     * Expires a claim which has a status of pending expiry.
+     *
+     * @param claim                  the claim to expire
+     * @param datesOfBirthOfChildren the dates of birth of the claimant's children
+     */
+    public void expirePendingExpiryClaim(Claim claim, List<LocalDate> datesOfBirthOfChildren) {
+        claim.updateClaimStatus(EXPIRED);
+        claimRepository.save(claim);
+        claimMessageSender.sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+    }
+
+    private void createMakePaymentMessage(PaymentCycle paymentCycle) {
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
+        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
+    }
+
+    private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
         if (decision.childrenPresent() || claimantIsPregnantInCycle(currentPaymentCycle)) {
             return false;
         }
@@ -81,11 +121,6 @@ public class EligibilityDecisionHandler {
         updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
         claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
-    }
-
-    private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
-        expireActiveClaim(claim, dateOfBirthOfChildren);
-        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
     }
 
     private void expireActiveClaim(Claim claim, List<LocalDate> dateOfBirthOfChildren) {

@@ -9,10 +9,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;

@@ -58,6 +58,13 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
                 .build();
     }
 
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithBackdatedVouchersOnly() {
+        return aPaymentCycleVoucherEntitlementWithZeroVouchers()
+                .toBuilder()
+                .backdatedVouchers(1)
+                .build();
+    }
+
     private static LocalDate getDateOfBirthOfYoungestChild(List<LocalDate> childrensDob) {
         return childrensDob.stream().max(LocalDate::compareTo).get();
     }

@@ -5,8 +5,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
-import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 
 import java.math.BigDecimal;
 import java.net.URI;
