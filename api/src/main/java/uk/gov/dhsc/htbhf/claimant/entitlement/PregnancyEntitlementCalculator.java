@@ -60,4 +60,15 @@ public class PregnancyEntitlementCalculator {
 
         return entitledToVouchersInCurrentCycle && entitledToVouchersInNextCycle && !entitledToVouchersInCycleAfterNext;
     }
+
+    /**
+     * Determines if a claimant is pregnant in the payment cycle based on their due date and the pregnancy grace period.
+     * Returns true if the claimant's due date is before or equal to the payment cycle start date plus the grace period duration.
+     * @param paymentCycle the payment cycle to check when the claimant is pregnant
+     *
+     * @return true if the claimant's due date is before or equal to the payment cycle start date plus the grace period duration.
+     */
+    public boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
+        return isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());
+    }
 }
