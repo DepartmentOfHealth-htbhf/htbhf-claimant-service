@@ -6,6 +6,10 @@ import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificatio
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -17,8 +21,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
 
 @Component
 @AllArgsConstructor
@@ -30,78 +36,107 @@ public class EligibilityDecisionHandler {
     private ChildDateOfBirthCalculator childDateOfBirthCalculator;
     private EventAuditor eventAuditor;
     private ClaimMessageSender claimMessageSender;
+    private final MessageQueueClient messageQueueClient;
 
     /**
-     * Handles the processing of ineligible {@link EligibilityAndEntitlementDecision}.
+     * Handles the processing of eligible {@link EligibilityAndEntitlementDecision}
      * This includes updating claim/card statuses and sending notifications if necessary.
      *
-     * @param claim the claim the decision relates to
-     * @param previousPaymentCycle the claim's previous payment cycle
+     * @param claim               the claim the decision relates to
      * @param currentPaymentCycle the claim's current payment cycle
-     * @param decision the ineligible entitlement decision
      */
-    public void handleIneligibleDecision(Claim claim,
-                                         PaymentCycle previousPaymentCycle,
-                                         PaymentCycle currentPaymentCycle,
-                                         EligibilityAndEntitlementDecision decision) {
+    public void handleEligibleDecision(Claim claim, PaymentCycle currentPaymentCycle) {
+<span class="fc" id="L49">        createMakePaymentMessage(currentPaymentCycle);</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {</span>
+            // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
+<span class="fc" id="L52">            claimMessageSender.sendReportABirthEmailMessage(claim);</span>
+        }
+<span class="fc" id="L54">    }</span>
 
-<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (shouldExpireClaim(decision, previousPaymentCycle, currentPaymentCycle)) {</span>
-<span class="fc" id="L49">            expireActiveClaim(claim, decision.getDateOfBirthOfChildren());</span>
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {</span>
-<span class="fc" id="L51">            handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());</span>
+    /**
+     * Handles the processing of ineligible {@link EligibilityAndEntitlementDecision} for active claims.
+     * This includes updating claim/card statuses and sending notifications if necessary.
+     *
+     * @param claim                the claim the decision relates to
+     * @param previousPaymentCycle the claim's previous payment cycle
+     * @param currentPaymentCycle  the claim's current payment cycle
+     * @param decision             the ineligible entitlement decision
+     */
+    public void handleIneligibleDecisionForActiveClaim(Claim claim,
+                                                       PaymentCycle previousPaymentCycle,
+                                                       PaymentCycle currentPaymentCycle,
+                                                       EligibilityAndEntitlementDecision decision) {
+
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {</span>
+<span class="fc" id="L71">            expireActiveClaim(claim, decision.getDateOfBirthOfChildren());</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {</span>
+<span class="fc" id="L73">            handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());</span>
         } else {
-<span class="fc" id="L53">            handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(claim, decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L75">            expireActiveClaim(claim, decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L76">            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);</span>
         }
 
-<span class="fc" id="L56">        setCardStatusToPendingCancellation(claim);</span>
-<span class="fc" id="L57">    }</span>
+<span class="fc" id="L79">        setCardStatusToPendingCancellation(claim);</span>
+<span class="fc" id="L80">    }</span>
 
-    private boolean shouldExpireClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
-<span class="fc bfc" id="L60" title="All 4 branches covered.">        if (decision.childrenPresent() || claimantIsPregnantInCycle(currentPaymentCycle)) {</span>
-<span class="fc" id="L61">            return false;</span>
+    /**
+     * Expires a claim which has a status of pending expiry.
+     *
+     * @param claim                  the claim to expire
+     * @param datesOfBirthOfChildren the dates of birth of the claimant's children
+     */
+    public void expirePendingExpiryClaim(Claim claim, List&lt;LocalDate&gt; datesOfBirthOfChildren) {
+<span class="fc" id="L89">        claim.updateClaimStatus(EXPIRED);</span>
+<span class="fc" id="L90">        claimRepository.save(claim);</span>
+<span class="fc" id="L91">        claimMessageSender.sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);</span>
+<span class="fc" id="L92">    }</span>
+
+    private void createMakePaymentMessage(PaymentCycle paymentCycle) {
+<span class="fc" id="L95">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);</span>
+<span class="fc" id="L96">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L97">    }</span>
+
+    private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
+<span class="fc bfc" id="L100" title="All 4 branches covered.">        if (decision.childrenPresent() || claimantIsPregnantInCycle(currentPaymentCycle)) {</span>
+<span class="fc" id="L101">            return false;</span>
         }
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        if (childrenExistedInPreviousCycleAndNowOver4(previousPaymentCycle, currentPaymentCycle)) {</span>
-<span class="fc" id="L64">            return true;</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (childrenExistedInPreviousCycleAndNowOver4(previousPaymentCycle, currentPaymentCycle)) {</span>
+<span class="fc" id="L104">            return true;</span>
         }
-<span class="fc" id="L66">        return claimantIsPregnantInCycle(previousPaymentCycle);</span>
+<span class="fc" id="L106">        return claimantIsPregnantInCycle(previousPaymentCycle);</span>
     }
 
     private boolean childrenExistedInPreviousCycleAndNowOver4(PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
-<span class="fc bfc" id="L70" title="All 2 branches covered.">        return childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle)</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">                &amp;&amp; !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        return childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle)</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">                &amp;&amp; !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());</span>
     }
 
     //Use the PregnancyEntitlementCalculator to check that the claimant is either not pregnant or their pregnancy date is
     //considered too far in the past.
     private boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
-<span class="fc" id="L77">        return pregnancyEntitlementCalculator.isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());</span>
+<span class="fc" id="L117">        return pregnancyEntitlementCalculator.isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());</span>
     }
 
     private void handleLossOfQualifyingBenefitStatus(Claim claim, List&lt;LocalDate&gt; dateOfBirthOfChildren) {
-<span class="fc" id="L81">        updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);</span>
-<span class="fc" id="L82">        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);</span>
-<span class="fc" id="L83">        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);</span>
-<span class="fc" id="L84">    }</span>
-
-    private void handleNoLongerEligibleForSchemeAsNoChildrenAndNotPregnant(Claim claim, List&lt;LocalDate&gt; dateOfBirthOfChildren) {
-<span class="fc" id="L87">        expireActiveClaim(claim, dateOfBirthOfChildren);</span>
-<span class="fc" id="L88">        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);</span>
-<span class="fc" id="L89">    }</span>
+<span class="fc" id="L121">        updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);</span>
+<span class="fc" id="L122">        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);</span>
+<span class="fc" id="L123">        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);</span>
+<span class="fc" id="L124">    }</span>
 
     private void expireActiveClaim(Claim claim, List&lt;LocalDate&gt; dateOfBirthOfChildren) {
-<span class="fc" id="L92">        updateClaimStatus(claim, ClaimStatus.EXPIRED);</span>
-<span class="fc" id="L93">        eventAuditor.auditExpiredClaim(claim);</span>
-<span class="fc" id="L94">        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_EXPIRED);</span>
-<span class="fc" id="L95">    }</span>
+<span class="fc" id="L127">        updateClaimStatus(claim, ClaimStatus.EXPIRED);</span>
+<span class="fc" id="L128">        eventAuditor.auditExpiredClaim(claim);</span>
+<span class="fc" id="L129">        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_EXPIRED);</span>
+<span class="fc" id="L130">    }</span>
 
     private void setCardStatusToPendingCancellation(Claim claim) {
-<span class="fc" id="L98">        claim.updateCardStatus(PENDING_CANCELLATION);</span>
-<span class="fc" id="L99">        claimRepository.save(claim);</span>
-<span class="fc" id="L100">    }</span>
+<span class="fc" id="L133">        claim.updateCardStatus(PENDING_CANCELLATION);</span>
+<span class="fc" id="L134">        claimRepository.save(claim);</span>
+<span class="fc" id="L135">    }</span>
 
     private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
-<span class="fc" id="L103">        claim.updateClaimStatus(claimStatus);</span>
-<span class="fc" id="L104">        claimRepository.save(claim);</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L138">        claim.updateClaimStatus(claimStatus);</span>
+<span class="fc" id="L139">        claimRepository.save(claim);</span>
+<span class="fc" id="L140">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
