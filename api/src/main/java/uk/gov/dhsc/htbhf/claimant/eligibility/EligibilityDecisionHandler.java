@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
+import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory;
@@ -22,6 +23,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
@@ -46,7 +49,13 @@ public class EligibilityDecisionHandler {
      * @param currentPaymentCycle the claim's current payment cycle
      */
     public void handleEligibleDecision(Claim claim, PaymentCycle currentPaymentCycle) {
-        createMakePaymentMessage(currentPaymentCycle);
+        if (claim.getClaimStatus() == ACTIVE) {
+            createMakeRegularPaymentMessage(currentPaymentCycle);
+        } else if (claim.getClaimStatus() == PENDING_EXPIRY) {
+            updateClaimAndCardStatus(claim, ACTIVE, CardStatus.ACTIVE);
+            createMakeRestartedPaymentMessage(currentPaymentCycle);
+        }
+
         if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {
             // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
             claimMessageSender.sendReportABirthEmailMessage(claim);
@@ -75,8 +84,6 @@ public class EligibilityDecisionHandler {
             expireClaim(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
             determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
         }
-
-        setCardStatusToPendingCancellation(claim);
     }
 
     /**
@@ -87,11 +94,6 @@ public class EligibilityDecisionHandler {
      */
     public void expirePendingExpiryClaim(Claim claim, List<LocalDate> datesOfBirthOfChildren) {
         expireClaim(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
-    }
-
-    private void createMakePaymentMessage(PaymentCycle paymentCycle) {
-        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
-        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
     private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
@@ -116,24 +118,31 @@ public class EligibilityDecisionHandler {
     }
 
     private void handleLossOfQualifyingBenefitStatus(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
-        updateClaimStatus(claim, ClaimStatus.PENDING_EXPIRY);
+        updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
         claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 
     private void expireClaim(Claim claim, List<LocalDate> dateOfBirthOfChildren, ClaimAction claimAction) {
-        updateClaimStatus(claim, ClaimStatus.EXPIRED);
+        updateClaimAndCardStatus(claim, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         eventAuditor.auditExpiredClaim(claim);
         claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, claimAction);
     }
 
-    private void setCardStatusToPendingCancellation(Claim claim) {
-        claim.updateCardStatus(PENDING_CANCELLATION);
+
+    private void updateClaimAndCardStatus(Claim claim, ClaimStatus claimStatus, CardStatus cardStatus) {
+        claim.updateClaimStatus(claimStatus);
+        claim.updateCardStatus(cardStatus);
         claimRepository.save(claim);
     }
 
-    private void updateClaimStatus(Claim claim, ClaimStatus claimStatus) {
-        claim.updateClaimStatus(claimStatus);
-        claimRepository.save(claim);
+    private void createMakeRegularPaymentMessage(PaymentCycle paymentCycle) {
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
+        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
+    }
+
+    private void createMakeRestartedPaymentMessage(PaymentCycle paymentCycle) {
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(paymentCycle);
+        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 }
