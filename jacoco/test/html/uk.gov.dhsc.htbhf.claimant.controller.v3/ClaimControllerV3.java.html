@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.controller.v2.ClaimController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
