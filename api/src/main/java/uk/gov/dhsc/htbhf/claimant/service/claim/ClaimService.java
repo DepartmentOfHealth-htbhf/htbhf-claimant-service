@@ -144,6 +144,7 @@ public class ClaimService {
                 .deviceFingerprint(deviceFingerprint)
                 .deviceFingerprintHash(fingerprintHash)
                 .webUIVersion(claimRequest.getWebUIVersion())
+                .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
                 .build();
     }
 
