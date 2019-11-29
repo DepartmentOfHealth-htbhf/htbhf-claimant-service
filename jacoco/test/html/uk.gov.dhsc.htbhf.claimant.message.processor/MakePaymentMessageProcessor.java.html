@@ -37,21 +37,29 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L37">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
 <span class="fc" id="L38">        PaymentCycle paymentCycle = messageContext.getPaymentCycle();</span>
 <span class="fc" id="L39">        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());</span>
-<span class="fc" id="L40">        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);</span>
+<span class="fc" id="L40">        sendNotificationEmail(messageContext, paymentCycle);</span>
 <span class="fc" id="L41">        return COMPLETED;</span>
     }
 
+    private void sendNotificationEmail(MakePaymentMessageContext messageContext, PaymentCycle paymentCycle) {
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (messageContext.isPaymentRestarted()) {</span>
+<span class="fc" id="L46">            paymentCycleNotificationHandler.sendNotificationEmailsForRestartedPayment(paymentCycle);</span>
+        } else {
+<span class="fc" id="L48">            paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);</span>
+        }
+<span class="fc" id="L50">    }</span>
+
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L46">        return MAKE_PAYMENT;</span>
+<span class="fc" id="L54">        return MAKE_PAYMENT;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void processFailedMessage(Message message, FailureEvent failureEvent) {
-<span class="fc" id="L52">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
-<span class="fc" id="L53">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
-<span class="fc" id="L54">    }</span>
+<span class="fc" id="L60">        MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);</span>
+<span class="fc" id="L61">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), messageContext.getCardAccountId(), failureEvent);</span>
+<span class="fc" id="L62">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
