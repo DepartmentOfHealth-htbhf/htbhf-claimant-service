@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -425,7 +424,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Disabled("HTBHF-1296")
     @DisplayName("Integration test for HTBHF-1296 status set to Expired after 16 weeks Pending Expiry and email sent to say the claim has closed")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
     @MethodSource("provideArgumentsForTestingPendingExpiryClaim")
@@ -462,7 +460,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Disabled("HTBHF-1296")
     @DisplayName("Integration test for HTBHF-1296 status remaining Pending Expiry if less than 16 weeks since becoming Pending Expiry. No emails are sent")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
     @MethodSource("provideArgumentsForTestingPendingExpiryClaim")
