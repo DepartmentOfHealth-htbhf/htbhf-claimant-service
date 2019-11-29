@@ -64,6 +64,7 @@ public class MessageContextLoader {
                 .cardAccountId(payload.getCardAccountId())
                 .claim(claim)
                 .paymentCycle(paymentCycle)
+                .paymentRestarted(payload.isPaymentRestarted())
                 .build();
     }
 

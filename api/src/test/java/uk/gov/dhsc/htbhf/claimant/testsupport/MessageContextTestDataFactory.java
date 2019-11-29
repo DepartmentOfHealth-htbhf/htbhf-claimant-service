@@ -25,6 +25,16 @@ public class MessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .claim(claim)
                 .cardAccountId(claim.getCardAccountId())
+                .paymentRestarted(false)
+                .build();
+    }
+
+    public static MakePaymentMessageContext aValidMakePaymentMessageContextForRestartedPayment(PaymentCycle paymentCycle, Claim claim) {
+        return MakePaymentMessageContext.builder()
+                .paymentCycle(paymentCycle)
+                .claim(claim)
+                .cardAccountId(claim.getCardAccountId())
+                .paymentRestarted(true)
                 .build();
     }
 
