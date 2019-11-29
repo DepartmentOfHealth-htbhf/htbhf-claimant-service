@@ -73,7 +73,7 @@ class ClaimantServiceV3IntegrationTests {
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
-        assertClaimPersistedSuccessfully(claim, ELIGIBLE, "dwpHousehold1");
+        assertClaimPersistedSuccessfully(claim, ELIGIBLE, DWP_HOUSEHOLD_IDENTIFIER);
         verifyPostToEligibilityService();
     }
 

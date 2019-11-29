@@ -22,9 +22,12 @@ import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContextForRestartedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,8 +61,8 @@ class MakePaymentMessageProcessorTest {
 
     @Test
     void shouldProcessMessageAndSendRestartedPaymentEmail() {
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        Claim claim = paymentCycle.getClaim();
+        Claim claim = aClaimWithClaimStatus(PENDING_EXPIRY);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         MakePaymentMessageContext messageContext = aValidMakePaymentMessageContextForRestartedPayment(paymentCycle, claim);
         given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
         Message message = aValidMessageWithType(MAKE_PAYMENT);

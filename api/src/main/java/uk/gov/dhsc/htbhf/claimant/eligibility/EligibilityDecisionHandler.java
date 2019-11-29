@@ -97,24 +97,18 @@ public class EligibilityDecisionHandler {
     }
 
     private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
-        if (decision.childrenPresent() || claimantIsPregnantInCycle(currentPaymentCycle)) {
+        if (decision.childrenPresent() || pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)) {
             return false;
         }
         if (childrenExistedInPreviousCycleAndNowOver4(previousPaymentCycle, currentPaymentCycle)) {
             return true;
         }
-        return claimantIsPregnantInCycle(previousPaymentCycle);
+        return pregnancyEntitlementCalculator.claimantIsPregnantInCycle(previousPaymentCycle);
     }
 
     private boolean childrenExistedInPreviousCycleAndNowOver4(PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
         return childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle)
                 && !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
-    }
-
-    //Use the PregnancyEntitlementCalculator to check that the claimant is either not pregnant or their pregnancy date is
-    //considered too far in the past.
-    private boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
-        return pregnancyEntitlementCalculator.isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());
     }
 
     private void handleLossOfQualifyingBenefitStatus(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
