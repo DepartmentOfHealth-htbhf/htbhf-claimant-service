@@ -142,8 +142,6 @@ class EligibilityDecisionHandlerTest {
         given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
 
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(NOT_PREGNANT, SINGLE_NEARLY_FOUR_YEAR_OLD);
         Claim claimAtCurrentCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(NOT_PREGNANT, currentCycleChildrenDobs);
@@ -151,13 +149,16 @@ class EligibilityDecisionHandlerTest {
         LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)).willReturn(false);
+
         //When
         handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
+        verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
@@ -184,7 +185,7 @@ class EligibilityDecisionHandlerTest {
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.CONFIRMED, currentCycleChildrenDobs);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)).willReturn(false);
 
         //When
         handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
@@ -193,7 +194,7 @@ class EligibilityDecisionHandlerTest {
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claimAtCurrentCycle);
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycleStartDate);
+        verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
@@ -221,7 +222,7 @@ class EligibilityDecisionHandlerTest {
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.NOT_CONFIRMED, currentCycleChildrenDobs);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)).willReturn(false);
 
         //When
         handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
@@ -232,7 +233,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate currentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(currentCycleExpectedDeliveryDate, currentCycleStartDate);
+        verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
@@ -242,8 +243,6 @@ class EligibilityDecisionHandlerTest {
     @MethodSource("provideArgumentsForChildrenInPreviousCycle")
     void shouldUpdateClaimToPendingExpiryWhenClaimantIsNotEligibleButStillPregnant(List<LocalDate> previousCycleChildrenDobs) {
         //Given
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
-
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousCycleChildrenDobs);
         Claim claimAtCurrentCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, currentCycleChildrenDobs);
@@ -252,6 +251,7 @@ class EligibilityDecisionHandlerTest {
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, EligibilityOutcome.NOT_CONFIRMED, currentCycleChildrenDobs);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)).willReturn(true);
 
         //When
         handler.handleIneligibleDecisionForActiveClaim(claimAtCurrentCycle, previousPaymentCycle, currentPaymentCycle, decision);
@@ -259,7 +259,7 @@ class EligibilityDecisionHandlerTest {
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, currentPaymentCycle.getCycleStartDate());
+        verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
@@ -278,9 +278,8 @@ class EligibilityDecisionHandlerTest {
         LocalDate previousCycleStartDate = LocalDate.now().minusWeeks(4);
         PaymentCycle previousPaymentCycle = aPaymentCycleWithStartDateAndClaim(previousCycleStartDate, claimAtPreviousCycle);
 
-        lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycle.getCycleStartDate())).thenReturn(false);
-        lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycle.getCycleStartDate()))
-                .thenReturn(true);
+        lenient().when(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(currentPaymentCycle)).thenReturn(false);
+        lenient().when(pregnancyEntitlementCalculator.claimantIsPregnantInCycle(previousPaymentCycle)).thenReturn(true);
 
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(INELIGIBLE, eligibilityOutcome, currentCycleChildrenDobs);
 
@@ -291,8 +290,8 @@ class EligibilityDecisionHandlerTest {
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         InOrder inOrder = inOrder(pregnancyEntitlementCalculator, pregnancyEntitlementCalculator);
-        inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, currentPaymentCycle.getCycleStartDate());
-        inOrder.verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, previousPaymentCycle.getCycleStartDate());
+        inOrder.verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
+        inOrder.verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(previousPaymentCycle);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
     }
 
