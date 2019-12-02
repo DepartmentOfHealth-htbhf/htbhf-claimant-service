@@ -18,6 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.net.URI;
@@ -26,14 +27,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
+import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.IdAndEligibilityResponseTestDataFactory.anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -66,8 +65,8 @@ class ClaimantServiceV3IntegrationTests {
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         //Given
-        IdentityAndEligibilityResponse identityAndEligibilityResponse = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier(
-                MAGGIE_AND_LISA_DOBS, DWP_HOUSEHOLD_IDENTIFIER);
+        IdentityAndEligibilityResponse identityAndEligibilityResponse = IdentityAndEligibilityResponseTestDataFactory
+                .anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);

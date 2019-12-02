@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import uk.gov.dhsc.htbhf.TestConstants;
 import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 
@@ -20,7 +21,7 @@ public class ClaimantDTOV3TestDataFactory {
     public static ClaimantDTOV3 aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
                 .expectedDeliveryDate(now().plusMonths(4))
-                .childrenDob(singletonList(MAGGIE_DATE_OF_BIRTH))
+                .childrenDob(singletonList(TestConstants.MAGGIE_DATE_OF_BIRTH))
                 .build();
     }
 

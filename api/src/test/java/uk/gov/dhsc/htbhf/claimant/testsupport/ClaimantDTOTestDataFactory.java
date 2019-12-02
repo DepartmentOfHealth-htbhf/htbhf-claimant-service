@@ -8,6 +8,7 @@ import java.util.List;
 
 import static java.time.LocalDate.now;
 import static java.util.Collections.singletonList;
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 

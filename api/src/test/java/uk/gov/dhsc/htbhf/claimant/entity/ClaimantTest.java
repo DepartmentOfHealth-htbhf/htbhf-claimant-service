@@ -13,9 +13,9 @@ import java.util.Set;
 import java.util.UUID;
 import javax.validation.ConstraintViolation;
 
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_DATE_OF_BIRTH;
 
 class ClaimantTest extends AbstractValidationTest {
 

@@ -59,8 +59,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELI
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
-import static uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome.NOT_SUPPLIED;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -313,7 +311,7 @@ class ClaimServiceTest {
                 .eligibilityStatus(ELIGIBLE)
                 .existingClaimId(existingClaimId)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(NOT_SUPPLIED, MAGGIE_AND_LISA_DOBS))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .build());
         given(claimRepository.findClaim(any())).willReturn(existingClaim);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
@@ -525,7 +523,7 @@ class ClaimServiceTest {
 
     private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus, UUID existingClaimId) {
         return aDecisionWithStatusAndExistingClaim(eligibilityStatus, existingClaimId).toBuilder()
-                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(NOT_SUPPLIED, MAGGIE_AND_LISA_DOBS))
+                .identityAndEligibilityResponse(anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .build();
     }
 
