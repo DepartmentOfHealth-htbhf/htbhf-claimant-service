@@ -29,11 +29,24 @@ See the following links for an idea of what is likely to create blocking locks:
 - https://www.citusdata.com/blog/2018/02/15/when-postgresql-blocks/
 - https://www.postgresql.org/docs/9.4/mvcc-intro.html
 
+(Re-)Creating the database locally
+-------------
+ The following instructions work on linux, but other OS's may require you to use a different command to connect to psql:
+ (replace `sudo -u postgres psql` with the appropriate command to connect to postgres)
+ ```
+ sudo -u postgres psql
+     DROP DATABASE IF EXISTS claimant;
+     DROP USER IF EXISTS claimant_admin;
+     CREATE USER claimant_admin WITH ENCRYPTED PASSWORD 'claimant_admin';
+     CREATE DATABASE claimant;
+     GRANT ALL PRIVILEGES ON DATABASE claimant TO claimant_admin;
+     \q
+ ```
 
-Commands
+Gradle Commands
 -------------
 
-Please note that database upgrades should normally be performed by the application during deployment, so you won't need to run any of the commands listed below.
+Please note that database upgrades should normally be performed by the application during deployment, so **you won't need to run any of the commands listed below**.
 
 - To run migrations stand-alone: `gradle flywayMigrate` (when run from the top-level project, must be run as: `./gradlew htbhf-claimaint-service-db:flywayMigrate`)
 - run `gradle -PdbName=claimant-test db:migrate` to upgrade the database
@@ -52,16 +65,7 @@ Then you will need to create the user xyz. Following are the steps to do that:
 - Create user - `createuser -s -r -d xyz` (xyz becomes a super-user, has permission to create new databases and roles)
 
 Now try running the tasks again. Note that this is only necessary to run the create, reset and drop tasks. 
-If you prefer to do this manually:
-```
-sudo -u postgres psql
-    DROP DATABASE IF EXISTS claimant;
-    DROP USER IF EXISTS claimant_admin;
-    CREATE USER claimant_admin WITH ENCRYPTED PASSWORD 'claimant_admin';
-    CREATE DATABASE claimant;
-    GRANT ALL PRIVILEGES ON DATABASE claimant TO claimant_admin;
-    \q
-```
+
 
 Accessing PaaS databases
 -------------
