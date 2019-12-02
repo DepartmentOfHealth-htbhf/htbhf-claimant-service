@@ -58,6 +58,12 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
+    public static Claim aClaimWithClaimStatusAndCardStatus(ClaimStatus claimStatus, CardStatus cardStatus) {
+        return aValidClaimBuilderWithStatus(claimStatus)
+                .cardStatus(cardStatus)
+                .build();
+    }
+
     public static Claim aClaimWithClaimStatusAndClaimStatusTimestamp(ClaimStatus claimStatus, LocalDateTime claimStatusTimestamp) {
         return aValidClaimBuilderWithStatus(claimStatus)
                 .claimStatusTimestamp(claimStatusTimestamp)

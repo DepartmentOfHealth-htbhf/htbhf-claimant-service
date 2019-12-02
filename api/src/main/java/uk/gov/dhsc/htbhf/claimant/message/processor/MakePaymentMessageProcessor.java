@@ -37,8 +37,16 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
         MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
         PaymentCycle paymentCycle = messageContext.getPaymentCycle();
         paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
-        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
+        sendNotificationEmail(messageContext, paymentCycle);
         return COMPLETED;
+    }
+
+    private void sendNotificationEmail(MakePaymentMessageContext messageContext, PaymentCycle paymentCycle) {
+        if (messageContext.isPaymentRestarted()) {
+            paymentCycleNotificationHandler.sendNotificationEmailsForRestartedPayment(paymentCycle);
+        } else {
+            paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
+        }
     }
 
     @Override

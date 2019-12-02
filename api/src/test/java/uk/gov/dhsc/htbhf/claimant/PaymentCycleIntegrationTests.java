@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +11,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -32,6 +32,8 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertTha
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.SCHEDULED_FOR_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -75,20 +77,21 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldCreatePaymentCycleMakePaymentAndSendEmailAndReportPayment(List<LocalDate> previousPaymentCycleChildrenDobs,
                                                                          List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
-        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(ACTIVE, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(ACTIVE, REGULAR_PAYMENT,
+                previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
     }
 
-    //TODO MRS 10/10/2019: When these tests are enabled, we may be able to refactor back into a single parameterised test
-    @Disabled("HTBHF-1758")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
     @MethodSource("provideArgumentsForActiveClaimTests")
     void shouldCreatePaymentCycleMakePaymentAndSendEmailForPendingExpiryStatus(List<LocalDate> previousPaymentCycleChildrenDobs,
                                                                                List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
-        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(PENDING_EXPIRY, previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
+        testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(PENDING_EXPIRY, RESTARTED_PAYMENT,
+                previousPaymentCycleChildrenDobs, currentPaymentCycleChildrenDobs);
     }
 
     private void testClaimIsActivePaymentMadeAndEmailSentAndPaymentReported(ClaimStatus previousCycleClaimStatus,
+                                                                            EmailType emailType,
                                                                             List<LocalDate> previousPaymentCycleChildrenDobs,
                                                                             List<LocalDate> currentPaymentCycleChildrenDobs)
             throws JsonProcessingException, NotificationClientException {
@@ -126,7 +129,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, newCycle.getTotalEntitlementAmountInPence());
 
         // confirm notify component invoked with correct email template & personalisation
-        assertThatRegularPaymentEmailWasSent(newCycle);
+        assertThatPaymentEmailWasSent(newCycle, emailType);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -421,7 +424,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Disabled("HTBHF-1296")
     @DisplayName("Integration test for HTBHF-1296 status set to Expired after 16 weeks Pending Expiry and email sent to say the claim has closed")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
     @MethodSource("provideArgumentsForTestingPendingExpiryClaim")
@@ -458,7 +460,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Disabled("HTBHF-1296")
     @DisplayName("Integration test for HTBHF-1296 status remaining Pending Expiry if less than 16 weeks since becoming Pending Expiry. No emails are sent")
     @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}, eligibility status={3}")
     @MethodSource("provideArgumentsForTestingPendingExpiryClaim")

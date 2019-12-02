@@ -22,8 +22,12 @@ import static org.mockito.BDDMockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContextForRestartedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +44,7 @@ class MakePaymentMessageProcessorTest {
     MakePaymentMessageProcessor processor;
 
     @Test
-    void shouldProcessMessageAndSendPaymentEmail() {
+    void shouldProcessMessageAndSendRegularPaymentEmail() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         Claim claim = paymentCycle.getClaim();
         MakePaymentMessageContext messageContext = aValidMakePaymentMessageContext(paymentCycle, claim);
@@ -53,6 +57,22 @@ class MakePaymentMessageProcessorTest {
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
         verify(paymentCycleNotificationHandler).sendNotificationEmailsForRegularPayment(paymentCycle);
+    }
+
+    @Test
+    void shouldProcessMessageAndSendRestartedPaymentEmail() {
+        Claim claim = aClaimWithClaimStatus(PENDING_EXPIRY);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        MakePaymentMessageContext messageContext = aValidMakePaymentMessageContextForRestartedPayment(paymentCycle, claim);
+        given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
+        Message message = aValidMessageWithType(MAKE_PAYMENT);
+
+        MessageStatus result = processor.processMessage(message);
+
+        assertThat(result).isEqualTo(MessageStatus.COMPLETED);
+        verify(messageContextLoader).loadMakePaymentContext(message);
+        verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
+        verify(paymentCycleNotificationHandler).sendNotificationEmailsForRestartedPayment(paymentCycle);
     }
 
     @Test

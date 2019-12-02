@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -241,7 +240,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     @Test
-    @Disabled("HTBHF-1758")
     void shouldProcessClaimWhichBecomesIneligibleThenEligible() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
