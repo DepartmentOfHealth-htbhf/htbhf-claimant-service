@@ -200,18 +200,6 @@ class PaymentCycleServiceTest {
     }
 
     @Test
-    void shouldSetNewCycleEndDateForClaimThatHasBecomeActive() {
-        Claim claim = aClaimWithClaimStatus(ClaimStatus.ACTIVE);
-        LocalDate cycleStartDate = LocalDate.now();
-        PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDateAndClaim(cycleStartDate, cycleStartDate.plusDays(6), claim);
-
-        paymentCycleService.updateEndDateForClaimBecomingActive(paymentCycle);
-
-        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(cycleStartDate.plusDays(PAYMENT_CYCLE_LENGTH - 1));
-        verify(paymentCycleRepository).save(paymentCycle);
-    }
-
-    @Test
     void shouldSetNewCycleEndDateForClaimThatHasBecomePendingExpiry() {
         Claim claim = aClaimWithClaimStatus(ClaimStatus.PENDING_EXPIRY);
         LocalDate cycleStartDate = LocalDate.now();

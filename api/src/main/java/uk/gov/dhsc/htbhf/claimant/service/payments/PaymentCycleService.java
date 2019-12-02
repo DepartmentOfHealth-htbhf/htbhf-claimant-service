@@ -6,7 +6,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -43,12 +42,11 @@ public class PaymentCycleService {
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
-        int cycleDuration = getCycleDuration(claim);
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
-                .cycleEndDate(cycleStartDate.plusDays(cycleDuration))
+                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .build();
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
@@ -143,24 +141,11 @@ public class PaymentCycleService {
     }
 
     /**
-     * Sets the paymentCycle's end date to the start date plus the active cycle duration time.
-     * @param paymentCycle payment cycle to update.
-     */
-    public void updateEndDateForClaimBecomingActive(PaymentCycle paymentCycle) {
-        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(cycleDurationInDays - 1));
-        paymentCycleRepository.save(paymentCycle);
-    }
-
-    /**
      * Sets the paymentCycle's end date to the start date plus the pending expiry cycle duration time.
      * @param paymentCycle payment cycle to update.
      */
     public void updateEndDateForClaimBecomingPendingExpiry(PaymentCycle paymentCycle) {
         paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(pendingExpiryCycleDurationInDays - 1));
         paymentCycleRepository.save(paymentCycle);
-    }
-
-    private int getCycleDuration(Claim claim) {
-        return claim.getClaimStatus() == ClaimStatus.ACTIVE ? cycleDurationInDays - 1 : pendingExpiryCycleDurationInDays - 1;
     }
 }

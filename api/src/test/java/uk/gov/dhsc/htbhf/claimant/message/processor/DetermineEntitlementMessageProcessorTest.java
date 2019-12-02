@@ -24,6 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.DETERMINE_ENTITLEMENT;
@@ -130,6 +131,11 @@ class DetermineEntitlementMessageProcessorTest {
 
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(any(), any(), any())).willReturn(decision);
+        doAnswer(invocation -> {
+            Claim claim = invocation.getArgument(0);
+            claim.updateClaimStatus(PENDING_EXPIRY);
+            return null;
+        }).when(eligibilityDecisionHandler).handleIneligibleDecisionForActiveClaim(any(), any(), any(), any());
 
         //Current payment cycle voucher entitlement mocking
         Message message = aValidMessageWithType(DETERMINE_ENTITLEMENT);
@@ -147,6 +153,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         verify(eligibilityDecisionHandler)
                 .handleIneligibleDecisionForActiveClaim(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
+        verify(paymentCycleService).updateEndDateForClaimBecomingPendingExpiry(context.getCurrentPaymentCycle());
     }
 
     @Test
