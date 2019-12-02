@@ -290,7 +290,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertRegularLengthPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -378,7 +378,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertRegularLengthPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -411,7 +411,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertRegularLengthPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -445,7 +445,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertWeeklyPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, SCHEDULED_FOR_CANCELLATION);
 
@@ -572,7 +572,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
-    private void assertRegularLengthPaymentCycleWithNoPayment(Claim claim) {
+    private void assertFullLengthPaymentCycleWithNoPayment(Claim claim) {
         assertPaymentCycleWithNoPayment(claim, LocalDate.now().plusDays(27));
     }
 

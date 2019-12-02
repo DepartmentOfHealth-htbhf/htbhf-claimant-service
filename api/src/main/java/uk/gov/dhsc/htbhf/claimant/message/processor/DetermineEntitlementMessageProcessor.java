@@ -7,7 +7,9 @@ import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.*;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -74,6 +76,9 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 
         paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
         handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision, message.getCreatedTimestamp());
+        if (claim.getClaimStatus() == PENDING_EXPIRY) {
+            paymentCycleService.updateEndDateForClaimBecomingPendingExpiry(currentPaymentCycle);
+        }
         return COMPLETED;
     }
 
