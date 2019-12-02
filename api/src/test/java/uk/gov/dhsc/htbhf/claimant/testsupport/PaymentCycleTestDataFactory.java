@@ -57,12 +57,17 @@ public class PaymentCycleTestDataFactory {
     }
 
     public static PaymentCycle aPaymentCycleWithStartAndEndDate(LocalDate startDate, LocalDate endDate) {
+        return aPaymentCycleWithStartAndEndDateAndClaim(startDate, endDate, aValidClaim());
+    }
+
+    public static PaymentCycle aPaymentCycleWithStartAndEndDateAndClaim(LocalDate startDate, LocalDate endDate, Claim claim) {
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementWithVouchersFromDate(startDate);
         return aValidPaymentCycleBuilder()
                 .cycleStartDate(startDate)
                 .voucherEntitlement(voucherEntitlement)
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleEndDate(endDate)
+                .claim(claim)
                 .build();
     }
 

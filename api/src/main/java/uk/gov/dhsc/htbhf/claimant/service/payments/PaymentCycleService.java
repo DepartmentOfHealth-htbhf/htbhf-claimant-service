@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
@@ -21,12 +22,15 @@ public class PaymentCycleService {
     private final PaymentCycleRepository paymentCycleRepository;
     private final Integer cycleDurationInDays;
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+    private final Integer pendingExpiryCycleDurationInDays;
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
                                @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays,
+                               @Value("${payment-cycle.pending-expiry-cycle-duration-in-days}") Integer pendingExpiryCycleDurationInDays,
                                PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {
         this.paymentCycleRepository = paymentCycleRepository;
         this.cycleDurationInDays = cycleDurationInDays;
+        this.pendingExpiryCycleDurationInDays = pendingExpiryCycleDurationInDays;
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
     }
 
@@ -39,11 +43,12 @@ public class PaymentCycleService {
      * @return the new payment cycle.
      */
     public PaymentCycle createAndSavePaymentCycle(Claim claim, LocalDate cycleStartDate) {
+        int cycleDuration = getCycleDuration(claim);
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .claim(claim)
                 .paymentCycleStatus(NEW)
                 .cycleStartDate(cycleStartDate)
-                .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
+                .cycleEndDate(cycleStartDate.plusDays(cycleDuration))
                 .build();
         paymentCycleRepository.save(paymentCycle);
         return paymentCycle;
@@ -135,5 +140,27 @@ public class PaymentCycleService {
     public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
         paymentCycleRepository.save(paymentCycle);
+    }
+
+    /**
+     * Sets the paymentCycle's end date to the start date plus the active cycle duration time.
+     * @param paymentCycle payment cycle to update.
+     */
+    public void updateEndDateForClaimBecomingActive(PaymentCycle paymentCycle) {
+        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(cycleDurationInDays - 1));
+        paymentCycleRepository.save(paymentCycle);
+    }
+
+    /**
+     * Sets the paymentCycle's end date to the start date plus the pending expiry cycle duration time.
+     * @param paymentCycle payment cycle to update.
+     */
+    public void updateEndDateForClaimBecomingPendingExpiry(PaymentCycle paymentCycle) {
+        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(pendingExpiryCycleDurationInDays - 1));
+        paymentCycleRepository.save(paymentCycle);
+    }
+
+    private int getCycleDuration(Claim claim) {
+        return claim.getClaimStatus() == ClaimStatus.ACTIVE ? cycleDurationInDays - 1 : pendingExpiryCycleDurationInDays - 1;
     }
 }

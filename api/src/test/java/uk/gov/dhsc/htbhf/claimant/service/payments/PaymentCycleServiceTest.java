@@ -10,6 +10,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory;
@@ -26,8 +27,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
@@ -43,6 +45,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 class PaymentCycleServiceTest {
 
     private static final int PAYMENT_CYCLE_LENGTH = 28;
+    private static final int PENDING_EXPIRY_PAYMENT_CYCLE_LENGTH = 7;
 
     @Mock
     private PaymentCycleRepository paymentCycleRepository;
@@ -53,13 +56,23 @@ class PaymentCycleServiceTest {
 
     @BeforeEach
     void setup() {
-        paymentCycleService = new PaymentCycleService(paymentCycleRepository, PAYMENT_CYCLE_LENGTH, pregnancyEntitlementCalculator);
+        paymentCycleService = new PaymentCycleService(paymentCycleRepository, PAYMENT_CYCLE_LENGTH,
+                PENDING_EXPIRY_PAYMENT_CYCLE_LENGTH, pregnancyEntitlementCalculator);
     }
 
     @Test
-    void shouldCreateNewPaymentCycle() {
+    void shouldCreateNewPaymentCycleForActiveClaim() {
+        shouldCreateNewPaymentCycle(ClaimStatus.ACTIVE, PAYMENT_CYCLE_LENGTH - 1);
+    }
+
+    @Test
+    void shouldCreateNewPaymentCycleForPendingExpiryClaim() {
+        shouldCreateNewPaymentCycle(ClaimStatus.PENDING_EXPIRY, PENDING_EXPIRY_PAYMENT_CYCLE_LENGTH - 1);
+    }
+
+    private void shouldCreateNewPaymentCycle(ClaimStatus claimStatus, int expectedCycleDuration) {
         LocalDate today = LocalDate.now();
-        Claim claim = aValidClaim();
+        Claim claim = aClaimWithClaimStatus(claimStatus);
 
         PaymentCycle result = paymentCycleService.createAndSavePaymentCycle(claim, today);
 
@@ -68,7 +81,7 @@ class PaymentCycleServiceTest {
         assertThat(result.getEligibilityStatus()).isNull();
         assertThat(result.getIdentityAndEligibilityResponse()).isNull();
         assertThat(result.getCycleStartDate()).isEqualTo(today);
-        assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(PAYMENT_CYCLE_LENGTH - 1));
+        assertThat(result.getCycleEndDate()).isEqualTo(today.plusDays(expectedCycleDuration));
         verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
@@ -184,6 +197,30 @@ class PaymentCycleServiceTest {
 
         verifyPaymentCycleUpdatedCorrectly(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle, decision);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle.getCycleStartDate());
+    }
+
+    @Test
+    void shouldSetNewCycleEndDateForClaimThatHasBecomeActive() {
+        Claim claim = aClaimWithClaimStatus(ClaimStatus.ACTIVE);
+        LocalDate cycleStartDate = LocalDate.now();
+        PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDateAndClaim(cycleStartDate, cycleStartDate.plusDays(6), claim);
+
+        paymentCycleService.updateEndDateForClaimBecomingActive(paymentCycle);
+
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(cycleStartDate.plusDays(PAYMENT_CYCLE_LENGTH - 1));
+        verify(paymentCycleRepository).save(paymentCycle);
+    }
+
+    @Test
+    void shouldSetNewCycleEndDateForClaimThatHasBecomePendingExpiry() {
+        Claim claim = aClaimWithClaimStatus(ClaimStatus.PENDING_EXPIRY);
+        LocalDate cycleStartDate = LocalDate.now();
+        PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDateAndClaim(cycleStartDate, cycleStartDate.plusDays(27), claim);
+
+        paymentCycleService.updateEndDateForClaimBecomingPendingExpiry(paymentCycle);
+
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(cycleStartDate.plusDays(PENDING_EXPIRY_PAYMENT_CYCLE_LENGTH - 1));
+        verify(paymentCycleRepository).save(paymentCycle);
     }
 
     private PaymentCycle buildPaymentCycle(LocalDate expectedDeliveryDate) {

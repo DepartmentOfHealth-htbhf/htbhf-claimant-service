@@ -26,6 +26,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 
 import java.time.LocalDate;
@@ -75,6 +76,8 @@ class EligibilityDecisionHandlerTest {
     private ClaimMessageSender claimMessageSender;
     @Mock
     private MessageQueueClient messageQueueClient;
+    @Mock
+    private PaymentCycleService paymentCycleService;
 
     @InjectMocks
     private EligibilityDecisionHandler handler;
@@ -111,6 +114,7 @@ class EligibilityDecisionHandlerTest {
         MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(currentPaymentCycle);
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
+        verify(paymentCycleService).updateEndDateForClaimBecomingActive(currentPaymentCycle);
     }
 
     @Test
@@ -234,6 +238,7 @@ class EligibilityDecisionHandlerTest {
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        verify(paymentCycleService).updateEndDateForClaimBecomingPendingExpiry(currentPaymentCycle);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
@@ -260,6 +265,7 @@ class EligibilityDecisionHandlerTest {
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        verify(paymentCycleService).updateEndDateForClaimBecomingPendingExpiry(currentPaymentCycle);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
