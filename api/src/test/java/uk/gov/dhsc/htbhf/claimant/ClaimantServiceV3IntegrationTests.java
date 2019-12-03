@@ -17,9 +17,9 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
-import uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
 
 import java.net.URI;
 
@@ -28,6 +28,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
@@ -65,14 +66,14 @@ class ClaimantServiceV3IntegrationTests {
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         //Given
-        IdentityAndEligibilityResponse identityAndEligibilityResponse = IdentityAndEligibilityResponseTestDataFactory
-                .anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdentityAndEligibilityResponseTestDataFactory
+                .anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
-        assertClaimPersistedSuccessfully(claim, ELIGIBLE, DWP_HOUSEHOLD_IDENTIFIER);
+        assertClaimPersistedSuccessfully(claim, ELIGIBLE);
         verifyPostToEligibilityService();
     }
 
@@ -86,18 +87,18 @@ class ClaimantServiceV3IntegrationTests {
     }
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
-                                                  EligibilityStatus eligibilityStatus,
-                                                  String dwpHouseholdIdentifier) {
+                                                  EligibilityStatus eligibilityStatus) {
         Iterable<Claim> claims = claimRepository.findAll();
         assertThat(claims).hasSize(1);
         Claim persistedClaim = claims.iterator().next();
         assertClaimantMatchesClaimantDTO(claimDTO.getClaimant(), persistedClaim.getClaimant());
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(dwpHouseholdIdentifier);
-        assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isNull();
+        assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(DWP_HOUSEHOLD_IDENTIFIER);
+        assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
-    private void stubEligibilityServiceWithSuccessfulResponse(IdentityAndEligibilityResponse identityAndEligibilityResponse) throws JsonProcessingException {
+    private void stubEligibilityServiceWithSuccessfulResponse(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse)
+            throws JsonProcessingException {
         String json = objectMapper.writeValueAsString(identityAndEligibilityResponse);
         stubFor(post(urlEqualTo(ELIGIBILITY_SERVICE_URL)).willReturn(okJson(json)));
     }

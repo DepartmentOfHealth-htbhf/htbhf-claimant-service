@@ -14,8 +14,9 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
 import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,13 +29,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V1;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -43,10 +42,12 @@ class EligibilityAndEntitlementServiceV3Test {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
-    private static final IdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE = anAllMatchedEligibilityConfirmedUCResponseWithHouseholdIdentifier();
+    private static final CombinedIdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE =
+            CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
     private static final List<LocalDate> DATE_OF_BIRTH_OF_CHILDREN = IDENTITY_AND_ELIGIBILITY_RESPONSE.getDobOfChildrenUnder4();
     private static final PaymentCycleVoucherEntitlement VOUCHER_ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
     private static final Claimant CLAIMANT = aValidClaimant();
+    private static final UUID NO_EXISTING_CLAIM = null;
 
     @InjectMocks
     EligibilityAndEntitlementServiceV3 eligibilityAndEntitlementServiceV3;
@@ -85,8 +86,8 @@ class EligibilityAndEntitlementServiceV3Test {
     @Test
     void shouldReturnEligibleWhenNotDuplicateAndEligible() {
         //Given
-        setupCommonMocksWithoutClaimId();
-        given(duplicateClaimChecker.liveClaimExistsForDwpHousehold(any())).willReturn(NOT_DUPLICATE);
+        setupCommonMocks(NO_EXISTING_CLAIM);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
@@ -94,15 +95,15 @@ class EligibilityAndEntitlementServiceV3Test {
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
-        verifyCommonMocks(null, NOT_DUPLICATE);
-        verify(duplicateClaimChecker).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verifyCommonMocks(NO_EXISTING_CLAIM, NOT_DUPLICATE);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
     }
 
     @Test
     void shouldReturnDuplicateForExistingHousehold() {
         //Given
-        setupCommonMocksWithoutClaimId();
-        given(duplicateClaimChecker.liveClaimExistsForDwpHousehold(any())).willReturn(DUPLICATE);
+        setupCommonMocks(NO_EXISTING_CLAIM);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
         //When
@@ -110,8 +111,8 @@ class EligibilityAndEntitlementServiceV3Test {
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
-        verifyCommonMocks(null, DUPLICATE);
-        verify(duplicateClaimChecker).liveClaimExistsForDwpHousehold(DWP_HOUSEHOLD_IDENTIFIER);
+        verifyCommonMocks(NO_EXISTING_CLAIM, DUPLICATE);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
     }
 
     @Test
@@ -134,18 +135,14 @@ class EligibilityAndEntitlementServiceV3Test {
                 DATE_OF_BIRTH_OF_CHILDREN,
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
-        verifyDecisionFactoryCalledCorrectly(null, NOT_DUPLICATE);
+        verifyDecisionFactoryCalledCorrectly(NO_EXISTING_CLAIM, NOT_DUPLICATE);
         verifyNoInteractions(duplicateClaimChecker, claimRepository);
     }
 
     private EligibilityAndEntitlementDecision setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus status) {
         EligibilityAndEntitlementDecision decisionResponse = aDecisionWithStatus(status);
-        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), any(), any(), anyBoolean())).willReturn(decisionResponse);
+        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), any(), anyBoolean())).willReturn(decisionResponse);
         return decisionResponse;
-    }
-
-    private void setupCommonMocksWithoutClaimId() {
-        setupCommonMocks(null);
     }
 
     private void setupCommonMocks(UUID existingClaimId) {
@@ -156,7 +153,7 @@ class EligibilityAndEntitlementServiceV3Test {
 
     private void verifyDecisionFactoryCalledCorrectly(UUID existingClaimId, boolean duplicate) {
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE,
-                VOUCHER_ENTITLEMENT, existingClaimId, null, duplicate);
+                VOUCHER_ENTITLEMENT, existingClaimId, duplicate);
     }
 
     private void verifyCommonMocks(UUID existingClaimId, boolean duplicate) {

@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service.v2;
 import org.springframework.util.CollectionUtils;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.dwp.model.v2.*;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -11,21 +12,23 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 
 /**
- * Factory object for building IdentityAndEligibilityResponse objects for v1 responses from the
+ * Factory object for building CombinedIdentityAndEligibilityResponse objects for v1 responses from the
  * eligibility service.
  */
-public class IdentityAndEligibilityResponseFactory {
+public class CombinedIdentityAndEligibilityResponseFactory {
+
+    private static final String NO_HOUSEHOLD_IDENTIFIER_SET = "";
 
     /**
-     * Builds up an {@link IdentityAndEligibilityResponse} matching the {@link EligibilityResponse} returned from
+     * Builds up an {@link CombinedIdentityAndEligibilityResponse} matching the {@link EligibilityResponse} returned from
      * the v1 version of the eligibility client.
      *
      * @param eligibilityResponse The response to use
      * @return The built response.
      */
-    public static IdentityAndEligibilityResponse fromEligibilityResponse(EligibilityResponse eligibilityResponse) {
+    public static CombinedIdentityAndEligibilityResponse fromEligibilityResponse(EligibilityResponse eligibilityResponse) {
         EligibilityStatus eligibilityStatus = eligibilityResponse.getEligibilityStatus();
-        IdentityAndEligibilityResponse.IdentityAndEligibilityResponseBuilder builder = setupIdentityAndEligibilityResponseBuilder(eligibilityResponse);
+        CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder builder = setupBuilder();
         if (EligibilityStatus.ELIGIBLE == eligibilityStatus) {
             buildEligibleResponse(builder, eligibilityResponse);
         } else if (EligibilityStatus.INELIGIBLE == eligibilityStatus) {
@@ -36,7 +39,7 @@ public class IdentityAndEligibilityResponseFactory {
         return builder.build();
     }
 
-    private static void buildNotMatchedResponse(IdentityAndEligibilityResponse.IdentityAndEligibilityResponseBuilder builder) {
+    private static void buildNotMatchedResponse(CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder builder) {
         builder
                 .identityStatus(IdentityOutcome.NOT_MATCHED)
                 .eligibilityStatus(EligibilityOutcome.NOT_SET)
@@ -48,7 +51,7 @@ public class IdentityAndEligibilityResponseFactory {
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SET);
     }
 
-    private static void buildIneligibleResponse(IdentityAndEligibilityResponse.IdentityAndEligibilityResponseBuilder builder) {
+    private static void buildIneligibleResponse(CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder builder) {
         builder
                 .identityStatus(IdentityOutcome.MATCHED)
                 .eligibilityStatus(EligibilityOutcome.NOT_CONFIRMED)
@@ -60,7 +63,7 @@ public class IdentityAndEligibilityResponseFactory {
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SET);
     }
 
-    private static void buildEligibleResponse(IdentityAndEligibilityResponse.IdentityAndEligibilityResponseBuilder builder,
+    private static void buildEligibleResponse(CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder builder,
                                               EligibilityResponse eligibilityResponse) {
         builder
                 .identityStatus(IdentityOutcome.MATCHED)
@@ -71,14 +74,16 @@ public class IdentityAndEligibilityResponseFactory {
                 .addressLine1Match(VerificationOutcome.MATCHED)
                 .postcodeMatch(VerificationOutcome.MATCHED)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
+                .dwpHouseholdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
+                .hmrcHouseholdIdentifier(eligibilityResponse.getHmrcHouseholdIdentifier())
                 .dobOfChildrenUnder4(nullSafeGetChildrenDob(eligibilityResponse));
     }
 
-    private static IdentityAndEligibilityResponse.IdentityAndEligibilityResponseBuilder setupIdentityAndEligibilityResponseBuilder(
-            EligibilityResponse eligibilityResponse) {
-        return IdentityAndEligibilityResponse.builder()
-                .householdIdentifier(eligibilityResponse.getDwpHouseholdIdentifier())
+    private static CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder setupBuilder() {
+        return CombinedIdentityAndEligibilityResponse.builder()
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .dwpHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_SET)
+                .hmrcHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_SET)
                 .dobOfChildrenUnder4(emptyList());
     }
 

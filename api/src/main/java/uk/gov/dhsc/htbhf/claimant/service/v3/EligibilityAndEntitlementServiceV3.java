@@ -11,7 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -40,19 +40,18 @@ public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitle
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
-        IdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 LocalDate.now());
         if (liveClaimsWithNino.isPresent()) {
             return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                    entitlement, liveClaimsWithNino.get(), null, false);
+                    entitlement, liveClaimsWithNino.get(), false);
         }
-        String householdIdentifier = identityAndEligibilityResponse.getHouseholdIdentifier();
-        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForDwpHousehold(householdIdentifier);
+        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                entitlement, null, null, duplicateHouseholdIdentifierFound);
+                entitlement, null, duplicateHouseholdIdentifierFound);
     }
 
     /**
@@ -70,14 +69,14 @@ public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitle
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
-        IdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                entitlement, null, null, false);
+                entitlement, null, false);
     }
 
 }

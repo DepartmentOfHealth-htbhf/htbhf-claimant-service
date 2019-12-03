@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.util.UUID;
@@ -20,20 +21,17 @@ public class EligibilityAndEntitlementDecisionFactory {
     /**
      * Builds a decision based on the given data. This will also store the existing claim id on the decision
      * which is indicative of an ineligible claim as there is already a matching live claim in the database.
-     * The HMRC household identifier should be given if returned from the eligibility service.
      * We only return and store a voucher entitlement if the Claimant is ELIGIBLE which is determined from the {@link IdentityAndEligibilityResponse}
      *
      * @param identityAndEligibilityResponse    The response from DWP.
      * @param entitlement                       The already calculated entitlement.
      * @param existingClaimId                   The matching live claim id from the db.
-     * @param hmrcHouseholdIdentifier           The HMRC household identifier to set
      * @param duplicateHouseholdIdentifierFound Has a duplicate household identifier been found or not
      * @return The built decision.
      */
-    public EligibilityAndEntitlementDecision buildDecision(IdentityAndEligibilityResponse identityAndEligibilityResponse,
+    public EligibilityAndEntitlementDecision buildDecision(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                            PaymentCycleVoucherEntitlement entitlement,
                                                            UUID existingClaimId,
-                                                           String hmrcHouseholdIdentifier,
                                                            boolean duplicateHouseholdIdentifierFound) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(identityAndEligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);
         PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
@@ -42,9 +40,9 @@ public class EligibilityAndEntitlementDecisionFactory {
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .voucherEntitlement(voucherEntitlement)
                 .dateOfBirthOfChildren(identityAndEligibilityResponse.getDobOfChildrenUnder4())
-                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getHouseholdIdentifier())
+                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())
                 .existingClaimId(existingClaimId)
-                .hmrcHouseholdIdentifier(hmrcHouseholdIdentifier).build();
+                .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();
     }
 
     private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
@@ -52,7 +50,7 @@ public class EligibilityAndEntitlementDecisionFactory {
         return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;
     }
 
-    private EligibilityStatus determineEligibilityStatus(IdentityAndEligibilityResponse response,
+    private EligibilityStatus determineEligibilityStatus(CombinedIdentityAndEligibilityResponse response,
                                                          PaymentCycleVoucherEntitlement voucherEntitlement,
                                                          boolean duplicateHouseholdIdentifierFound) {
         if (response.isEligible() && voucherEntitlement.getTotalVoucherEntitlement() == 0) {

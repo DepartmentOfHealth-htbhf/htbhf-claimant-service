@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
@@ -48,7 +48,7 @@ public class PaymentCycle extends VersionedEntity {
 
     @Column(name = "identity_and_eligibility_response")
     @Type(type = "json")
-    private IdentityAndEligibilityResponse identityAndEligibilityResponse;
+    private CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
 
     @Column(name = "voucher_entitlement_json")
     @Type(type = "json")

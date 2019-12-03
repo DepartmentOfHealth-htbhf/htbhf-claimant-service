@@ -21,6 +21,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -34,7 +35,6 @@ import javax.transaction.Transactional;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.IdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 /**
  * Populates the claimant and DWP database with the data in a {@link ClaimantInfo} object.
@@ -140,10 +140,10 @@ public class ClaimantLoader {
 
     private PaymentCycle createPaymentCycleEndingYesterday(Claim claim, List<ChildInfo> childrenAgeInfo) {
         LocalDate cycleStartDate = LocalDate.now().minusDays(28);
-        List<LocalDate> childrenDatesOfBirth = createListOfChildrenDatesOfBirth(childrenAgeInfo);
+        List<LocalDate> childrenDobs = createListOfChildrenDatesOfBirth(childrenAgeInfo);
         PaymentCycleVoucherEntitlement voucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 cycleStartDate,
-                childrenDatesOfBirth,
+                childrenDobs,
                 claim.getClaimant().getExpectedDeliveryDate());
         PaymentCycle paymentCycle = PaymentCycle.builder()
                 .cycleStartDate(cycleStartDate)
@@ -153,8 +153,8 @@ public class ClaimantLoader {
                 .voucherEntitlement(voucherEntitlement)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .identityAndEligibilityResponse(
-                        anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDatesOfBirth))
-                .childrenDob(childrenDatesOfBirth)
+                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .childrenDob(childrenDobs)
                 .build();
         return paymentCycleRepository.save(paymentCycle);
     }

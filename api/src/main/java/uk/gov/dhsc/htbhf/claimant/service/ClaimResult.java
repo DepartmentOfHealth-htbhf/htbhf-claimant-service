@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +22,7 @@ public class ClaimResult {
     private List<String> updatedFields;
     private VerificationResult verificationResult;
 
-    public static ClaimResult withNoEntitlement(Claim claim, IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    public static ClaimResult withNoEntitlement(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.empty())
@@ -31,7 +31,7 @@ public class ClaimResult {
     }
 
     public static ClaimResult withEntitlement(Claim claim, VoucherEntitlement voucherEntitlement,
-                                              IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+                                              CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.of(voucherEntitlement))
@@ -40,7 +40,7 @@ public class ClaimResult {
     }
 
     public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List<UpdatableClaimantField> updatedFields,
-                                                              IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+                                                              CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         List<String> updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);
         return ClaimResult.builder()
                 .claim(claim)
@@ -51,7 +51,7 @@ public class ClaimResult {
                 .build();
     }
 
-    private static VerificationResult buildVerificationResult(IdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private static VerificationResult buildVerificationResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return VerificationResult.builder()
                 .addressLine1Match(identityAndEligibilityResponse.getAddressLine1Match())
                 .deathVerificationFlag(identityAndEligibilityResponse.getDeathVerificationFlag())

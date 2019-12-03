@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.service.v2.CombinedIdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 
 @Primary
 @Service
@@ -95,7 +95,6 @@ public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitle
         return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
                 entitlement,
                 null,
-                eligibilityResponse.getHmrcHouseholdIdentifier(),
                 duplicateHouseholdIdentifierFound);
     }
 
@@ -105,7 +104,6 @@ public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitle
         return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),
                 entitlement,
                 existingClaimId,
-                eligibilityResponse.getHmrcHouseholdIdentifier(),
                 false);
     }
 
