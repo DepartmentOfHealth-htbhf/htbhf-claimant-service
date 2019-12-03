@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.v2.IdentityAndEligibilityResponseFactory.fromEligibilityResponse;
+import static uk.gov.dhsc.htbhf.claimant.service.v2.CombinedIdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 
 @Primary
 @Service
@@ -95,17 +95,15 @@ public class EligibilityAndEntitlementServiceV2 implements EligibilityAndEntitle
 <span class="fc" id="L95">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
                 entitlement,
                 null,
-<span class="fc" id="L98">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
                 duplicateHouseholdIdentifierFound);
     }
 
     private EligibilityAndEntitlementDecision buildDecisionForClaimantAlreadyOnScheme(UUID existingClaimId,
                                                                                       EligibilityResponse eligibilityResponse,
                                                                                       PaymentCycleVoucherEntitlement entitlement) {
-<span class="fc" id="L105">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
+<span class="fc" id="L104">        return decisionFactory.buildDecision(fromEligibilityResponse(eligibilityResponse),</span>
                 entitlement,
                 existingClaimId,
-<span class="fc" id="L108">                eligibilityResponse.getHmrcHouseholdIdentifier(),</span>
                 false);
     }
 
