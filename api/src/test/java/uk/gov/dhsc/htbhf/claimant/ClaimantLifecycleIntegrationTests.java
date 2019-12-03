@@ -254,7 +254,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // eligible decision moves claim back to active
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
-        ageByOneCycle();
+        ageByOneWeek();
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.ACTIVE);
@@ -328,6 +328,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     private void ageByOneCycle() {
         repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+        invokeAllSchedulers();
+    }
+
+    private void ageByOneWeek() {
+        repositoryMediator.ageDatabaseEntities(7);
         invokeAllSchedulers();
     }
 

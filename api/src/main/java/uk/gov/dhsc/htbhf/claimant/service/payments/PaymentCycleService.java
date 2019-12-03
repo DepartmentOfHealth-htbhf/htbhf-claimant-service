@@ -21,12 +21,15 @@ public class PaymentCycleService {
     private final PaymentCycleRepository paymentCycleRepository;
     private final Integer cycleDurationInDays;
     private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
+    private final Integer pendingExpiryCycleDurationInDays;
 
     public PaymentCycleService(PaymentCycleRepository paymentCycleRepository,
                                @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays,
+                               @Value("${payment-cycle.pending-expiry-cycle-duration-in-days}") Integer pendingExpiryCycleDurationInDays,
                                PregnancyEntitlementCalculator pregnancyEntitlementCalculator) {
         this.paymentCycleRepository = paymentCycleRepository;
         this.cycleDurationInDays = cycleDurationInDays;
+        this.pendingExpiryCycleDurationInDays = pendingExpiryCycleDurationInDays;
         this.pregnancyEntitlementCalculator = pregnancyEntitlementCalculator;
     }
 
@@ -134,6 +137,15 @@ public class PaymentCycleService {
      */
     public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
+        paymentCycleRepository.save(paymentCycle);
+    }
+
+    /**
+     * Sets the paymentCycle's end date to the start date plus the pending expiry cycle duration time.
+     * @param paymentCycle payment cycle to update.
+     */
+    public void updateEndDateForClaimBecomingPendingExpiry(PaymentCycle paymentCycle) {
+        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(pendingExpiryCycleDurationInDays - 1));
         paymentCycleRepository.save(paymentCycle);
     }
 }

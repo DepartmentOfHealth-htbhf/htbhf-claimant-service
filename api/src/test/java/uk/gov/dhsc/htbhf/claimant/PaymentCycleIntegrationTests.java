@@ -290,7 +290,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -349,7 +349,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertWeeklyPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
 
@@ -378,7 +378,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -411,7 +411,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
 
@@ -445,7 +445,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, SCHEDULED_FOR_CANCELLATION);
 
@@ -479,7 +479,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        assertPaymentCycleWithNoPayment(claim);
+        assertWeeklyPaymentCycleWithNoPayment(claim);
 
         assertClaimStatus(claim, PENDING_EXPIRY);
 
@@ -572,10 +572,18 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedVoucherEntitlement.getTotalVoucherValueInPence());
     }
 
-    private void assertPaymentCycleWithNoPayment(Claim claim) {
+    private void assertFullLengthPaymentCycleWithNoPayment(Claim claim) {
+        assertPaymentCycleWithNoPayment(claim, LocalDate.now().plusDays(27));
+    }
+
+    private void assertWeeklyPaymentCycleWithNoPayment(Claim claim) {
+        assertPaymentCycleWithNoPayment(claim, LocalDate.now().plusDays(6));
+    }
+
+    private void assertPaymentCycleWithNoPayment(Claim claim, LocalDate expectedEndDate) {
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
-        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(LocalDate.now().plusDays(27));
+        assertThat(paymentCycle.getCycleEndDate()).isEqualTo(expectedEndDate);
         assertThat(paymentCycle.getChildrenDob()).isEmpty();
         assertThat(paymentCycle.getVoucherEntitlement()).isNull();
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.INELIGIBLE);
@@ -583,7 +591,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isNull();
         assertThat(paymentCycle.getPayments()).isEmpty();
     }
-
 
     private Claim createActiveClaimWithPaymentCycleEndingYesterday(List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
         return createClaimWithPaymentCycleEndingYesterday(ACTIVE, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
