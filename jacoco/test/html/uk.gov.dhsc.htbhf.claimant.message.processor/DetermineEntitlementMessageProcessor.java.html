@@ -7,7 +7,9 @@ import uk.gov.dhsc.htbhf.claimant.eligibility.EligibilityDecisionHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.*;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -24,7 +26,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
-<span class="fc" id="L27">@Slf4j</span>
+<span class="fc" id="L29">@Slf4j</span>
 @Component
 public class DetermineEntitlementMessageProcessor implements MessageTypeProcessor {
 
@@ -39,17 +41,17 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
             EligibilityAndEntitlementService eligibilityAndEntitlementService,
             MessageContextLoader messageContextLoader,
             PaymentCycleService paymentCycleService,
-<span class="fc" id="L42">            EligibilityDecisionHandler eligibilityDecisionHandler) {</span>
-<span class="fc" id="L43">        this.maximumPendingExpiryDuration = maximumPendingExpiryDuration;</span>
-<span class="fc" id="L44">        this.eligibilityAndEntitlementService = eligibilityAndEntitlementService;</span>
-<span class="fc" id="L45">        this.messageContextLoader = messageContextLoader;</span>
-<span class="fc" id="L46">        this.paymentCycleService = paymentCycleService;</span>
-<span class="fc" id="L47">        this.eligibilityDecisionHandler = eligibilityDecisionHandler;</span>
-<span class="fc" id="L48">    }</span>
+<span class="fc" id="L44">            EligibilityDecisionHandler eligibilityDecisionHandler) {</span>
+<span class="fc" id="L45">        this.maximumPendingExpiryDuration = maximumPendingExpiryDuration;</span>
+<span class="fc" id="L46">        this.eligibilityAndEntitlementService = eligibilityAndEntitlementService;</span>
+<span class="fc" id="L47">        this.messageContextLoader = messageContextLoader;</span>
+<span class="fc" id="L48">        this.paymentCycleService = paymentCycleService;</span>
+<span class="fc" id="L49">        this.eligibilityDecisionHandler = eligibilityDecisionHandler;</span>
+<span class="fc" id="L50">    }</span>
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L52">        return DETERMINE_ENTITLEMENT;</span>
+<span class="fc" id="L54">        return DETERMINE_ENTITLEMENT;</span>
     }
 
     /**
@@ -62,19 +64,22 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L65">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
-<span class="fc" id="L66">        Claim claim = messageContext.getClaim();</span>
-<span class="fc" id="L67">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
-<span class="fc" id="L68">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
+<span class="fc" id="L67">        DetermineEntitlementMessageContext messageContext = messageContextLoader.loadDetermineEntitlementContext(message);</span>
+<span class="fc" id="L68">        Claim claim = messageContext.getClaim();</span>
+<span class="fc" id="L69">        PaymentCycle currentPaymentCycle = messageContext.getCurrentPaymentCycle();</span>
+<span class="fc" id="L70">        PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();</span>
 
-<span class="fc" id="L70">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(</span>
-<span class="fc" id="L71">                claim.getClaimant(),</span>
-<span class="fc" id="L72">                currentPaymentCycle.getCycleStartDate(),</span>
+<span class="fc" id="L72">        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(</span>
+<span class="fc" id="L73">                claim.getClaimant(),</span>
+<span class="fc" id="L74">                currentPaymentCycle.getCycleStartDate(),</span>
                 previousPaymentCycle);
 
-<span class="fc" id="L75">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
-<span class="fc" id="L76">        handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision, message.getCreatedTimestamp());</span>
-<span class="fc" id="L77">        return COMPLETED;</span>
+<span class="fc" id="L77">        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);</span>
+<span class="fc" id="L78">        handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision, message.getCreatedTimestamp());</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">        if (claim.getClaimStatus() == PENDING_EXPIRY) {</span>
+<span class="fc" id="L80">            paymentCycleService.updateEndDateForClaimBecomingPendingExpiry(currentPaymentCycle);</span>
+        }
+<span class="fc" id="L82">        return COMPLETED;</span>
     }
 
     private void handleDecision(Claim claim,
@@ -82,19 +87,19 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                                 PaymentCycle currentPaymentCycle,
                                 EligibilityAndEntitlementDecision decision,
                                 LocalDateTime messageTimestamp) {
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
-<span class="fc" id="L86">            eligibilityDecisionHandler.handleEligibleDecision(claim, currentPaymentCycle);</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">        } else if (claim.getClaimStatus() == ACTIVE) {</span>
-<span class="fc" id="L88">            eligibilityDecisionHandler.handleIneligibleDecisionForActiveClaim(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
-<span class="fc bfc" id="L89" title="All 2 branches covered.">        } else if (claimHasBeenPendingExpiryForLongerThanTheMaximumDuration(claim, messageTimestamp)) {</span>
-<span class="fc" id="L90">            eligibilityDecisionHandler.expirePendingExpiryClaim(claim, decision.getDateOfBirthOfChildren());</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (decision.getEligibilityStatus() == ELIGIBLE) {</span>
+<span class="fc" id="L91">            eligibilityDecisionHandler.handleEligibleDecision(claim, currentPaymentCycle);</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        } else if (claim.getClaimStatus() == ACTIVE) {</span>
+<span class="fc" id="L93">            eligibilityDecisionHandler.handleIneligibleDecisionForActiveClaim(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        } else if (claimHasBeenPendingExpiryForLongerThanTheMaximumDuration(claim, messageTimestamp)) {</span>
+<span class="fc" id="L95">            eligibilityDecisionHandler.expirePendingExpiryClaim(claim, decision.getDateOfBirthOfChildren());</span>
         }
-<span class="fc" id="L92">    }</span>
+<span class="fc" id="L97">    }</span>
 
     private boolean claimHasBeenPendingExpiryForLongerThanTheMaximumDuration(Claim claim, LocalDateTime messageTimestamp) {
         // !isAfter has the same effect as (isBefore || isEqual). Unfortunately isBeforeOrEqual does not exist on LocalDateTime.
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        return claim.getClaimStatus() == PENDING_EXPIRY</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">                &amp;&amp; !claim.getClaimStatusTimestamp().isAfter(messageTimestamp.minus(maximumPendingExpiryDuration));</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        return claim.getClaimStatus() == PENDING_EXPIRY</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">                &amp;&amp; !claim.getClaimStatusTimestamp().isAfter(messageTimestamp.minus(maximumPendingExpiryDuration));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
