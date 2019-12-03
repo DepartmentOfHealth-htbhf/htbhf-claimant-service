@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 @Service
 @AllArgsConstructor
@@ -18,23 +19,45 @@ public class DuplicateClaimChecker {
      * @return true if there is already a claim for either of the household identifiers.
      */
     public boolean liveClaimExistsForHousehold(EligibilityResponse eligibilityResponse) {
-<span class="fc" id="L21">        boolean dwpClaimExists = liveClaimExistsForDwpHousehold(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L22">        boolean dwpClaimExists = liveClaimExistsForDwpHousehold(eligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L23">        boolean hmrcClaimExists = liveClaimExistsForHmrcHousehold(eligibilityResponse.getHmrcHouseholdIdentifier());</span>
 
-<span class="fc" id="L23">        String hmrcHouseholdIdentifier = eligibilityResponse.getHmrcHouseholdIdentifier();</span>
-<span class="pc bpc" id="L24" title="1 of 4 branches missed.">        boolean hmrcClaimExists = hmrcHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
+<span class="fc bfc" id="L25" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
+    }
 
-<span class="fc bfc" id="L26" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
+    /**
+     * Determines whether a live (new, active, pending or pending expiry) claim exists for the household identifier returned by the DWP or HMRC.
+     *
+     * @param identityAndEligibilityResponse Identity and Eligibility response containing household identifiers.
+     * @return true if there is already a claim for either of the household identifiers.
+     */
+    public boolean liveClaimExistsForHousehold(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L35">        boolean dwpClaimExists = liveClaimExistsForDwpHousehold(identityAndEligibilityResponse.getDwpHouseholdIdentifier());</span>
+<span class="fc" id="L36">        boolean hmrcClaimExists = liveClaimExistsForHmrcHousehold(identityAndEligibilityResponse.getHmrcHouseholdIdentifier());</span>
+
+<span class="fc bfc" id="L38" title="All 4 branches covered.">        return dwpClaimExists || hmrcClaimExists;</span>
     }
 
     /**
      * Determines whether a live (new, active, pending or pending expiry) claim exists for the given
      * DWP household identifier.
      *
-     * @param dwpHouseholdIdentifier The DWP household identifiers.
+     * @param dwpHouseholdIdentifier The DWP household identifier.
      * @return true if there is already a claim for the DWP household identifier.
      */
     public boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L37" title="All 4 branches covered.">        return dwpHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+<span class="fc bfc" id="L49" title="All 4 branches covered.">        return dwpHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForDwpHousehold(dwpHouseholdIdentifier);</span>
+    }
+
+    /**
+     * Determines whether a live (new, active, pending or pending expiry) claim exists for the given
+     * HMRC household identifier.
+     *
+     * @param hmrcHouseholdIdentifier The HMRC household identifier.
+     * @return true if there is already a claim for the HMRC household identifier.
+     */
+    public boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
+<span class="fc bfc" id="L60" title="All 4 branches covered.">        return hmrcHouseholdIdentifier != null &amp;&amp; claimRepository.liveClaimExistsForHmrcHousehold(hmrcHouseholdIdentifier);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
