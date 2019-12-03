@@ -9,8 +9,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
-import uk.gov.dhsc.htbhf.dwp.model.v2.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.dwp.model.v2.PersonDTOV2;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 /**
  * Client for calling V2 of the Eligibility Service using the RestTemplate defined in
@@ -30,14 +30,14 @@ public class EligibilityClientV3 {
         this.restTemplate = restTemplate;
     }
 
-    public IdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
+    public CombinedIdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
         log.debug("Checking V2 eligibility");
         PersonDTOV2 person = buildPersonDTOV2(claimant);
         try {
-            ResponseEntity<IdentityAndEligibilityResponse> response = restTemplate.postForEntity(
+            ResponseEntity<CombinedIdentityAndEligibilityResponse> response = restTemplate.postForEntity(
                     eligibilityUri,
                     person,
-                    IdentityAndEligibilityResponse.class
+                    CombinedIdentityAndEligibilityResponse.class
             );
 
             if (HttpStatus.OK != response.getStatusCode()) {
