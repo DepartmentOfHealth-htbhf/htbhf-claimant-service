@@ -92,7 +92,7 @@ class EligibilityAndEntitlementServiceV2Test {
     void shouldReturnEligibleWhenNotDuplicateAndEligible() {
         //Given
         setupCommonMocksWithoutClaimId();
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(EligibilityResponse.class))).willReturn(false);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
@@ -110,7 +110,7 @@ class EligibilityAndEntitlementServiceV2Test {
         //Given
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithHmrcHouseholdIdentifier(null);
         setupCommonMocks(eligibilityResponse);
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(EligibilityResponse.class))).willReturn(false);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
@@ -128,7 +128,7 @@ class EligibilityAndEntitlementServiceV2Test {
         //Given
         EligibilityResponse eligibilityResponse = anEligibilityResponseWithDwpHouseholdIdentifier(null);
         setupCommonMocks(eligibilityResponse);
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(any())).willReturn(false);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(EligibilityResponse.class))).willReturn(false);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
