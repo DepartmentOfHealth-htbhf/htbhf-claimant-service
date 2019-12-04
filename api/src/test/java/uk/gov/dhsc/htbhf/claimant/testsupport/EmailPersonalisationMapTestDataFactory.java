@@ -2,8 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSON_SURNAME;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
+import static uk.gov.dhsc.htbhf.TestConstants.SIMPSON_SURNAME;
 
 public class EmailPersonalisationMapTestDataFactory {
 

@@ -7,9 +7,9 @@ import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Arrays;
 
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
 public final class ClaimantTestDataFactory {
 

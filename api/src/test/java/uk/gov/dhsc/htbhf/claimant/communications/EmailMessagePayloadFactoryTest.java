@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -125,8 +125,8 @@ class EmailMessagePayloadFactoryTest {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
                 .childrenDob(claim.getClaimant().getChildrenDob())
-                .identityAndEligibilityResponse(CombinedIdentityAndEligibilityResponseTestDataFactory
-                        .anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(claim.getClaimant().getChildrenDob()))
+                .identityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
+                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(claim.getClaimant().getChildrenDob()))
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), claim.getClaimant().getChildrenDob()))
                 .build();
 

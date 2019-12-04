@@ -6,7 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,7 +38,7 @@ public class PaymentCycleTestDataFactory {
                 .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -54,7 +54,7 @@ public class PaymentCycleTestDataFactory {
                 .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -85,7 +85,7 @@ public class PaymentCycleTestDataFactory {
                 .totalVouchers(4)
                 .childrenDob(childrenDobs)
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -96,7 +96,7 @@ public class PaymentCycleTestDataFactory {
                 .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
         paymentCycle.addPayment(payment);
         return paymentCycle;
@@ -109,7 +109,7 @@ public class PaymentCycleTestDataFactory {
                 .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -121,7 +121,7 @@ public class PaymentCycleTestDataFactory {
         return aValidPaymentCycleBuilder()
                 .childrenDob(childrenDobs)
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -130,7 +130,7 @@ public class PaymentCycleTestDataFactory {
                 .claim(claim)
                 .childrenDob(childrenDobs)
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -160,7 +160,7 @@ public class PaymentCycleTestDataFactory {
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE)
                 .expectedDeliveryDate(claim.getClaimant().getExpectedDeliveryDate())
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs));
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs));
     }
 
     private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
