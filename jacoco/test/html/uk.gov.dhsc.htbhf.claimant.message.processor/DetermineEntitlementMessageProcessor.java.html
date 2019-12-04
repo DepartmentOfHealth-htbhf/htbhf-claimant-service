@@ -92,7 +92,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
 <span class="fc bfc" id="L92" title="All 2 branches covered.">        } else if (claim.getClaimStatus() == ACTIVE) {</span>
 <span class="fc" id="L93">            eligibilityDecisionHandler.handleIneligibleDecisionForActiveClaim(claim, previousPaymentCycle, currentPaymentCycle, decision);</span>
 <span class="fc bfc" id="L94" title="All 2 branches covered.">        } else if (claimHasBeenPendingExpiryForLongerThanTheMaximumDuration(claim, messageTimestamp)) {</span>
-<span class="fc" id="L95">            eligibilityDecisionHandler.expirePendingExpiryClaim(claim, decision.getDateOfBirthOfChildren());</span>
+<span class="fc" id="L95">            eligibilityDecisionHandler.expirePendingExpiryClaim(claim);</span>
         }
 <span class="fc" id="L97">    }</span>
 
