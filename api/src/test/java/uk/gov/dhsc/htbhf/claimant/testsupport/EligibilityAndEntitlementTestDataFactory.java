@@ -4,7 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,8 +37,8 @@ public class EligibilityAndEntitlementTestDataFactory {
                 .eligibilityStatus(eligibilityStatus)
                 .existingClaimId(existingClaimId);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = (ELIGIBLE == eligibilityStatus)
-                ? CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches()
-                : CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse();
+                ? CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches()
+                : CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse();
         removeVoucherEntitlementIfAppropriate(eligibilityStatus, builder);
         builder.identityAndEligibilityResponse(identityAndEligibilityResponse);
         return builder.build();
@@ -50,8 +50,8 @@ public class EligibilityAndEntitlementTestDataFactory {
         EligibilityAndEntitlementDecision.EligibilityAndEntitlementDecisionBuilder builder = aValidDecisionBuilder().eligibilityStatus(eligibilityStatus);
         removeVoucherEntitlementIfAppropriate(eligibilityStatus, builder);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = (EligibilityOutcome.CONFIRMED == eligibilityOutcome)
-                ? CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs)
-                : CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse();
+                ? CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs)
+                : CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse();
         return builder
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .dateOfBirthOfChildren(childrenDobs)
@@ -70,7 +70,7 @@ public class EligibilityAndEntitlementTestDataFactory {
         return EligibilityAndEntitlementDecision.builder()
                 .eligibilityStatus(ELIGIBLE)
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(children))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(children))
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())

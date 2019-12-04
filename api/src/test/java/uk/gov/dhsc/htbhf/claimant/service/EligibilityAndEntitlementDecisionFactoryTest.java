@@ -5,7 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.util.UUID;
 
@@ -15,14 +15,15 @@ import static uk.gov.dhsc.htbhf.TestConstants.NO_HOUSEHOLD_IDENTIFIER_PROVIDED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse;
 
 class EligibilityAndEntitlementDecisionFactoryTest {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
     private EligibilityAndEntitlementDecisionFactory factory = new EligibilityAndEntitlementDecisionFactory();
-    private static final CombinedIdentityAndEligibilityResponse ELIGIBILITY_RESPONSE = CombinedIdentityAndEligibilityResponseTestDataFactory
-            .anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
+    private static final CombinedIdentityAndEligibilityResponse ELIGIBILITY_RESPONSE = CombinedIdAndEligibilityResponseTestDataFactory
+            .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
     private static final UUID EXISTING_CLAIM_UUID = UUID.randomUUID();
     private static final UUID NO_EXISTING_CLAIM_UUID = null;
 
@@ -82,8 +83,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
     @Test
     void shouldBuildDecisionForIneligibleResponse() {
         //Given
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdentityAndEligibilityResponseTestDataFactory
-                .anIdentityMatchedEligibilityNotConfirmedResponse();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityNotConfirmedResponse();
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
 
         //When

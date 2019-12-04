@@ -6,7 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,11 +14,11 @@ import java.util.List;
 
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSONS_POSTCODE;
 
 public class ClaimTestDataFactory {
 
@@ -119,8 +119,8 @@ public class ClaimTestDataFactory {
                 .claimStatus(claimStatus)
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .cardStatus(CardStatus.ACTIVE)
-                .initialIdentityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                .initialIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
+                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .cardStatusTimestamp(LocalDateTime.now());
     }
 

@@ -1,16 +1,15 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.TestConstants;
 import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static java.time.LocalDate.now;
 import static java.util.Collections.singletonList;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 
 public class ClaimantDTOV3TestDataFactory {
 
@@ -20,8 +19,7 @@ public class ClaimantDTOV3TestDataFactory {
 
     public static ClaimantDTOV3 aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
-                .expectedDeliveryDate(now().plusMonths(4))
-                .childrenDob(singletonList(TestConstants.MAGGIE_DATE_OF_BIRTH))
+                .childrenDob(singletonList(MAGGIE_DATE_OF_BIRTH))
                 .build();
     }
 
@@ -86,7 +84,7 @@ public class ClaimantDTOV3TestDataFactory {
                 .nino(HOMER_NINO_V1)
                 .dateOfBirth(HOMER_DATE_OF_BIRTH)
                 .address(aValidAddressDTO())
-                .expectedDeliveryDate(now().plusMonths(1))
+                .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
                 .phoneNumber(HOMER_MOBILE)
                 .emailAddress(HOMER_EMAIL);
     }
