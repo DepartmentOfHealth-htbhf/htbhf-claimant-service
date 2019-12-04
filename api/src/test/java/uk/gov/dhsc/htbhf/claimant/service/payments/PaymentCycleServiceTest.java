@@ -122,8 +122,7 @@ class PaymentCycleServiceTest {
                 .existingClaimId(claim.getId())
                 .voucherEntitlement(entitlement)
                 .dateOfBirthOfChildren(datesOfBirth)
-                .identityAndEligibilityResponse(
-                        identityAndEligibilityResponse)
+                .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 

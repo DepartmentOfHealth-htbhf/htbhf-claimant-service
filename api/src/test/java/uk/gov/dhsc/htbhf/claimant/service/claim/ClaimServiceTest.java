@@ -106,6 +106,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
+        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
 
@@ -144,6 +145,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getClaimStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
+        assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
@@ -231,6 +233,8 @@ class ClaimServiceTest {
         assertThat(result.getUpdatedFields()).isEqualTo(singletonList(LAST_NAME.getFieldName()));
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         assertThat(result.getClaim().getClaimant().getLastName()).isEqualTo(newClaimant.getLastName());
+        //Make sure that the initial CombinedIdentityAndEligibilityResponse on the claim has not been changed
+        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).findClaim(existingClaimId);
@@ -259,6 +263,8 @@ class ClaimServiceTest {
         assertThat(result.getClaimUpdated()).isTrue();
         assertThat(result.getUpdatedFields()).isEmpty();
         assertThat(result.getClaim()).isEqualTo(existingClaim);
+        //Make sure that the initial IdentityAndEligibilityResponse on the claim has not been changed
+        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
@@ -433,7 +439,8 @@ class ClaimServiceTest {
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         UUID existingClaimId = UUID.randomUUID();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId));
+        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
         EntityNotFoundException expectedException = new EntityNotFoundException("Not found");
         given(claimRepository.findClaim(any())).willThrow(expectedException);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
@@ -446,7 +453,7 @@ class ClaimServiceTest {
         assertThat(exception).isEqualTo(expectedException);
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(claimArgumentCaptor.capture());
-        assertClaimCorrectForAudit(claimArgumentCaptor, newClaimant);
+        assertClaimPersistedCorrectly(claimArgumentCaptor, newClaimant);
         ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
@@ -475,6 +482,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
+        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -500,7 +508,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(claimArgumentCaptor.capture());
-        assertClaimCorrectForAudit(claimArgumentCaptor, claimant);
+        assertClaimPersistedCorrectly(claimArgumentCaptor, claimant);
         ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
@@ -508,7 +516,7 @@ class ClaimServiceTest {
         verifyNoInteractions(claimMessageSender);
     }
 
-    private void assertClaimCorrectForAudit(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
+    private void assertClaimPersistedCorrectly(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
         Claim actualClaim = claimArgumentCaptor.getValue();
         assertThat(actualClaim.getDwpHouseholdIdentifier()).isNull();
         assertThat(actualClaim.getHmrcHouseholdIdentifier()).isNull();
@@ -520,6 +528,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
+        assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isNull();
     }
 
     private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus, UUID existingClaimId) {
