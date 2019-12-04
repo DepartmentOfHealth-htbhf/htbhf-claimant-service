@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,7 +84,7 @@ class EntitlementCalculatorTest {
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test
@@ -101,7 +101,7 @@ class EntitlementCalculatorTest {
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test
@@ -119,7 +119,7 @@ class EntitlementCalculatorTest {
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     @Test
@@ -137,7 +137,7 @@ class EntitlementCalculatorTest {
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verifyZeroInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 
     private List<LocalDate> createDateOfBirthForChildren(int numberOfChildrenUnderOne, int numberOfChildrenBetweenOneAndFour, LocalDate entitlementDate) {
