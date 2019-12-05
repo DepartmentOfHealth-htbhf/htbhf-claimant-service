@@ -58,7 +58,7 @@ public class ClaimService {
 <span class="fc" id="L58">                List&lt;UpdatableClaimantField&gt; updatedFields = updateClaim(claim, claimRequest.getClaimant());</span>
 <span class="fc" id="L59">                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);</span>
 <span class="fc" id="L60">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
-<span class="fc" id="L61">                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, updatedFields);</span>
+<span class="fc" id="L61">                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);</span>
 <span class="fc" id="L62">                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields, decision.getIdentityAndEligibilityResponse());</span>
             }
 
@@ -67,11 +67,11 @@ public class ClaimService {
 <span class="fc" id="L67">                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);</span>
 <span class="fc" id="L68">                claimMessageSender.sendNewCardMessage(claim, decision);</span>
 <span class="fc" id="L69">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
-<span class="fc" id="L70">                claimMessageSender.sendReportClaimMessage(claim, ClaimAction.NEW);</span>
+<span class="fc" id="L70">                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);</span>
 <span class="fc" id="L71">                return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());</span>
             }
 
-<span class="fc" id="L74">            claimMessageSender.sendReportClaimMessage(claim, ClaimAction.REJECTED);</span>
+<span class="fc" id="L74">            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);</span>
 <span class="fc" id="L75">            return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());</span>
 <span class="fc" id="L76">        } catch (RuntimeException e) {</span>
 <span class="fc" id="L77">            handleFailedClaim(claimRequest, e);</span>

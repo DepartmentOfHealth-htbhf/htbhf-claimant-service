@@ -39,7 +39,7 @@ public class ClaimActivationService {
                                                          EligibilityAndEntitlementDecision decision) {
 <span class="fc" id="L40">        LocalDate firstCycleStartDate = claim.getClaimStatusTimestamp().toLocalDate();</span>
 <span class="fc" id="L41">        updateClaim(claim, cardAccountId);</span>
-<span class="fc" id="L42">        reportUpdatedClaim(claim, cardAccountId);</span>
+<span class="fc" id="L42">        reportUpdatedClaim(claim, cardAccountId, decision);</span>
 <span class="fc" id="L43">        return paymentCycleService.createAndSavePaymentCycleForEligibleClaim(claim, firstCycleStartDate, decision);</span>
     }
 
@@ -49,9 +49,9 @@ public class ClaimActivationService {
 <span class="fc" id="L49">        claimRepository.save(claim);</span>
 <span class="fc" id="L50">    }</span>
 
-    private void reportUpdatedClaim(Claim claim, String cardAccountId) {
+    private void reportUpdatedClaim(Claim claim, String cardAccountId, EligibilityAndEntitlementDecision decision) {
 <span class="fc" id="L53">        eventAuditor.auditNewCard(claim.getId(), cardAccountId);</span>
-<span class="fc" id="L54">        claimMessageSender.sendReportClaimMessage(claim, UPDATED_FROM_NEW_TO_ACTIVE);</span>
+<span class="fc" id="L54">        claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_NEW_TO_ACTIVE);</span>
 <span class="fc" id="L55">    }</span>
 
 }

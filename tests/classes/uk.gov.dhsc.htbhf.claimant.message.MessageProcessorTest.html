@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.027s</div>
+<div class="counter">0.050s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,22 +79,22 @@
 </thead>
 <tr>
 <td class="success">shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown()</td>
-<td class="success">0.017s</td>
+<td class="success">0.035s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldCallDummyProcessors()</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldContinueToProcessMessagesAfterAnExceptionThrown()</td>
-<td class="success">0.003s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldLogMessageProcessResults()</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -104,7 +104,7 @@
 </tr>
 <tr>
 <td class="success">shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor()</td>
-<td class="success">0.004s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -112,8 +112,8 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>13:25:27.344 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
-13:25:27.345 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 3e057750-6a5e-4b68-81d9-8468eace5f13, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:186))
+<pre>15:28:35.105 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
+15:28:35.112 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 041661c4-de97-461a-8d68-028d5f64d718, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.&lt;clinit&gt;(TestConstants.java:27))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Something went badly wrong
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -205,25 +205,84 @@ uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Something went badly 
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
 Caused by: java.lang.RuntimeException: test exception
-	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:186)
-	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makePayment(PaymentService.java:149)
-	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.makeInterimPayment(PaymentService.java:101)
-	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentServiceTest.lambda$shouldAuditFailedPaymentWhenInterimPaymentFails$1(PaymentServiceTest.java:173)
-	at org.assertj.core.api.ThrowableAssert.catchThrowable(ThrowableAssert.java:62)
-	at org.assertj.core.api.ThrowableAssert.catchThrowableOfType(ThrowableAssert.java:72)
-	at org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType(AssertionsForClassTypes.java:828)
-	at org.assertj.core.api.Assertions.catchThrowableOfType(Assertions.java:1244)
-	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentServiceTest.shouldAuditFailedPaymentWhenInterimPaymentFails(PaymentServiceTest.java:173)
-	... 76 common frames omitted
-13:25:27.346 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
-13:25:27.347 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
-13:25:27.347 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
-13:25:27.349 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 REQUEST_NEW_CARD message(s)
-13:25:27.349 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 REQUEST_NEW_CARD message(s) with status COMPLETED
-13:25:27.350 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 SEND_EMAIL message(s)
-13:25:27.350 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$294229238
-13:25:27.351 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 REQUEST_NEW_CARD message(s)
-13:25:27.351 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id 093a2afe-27c2-4a8a-ab3c-a4cefab054a8, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
+	at uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.&lt;clinit&gt;(TestConstants.java:27)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder(ClaimantTestDataFactory.java:83)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant(ClaimantTestDataFactory.java:20)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilderWithStatus(ClaimTestDataFactory.java:113)
+	at uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus(ClaimTestDataFactory.java:58)
+	at uk.gov.dhsc.htbhf.claimant.repository.ClaimRepositoryTest.shouldReturnLiveClaimDoesNotExistWhenHmrcHouseholdIdentifierExists(ClaimRepositoryTest.java:210)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:675)
+	at org.junit.jupiter.engine.execution.ExecutableInvoker.invoke(ExecutableInvoker.java:115)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$6(TestMethodTestDescriptor.java:171)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:167)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:114)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:59)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$5(NodeTestTask.java:135)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$7(NodeTestTask.java:125)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:135)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:123)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:122)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:80)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:32)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask$DefaultDynamicTestExecutor.execute(NodeTestTask.java:198)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:133)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.lambda$execute$2(TestTemplateTestDescriptor.java:101)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:177)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$11$1.accept(ReferencePipeline.java:442)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:948)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:484)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:474)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:497)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:274)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:195)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1654)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:484)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:474)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:497)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:274)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1654)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:484)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:474)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:497)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:101)
+	at org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor.execute(TestTemplateTestDescriptor.java:38)
+	... 65 common frames omitted
+15:28:35.118 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
+15:28:35.121 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
+15:28:35.121 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
+15:28:35.124 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 REQUEST_NEW_CARD message(s)
+15:28:35.124 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 REQUEST_NEW_CARD message(s) with status COMPLETED
+15:28:35.126 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 SEND_EMAIL message(s)
+15:28:35.126 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$1382127759
+15:28:35.128 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 REQUEST_NEW_CARD message(s)
+15:28:35.128 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id ff8b7833-0cbb-479b-b82f-1bee9553d041, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
 java.lang.RuntimeException: foo
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -314,10 +373,10 @@ java.lang.RuntimeException: foo
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-13:25:27.352 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status FAILED
-13:25:27.352 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
-13:25:27.352 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
-13:25:27.354 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 MAKE_PAYMENT message(s)
+15:28:35.130 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status FAILED
+15:28:35.130 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
+15:28:35.130 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
+15:28:35.133 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 MAKE_PAYMENT message(s)
 </pre>
 </span>
 </div>
@@ -329,7 +388,7 @@ java.lang.RuntimeException: foo
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Dec 5, 2019, 1:27:07 PM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Dec 5, 2019, 3:31:10 PM</p>
 </div>
 </div>
 </body>
