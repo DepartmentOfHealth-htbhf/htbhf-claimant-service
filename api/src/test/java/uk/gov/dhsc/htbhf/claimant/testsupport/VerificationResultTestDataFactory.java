@@ -1,14 +1,14 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
-import uk.gov.dhsc.htbhf.dwp.model.v2.DeathVerificationFlag;
-import uk.gov.dhsc.htbhf.dwp.model.v2.QualifyingBenefits;
-import uk.gov.dhsc.htbhf.dwp.model.v2.VerificationOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.v2.*;
 
 public class VerificationResultTestDataFactory {
 
     public static VerificationResult anAllMatchedVerificationResult() {
         return VerificationResult.builder()
+                .identityOutcome(IdentityOutcome.MATCHED)
+                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
                 .mobilePhoneMatch(VerificationOutcome.MATCHED)
                 .emailAddressMatch(VerificationOutcome.MATCHED)
                 .addressLine1Match(VerificationOutcome.MATCHED)
@@ -21,6 +21,8 @@ public class VerificationResultTestDataFactory {
 
     public static VerificationResult aNothingMatchedVerificationResult() {
         return VerificationResult.builder()
+                .identityOutcome(IdentityOutcome.NOT_MATCHED)
+                .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
                 .mobilePhoneMatch(VerificationOutcome.NOT_SET)
                 .emailAddressMatch(VerificationOutcome.NOT_SET)
                 .addressLine1Match(VerificationOutcome.NOT_SET)

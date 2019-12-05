@@ -53,6 +53,8 @@ public class ClaimResult {
 
     private static VerificationResult buildVerificationResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return VerificationResult.builder()
+                .identityOutcome(identityAndEligibilityResponse.getIdentityStatus())
+                .eligibilityOutcome(identityAndEligibilityResponse.getEligibilityStatus())
                 .addressLine1Match(identityAndEligibilityResponse.getAddressLine1Match())
                 .deathVerificationFlag(identityAndEligibilityResponse.getDeathVerificationFlag())
                 .emailAddressMatch(identityAndEligibilityResponse.getEmailAddressMatch())
