@@ -48,37 +48,36 @@ public class ClaimControllerV3 {
 <span class="fc" id="L48">        return claimController.createOrUpdateClaim(buildClaimDTO(claimDTOV3));</span>
     }
 
-    //TODO MRS 28/11/2019: BeanUtils copyProperties possibly.
     private ClaimDTO buildClaimDTO(ClaimDTOV3 v3Claim) {
-<span class="fc" id="L53">        return ClaimDTO.builder()</span>
-<span class="fc" id="L54">                .deviceFingerprint(v3Claim.getDeviceFingerprint())</span>
-<span class="fc" id="L55">                .webUIVersion(v3Claim.getWebUIVersion())</span>
-<span class="fc" id="L56">                .claimant(buildClaimantDTO(v3Claim.getClaimant()))</span>
-<span class="fc" id="L57">                .build();</span>
+<span class="fc" id="L52">        return ClaimDTO.builder()</span>
+<span class="fc" id="L53">                .deviceFingerprint(v3Claim.getDeviceFingerprint())</span>
+<span class="fc" id="L54">                .webUIVersion(v3Claim.getWebUIVersion())</span>
+<span class="fc" id="L55">                .claimant(buildClaimantDTO(v3Claim.getClaimant()))</span>
+<span class="fc" id="L56">                .build();</span>
     }
 
     private ClaimantDTO buildClaimantDTO(ClaimantDTOV3 v3Claimant) {
-<span class="fc" id="L61">        return ClaimantDTO.builder()</span>
-<span class="fc" id="L62">                .firstName(v3Claimant.getFirstName())</span>
-<span class="fc" id="L63">                .lastName(v3Claimant.getLastName())</span>
-<span class="fc" id="L64">                .nino(v3Claimant.getNino())</span>
-<span class="fc" id="L65">                .dateOfBirth(v3Claimant.getDateOfBirth())</span>
-<span class="fc" id="L66">                .emailAddress(v3Claimant.getEmailAddress())</span>
-<span class="fc" id="L67">                .phoneNumber(v3Claimant.getPhoneNumber())</span>
-<span class="fc" id="L68">                .address(buildAddressDTO(v3Claimant.getAddress()))</span>
-<span class="fc" id="L69">                .expectedDeliveryDate(v3Claimant.getExpectedDeliveryDate())</span>
-<span class="fc" id="L70">                .childrenDob(v3Claimant.getChildrenDob())</span>
-<span class="fc" id="L71">                .build();</span>
+<span class="fc" id="L60">        return ClaimantDTO.builder()</span>
+<span class="fc" id="L61">                .firstName(v3Claimant.getFirstName())</span>
+<span class="fc" id="L62">                .lastName(v3Claimant.getLastName())</span>
+<span class="fc" id="L63">                .nino(v3Claimant.getNino())</span>
+<span class="fc" id="L64">                .dateOfBirth(v3Claimant.getDateOfBirth())</span>
+<span class="fc" id="L65">                .emailAddress(v3Claimant.getEmailAddress())</span>
+<span class="fc" id="L66">                .phoneNumber(v3Claimant.getPhoneNumber())</span>
+<span class="fc" id="L67">                .address(buildAddressDTO(v3Claimant.getAddress()))</span>
+<span class="fc" id="L68">                .expectedDeliveryDate(v3Claimant.getExpectedDeliveryDate())</span>
+<span class="fc" id="L69">                .childrenDob(v3Claimant.getChildrenDob())</span>
+<span class="fc" id="L70">                .build();</span>
     }
 
     private AddressDTO buildAddressDTO(AddressDTOV3 v3Address) {
-<span class="fc" id="L75">        return AddressDTO.builder()</span>
-<span class="fc" id="L76">                .addressLine1(v3Address.getAddressLine1())</span>
-<span class="fc" id="L77">                .addressLine2(v3Address.getAddressLine2())</span>
-<span class="fc" id="L78">                .townOrCity(v3Address.getTownOrCity())</span>
-<span class="fc" id="L79">                .county(v3Address.getCounty())</span>
-<span class="fc" id="L80">                .postcode(v3Address.getPostcode())</span>
-<span class="fc" id="L81">                .build();</span>
+<span class="fc" id="L74">        return AddressDTO.builder()</span>
+<span class="fc" id="L75">                .addressLine1(v3Address.getAddressLine1())</span>
+<span class="fc" id="L76">                .addressLine2(v3Address.getAddressLine2())</span>
+<span class="fc" id="L77">                .townOrCity(v3Address.getTownOrCity())</span>
+<span class="fc" id="L78">                .county(v3Address.getCounty())</span>
+<span class="fc" id="L79">                .postcode(v3Address.getPostcode())</span>
+<span class="fc" id="L80">                .build();</span>
     }
 
 }
