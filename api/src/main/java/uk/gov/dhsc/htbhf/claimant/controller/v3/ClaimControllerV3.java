@@ -48,7 +48,6 @@ public class ClaimControllerV3 {
         return claimController.createOrUpdateClaim(buildClaimDTO(claimDTOV3));
     }
 
-    //TODO MRS 28/11/2019: BeanUtils copyProperties possibly.
     private ClaimDTO buildClaimDTO(ClaimDTOV3 v3Claim) {
         return ClaimDTO.builder()
                 .deviceFingerprint(v3Claim.getDeviceFingerprint())
