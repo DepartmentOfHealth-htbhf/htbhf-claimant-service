@@ -10,14 +10,14 @@ import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -60,15 +60,16 @@ class MessagePayloadFactoryTest {
 
     @Test
     void shouldBuildReportClaimMessagePayload() {
-        Claim claim = aClaimWithChildrenDobs(MAGGIE_AND_LISA_DOBS);
+        Claim claim = aValidClaim();
+        List<LocalDate> datesOfBirthOfChildren = asList(LocalDate.now().minusYears(1), LocalDate.now().minusYears(2));
         ClaimAction claimAction = ClaimAction.NEW;
         LocalDateTime now = LocalDateTime.now();
         List<UpdatableClaimantField> updatedClaimantFields = List.of(FIRST_NAME);
 
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, claimAction, updatedClaimantFields);
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, updatedClaimantFields);
 
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(MAGGIE_AND_LISA_DOBS);
+        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getClaimAction()).isEqualTo(claimAction);
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
         assertThat(payload.getUpdatedClaimantFields()).isEqualTo(updatedClaimantFields);

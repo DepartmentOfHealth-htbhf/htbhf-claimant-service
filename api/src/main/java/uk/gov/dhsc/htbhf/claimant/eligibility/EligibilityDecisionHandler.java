@@ -19,6 +19,9 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -74,11 +77,11 @@ public class EligibilityDecisionHandler {
                                                        EligibilityAndEntitlementDecision decision) {
 
         if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
-            expireClaim(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+            expireClaim(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
         } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {
-            handleLossOfQualifyingBenefitStatus(claim);
+            handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());
         } else {
-            expireClaim(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+            expireClaim(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
             determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
         }
     }
@@ -86,10 +89,11 @@ public class EligibilityDecisionHandler {
     /**
      * Expires a claim which has a status of pending expiry.
      *
-     * @param claim the claim to expire
+     * @param claim                  the claim to expire
+     * @param datesOfBirthOfChildren the dates of birth of the claimant's children
      */
-    public void expirePendingExpiryClaim(Claim claim) {
-        expireClaim(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+    public void expirePendingExpiryClaim(Claim claim, List<LocalDate> datesOfBirthOfChildren) {
+        expireClaim(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
     }
 
     private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
@@ -107,17 +111,18 @@ public class EligibilityDecisionHandler {
                 && !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
     }
 
-    private void handleLossOfQualifyingBenefitStatus(Claim claim) {
+    private void handleLossOfQualifyingBenefitStatus(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
         updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
-        claimMessageSender.sendReportClaimMessage(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 
-    private void expireClaim(Claim claim, ClaimAction claimAction) {
+    private void expireClaim(Claim claim, List<LocalDate> dateOfBirthOfChildren, ClaimAction claimAction) {
         updateClaimAndCardStatus(claim, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         eventAuditor.auditExpiredClaim(claim);
-        claimMessageSender.sendReportClaimMessage(claim, claimAction);
+        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, claimAction);
     }
+
 
     private void updateClaimAndCardStatus(Claim claim, ClaimStatus claimStatus, CardStatus cardStatus) {
         claim.updateClaimStatus(claimStatus);
