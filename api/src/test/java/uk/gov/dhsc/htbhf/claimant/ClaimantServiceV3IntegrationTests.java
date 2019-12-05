@@ -19,7 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.net.URI;
 
@@ -66,8 +66,8 @@ class ClaimantServiceV3IntegrationTests {
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         //Given
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdentityAndEligibilityResponseTestDataFactory
-                .anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
+                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);

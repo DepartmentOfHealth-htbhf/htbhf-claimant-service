@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -42,7 +43,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SINGLE_THREE_YEAR_OLD;
 
 @ExtendWith(MockitoExtension.class)
 class MessageContextLoaderTest {

@@ -21,14 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.TestConstants.TWENTY_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.NOT_PREGNANT_WITH_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.NOT_PREGNANT_WITH_NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory.PREGNANT_WITH_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.TWENTY_YEAR_OLD;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimantCategoryCalculatorTest {

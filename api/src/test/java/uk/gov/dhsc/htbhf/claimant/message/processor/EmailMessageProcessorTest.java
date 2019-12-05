@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifySendEmailEventFailExceptionAndEventAreCorrect;
@@ -36,7 +37,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.getLogEvents;
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.startRecordingLogsFor;
 import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.stopRecordingLogsFor;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_EMAIL;
 
 @ExtendWith(MockitoExtension.class)
 class EmailMessageProcessorTest {

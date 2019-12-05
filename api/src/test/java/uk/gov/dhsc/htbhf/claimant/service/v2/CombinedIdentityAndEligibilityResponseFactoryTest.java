@@ -7,18 +7,18 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.ChildDTO;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.TestConstants.TWO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.service.v2.CombinedIdentityAndEligibilityResponseFactory.fromEligibilityResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.TWO_CHILDREN;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchFailedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityNotConfirmedResponse;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse;
 
 class CombinedIdentityAndEligibilityResponseFactoryTest {
 
@@ -30,7 +30,8 @@ class CombinedIdentityAndEligibilityResponseFactoryTest {
         //When
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
-        CombinedIdentityAndEligibilityResponse expectedResponse = anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(TWO_CHILDREN);
+        CombinedIdentityAndEligibilityResponse expectedResponse = CombinedIdAndEligibilityResponseTestDataFactory
+                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(TWO_CHILDREN);
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 
@@ -41,7 +42,7 @@ class CombinedIdentityAndEligibilityResponseFactoryTest {
         //When
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
-        CombinedIdentityAndEligibilityResponse expectedResponse = anIdentityMatchedEligibilityNotConfirmedResponse();
+        CombinedIdentityAndEligibilityResponse expectedResponse = anIdMatchedEligibilityNotConfirmedResponse();
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 
@@ -53,7 +54,7 @@ class CombinedIdentityAndEligibilityResponseFactoryTest {
         //When
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = fromEligibilityResponse(eligibilityResponse);
         //Then
-        CombinedIdentityAndEligibilityResponse expectedResponse = anIdentityMatchFailedResponse();
+        CombinedIdentityAndEligibilityResponse expectedResponse = anIdMatchFailedResponse();
         assertThat(identityAndEligibilityResponse).isEqualTo(expectedResponse);
     }
 

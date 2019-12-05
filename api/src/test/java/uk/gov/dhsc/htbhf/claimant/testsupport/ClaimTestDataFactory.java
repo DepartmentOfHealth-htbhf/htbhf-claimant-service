@@ -6,7 +6,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,11 +13,13 @@ import java.util.List;
 
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.SIMPSONS_POSTCODE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class ClaimTestDataFactory {
 
@@ -51,7 +52,12 @@ public class ClaimTestDataFactory {
                                 .expectedDeliveryDate(expectedDeliveryDate)
                                 .childrenDob(childrenDobs)
                                 .build())
+                .initialIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
+    }
+
+    public static Claim aClaimWithChildrenDobs(List<LocalDate> childrenDobs) {
+        return aClaimWithExpectedDeliveryDateAndChildrenDobs(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, childrenDobs);
     }
 
     public static Claim aClaimWithClaimStatus(ClaimStatus claimStatus) {
@@ -119,8 +125,7 @@ public class ClaimTestDataFactory {
                 .claimStatus(claimStatus)
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .cardStatus(CardStatus.ACTIVE)
-                .initialIdentityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                .initialIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .cardStatusTimestamp(LocalDateTime.now());
     }
 

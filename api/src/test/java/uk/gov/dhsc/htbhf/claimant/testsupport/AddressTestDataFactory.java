@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 
 public class AddressTestDataFactory {
 

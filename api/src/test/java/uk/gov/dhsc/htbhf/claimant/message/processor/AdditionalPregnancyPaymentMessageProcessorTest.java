@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidAdditionalPregnancyPaymentMessageContext;
@@ -79,7 +79,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
 
-        verifyZeroInteractions(paymentService, reportPaymentMessageSender);
+        verifyNoInteractions(paymentService, reportPaymentMessageSender);
     }
 
     private void shouldCalculateAdditionalVouchers(int numberOfVouchers, Claim claim, PaymentCycle paymentCycle) {
@@ -109,7 +109,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
+        verifyNoInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
     }
 
     @Test
@@ -124,6 +124,6 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verifyZeroInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
+        verifyNoInteractions(voucherCalculator, paymentService, reportPaymentMessageSender);
     }
 }

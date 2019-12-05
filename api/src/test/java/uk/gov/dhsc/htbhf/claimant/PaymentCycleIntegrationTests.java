@@ -28,6 +28,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
@@ -49,7 +50,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 

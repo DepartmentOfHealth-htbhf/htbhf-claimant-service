@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 
@@ -22,10 +23,9 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V2;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V2;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.PersonDTOV2TestDataFactory.aPersonDTOV2WithPregnantDependantDob;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityClientV3Test {
@@ -47,7 +47,8 @@ class EligibilityClientV3Test {
     @Test
     void shouldCheckIdentityAndEligibilitySuccessfully() {
         Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
+                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.OK);
         given(restTemplate.postForEntity(anyString(), any(), eq(CombinedIdentityAndEligibilityResponse.class)))
                 .willReturn(response);
@@ -61,7 +62,8 @@ class EligibilityClientV3Test {
     @Test
     void shouldThrowAnExceptionWhenPostCallNotOk() {
         Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
+                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.BAD_REQUEST);
         given(restTemplate.postForEntity(anyString(), any(), eq(CombinedIdentityAndEligibilityResponse.class)))
                 .willReturn(response);

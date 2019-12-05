@@ -19,10 +19,10 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPregnancyVouchersOnly;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChildDateOfBirthCalculatorTest {

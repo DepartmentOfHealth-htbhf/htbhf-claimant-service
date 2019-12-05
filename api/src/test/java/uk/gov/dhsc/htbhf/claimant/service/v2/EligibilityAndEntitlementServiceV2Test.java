@@ -17,7 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFacto
 import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,12 +30,12 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_NINO_V1;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -46,8 +46,8 @@ class EligibilityAndEntitlementServiceV2Test {
     private static final boolean DUPLICATE = true;
     private static final EligibilityResponse ELIGIBILITY_RESPONSE = anEligibilityResponseWithStatus(ELIGIBLE);
     private static final List<LocalDate> DATE_OF_BIRTH_OF_CHILDREN = ELIGIBILITY_RESPONSE.getDateOfBirthOfChildren();
-    private static final CombinedIdentityAndEligibilityResponse COMBINED_ELIGIBILITY_RESPONSE = CombinedIdentityAndEligibilityResponseTestDataFactory
-            .anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(DATE_OF_BIRTH_OF_CHILDREN);
+    private static final CombinedIdentityAndEligibilityResponse COMBINED_ELIGIBILITY_RESPONSE = CombinedIdAndEligibilityResponseTestDataFactory
+            .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(DATE_OF_BIRTH_OF_CHILDREN);
     private static final PaymentCycleVoucherEntitlement VOUCHER_ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
     private static final Claimant CLAIMANT = aValidClaimant();
 

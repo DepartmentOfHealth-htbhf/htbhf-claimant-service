@@ -29,11 +29,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.TestConstants.HOMER_FORENAME;
 
 @ExtendWith(MockitoExtension.class)
 class UpcomingBirthdayEmailHandlerTest {

@@ -35,8 +35,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifyFailedPaymentEventFailExceptionAndEventCorrect;
@@ -121,7 +121,7 @@ class PaymentServiceTest {
                 paymentCycle.getTotalEntitlementAmountInPence(),
                 paymentCycle.getTotalEntitlementAmountInPence()
         );
-        verifyZeroInteractions(paymentCycleService, eventAuditor, reportPaymentMessageSender);
+        verifyNoInteractions(paymentCycleService, eventAuditor, reportPaymentMessageSender);
         verifyNoPaymentsInDatabase();
         verifyDepositFundsRequestCorrectWithAnyReference(paymentCycle.getTotalEntitlementAmountInPence());
     }
@@ -179,7 +179,7 @@ class PaymentServiceTest {
                 exception,
                 null,
                 paymentAmountInPence);
-        verifyZeroInteractions(paymentCycleService, eventAuditor);
+        verifyNoInteractions(paymentCycleService, eventAuditor);
         verifyNoPaymentsInDatabase();
         verifyDepositFundsRequestCorrectWithAnyReference(paymentCycle.getTotalEntitlementAmountInPence());
     }
@@ -206,7 +206,7 @@ class PaymentServiceTest {
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         //This may be called, but the transaction will be rolled back, so it wont be actually be updated
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, balanceResponse.getAvailableBalanceInPence());
-        verifyZeroInteractions(eventAuditor, reportPaymentMessageSender);
+        verifyNoInteractions(eventAuditor, reportPaymentMessageSender);
         verifyNoPaymentsInDatabase();
         verifyDepositFundsRequestCorrectWithAnyReference(paymentCalculation.getPaymentAmount());
     }
@@ -227,7 +227,7 @@ class PaymentServiceTest {
         verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
         verifyNoPaymentsInDatabase();
         verifyNoMoreInteractions(cardClient, eventAuditor);
-        verifyZeroInteractions(reportPaymentMessageSender);
+        verifyNoInteractions(reportPaymentMessageSender);
     }
 
     @Test
@@ -247,7 +247,7 @@ class PaymentServiceTest {
         paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
         verifyFailedPaymentSavedWithAllData(paymentCycle, amountToPay, paymentReference, failureEvent);
-        verifyZeroInteractions(reportPaymentMessageSender);
+        verifyNoInteractions(reportPaymentMessageSender);
     }
 
     @Test
@@ -265,7 +265,7 @@ class PaymentServiceTest {
         paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
 
         verifyFailedPaymentSavedWithNoReference(paymentCycle, failureEvent);
-        verifyZeroInteractions(reportPaymentMessageSender);
+        verifyNoInteractions(reportPaymentMessageSender);
     }
 
     private PaymentCycle createAndSavePaymentCycle() {

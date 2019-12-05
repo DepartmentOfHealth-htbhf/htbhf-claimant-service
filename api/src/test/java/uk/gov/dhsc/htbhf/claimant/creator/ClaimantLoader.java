@@ -21,7 +21,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdentityAndEligibilityResponseTestDataFactory;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -153,7 +153,7 @@ public class ClaimantLoader {
                 .voucherEntitlement(voucherEntitlement)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
                 .identityAndEligibilityResponse(
-                        CombinedIdentityAndEligibilityResponseTestDataFactory.anIdentityMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .childrenDob(childrenDobs)
                 .build();
         return paymentCycleRepository.save(paymentCycle);
