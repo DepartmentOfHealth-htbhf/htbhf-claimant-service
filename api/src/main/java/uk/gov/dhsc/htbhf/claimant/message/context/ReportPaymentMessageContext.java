@@ -15,6 +15,7 @@ public class ReportPaymentMessageContext extends ReportEventMessageContext {
     private int paymentForPregnancy;
     private int paymentForChildrenUnderOne;
     private int paymentForChildrenBetweenOneAndFour;
+    private int paymentForBackdatedVouchers;
 
     @Override
     public String getEventAction() {

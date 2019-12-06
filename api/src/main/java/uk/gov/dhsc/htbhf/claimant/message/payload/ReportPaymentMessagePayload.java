@@ -19,5 +19,6 @@ public class ReportPaymentMessagePayload implements MessagePayload {
     private int paymentForPregnancy;
     private int paymentForChildrenUnderOne;
     private int paymentForChildrenBetweenOneAndFour;
+    private int paymentForBackdatedVouchers;
     private LocalDateTime timestamp;
 }

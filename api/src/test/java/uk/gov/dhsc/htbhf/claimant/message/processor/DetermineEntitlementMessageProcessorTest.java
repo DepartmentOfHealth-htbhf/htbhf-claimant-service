@@ -190,7 +190,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
-        verify(eligibilityDecisionHandler).expirePendingExpiryClaim(context.getClaim());
+        verify(eligibilityDecisionHandler).expirePendingExpiryClaim(context.getClaim(), decision.getDateOfBirthOfChildren());
     }
 
     @Test

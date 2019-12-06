@@ -150,6 +150,7 @@ public class MessageContextLoader {
                 .paymentForPregnancy(payload.getPaymentForPregnancy())
                 .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())
                 .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())
+                .paymentForBackdatedVouchers(payload.getPaymentForBackdatedVouchers())
                 .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .paymentAction(payload.getPaymentAction())
                 .timestamp(payload.getTimestamp())

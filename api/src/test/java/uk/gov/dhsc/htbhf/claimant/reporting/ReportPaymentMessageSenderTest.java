@@ -25,6 +25,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.TOP_UP_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithBackdatedVouchersOnly;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaimAndChildrenDobs;
 
 @ExtendWith(MockitoExtension.class)
@@ -83,6 +84,16 @@ class ReportPaymentMessageSenderTest {
         verifyNonTopUpPaymentMessageSent(claim, datesOfBirthOfChildren, paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
 
+    @Test
+    void shouldReportScheduledPaymentWithBackdatedVouchers() {
+        PaymentCycle paymentCycle = aPaymentCycleWithBackdatedVouchersOnly();
+        LocalDateTime testStart = LocalDateTime.now();
+
+        reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
+
+        verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle.getChildrenDob(), paymentCycle, testStart, SCHEDULED_PAYMENT);
+    }
+
     private void verifyNonTopUpPaymentMessageSent(Claim claim,
                                                   List<LocalDate> datesOfBirthOfChildren,
                                                   PaymentCycle paymentCycle,
@@ -101,5 +112,6 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getPaymentForChildrenUnderOne()).isEqualTo(voucherEntitlement.getVouchersForChildrenUnderOne() * voucherValue);
         assertThat(payload.getPaymentForChildrenBetweenOneAndFour()).isEqualTo(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * voucherValue);
         assertThat(payload.getPaymentForPregnancy()).isEqualTo(voucherEntitlement.getVouchersForPregnancy() * voucherValue);
+        assertThat(payload.getPaymentForBackdatedVouchers()).isEqualTo(voucherEntitlement.getBackdatedVouchersValueInPence());
     }
 }

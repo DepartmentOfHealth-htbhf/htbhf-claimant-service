@@ -61,7 +61,7 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
         Claim claim = context.getClaim();
         assertCommonProperties(reportProperties, timestamp, claim, "PAYMENT", "SCHEDULED_PAYMENT");
         assertThat(reportProperties).contains(
-                entry("ev", "300"), // event value is the total payment amount
+                entry("ev", "400"), // event value is the total payment amount
                 entry("cm4", "100"), // payment for children under one (one child for cycle = 8 vouchers)
                 entry("cm5", "100"), // payment for children between one and four (one child for cycle = 4 vouchers)
                 entry("cm6", "100"), // payment for pregnancy (pregnant for the entire payment cycle = 4 vouchers)
@@ -81,6 +81,7 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 .paymentForPregnancy(100)
                 .paymentForChildrenUnderOne(100)
                 .paymentForChildrenBetweenOneAndFour(100)
+                .paymentForBackdatedVouchers(100)
                 .claim(claim)
                 .datesOfBirthOfChildren(datesOfBirthOfChildren)
                 .timestamp(timestamp)
