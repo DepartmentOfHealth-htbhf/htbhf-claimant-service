@@ -32,26 +32,31 @@ public class ReportPaymentPropertiesFactory extends ReportPropertiesFactory {
     public Map&lt;String, String&gt; createReportPropertiesForPaymentEvent(ReportPaymentMessageContext context) {
 <span class="fc" id="L33">        Map&lt;String, String&gt; reportProperties = new LinkedHashMap&lt;&gt;();</span>
 <span class="fc" id="L34">        reportProperties.putAll(mapValuesToString(createMandatoryPropertiesMap()));</span>
-<span class="fc" id="L35">        int totalPaymentAmount = context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne() + context.getPaymentForChildrenBetweenOneAndFour();</span>
+<span class="fc" id="L35">        int totalPaymentAmount = calculateTotalPaymentAmount(context);</span>
 <span class="fc" id="L36">        reportProperties.putAll(mapValuesToString(createEventPropertiesMap(context, PAYMENT, totalPaymentAmount)));</span>
 <span class="fc" id="L37">        reportProperties.putAll(mapValuesToString(createCommonCustomDimensions(context)));</span>
 <span class="fc" id="L38">        reportProperties.putAll(mapValuesToString(createCustomMetricMapForPaymentEvent(context)));</span>
 <span class="fc" id="L39">        return reportProperties;</span>
     }
 
+    private int calculateTotalPaymentAmount(ReportPaymentMessageContext context) {
+<span class="fc" id="L43">        return context.getPaymentForPregnancy() + context.getPaymentForChildrenUnderOne()</span>
+<span class="fc" id="L44">                    + context.getPaymentForChildrenBetweenOneAndFour() + context.getPaymentForBackdatedVouchers();</span>
+    }
+
     private Map&lt;String, Object&gt; createCustomMetricMapForPaymentEvent(ReportPaymentMessageContext context) {
-<span class="fc" id="L43">        Map&lt;String, Object&gt; customMetrics = createCommonCustomMetrics(context);</span>
-<span class="fc" id="L44">        addPaymentCycleMetrics(context, customMetrics);</span>
-<span class="fc" id="L45">        return customMetrics;</span>
+<span class="fc" id="L48">        Map&lt;String, Object&gt; customMetrics = createCommonCustomMetrics(context);</span>
+<span class="fc" id="L49">        addPaymentCycleMetrics(context, customMetrics);</span>
+<span class="fc" id="L50">        return customMetrics;</span>
     }
 
     private void addPaymentCycleMetrics(ReportPaymentMessageContext context, Map&lt;String, Object&gt; customMetrics) {
-<span class="fc" id="L49">        PaymentCycle paymentCycle = context.getPaymentCycle();</span>
-<span class="fc" id="L50">        customMetrics.put(PAYMENT_FOR_PREGNANCY.getFieldName(), context.getPaymentForPregnancy());</span>
-<span class="fc" id="L51">        customMetrics.put(PAYMENT_FOR_CHILDREN_UNDER_ONE.getFieldName(), context.getPaymentForChildrenUnderOne());</span>
-<span class="fc" id="L52">        customMetrics.put(PAYMENT_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), context.getPaymentForChildrenBetweenOneAndFour());</span>
-<span class="fc" id="L53">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
-<span class="fc" id="L54">        customMetrics.put(NUMBER_OF_1ST_OR_FOURTH_BIRTHDAYS_IN_NEXT_CYCLE.getFieldName(), nextPaymentCycleSummary.getNumberOfChildrenTurningOneOrFour());</span>
-<span class="fc" id="L55">    }</span>
+<span class="fc" id="L54">        PaymentCycle paymentCycle = context.getPaymentCycle();</span>
+<span class="fc" id="L55">        customMetrics.put(PAYMENT_FOR_PREGNANCY.getFieldName(), context.getPaymentForPregnancy());</span>
+<span class="fc" id="L56">        customMetrics.put(PAYMENT_FOR_CHILDREN_UNDER_ONE.getFieldName(), context.getPaymentForChildrenUnderOne());</span>
+<span class="fc" id="L57">        customMetrics.put(PAYMENT_FOR_CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), context.getPaymentForChildrenBetweenOneAndFour());</span>
+<span class="fc" id="L58">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc" id="L59">        customMetrics.put(NUMBER_OF_1ST_OR_FOURTH_BIRTHDAYS_IN_NEXT_CYCLE.getFieldName(), nextPaymentCycleSummary.getNumberOfChildrenTurningOneOrFour());</span>
+<span class="fc" id="L60">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
