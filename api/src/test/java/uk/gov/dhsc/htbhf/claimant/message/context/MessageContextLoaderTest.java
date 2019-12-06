@@ -476,6 +476,7 @@ class MessageContextLoaderTest {
                 .paymentForPregnancy(100)
                 .paymentForChildrenUnderOne(100)
                 .paymentForChildrenBetweenOneAndFour(100)
+                .paymentForBackdatedVouchers(100)
                 .timestamp(LocalDateTime.now())
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
@@ -494,6 +495,7 @@ class MessageContextLoaderTest {
         assertThat(context.getPaymentForPregnancy()).isEqualTo(100);
         assertThat(context.getPaymentForChildrenUnderOne()).isEqualTo(100);
         assertThat(context.getPaymentForChildrenBetweenOneAndFour()).isEqualTo(100);
+        assertThat(context.getPaymentForBackdatedVouchers()).isEqualTo(100);
         verify(payloadMapper).getPayload(message, ReportPaymentMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verify(paymentCycleRepository).findById(paymentCycle.getId());
