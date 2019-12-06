@@ -1,0 +1,4 @@
+alter table claim add column current_identity_and_eligibility_response jsonb;
+
+update claim set current_identity_and_eligibility_response = initial_identity_and_eligibility_response
+    where current_identity_and_eligibility_response is null;
