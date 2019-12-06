@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
@@ -25,7 +26,6 @@ import java.util.Map;
 import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.*;
 
 @Service
 @Slf4j
@@ -46,12 +46,13 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
+    // TODO HTBHF-2682 Rename this method (and others) to createClaim.
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createAndSaveClaim(claimRequest, decision);
-                claimMessageSender.sendReportClaimMessage(claim, emptyList(), REJECTED);
+                claimMessageSender.sendReportClaimMessage(claim, emptyList(), ClaimAction.REJECTED);
                 return ClaimResult.withNoEntitlement(claim);
             }
 
@@ -60,11 +61,11 @@ public class ClaimService {
                 claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), NEW);
+                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());
             }
 
-            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), REJECTED);
+            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);

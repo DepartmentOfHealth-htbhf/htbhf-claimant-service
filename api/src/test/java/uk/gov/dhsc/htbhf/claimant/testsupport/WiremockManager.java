@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -47,6 +48,9 @@ public class WiremockManager {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${google-analytics.tracking-id}")
+    private String trackingId;
 
     public void startWireMock() {
         eligibilityServiceMock = startWireMockServer(8100);
@@ -180,11 +184,11 @@ public class WiremockManager {
         postcodesMock.verify(1, getRequestedFor(urlEqualTo(expectedPostcodesUrl)));
     }
 
-    public void verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(Claim claim, ClaimAction claimAction, String trackingId) {
-        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, trackingId, emptyList());
+    public void verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(Claim claim, ClaimAction claimAction) {
+        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, emptyList());
     }
 
-    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, String trackingId, List<LocalDate> childrenDatesOfBirth) {
+    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, List<LocalDate> childrenDatesOfBirth) {
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
         int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
 
@@ -209,7 +213,6 @@ public class WiremockManager {
 
     public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim,
                                                            PaymentAction paymentAction,
-                                                           String trackingId,
                                                            Integer paymentAmount,
                                                            List<LocalDate> childrenDatesOfBirth) {
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);

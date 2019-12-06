@@ -15,7 +15,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
@@ -34,8 +33,8 @@ import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V2;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aClaimDTOWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithNino;
@@ -92,17 +91,16 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() throws JsonProcessingException {
         //Given
-        String householdIdentifier = "dwpHousehold1";
-        ClaimDTO dto = aValidClaimDTO();
+        ClaimDTOV3 dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
         Claim claim = aValidClaimBuilder()
-                .dwpHouseholdIdentifier(householdIdentifier)
+                .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .claimant(claimant)
                 .build();
         claimRepository.save(claim);
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier(householdIdentifier);
+                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier(DWP_HOUSEHOLD_IDENTIFIER);
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
@@ -116,17 +114,16 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() throws JsonProcessingException {
         //Given
-        String householdIdentifier = "hmrcHousehold1";
-        ClaimDTO dto = aValidClaimDTO();
+        ClaimDTOV3 dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
         Claim claim = aValidClaimBuilder()
-                .hmrcHouseholdIdentifier(householdIdentifier)
+                .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
                 .claimant(claimant)
                 .build();
         claimRepository.save(claim);
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndHmrcHouseIdentifier(householdIdentifier);
+                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndHmrcHouseIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
