@@ -77,6 +77,13 @@ public class ClaimantDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimantDTO aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
+        return aValidClaimantBuilder()
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .childrenDob(childrenDob)
+                .build();
+    }
+
     private static ClaimantDTO.ClaimantDTOBuilder aValidClaimantBuilder() {
         return ClaimantDTO.builder()
                 .firstName(HOMER_FORENAME)
