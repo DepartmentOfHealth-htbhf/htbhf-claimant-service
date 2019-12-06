@@ -29,15 +29,12 @@ import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityNotFoundException;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,21 +42,18 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
-import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndExistingClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
@@ -203,7 +197,9 @@ class ClaimServiceTest {
         //then
         verify(claimRepository).save(result.getClaim());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
+        if (eligibilityStatus != DUPLICATE) {
+            assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
+        }
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         if (eligibilityStatus == ELIGIBLE) {
@@ -214,83 +210,23 @@ class ClaimServiceTest {
     }
 
     @Test
-    void shouldUpdateClaimAndReturnUpdatedFieldsForMatchingNinoWhenEligible() {
+    void shouldRejectDuplicateClaim() {
         //given
-        Claimant existingClaimant = aClaimantWithLastName("Old name");
-        Claimant newClaimant = aClaimantWithLastName("New name");
-        Claim existingClaim = aClaimWithClaimant(existingClaimant);
-        UUID existingClaimId = existingClaim.getId();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        given(claimRepository.findClaim(any())).willReturn(existingClaim);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
-
-        //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
-
-        //then
-        assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(LAST_NAME.getFieldName()));
-        assertThat(result.getClaim()).isEqualTo(existingClaim);
-        assertThat(result.getClaim().getClaimant().getLastName()).isEqualTo(newClaimant.getLastName());
-        //Make sure that the initial CombinedIdentityAndEligibilityResponse on the claim has not been changed
-        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
-        verify(claimRepository).findClaim(existingClaimId);
-        verify(claimRepository).save(result.getClaim());
-        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME));
-        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), List.of(LAST_NAME));
-        verifyNoMoreInteractions(claimMessageSender);
-    }
-
-    @Test
-    void shouldUpdateClaimAndReturnClaimUpdatedForMatchingNinoWhenEligibleAndNoFieldsHaveChanged() {
-        //given
-        Claimant existingClaimant = aValidClaimant();
-        Claimant newClaimant = aValidClaimant();
-        Claim existingClaim = aClaimWithClaimant(existingClaimant);
+        Claimant claimant = aClaimantWithLastName("New name");
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
         UUID existingClaimId = UUID.randomUUID();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId);
+        EligibilityAndEntitlementDecision decision = buildDuplicateDecisionWithExistingClaimId(existingClaimId);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        given(claimRepository.findClaim(any())).willReturn(existingClaim);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
         ClaimResult result = claimService.createOrUpdateClaim(request);
 
         //then
-        assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).isEmpty();
-        assertThat(result.getClaim()).isEqualTo(existingClaim);
-        //Make sure that the initial IdentityAndEligibilityResponse on the claim has not been changed
-        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
-        assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
-        verify(claimRepository).findClaim(existingClaimId);
+        assertThat(result.getClaimUpdated()).isNull();
+        assertThat(result.getUpdatedFields()).isNull();
         verify(claimRepository).save(result.getClaim());
-        verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
-        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), emptyList());
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), emptyList(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
-    }
-
-    @Test
-    void shouldSendAdditionalPregnancyPaymentMessageWhenDueDateProvided() {
-        //given
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        shouldSendAdditionalPregnancyPaymentMessage(existingClaimant, newClaimant);
-    }
-
-    @Test
-    void shouldSendAdditionalPregnancyPaymentMessageWhenExistingDueDateUpdated() {
-        //given
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(1);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        shouldSendAdditionalPregnancyPaymentMessage(existingClaimant, newClaimant);
     }
 
     @Test
@@ -308,70 +244,6 @@ class ClaimServiceTest {
         // then
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
-    }
-
-    private void shouldSendAdditionalPregnancyPaymentMessage(Claimant existingClaimant, Claimant newClaimant) {
-        Claim existingClaim = aClaimWithClaimant(existingClaimant);
-        UUID existingClaimId = existingClaim.getId();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(EligibilityAndEntitlementDecision.builder()
-                .eligibilityStatus(ELIGIBLE)
-                .existingClaimId(existingClaimId)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
-                .build());
-        given(claimRepository.findClaim(any())).willReturn(existingClaim);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
-
-        //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
-
-        //then
-        assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).containsExactly(EXPECTED_DELIVERY_DATE.getFieldName());
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        verify(claimMessageSender).sendAdditionalPaymentMessage(existingClaim);
-    }
-
-    @Test
-    void shouldNotSendAdditionalPregnancyPaymentMessageWhenDueDateSetToNull() {
-        //given
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(LocalDate.now());
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(null);
-        Claim existingClaim = aClaimWithClaimant(existingClaimant);
-        UUID existingClaimId = existingClaim.getId();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        given(claimRepository.findClaim(any())).willReturn(existingClaim);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
-
-        //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
-
-        //then
-        assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getUpdatedFields()).isEqualTo(singletonList(EXPECTED_DELIVERY_DATE.getFieldName()));
-    }
-
-    @Test
-    void shouldNotUpdateDeviceFingerprintWhenUpdatingAClaim() {
-        //given
-        Claimant existingClaimant = aClaimantWithExpectedDeliveryDate(null);
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        Claim existingClaim = aClaimWithClaimant(existingClaimant);
-        UUID existingClaimId = existingClaim.getId();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId));
-        given(claimRepository.findClaim(any())).willReturn(existingClaim);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
-
-        //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
-
-        //then
-        assertThat(result.getClaimUpdated()).isTrue();
-        assertThat(result.getClaim().getDeviceFingerprint()).isNotEqualTo(deviceFingerprint);
-        assertThat(result.getClaim().getDeviceFingerprintHash()).isNotEqualTo(deviceFingerprintHash);
     }
 
     @Test
@@ -431,33 +303,6 @@ class ClaimServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getWebUIVersion()).isNull();
-    }
-
-    @Test
-    void shouldThrowExceptionWhenExistingClaimNotFound() {
-        //given
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
-        Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
-        UUID existingClaimId = UUID.randomUUID();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE, existingClaimId);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        EntityNotFoundException expectedException = new EntityNotFoundException("Not found");
-        given(claimRepository.findClaim(any())).willThrow(expectedException);
-        ClaimRequest request = aClaimRequestForClaimant(newClaimant);
-
-        //when
-        EntityNotFoundException exception = catchThrowableOfType(
-                () -> claimService.createOrUpdateClaim(request), EntityNotFoundException.class);
-
-        //then
-        assertThat(exception).isEqualTo(expectedException);
-        ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
-        verify(claimRepository).save(claimArgumentCaptor.capture());
-        assertClaimPersistedCorrectly(claimArgumentCaptor, newClaimant);
-        ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
-        verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
-        assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
-        assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
     }
 
     @Test

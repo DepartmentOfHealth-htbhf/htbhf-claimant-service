@@ -27,8 +27,6 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
-import java.time.LocalDate;
-
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -42,19 +40,15 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertReque
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
-import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTOBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithDwpHouseholdIdentifier;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithHmrcHouseholdIdentifier;
@@ -116,31 +110,6 @@ class ClaimantServiceIntegrationTests {
                 .county("")
                 .build();
         shouldAcceptAndCreateValidClaim(aClaimDTOWithClaimant(aClaimantDTOWithAddress(addressWithEmptyLine2AndCounty)));
-    }
-
-    @Test
-    void shouldAcceptAndUpdateAnExistingEligibleClaim() throws JsonProcessingException {
-        //Given
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithStatus(ELIGIBLE);
-        stubEligibilityServiceWithSuccessfulResponse(eligibilityResponse);
-        LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(7);
-        ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDate(expectedDeliveryDate);
-        saveActiveClaimWithNinoAndNoExpectedDeliveryDate(claim.getClaimant().getNino());
-
-        //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
-
-        //Then
-        assertThat(response.getStatusCode()).isEqualTo(OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getClaimStatus()).isEqualTo(ACTIVE);
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
-        assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
-        assertThat(response.getBody().getClaimUpdated()).isTrue();
-        assertThat(response.getBody().getUpdatedFields()).contains(EXPECTED_DELIVERY_DATE.getFieldName());
-        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        assertClaimUpdatedSuccessfully(expectedDeliveryDate);
-        verifyPostToEligibilityService();
     }
 
     @Test
@@ -317,20 +286,12 @@ class ClaimantServiceIntegrationTests {
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(hmrcHouseholdIdentifier);
     }
 
-    private void assertClaimUpdatedSuccessfully(LocalDate expectedDeliveryDate) {
-        Iterable<Claim> claims = claimRepository.findAll();
-        assertThat(claims).hasSize(1);
-        Claim claim = claims.iterator().next();
-        assertThat(claim.getClaimant().getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);
-    }
-
     private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
-        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException {
@@ -338,18 +299,6 @@ class ClaimantServiceIntegrationTests {
         JSONObject jsonObject = new JSONObject(json);
         jsonObject.getJSONObject("claimant").put(fieldName, newValue);
         return jsonObject.toString();
-    }
-
-    private void saveActiveClaimWithNinoAndNoExpectedDeliveryDate(String nino) {
-        Claimant claimant = aValidClaimantBuilder()
-                .nino(nino)
-                .expectedDeliveryDate(null)
-                .build();
-        Claim claim = aValidClaimBuilder()
-                .claimStatus(ACTIVE)
-                .claimant(claimant)
-                .build();
-        claimRepository.save(claim);
     }
 
     private void stubEligibilityServiceWithSuccessfulResponse(EligibilityResponse eligibilityResponse) throws JsonProcessingException {

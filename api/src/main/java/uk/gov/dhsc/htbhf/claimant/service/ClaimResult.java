@@ -22,6 +22,13 @@ public class ClaimResult {
     private List<String> updatedFields;
     private VerificationResult verificationResult;
 
+    public static ClaimResult withNoEntitlement(Claim claim) {
+        return ClaimResult.builder()
+                .claim(claim)
+                .voucherEntitlement(Optional.empty())
+                .build();
+    }
+
     public static ClaimResult withNoEntitlement(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return ClaimResult.builder()
                 .claim(claim)

@@ -31,8 +31,11 @@ public class EligibilityAndEntitlementDecision {
                 .build();
     }
 
-    public boolean claimExistsAndIsEligible() {
-        return existingClaimId != null && eligibilityStatus == EligibilityStatus.ELIGIBLE;
+    public static EligibilityAndEntitlementDecision buildDuplicateDecisionWithExistingClaimId(UUID existingClaimId) {
+        return EligibilityAndEntitlementDecision.builder()
+                .eligibilityStatus(EligibilityStatus.DUPLICATE)
+                .existingClaimId(existingClaimId)
+                .build();
     }
 
     public boolean childrenPresent() {

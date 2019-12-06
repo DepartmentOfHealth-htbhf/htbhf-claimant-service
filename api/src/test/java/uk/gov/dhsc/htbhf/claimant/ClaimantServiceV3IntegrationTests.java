@@ -12,14 +12,15 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.net.URI;
 
@@ -27,14 +28,26 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V2;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aClaimDTOWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndHmrcHouseIdentifier;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
@@ -64,10 +77,9 @@ class ClaimantServiceV3IntegrationTests {
 
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
-        ClaimDTO claim = aValidClaimDTOWithNoNullFields();
+        ClaimDTOV3 claim = aValidClaimDTOWithNoNullFields();
         //Given
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
-                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
@@ -75,6 +87,78 @@ class ClaimantServiceV3IntegrationTests {
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
         verifyPostToEligibilityService();
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() throws JsonProcessingException {
+        //Given
+        String householdIdentifier = "dwpHousehold1";
+        ClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
+        Claim claim = aValidClaimBuilder()
+                .dwpHouseholdIdentifier(householdIdentifier)
+                .claimant(claimant)
+                .build();
+        claimRepository.save(claim);
+
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier(householdIdentifier);
+        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+
+        //Then
+        assertDuplicateResponse(response);
+        verifyPostToEligibilityService();
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() throws JsonProcessingException {
+        //Given
+        String householdIdentifier = "hmrcHousehold1";
+        ClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
+        Claim claim = aValidClaimBuilder()
+                .hmrcHouseholdIdentifier(householdIdentifier)
+                .claimant(claimant)
+                .build();
+        claimRepository.save(claim);
+
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndHmrcHouseIdentifier(householdIdentifier);
+        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+
+        //Then
+        assertDuplicateResponse(response);
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsWithSameNino() {
+        //Given
+        ClaimDTOV3 dto = aClaimDTOWithClaimant(aClaimantDTOWithNino(HOMER_NINO_V2));
+        Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
+        Claim claim = aValidClaimBuilder()
+                .claimant(claimant)
+                .build();
+        claimRepository.save(claim);
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+
+        //Then
+        assertDuplicateResponse(response);
+    }
+
+    private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
+        assertThat(response.getBody().getVoucherEntitlement()).isNull();
     }
 
     private void assertThatClaimResultHasNewClaim(ResponseEntity<ClaimResultDTO> response) {
@@ -86,7 +170,7 @@ class ClaimantServiceV3IntegrationTests {
         assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
-    private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
+    private void assertClaimPersistedSuccessfully(ClaimDTOV3 claimDTO,
                                                   EligibilityStatus eligibilityStatus) {
         Iterable<Claim> claims = claimRepository.findAll();
         assertThat(claims).hasSize(1);
