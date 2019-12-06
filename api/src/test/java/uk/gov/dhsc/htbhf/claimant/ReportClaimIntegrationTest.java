@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -28,8 +27,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFac
 @AutoConfigureEmbeddedDatabase
 public class ReportClaimIntegrationTest {
 
-    @Value("${google-analytics.tracking-id}")
-    private String trackingId;
     @Autowired
     private ClaimMessageSender claimMessageSender;
     @Autowired
@@ -60,7 +57,7 @@ public class ReportClaimIntegrationTest {
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, NEW, trackingId, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, NEW, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
     }
 
     @Test
@@ -74,7 +71,7 @@ public class ReportClaimIntegrationTest {
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, REJECTED, trackingId, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, REJECTED, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
     }
 
     private void stubPostcodesIoAndGoogleAnalytics(String postcode) throws JsonProcessingException {
