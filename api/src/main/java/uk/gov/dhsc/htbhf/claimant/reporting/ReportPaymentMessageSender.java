@@ -67,6 +67,7 @@ public class ReportPaymentMessageSender {
                 .paymentForChildrenUnderOne(voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence)
                 .paymentForChildrenBetweenOneAndFour(voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
                 .paymentForPregnancy(voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence)
+                .paymentForBackdatedVouchers(voucherEntitlement.getBackdatedVouchersValueInPence())
                 .build();
     }
 }
