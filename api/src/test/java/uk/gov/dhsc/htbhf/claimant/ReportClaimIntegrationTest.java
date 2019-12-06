@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
-import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
@@ -18,7 +18,8 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.REJECTED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.REJECTED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
@@ -55,25 +56,25 @@ public class ReportClaimIntegrationTest {
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, ClaimAction.NEW);
+        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, NEW);
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, ClaimAction.NEW, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, NEW, trackingId, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
     }
 
     @Test
     void shouldReportRejectedClaimToGoogleAnalyticsWithPostcodeData() throws JsonProcessingException {
-        Claim claim = aClaimWithClaimStatus(REJECTED);
+        Claim claim = aClaimWithClaimStatus(ClaimStatus.REJECTED);
         claimRepository.save(claim);
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, ClaimAction.REJECTED);
+        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, REJECTED);
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, ClaimAction.REJECTED, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, REJECTED, trackingId, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
     }
 
     private void stubPostcodesIoAndGoogleAnalytics(String postcode) throws JsonProcessingException {

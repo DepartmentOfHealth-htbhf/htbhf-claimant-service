@@ -126,7 +126,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, newCycle.getTotalEntitlementAmountInPence());
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, newCycle.getTotalEntitlementAmountInPence(),
+                currentPaymentCycleChildrenDobs);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle, emailType);
@@ -297,7 +298,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(claim);
@@ -337,7 +338,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @DisplayName("Integration test for HTBHF-1757 status set to Pending Expiry and email sent to Claimant to tell them they are no longer eligible")
-    @ParameterizedTest(name = "Children DOB previous cycle={0}, Children DOB current cycle={1}, expected delivery date={2}")
+    @ParameterizedTest(name = "Children DOB previous cycle={0}, expected delivery date={1}")
     @MethodSource("provideArgumentsForClaimantBecomingIneligibleTest")
     void shouldTestClaimantBecomingIneligible(List<LocalDate> previousCycleChildrenDobs,
                                               LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
@@ -356,7 +357,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY, trackingId);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimNoLongerEligibleEmailWasSent(claim);
@@ -385,7 +386,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
         verifyNoMoreInteractions(notificationClient);
@@ -418,7 +419,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
 
         // confirm no emails sent to claimant
         verifyNoMoreInteractions(notificationClient);
@@ -452,7 +453,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, trackingId);
+        if (eligibilityStatus == ELIGIBLE) {
+            wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, trackingId, currentCycleChildrenDobs);
+        } else {
+            // non eligible responses will not have children dates of birth
+            wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, trackingId);
+        }
 
         // confirm notify component invoked with correct email template & personalisation
         invokeAllSchedulers();

@@ -24,6 +24,7 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
@@ -179,7 +180,14 @@ public class WiremockManager {
         postcodesMock.verify(1, getRequestedFor(urlEqualTo(expectedPostcodesUrl)));
     }
 
-    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, String trackingId) {
+    public void verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(Claim claim, ClaimAction claimAction, String trackingId) {
+        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, trackingId, emptyList());
+    }
+
+    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, String trackingId, List<LocalDate> childrenDatesOfBirth) {
+        int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
+        int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
+
         // not asserting the full payload as it contains time based values and a large amount of data that would make the test fragile.
         // testing that the payload is created and sent correctly is covered by GoogleAnalyticsClientTest
         googleAnalyticsMock.verify(1, postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
@@ -193,10 +201,20 @@ public class WiremockManager {
                                 + "&ev=0" // event value is unused, so set to 0
                                 + "&qt=\\d+" // queue time should be an integer
                                 + "&cid=" + claim.getId() // customer id is the claim id
+                                + ".*" // various time based values which are not asserted on
+                                + "&cm1=" + numberOfChildrenUnderOne
+                                + "&cm2=" + numberOfChildrenBetweenOneAndFour
                                 + ".*"))); // rest of payload data
     }
 
-    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim, PaymentAction paymentAction, String trackingId, Integer paymentAmount) {
+    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim,
+                                                           PaymentAction paymentAction,
+                                                           String trackingId,
+                                                           Integer paymentAmount,
+                                                           List<LocalDate> childrenDatesOfBirth) {
+        int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
+        int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
+
         // not asserting the full payload as it contains time based values and a large amount of data that would make the test fragile.
         // testing that the payload is created and sent correctly is covered by GoogleAnalyticsClientTest
         googleAnalyticsMock.verify(1, postRequestedFor(urlEqualTo(REPORT_ENDPOINT))
@@ -210,7 +228,24 @@ public class WiremockManager {
                                 + "&ev=" + paymentAmount.toString() // event value is the total payment amount
                                 + "&qt=\\d+" // queue time should be an integer
                                 + "&cid=" + claim.getId() // customer id is the claim id
+                                + ".*" // various time based values which are not asserted on
+                                + "&cm1=" + numberOfChildrenUnderOne
+                                + "&cm2=" + numberOfChildrenBetweenOneAndFour
                                 + ".*"))); // rest of payload data
+        googleAnalyticsMock.resetAll();
+    }
+
+    @SuppressWarnings("PMD.OnlyOneReturn")
+    private static Integer getNumberOfChildrenUnderAgeInYears(List<LocalDate> dateOfBirthOfChildren, Integer ageInYears) {
+        if (isEmpty(dateOfBirthOfChildren)) {
+            return 0;
+        }
+
+        LocalDate now = LocalDate.now();
+        LocalDate pastDate = now.minusYears(ageInYears);
+        return Math.toIntExact(dateOfBirthOfChildren.stream()
+                .filter(date -> date.isAfter(pastDate) && !date.isAfter(now))
+                .count());
     }
 
     private String getPostcodeUrl(String postcode) {
@@ -234,5 +269,4 @@ public class WiremockManager {
         wireMockServer.start();
         return wireMockServer;
     }
-
 }
