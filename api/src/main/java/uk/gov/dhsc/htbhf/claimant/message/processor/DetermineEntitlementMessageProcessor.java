@@ -14,6 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDateTime;
@@ -35,18 +36,21 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
     private final MessageContextLoader messageContextLoader;
     private final PaymentCycleService paymentCycleService;
     private final EligibilityDecisionHandler eligibilityDecisionHandler;
+    private final ClaimService claimService;
 
     public DetermineEntitlementMessageProcessor(
             @Value("${payment-cycle.maximum-pending-expiry-duration}") Period maximumPendingExpiryDuration,
             EligibilityAndEntitlementService eligibilityAndEntitlementService,
             MessageContextLoader messageContextLoader,
             PaymentCycleService paymentCycleService,
-            EligibilityDecisionHandler eligibilityDecisionHandler) {
+            EligibilityDecisionHandler eligibilityDecisionHandler,
+            ClaimService claimService) {
         this.maximumPendingExpiryDuration = maximumPendingExpiryDuration;
         this.eligibilityAndEntitlementService = eligibilityAndEntitlementService;
         this.messageContextLoader = messageContextLoader;
         this.paymentCycleService = paymentCycleService;
         this.eligibilityDecisionHandler = eligibilityDecisionHandler;
+        this.claimService = claimService;
     }
 
     @Override
@@ -75,6 +79,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 previousPaymentCycle);
 
         paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
+        claimService.updateCurrentIdentityAndEligibilityResponse(claim, decision.getIdentityAndEligibilityResponse());
         handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision, message.getCreatedTimestamp());
         if (claim.getClaimStatus() == PENDING_EXPIRY) {
             paymentCycleService.updateEndDateForClaimBecomingPendingExpiry(currentPaymentCycle);

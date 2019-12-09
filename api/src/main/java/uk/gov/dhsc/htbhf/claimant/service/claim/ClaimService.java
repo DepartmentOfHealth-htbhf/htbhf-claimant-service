@@ -19,6 +19,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
@@ -79,6 +80,11 @@ public class ClaimService {
         }
     }
 
+    public void updateCurrentIdentityAndEligibilityResponse(Claim claim, CombinedIdentityAndEligibilityResponse response) {
+        claim.setCurrentIdentityAndEligibilityResponse(response);
+        claimRepository.save(claim);
+    }
+    
     private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<UpdatableClaimantField> updatedFields) {
         if (claim.getClaimant().getExpectedDeliveryDate() != null && updatedFields.contains(EXPECTED_DELIVERY_DATE)) {
             claimMessageSender.sendAdditionalPaymentMessage(claim);
