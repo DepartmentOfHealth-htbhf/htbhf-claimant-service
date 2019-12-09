@@ -15,9 +15,11 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @MappedSuperclass
 @TypeDefs({
-        @TypeDef(name = "json", typeClass = JsonBinaryType.class),
+        @TypeDef(name = BaseEntity.JSON_TYPE, typeClass = JsonBinaryType.class),
 })
 public abstract class BaseEntity {
+
+    public static final String JSON_TYPE = "json";
 
     @Id
     @Access(AccessType.PROPERTY)

@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
+@SuppressWarnings("PMD.TooManyFields")
 public class Claim extends VersionedEntity {
 
     @NotNull
@@ -53,7 +54,7 @@ public class Claim extends VersionedEntity {
     private String cardAccountId;
 
     @Column(name = "device_fingerprint_json")
-    @Type(type = "json")
+    @Type(type = JSON_TYPE)
     private Map<String, Object> deviceFingerprint;
 
     @Column(name = "device_fingerprint_hash")
@@ -63,7 +64,7 @@ public class Claim extends VersionedEntity {
     private String webUIVersion;
 
     @Column(name = "postcode_data_json")
-    @Type(type = "json")
+    @Type(type = JSON_TYPE)
     private PostcodeData postcodeData;
 
     @Column(name = "card_status")
@@ -76,8 +77,12 @@ public class Claim extends VersionedEntity {
     private LocalDateTime cardStatusTimestamp;
 
     @Column(name = "initial_identity_and_eligibility_response")
-    @Type(type = "json")
+    @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse initialIdentityAndEligibilityResponse;
+    
+    @Column(name = "current_identity_and_eligibility_response")
+    @Type(type = JSON_TYPE)
+    private CombinedIdentityAndEligibilityResponse currentIdentityAndEligibilityResponse;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)

@@ -107,6 +107,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
 
@@ -146,6 +147,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
+        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
@@ -235,6 +237,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getClaimant().getLastName()).isEqualTo(newClaimant.getLastName());
         //Make sure that the initial CombinedIdentityAndEligibilityResponse on the claim has not been changed
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getCurrentIdentityAndEligibilityResponse());
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).findClaim(existingClaimId);
@@ -265,6 +268,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim()).isEqualTo(existingClaim);
         //Make sure that the initial IdentityAndEligibilityResponse on the claim has not been changed
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getInitialIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(existingClaim.getCurrentIdentityAndEligibilityResponse());
         assertThat(result.getClaim().getClaimant().getExpectedDeliveryDate()).isEqualTo(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
@@ -483,6 +487,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -529,6 +534,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isNull();
+        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isNull();
     }
 
     private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus, UUID existingClaimId) {
