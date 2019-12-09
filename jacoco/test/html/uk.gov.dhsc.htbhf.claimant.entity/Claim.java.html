@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @ToString(callSuper = true)
+@SuppressWarnings(&quot;PMD.TooManyFields&quot;)
 public class Claim extends VersionedEntity {
 
     @NotNull
@@ -53,7 +54,7 @@ public class Claim extends VersionedEntity {
     private String cardAccountId;
 
     @Column(name = &quot;device_fingerprint_json&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private Map&lt;String, Object&gt; deviceFingerprint;
 
     @Column(name = &quot;device_fingerprint_hash&quot;)
@@ -63,7 +64,7 @@ public class Claim extends VersionedEntity {
     private String webUIVersion;
 
     @Column(name = &quot;postcode_data_json&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private PostcodeData postcodeData;
 
     @Column(name = &quot;card_status&quot;)
@@ -76,8 +77,12 @@ public class Claim extends VersionedEntity {
     private LocalDateTime cardStatusTimestamp;
 
     @Column(name = &quot;initial_identity_and_eligibility_response&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse initialIdentityAndEligibilityResponse;
+    
+    @Column(name = &quot;current_identity_and_eligibility_response&quot;)
+    @Type(type = JSON_TYPE)
+    private CombinedIdentityAndEligibilityResponse currentIdentityAndEligibilityResponse;
 
     @NotNull
     @OneToOne(cascade = CascadeType.ALL)
@@ -86,24 +91,24 @@ public class Claim extends VersionedEntity {
     private Claimant claimant;
 
     public void updateClaimStatus(ClaimStatus newStatus) {
-<span class="fc bfc" id="L89" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
-<span class="fc" id="L90">            claimStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
+<span class="fc" id="L95">            claimStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L92">        claimStatus = newStatus;</span>
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L97">        claimStatus = newStatus;</span>
+<span class="fc" id="L98">    }</span>
 
     public void updateEligibilityStatus(EligibilityStatus newStatus) {
-<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
-<span class="fc" id="L97">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
+<span class="fc" id="L102">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L99">        eligibilityStatus = newStatus;</span>
-<span class="fc" id="L100">    }</span>
+<span class="fc" id="L104">        eligibilityStatus = newStatus;</span>
+<span class="fc" id="L105">    }</span>
 
     public void updateCardStatus(CardStatus newStatus) {
-<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
-<span class="fc" id="L104">            cardStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
+<span class="fc" id="L109">            cardStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L106">        cardStatus = newStatus;</span>
-<span class="fc" id="L107">    }</span>
+<span class="fc" id="L111">        cardStatus = newStatus;</span>
+<span class="fc" id="L112">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

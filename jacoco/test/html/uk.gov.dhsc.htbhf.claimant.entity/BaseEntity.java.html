@@ -15,9 +15,11 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @MappedSuperclass
 @TypeDefs({
-        @TypeDef(name = &quot;json&quot;, typeClass = JsonBinaryType.class),
+        @TypeDef(name = BaseEntity.JSON_TYPE, typeClass = JsonBinaryType.class),
 })
 public abstract class BaseEntity {
+
+    public static final String JSON_TYPE = &quot;json&quot;;
 
     @Id
     @Access(AccessType.PROPERTY)
@@ -31,10 +33,10 @@ public abstract class BaseEntity {
      * @return The id for the entity.
      */
     public UUID getId() {
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (id == null) {</span>
-<span class="fc" id="L35">            this.id = UUID.randomUUID();</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (id == null) {</span>
+<span class="fc" id="L37">            this.id = UUID.randomUUID();</span>
         }
-<span class="fc" id="L37">        return this.id;</span>
+<span class="fc" id="L39">        return this.id;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

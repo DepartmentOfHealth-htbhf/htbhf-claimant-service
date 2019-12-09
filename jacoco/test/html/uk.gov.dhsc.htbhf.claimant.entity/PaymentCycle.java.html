@@ -47,18 +47,18 @@ public class PaymentCycle extends VersionedEntity {
     private EligibilityStatus eligibilityStatus;
 
     @Column(name = &quot;identity_and_eligibility_response&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
 
     @Column(name = &quot;voucher_entitlement_json&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private PaymentCycleVoucherEntitlement voucherEntitlement;
 
     @Column(name = &quot;expected_delivery_date&quot;)
     private LocalDate expectedDeliveryDate;
 
     @Column(name = &quot;children_dob_json&quot;)
-    @Type(type = &quot;json&quot;)
+    @Type(type = JSON_TYPE)
     private List&lt;LocalDate&gt; childrenDob; // not used in code, but useful for MI and helpdesk
 
     @Column(name = &quot;total_vouchers&quot;)
