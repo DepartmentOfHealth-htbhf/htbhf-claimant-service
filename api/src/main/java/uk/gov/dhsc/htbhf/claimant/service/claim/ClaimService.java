@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
@@ -73,6 +74,11 @@ public class ClaimService {
         }
     }
 
+    public void updateCurrentIdentityAndEligibilityResponse(Claim claim, CombinedIdentityAndEligibilityResponse response) {
+        claim.setCurrentIdentityAndEligibilityResponse(response);
+        claimRepository.save(claim);
+    }
+
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
         EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
         Claim claim = buildClaim(claimRequest, decision);
@@ -113,6 +119,7 @@ public class ClaimService {
                 .deviceFingerprintHash(fingerprintHash)
                 .webUIVersion(claimRequest.getWebUIVersion())
                 .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
+                .currentIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
                 .build();
     }
 

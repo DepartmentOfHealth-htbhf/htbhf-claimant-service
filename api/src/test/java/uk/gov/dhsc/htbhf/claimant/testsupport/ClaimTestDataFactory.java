@@ -121,6 +121,8 @@ public class ClaimTestDataFactory {
                 .cardStatus(CardStatus.ACTIVE)
                 .initialIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
                         .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                .currentIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
+                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .cardStatusTimestamp(LocalDateTime.now());
     }
 

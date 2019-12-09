@@ -23,6 +23,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
@@ -46,6 +47,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -101,6 +103,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
 
@@ -140,6 +143,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
+        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
         assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
@@ -328,6 +332,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
         assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
+        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -361,6 +366,20 @@ class ClaimServiceTest {
         verifyNoInteractions(claimMessageSender);
     }
 
+    @Test
+    void shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse() {
+        // given
+        Claim claim = aValidClaim();
+        CombinedIdentityAndEligibilityResponse response = CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse();
+
+        // when
+        claimService.updateCurrentIdentityAndEligibilityResponse(claim, response);
+
+        // then
+        assertThat(claim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(response);
+        verify(claimRepository).save(claim);
+    }
+
     private void assertClaimPersistedCorrectly(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
         Claim actualClaim = claimArgumentCaptor.getValue();
         assertThat(actualClaim.getDwpHouseholdIdentifier()).isNull();
@@ -374,6 +393,7 @@ class ClaimServiceTest {
         assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
         assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
         assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isNull();
+        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isNull();
     }
 
     private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus, UUID existingClaimId) {

@@ -67,6 +67,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
+    
+    // TODO HTBHF-2475 - update integration tests to confirm currentIdentityAndEligibilityResponse is updated, once we are calling v3 eligibility service
 
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
     @MethodSource("provideArgumentsForActiveClaimTests")
