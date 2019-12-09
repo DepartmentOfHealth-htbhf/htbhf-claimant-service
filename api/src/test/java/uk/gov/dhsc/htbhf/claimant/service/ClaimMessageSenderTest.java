@@ -74,7 +74,6 @@ class ClaimMessageSenderTest {
         ReportClaimMessagePayload payload = argumentCaptor.getValue();
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getClaimAction()).isEqualTo(claimAction);
     }
 
@@ -92,7 +91,6 @@ class ClaimMessageSenderTest {
         ReportClaimMessagePayload payload = argumentCaptor.getValue();
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getClaimAction()).isEqualTo(UPDATED);
         assertThat(payload.getUpdatedClaimantFields()).isEqualTo(updatedClaimantFields);
     }

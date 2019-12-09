@@ -53,7 +53,6 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(testStart);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getPaymentAction()).isEqualTo(TOP_UP_PAYMENT);
         assertThat(payload.getPaymentForChildrenUnderOne()).isZero();
         assertThat(payload.getPaymentForChildrenBetweenOneAndFour()).isZero();
@@ -69,7 +68,7 @@ class ReportPaymentMessageSenderTest {
 
         reportPaymentMessageSender.sendReportInitialPaymentMessage(claim, paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(claim, datesOfBirthOfChildren, paymentCycle, testStart, INITIAL_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, INITIAL_PAYMENT);
     }
 
     @Test
@@ -81,7 +80,7 @@ class ReportPaymentMessageSenderTest {
 
         reportPaymentMessageSender.sendReportScheduledPayment(claim, paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(claim, datesOfBirthOfChildren, paymentCycle, testStart, SCHEDULED_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
 
     @Test
@@ -91,11 +90,10 @@ class ReportPaymentMessageSenderTest {
 
         reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle.getChildrenDob(), paymentCycle, testStart, SCHEDULED_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
 
     private void verifyNonTopUpPaymentMessageSent(Claim claim,
-                                                  List<LocalDate> datesOfBirthOfChildren,
                                                   PaymentCycle paymentCycle,
                                                   LocalDateTime testStart,
                                                   PaymentAction paymentAction) {
@@ -106,7 +104,6 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getPaymentAction()).isEqualTo(paymentAction);
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
         int voucherValue = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(payload.getPaymentForChildrenUnderOne()).isEqualTo(voucherEntitlement.getVouchersForChildrenUnderOne() * voucherValue);

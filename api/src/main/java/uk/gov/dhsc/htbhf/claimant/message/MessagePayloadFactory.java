@@ -50,7 +50,6 @@ public class MessagePayloadFactory {
                                                                            List<UpdatableClaimantField> updatedClaimantFields) {
         return ReportClaimMessagePayload.builder()
                 .claimId(claim.getId())
-                .datesOfBirthOfChildren(dateOfBirthOfChildren)
                 .claimAction(claimAction)
                 .timestamp(LocalDateTime.now())
                 .updatedClaimantFields(updatedClaimantFields)

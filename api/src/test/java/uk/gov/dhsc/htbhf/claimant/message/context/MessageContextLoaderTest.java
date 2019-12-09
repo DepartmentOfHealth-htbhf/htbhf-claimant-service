@@ -23,13 +23,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -442,7 +440,6 @@ class MessageContextLoaderTest {
                 .claimId(claim.getId())
                 .claimAction(ClaimAction.NEW)
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(singletonList(LocalDate.now().minusYears(1)))
                 .updatedClaimantFields(List.of(FIRST_NAME))
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
@@ -471,7 +468,6 @@ class MessageContextLoaderTest {
                 .claimId(claim.getId())
                 .paymentAction(PaymentAction.INITIAL_PAYMENT)
                 .paymentCycleId(paymentCycle.getId())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
                 .paymentForPregnancy(100)
                 .paymentForChildrenUnderOne(100)
                 .paymentForChildrenBetweenOneAndFour(100)

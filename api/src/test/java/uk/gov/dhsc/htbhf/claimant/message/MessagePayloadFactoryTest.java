@@ -69,7 +69,6 @@ class MessagePayloadFactoryTest {
         ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, updatedClaimantFields);
 
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
         assertThat(payload.getClaimAction()).isEqualTo(claimAction);
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(now);
         assertThat(payload.getUpdatedClaimantFields()).isEqualTo(updatedClaimantFields);
