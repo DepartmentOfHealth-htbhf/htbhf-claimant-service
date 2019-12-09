@@ -527,10 +527,7 @@ class ClaimServiceTest {
     void shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse() {
         // given
         Claim claim = aValidClaim();
-        CombinedIdentityAndEligibilityResponse response = 
-                CombinedIdentityAndEligibilityResponse.builder()
-                .dwpHouseholdIdentifier(UUID.randomUUID().toString())
-                .build();
+        CombinedIdentityAndEligibilityResponse response = CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse();
 
         // when
         claimService.updateCurrentIdentityAndEligibilityResponse(claim, response);
