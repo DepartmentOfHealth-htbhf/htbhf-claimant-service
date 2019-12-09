@@ -47,8 +47,8 @@ abstract class ReportPropertiesFactoryTest {
                 entry("cd8", postcodeData.getParliamentaryConstituency()),
                 entry("cd9", postcodeData.getCcg()), // Clinical Commissioning Group
                 entry("cd10", postcodeData.getCodes().getCcg()), // Clinical Commissioning Group code
-                entry("cm1", "1"), // number of children under one
-                entry("cm2", "0"), // number of children between one and four
+                entry("cm1", "0"), // number of children under one
+                entry("cm2", "1"), // number of children between one and four
                 entry("cm3", "1"), // number of pregnancies
                 entry("cm7", getExpectedClaimantAge(claim, timestamp)) // claimant age in years
         );

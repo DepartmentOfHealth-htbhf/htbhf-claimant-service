@@ -61,7 +61,7 @@ public class ReportPaymentIntegrationTest {
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
         wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT,
-                paymentCycle.getTotalEntitlementAmountInPence(), paymentCycle.getChildrenDob());
+                paymentCycle.getTotalEntitlementAmountInPence());
     }
 
     @Test
@@ -75,8 +75,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT,
-                paymentCycle.getTotalEntitlementAmountInPence(), paymentCycle.getChildrenDob());
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence());
     }
 
     @Test
@@ -91,7 +90,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, TOP_UP_PAYMENT, paymentAmount, paymentCycle.getChildrenDob());
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, TOP_UP_PAYMENT, paymentAmount);
     }
 
     private void stubPostcodesIoAndGoogleAnalytics(String postcode) throws JsonProcessingException {

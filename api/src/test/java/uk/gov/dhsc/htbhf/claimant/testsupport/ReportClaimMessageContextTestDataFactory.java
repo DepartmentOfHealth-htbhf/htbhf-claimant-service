@@ -7,7 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
@@ -29,7 +28,6 @@ public class ReportClaimMessageContextTestDataFactory {
                 .claim(aValidClaim())
                 .updatedClaimantFields(List.of(FIRST_NAME, LAST_NAME))
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
                 .claimAction(NEW);
     }
 }

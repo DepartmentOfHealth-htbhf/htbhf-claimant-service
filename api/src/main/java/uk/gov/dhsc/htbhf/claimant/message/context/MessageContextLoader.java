@@ -133,7 +133,6 @@ public class MessageContextLoader {
         return ReportClaimMessageContext.builder()
                 .claim(claim)
                 .claimAction(payload.getClaimAction())
-                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .timestamp(payload.getTimestamp())
                 .updatedClaimantFields(payload.getUpdatedClaimantFields())
                 .build();
@@ -151,7 +150,6 @@ public class MessageContextLoader {
                 .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())
                 .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())
                 .paymentForBackdatedVouchers(payload.getPaymentForBackdatedVouchers())
-                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
                 .paymentAction(payload.getPaymentAction())
                 .timestamp(payload.getTimestamp())
                 .build();

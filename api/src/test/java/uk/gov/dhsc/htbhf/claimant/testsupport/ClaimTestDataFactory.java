@@ -12,9 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
@@ -120,9 +118,9 @@ public class ClaimTestDataFactory {
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .cardStatus(CardStatus.ACTIVE)
                 .initialIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(MAGGIE_AND_LISA_DOBS))
                 .currentIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(SINGLE_THREE_YEAR_OLD))
                 .cardStatusTimestamp(LocalDateTime.now());
     }
 

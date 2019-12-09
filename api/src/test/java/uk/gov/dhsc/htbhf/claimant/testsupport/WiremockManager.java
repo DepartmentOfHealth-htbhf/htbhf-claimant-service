@@ -184,11 +184,8 @@ public class WiremockManager {
         postcodesMock.verify(1, getRequestedFor(urlEqualTo(expectedPostcodesUrl)));
     }
 
-    public void verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(Claim claim, ClaimAction claimAction) {
-        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, emptyList());
-    }
-
-    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, List<LocalDate> childrenDatesOfBirth) {
+    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction) {
+        List<LocalDate> childrenDatesOfBirth = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
         int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
 
@@ -211,10 +208,8 @@ public class WiremockManager {
                                 + ".*"))); // rest of payload data
     }
 
-    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim,
-                                                           PaymentAction paymentAction,
-                                                           Integer paymentAmount,
-                                                           List<LocalDate> childrenDatesOfBirth) {
+    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim, PaymentAction paymentAction, Integer paymentAmount) {
+        List<LocalDate> childrenDatesOfBirth = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
         int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
 

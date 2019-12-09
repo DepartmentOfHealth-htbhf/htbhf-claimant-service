@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,8 +45,7 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
     void shouldCreateReportPropertiesForPayment() {
         int secondsSinceEvent = 1;
         LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
-        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
-        ReportPaymentMessageContext context = aReportPaymentMessageContext(timestamp, datesOfBirthOfChildren, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+        ReportPaymentMessageContext context = aReportPaymentMessageContext(timestamp, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(context.getPaymentCycle()))
                 .willReturn(NextPaymentCycleSummary.builder()
@@ -67,12 +65,12 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cm6", "100"), // payment for pregnancy (pregnant for the entire payment cycle = 4 vouchers)
                 entry("cm8", "2") // number of children turning 1 or 4 in the next cycle.
         );
-        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
+        List<LocalDate> dobOfChildrenUnder4 = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), dobOfChildrenUnder4, timestamp.toLocalDate());
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(context.getPaymentCycle());
     }
 
     private ReportPaymentMessageContext aReportPaymentMessageContext(LocalDateTime timestamp,
-                                                                     List<LocalDate> datesOfBirthOfChildren,
                                                                      LocalDate expectedDeliveryDate) {
         Claim claim = aClaimWithDueDateAndPostcodeData(expectedDeliveryDate);
         return ReportPaymentMessageContext.builder()
@@ -83,7 +81,6 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 .paymentForChildrenBetweenOneAndFour(100)
                 .paymentForBackdatedVouchers(100)
                 .claim(claim)
-                .datesOfBirthOfChildren(datesOfBirthOfChildren)
                 .timestamp(timestamp)
                 .build();
     }

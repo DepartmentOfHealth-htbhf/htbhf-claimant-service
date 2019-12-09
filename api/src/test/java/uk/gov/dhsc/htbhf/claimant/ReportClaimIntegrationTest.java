@@ -57,7 +57,7 @@ public class ReportClaimIntegrationTest {
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, NEW, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, NEW);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class ReportClaimIntegrationTest {
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, REJECTED, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, REJECTED);
     }
 
     private void stubPostcodesIoAndGoogleAnalytics(String postcode) throws JsonProcessingException {

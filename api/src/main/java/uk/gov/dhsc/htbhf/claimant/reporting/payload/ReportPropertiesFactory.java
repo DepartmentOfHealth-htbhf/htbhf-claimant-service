@@ -1,15 +1,18 @@
 package uk.gov.dhsc.htbhf.claimant.reporting.payload;
 
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -79,8 +82,10 @@ public abstract class ReportPropertiesFactory {
     protected Map<String, Object> createCommonCustomDimensions(ReportEventMessageContext context) {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
+        Claim claim = context.getClaim();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = claim.getCurrentIdentityAndEligibilityResponse();
         ClaimantCategory claimantCategory = claimantCategoryCalculator
-                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+                .determineClaimantCategory(claim.getClaimant(), identityAndEligibilityResponse.getDobOfChildrenUnder4(), context.getTimestamp().toLocalDate());
         customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
         PostcodeData postcodeData = context.getClaim().getPostcodeData();
         customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());
@@ -95,11 +100,13 @@ public abstract class ReportPropertiesFactory {
 
     protected Map<String, Object> createCommonCustomMetrics(ReportEventMessageContext context) {
         Map<String, Object> customMetrics = new TreeMap<>();
-        Claimant claimant = context.getClaim().getClaimant();
+        Claim claim = context.getClaim();
+        Claimant claimant = claim.getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
-        long childrenUnder4 = getNumberOfChildrenUnderFour(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
-        long childrenUnder1 = getNumberOfChildrenUnderOne(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+        List<LocalDate> dobOfChildrenUnder4 = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, context.getTimestamp().toLocalDate());
+        long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, context.getTimestamp().toLocalDate());
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
         customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);
         LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();

@@ -454,7 +454,6 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getClaimAction()).isEqualTo(payload.getClaimAction());
-        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         assertThat(context.getUpdatedClaimantFields()).isEqualTo(payload.getUpdatedClaimantFields());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);
@@ -489,7 +488,6 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
-        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         assertThat(context.getPaymentAction()).isEqualTo(payload.getPaymentAction());
         assertThat(context.getPaymentForPregnancy()).isEqualTo(100);

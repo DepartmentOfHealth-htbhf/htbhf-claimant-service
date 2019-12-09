@@ -67,7 +67,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
-    
+
     // TODO HTBHF-2475 - update integration tests to confirm currentIdentityAndEligibilityResponse is updated, once we are calling v3 eligibility service
 
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
@@ -111,21 +111,22 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // The processing of a make payment message will create a report payment message, so we need to invoke the schedulers again
         invokeAllSchedulers();
 
+        claim = repositoryMediator.loadClaim(claim.getId());
+
         // confirm new payment cycle created with a payment
         PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 LocalDate.now(), currentPaymentCycleChildrenDobs, claim.getClaimant().getExpectedDeliveryDate());
         assertPaymentCycleIsFullyPaid(newCycle, currentPaymentCycleChildrenDobs, expectedVoucherEntitlement);
 
-        assertClaimStatus(claim, ACTIVE);
+        assertThat(claim.getClaimStatus()).isEqualTo(ACTIVE);
 
         // confirm card service called to make payment
         Payment payment = newCycle.getPayments().iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, newCycle.getTotalEntitlementAmountInPence(),
-                currentPaymentCycleChildrenDobs);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, newCycle.getTotalEntitlementAmountInPence());
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle, emailType);
@@ -285,9 +286,11 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.stubSuccessfulEligibilityResponse(currentPaymentCycleChildrenDobs);
         stubNotificationEmailResponse();
 
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousPaymentCycleChildrenDobs, NOT_PREGNANT);
+        UUID claimId = createActiveClaimWithPaymentCycleEndingYesterday(previousPaymentCycleChildrenDobs, NOT_PREGNANT).getId();
 
         invokeAllSchedulers();
+
+        Claim claim = repositoryMediator.loadClaim(claimId);
 
         assertFullLengthPaymentCycleWithNoPayment(claim);
 
@@ -296,7 +299,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatNoChildOnFeedNoLongerEligibleEmailWasSent(claim);
@@ -344,9 +347,11 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         stubNotificationEmailResponse();
 
         //Create previous PaymentCycle
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, expectedDeliveryDate);
+        UUID claimId = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, expectedDeliveryDate).getId();
 
         invokeAllSchedulers();
+
+        Claim claim = repositoryMediator.loadClaim(claimId);
 
         assertWeeklyPaymentCycleWithNoPayment(claim);
 
@@ -355,7 +360,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatClaimNoLongerEligibleEmailWasSent(claim);
@@ -373,9 +378,11 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
 
         //Create previous PaymentCycle
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, NOT_PREGNANT);
+        UUID claimId = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, NOT_PREGNANT).getId();
 
         invokeAllSchedulers();
+
+        Claim claim = repositoryMediator.loadClaim(claimId);
 
         assertFullLengthPaymentCycleWithNoPayment(claim);
 
@@ -384,7 +391,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
 
         // confirm no emails sent to claimant
         verifyNoMoreInteractions(notificationClient);
@@ -410,6 +417,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
+        claim = repositoryMediator.loadClaim(claim.getId());
+
         assertFullLengthPaymentCycleWithNoPayment(claim);
 
         assertClaimAndCardStatus(claim, EXPIRED, PENDING_CANCELLATION);
@@ -417,7 +426,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
 
         // confirm no emails sent to claimant
         verifyNoMoreInteractions(notificationClient);
@@ -439,10 +448,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // create previous PaymentCycle
         LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(17);
         LocalDateTime cardStatusTimestamp = LocalDateTime.now().minusWeeks(17);
-        Claim claim = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY, PENDING_CANCELLATION, claimStatusTimestamp, cardStatusTimestamp,
-                previousCycleChildrenDobs, expectedDeliveryDate);
+        UUID claimId = createClaimWithPaymentCycleEndingYesterday(PENDING_EXPIRY, PENDING_CANCELLATION, claimStatusTimestamp, cardStatusTimestamp,
+                previousCycleChildrenDobs, expectedDeliveryDate).getId();
 
         invokeAllSchedulers();
+
+        Claim claim = repositoryMediator.loadClaim(claimId);
 
         assertFullLengthPaymentCycleWithNoPayment(claim);
 
@@ -451,12 +462,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        if (eligibilityStatus == ELIGIBLE) {
-            wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, currentCycleChildrenDobs);
-        } else {
-            // non eligible responses will not have children dates of birth
-            wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
-        }
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
 
         // confirm notify component invoked with correct email template & personalisation
         invokeAllSchedulers();
@@ -485,7 +491,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         assertWeeklyPaymentCycleWithNoPayment(claim);
 
-        assertClaimStatus(claim, PENDING_EXPIRY);
+        assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
 
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
@@ -538,15 +544,9 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         );
     }
 
-    private void assertClaimStatus(Claim claim, ClaimStatus expectedClaimStatus) {
-        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
-        assertThat(updatedClaim.getClaimStatus()).isEqualTo(expectedClaimStatus);
-    }
-
     private void assertClaimAndCardStatus(Claim claim, ClaimStatus expectedClaimStatus, CardStatus expectedCardStatus) {
-        Claim updatedClaim = repositoryMediator.loadClaim(claim.getId());
-        assertThat(updatedClaim.getClaimStatus()).isEqualTo(expectedClaimStatus);
-        assertThat(updatedClaim.getCardStatus()).isEqualTo(expectedCardStatus);
+        assertThat(claim.getClaimStatus()).isEqualTo(expectedClaimStatus);
+        assertThat(claim.getCardStatus()).isEqualTo(expectedCardStatus);
     }
 
     private void invokeAllSchedulers() {
