@@ -23,6 +23,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
@@ -51,6 +52,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEV
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -519,6 +521,20 @@ class ClaimServiceTest {
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
         assertThat(eventCaptor.getValue().getEventMetadata().get(FailureEvent.FAILED_EVENT_KEY)).isEqualTo(ClaimEventType.NEW_CLAIM);
         verifyNoInteractions(claimMessageSender);
+    }
+    
+    @Test
+    void shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse() {
+        // given
+        Claim claim = aValidClaim();
+        CombinedIdentityAndEligibilityResponse response = CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse();
+
+        // when
+        claimService.updateCurrentIdentityAndEligibilityResponse(claim, response);
+
+        // then
+        assertThat(claim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(response);
+        verify(claimRepository).save(claim);
     }
 
     private void assertClaimPersistedCorrectly(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {

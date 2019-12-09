@@ -14,6 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageCon
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
+import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
 
 import java.time.LocalDate;
@@ -56,13 +57,15 @@ class DetermineEntitlementMessageProcessorTest {
     private PaymentCycleService paymentCycleService;
     @Mock
     private EligibilityDecisionHandler eligibilityDecisionHandler;
+    @Mock
+    private ClaimService claimService;
 
     private DetermineEntitlementMessageProcessor processor;
 
     @BeforeEach
     void init() {
         processor = new DetermineEntitlementMessageProcessor(MAXIMUM_PENDING_EXPIRY_DURATION, eligibilityAndEntitlementService, messageContextLoader,
-                paymentCycleService, eligibilityDecisionHandler);
+                paymentCycleService, eligibilityDecisionHandler, claimService);
     }
 
     @Test
@@ -94,6 +97,7 @@ class DetermineEntitlementMessageProcessorTest {
 
         verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
         verify(eligibilityDecisionHandler).handleEligibleDecision(context.getClaim(), context.getCurrentPaymentCycle());
+        verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
 
     @Test
@@ -117,6 +121,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(eligibilityDecisionHandler).handleEligibleDecision(context.getClaim(), context.getCurrentPaymentCycle());
+        verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
 
     @Test
@@ -154,6 +159,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(eligibilityDecisionHandler)
                 .handleIneligibleDecisionForActiveClaim(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
         verify(paymentCycleService).updateEndDateForClaimBecomingPendingExpiry(context.getCurrentPaymentCycle());
+        verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
 
     @Test
@@ -191,6 +197,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
         verify(eligibilityDecisionHandler).expirePendingExpiryClaim(context.getClaim(), decision.getDateOfBirthOfChildren());
+        verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
 
     @Test
@@ -215,6 +222,7 @@ class DetermineEntitlementMessageProcessorTest {
         verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
+        verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
 
     private DetermineEntitlementMessageContext buildMessageContextWithClaimInPendingExpiry(LocalDateTime claimStatusTimestamp) {
