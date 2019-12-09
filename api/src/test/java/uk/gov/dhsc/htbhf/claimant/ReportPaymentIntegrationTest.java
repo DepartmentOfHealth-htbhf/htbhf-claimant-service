@@ -6,7 +6,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -29,8 +28,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFac
 @AutoConfigureEmbeddedDatabase
 public class ReportPaymentIntegrationTest {
 
-    @Value("${google-analytics.tracking-id}")
-    private String trackingId;
     @Autowired
     private ReportPaymentMessageSender reportPaymentMessageSender;
     @Autowired
@@ -63,7 +60,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, trackingId,
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT,
                 paymentCycle.getTotalEntitlementAmountInPence(), paymentCycle.getChildrenDob());
     }
 
@@ -78,7 +75,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId,
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT,
                 paymentCycle.getTotalEntitlementAmountInPence(), paymentCycle.getChildrenDob());
     }
 
@@ -94,7 +91,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, TOP_UP_PAYMENT, trackingId, paymentAmount, paymentCycle.getChildrenDob());
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, TOP_UP_PAYMENT, paymentAmount, paymentCycle.getChildrenDob());
     }
 
     private void stubPostcodesIoAndGoogleAnalytics(String postcode) throws JsonProcessingException {

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
@@ -60,9 +59,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     @Autowired
     TestRestTemplate restTemplate;
 
-    @Value("${google-analytics.tracking-id}")
-    private String trackingId;
-
     /**
      * Run a simple claim through its entire lifecycle and confirm the correct events happen & right emails sent.
      * Each vertical bar is the start of a payment cycle.
@@ -82,7 +78,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
         Claim claim = repositoryMediator.loadClaim(claimId);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_NEW_TO_ACTIVE, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_NEW_TO_ACTIVE);
         assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
 
         // run through 4 cycles while pregnant (we pay vouchers for up to 12 weeks after due date
@@ -280,7 +276,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     void shouldProcessClaimThatExpiresDueToLossOfChild() throws JsonProcessingException, NotificationClientException {
         UUID claimId = applyForHealthyStartAsNonPregnantWomanWithChildren(SINGLE_SIX_MONTH_OLD);
         Claim claim = repositoryMediator.loadClaim(claimId);
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_NEW_TO_ACTIVE, trackingId, SINGLE_SIX_MONTH_OLD);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_NEW_TO_ACTIVE, SINGLE_SIX_MONTH_OLD);
         assertFirstCyclePaidCorrectly(claimId, SINGLE_SIX_MONTH_OLD);
 
         // no children come back from eligibility service, making the claim expired.
@@ -292,7 +288,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // invoke schedulers to report the claim expiring
         invokeAllSchedulers();
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED, trackingId);
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
 
         LocalDateTime now = LocalDateTime.now();
         // 16 weeks pass
@@ -415,7 +411,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         verifyNoMoreInteractions(notificationClient);
         // invoke scheduler to report payment
         invokeAllSchedulers();
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, trackingId, paymentCycle.getTotalEntitlementAmountInPence(),
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(),
                 datesOfBirthOfChildren);
     }
 
@@ -425,8 +421,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         PaymentCycle paymentCycle = getAndAssertPaymentCycle(claim);
         assertPaymentHasCorrectAmount(claim, paymentCycle, childrenDob);
         assertThatPaymentEmailWasSent(paymentCycle, emailType);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId, paymentCycle.getTotalEntitlementAmountInPence(),
-                childrenDob);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(), childrenDob);
         return paymentCycle;
     }
 
@@ -441,8 +436,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Payment payment = paymentCycle.getPayments().iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
         assertThatNewChildEmailWasSent(paymentCycle);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, trackingId,
-                expectedEntitlement.getTotalVoucherValueInPence(), childrenDob);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, expectedEntitlement.getTotalVoucherValueInPence(), childrenDob);
     }
 
     private PaymentCycle getAndAssertPaymentCycle(Claim claim) {
