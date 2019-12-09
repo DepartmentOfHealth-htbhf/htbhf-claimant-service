@@ -71,6 +71,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     @Value("${google-analytics.tracking-id}")
     private String trackingId;
+    
+    // TODO HTBHF-2475 - update integration tests to confirm currentIdentityAndEligibilityResponse is updated, once we are calling v3 eligibility service
 
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
     @MethodSource("provideArgumentsForActiveClaimTests")
