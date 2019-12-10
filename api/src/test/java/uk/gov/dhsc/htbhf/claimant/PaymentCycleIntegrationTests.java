@@ -5,15 +5,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -49,8 +49,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
+import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome.NOT_SET;
 
 class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
@@ -67,7 +68,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
-    
+
     // TODO HTBHF-2475 - update integration tests to confirm currentIdentityAndEligibilityResponse is updated, once we are calling v3 eligibility service
 
     @ParameterizedTest(name = "Children DOB previous cycle={0}, children DOB current cycle={1}")
@@ -365,12 +366,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     @DisplayName("Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, "
             + "not pregnant, children over 4 present in previous cycle, response from DWP has no children")
     @ParameterizedTest(name = "DWP eligibility status={0}")
-    @ValueSource(strings = {"ELIGIBLE", "INELIGIBLE"})
-    void shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+    @EnumSource(EligibilityOutcome.class)
+    void shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
         List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
         List<LocalDate> previousCycleChildrenDobs = SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE;
         //DWP will not return children over 4 in response
-        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityOutcome);
 
         //Create previous PaymentCycle
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, NOT_PREGNANT);
@@ -394,12 +395,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
             + "the claim status is set to Expired and no email is sent, DWP status is irrelevant.")
     @ParameterizedTest(name = "Eligibility status={0}, expected delivery date={1}")
     @MethodSource("provideArgumentsForTestingNoLongerPregnantWithNoChildren")
-    void shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityStatus eligibilityStatus, LocalDate expectedDeliveryDateInCurrentCycle)
+    void shouldTestClaimBecomingExpiredWhenNoLongerPregnantWithNoChildren(EligibilityOutcome eligibilityOutcome, LocalDate expectedDeliveryDateInCurrentCycle)
             throws JsonProcessingException {
         List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
         List<LocalDate> previousCycleChildrenDobs = NO_CHILDREN;
         //DWP will not return children over 4 in response
-        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityStatus);
+        wiremockManager.stubEligibilityResponse(currentPaymentCycleChildrenDobs, eligibilityOutcome);
 
         //Create previous PaymentCycle
         Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(previousCycleChildrenDobs, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
@@ -429,10 +430,10 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldTestClaimBecomingExpiredAfter16WeeksPendingExpiry(List<LocalDate> previousCycleChildrenDobs,
                                                                  List<LocalDate> currentCycleChildrenDobs,
                                                                  LocalDate expectedDeliveryDate,
-                                                                 EligibilityStatus eligibilityStatus)
+                                                                 EligibilityOutcome eligibilityOutcome)
             throws JsonProcessingException, NotificationClientException {
 
-        wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityStatus);
+        wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityOutcome);
         wiremockManager.stubGoogleAnalyticsCall();
         stubNotificationEmailResponse();
 
@@ -451,12 +452,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        if (eligibilityStatus == ELIGIBLE) {
-            wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, currentCycleChildrenDobs);
-        } else {
-            // non eligible responses will not have children dates of birth
-            wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
-        }
+        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, currentCycleChildrenDobs);
 
         // confirm notify component invoked with correct email template & personalisation
         invokeAllSchedulers();
@@ -470,9 +466,9 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldTestClaimRemainingPendingExpiryIfLessThan16Weeks(List<LocalDate> previousCycleChildrenDobs,
                                                                 List<LocalDate> currentCycleChildrenDobs,
                                                                 LocalDate expectedDeliveryDate,
-                                                                EligibilityStatus eligibilityStatus) throws JsonProcessingException {
+                                                                EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
 
-        wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityStatus);
+        wiremockManager.stubEligibilityResponse(currentCycleChildrenDobs, eligibilityOutcome);
 
         // create previous PaymentCycle
         LocalDateTime claimStatusTimestamp = LocalDateTime.now().minusWeeks(2);
@@ -515,26 +511,30 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         );
     }
 
-    //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date, fourth is the eligibility status.
+    //First argument is the previous cycle, second argument is the current cycle, third is the expected delivery date, fourth is the eligibility outcome.
     private static Stream<Arguments> provideArgumentsForTestingPendingExpiryClaim() {
         return Stream.of(
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, INELIGIBLE),
-                Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, INELIGIBLE),
-                Arguments.of(NO_CHILDREN, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, INELIGIBLE),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, ELIGIBLE),
-                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE),
-                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, ELIGIBLE),
-                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, INELIGIBLE)
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NOT_CONFIRMED),
+                Arguments.of(NO_CHILDREN, SINGLE_THREE_YEAR_OLD, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NOT_CONFIRMED),
+                Arguments.of(NO_CHILDREN, NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NOT_CONFIRMED),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, CONFIRMED),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, NOT_CONFIRMED),
+                Arguments.of(SINGLE_THREE_YEAR_OLD, NO_CHILDREN, NOT_PREGNANT, NOT_SET),
+                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, CONFIRMED),
+                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, NOT_CONFIRMED),
+                Arguments.of(SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE, NO_CHILDREN, NOT_PREGNANT, NOT_SET)
         );
     }
 
     //First argument is the status returned by DWP, second argument is the expected delivery date of the claimant in the current cycle.
     private static Stream<Arguments> provideArgumentsForTestingNoLongerPregnantWithNoChildren() {
         return Stream.of(
-                Arguments.of(INELIGIBLE, NOT_PREGNANT),
-                Arguments.of(INELIGIBLE, EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST),
-                Arguments.of(ELIGIBLE, NOT_PREGNANT),
-                Arguments.of(ELIGIBLE, EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST)
+                Arguments.of(NOT_SET, NOT_PREGNANT),
+                Arguments.of(NOT_SET, EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST),
+                Arguments.of(NOT_CONFIRMED, NOT_PREGNANT),
+                Arguments.of(NOT_CONFIRMED, EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST),
+                Arguments.of(CONFIRMED, NOT_PREGNANT),
+                Arguments.of(CONFIRMED, EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST)
         );
     }
 
@@ -588,7 +588,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertThat(paymentCycle.getCycleStartDate()).isEqualTo(LocalDate.now());
         assertThat(paymentCycle.getCycleEndDate()).isEqualTo(expectedEndDate);
-        assertThat(paymentCycle.getChildrenDob()).isEmpty();
         assertThat(paymentCycle.getVoucherEntitlement()).isNull();
         assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.INELIGIBLE);
         assertThat(paymentCycle.getCardBalanceInPence()).isNull();
