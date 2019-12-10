@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.reporting.payload;
 
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
@@ -79,10 +80,12 @@ public abstract class ReportPropertiesFactory {
     protected Map<String, Object> createCommonCustomDimensions(ReportEventMessageContext context) {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
+        Claim claim = context.getClaim();
         ClaimantCategory claimantCategory = claimantCategoryCalculator
-                .determineClaimantCategory(context.getClaim().getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+                .determineClaimantCategory(claim.getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+
         customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
-        PostcodeData postcodeData = context.getClaim().getPostcodeData();
+        PostcodeData postcodeData = claim.getPostcodeData();
         customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());
         customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());
         customDimensions.put(COUNTRY.getFieldName(), postcodeData.getCountry());
@@ -90,6 +93,8 @@ public abstract class ReportPropertiesFactory {
         customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());
+        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), claim.getCurrentIdentityAndEligibilityResponse().getQualifyingBenefits());
+
         return customDimensions;
     }
 
