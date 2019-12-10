@@ -17,6 +17,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
+import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
+
 @AllArgsConstructor
 @Slf4j
 public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitlementService {
@@ -40,15 +42,15 @@ public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitle
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
+        if (liveClaimsWithNino.isPresent()) {
+            return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
+        }
+
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 LocalDate.now());
-        if (liveClaimsWithNino.isPresent()) {
-            return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                    entitlement, liveClaimsWithNino.get(), false);
-        }
         boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
                 entitlement, null, duplicateHouseholdIdentifierFound);
@@ -66,6 +68,7 @@ public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitle
      * @return the eligibility and entitlement for the claimant
      */
     @Override
+    // TODO HTBHF-2682 Add unit test for method.
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {

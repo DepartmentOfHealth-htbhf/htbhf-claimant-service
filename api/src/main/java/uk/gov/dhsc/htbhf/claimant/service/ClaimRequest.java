@@ -7,7 +7,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.util.Map;
 
 /**
- * The content of a createOrUpdateClaim request.
+ * The content of a createClaim request.
  */
 @Data
 @Builder
