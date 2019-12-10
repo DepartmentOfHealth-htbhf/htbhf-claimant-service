@@ -7,9 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -24,12 +22,10 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_DELIVERY_DATE;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
@@ -51,16 +47,14 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
+    // TODO HTBHF-2682 Rename this method (and others) to createClaim.
     public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
-            if (decision.claimExistsAndIsEligible()) {
-                Claim claim = claimRepository.findClaim(decision.getExistingClaimId());
-                List<UpdatableClaimantField> updatedFields = updateClaim(claim, claimRequest.getClaimant());
-                sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
-                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);
-                return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields, decision.getIdentityAndEligibilityResponse());
+            if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
+                Claim claim = createAndSaveClaim(claimRequest, decision);
+                claimMessageSender.sendReportClaimMessage(claim, emptyList(), ClaimAction.REJECTED);
+                return ClaimResult.withNoEntitlement(claim);
             }
 
             Claim claim = createAndSaveClaim(claimRequest, decision);
@@ -84,12 +78,6 @@ public class ClaimService {
         claim.setCurrentIdentityAndEligibilityResponse(response);
         claimRepository.save(claim);
     }
-    
-    private void sendAdditionalPaymentMessageIfNewDueDateProvided(Claim claim, List<UpdatableClaimantField> updatedFields) {
-        if (claim.getClaimant().getExpectedDeliveryDate() != null && updatedFields.contains(EXPECTED_DELIVERY_DATE)) {
-            claimMessageSender.sendAdditionalPaymentMessage(claim);
-        }
-    }
 
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
         EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
@@ -102,26 +90,6 @@ public class ClaimService {
                 .build();
         eventAuditor.auditFailedEvent(failureEvent);
         claimRepository.save(claim);
-    }
-
-    private List<UpdatableClaimantField> updateClaim(Claim claim, Claimant claimant) {
-        List<UpdatableClaimantField> updatedFields = updateClaimantFields(claim, claimant);
-        log.info("Updating claim: {},  fields updated {}", claim.getId(), updatedFields);
-        claimRepository.save(claim);
-        eventAuditor.auditUpdatedClaim(claim, updatedFields);
-        return updatedFields;
-    }
-
-    private List<UpdatableClaimantField> updateClaimantFields(Claim claim, Claimant claimant) {
-        Claimant originalClaimant = claim.getClaimant();
-        List<UpdatableClaimantField> updatedFields = new ArrayList<>();
-        for (UpdatableClaimantField field : UpdatableClaimantField.values()) {
-            if (field.valueIsDifferent(originalClaimant, claimant)) {
-                field.updateOriginal(originalClaimant, claimant);
-                updatedFields.add(field);
-            }
-        }
-        return updatedFields;
     }
 
     private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {

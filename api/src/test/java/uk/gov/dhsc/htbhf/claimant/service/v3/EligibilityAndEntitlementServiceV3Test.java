@@ -8,12 +8,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
-import uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
@@ -35,7 +33,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTe
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityAndEntitlementServiceV3Test {
@@ -68,35 +65,18 @@ class EligibilityAndEntitlementServiceV3Test {
     EligibilityAndEntitlementDecisionFactory eligibilityAndEntitlementDecisionFactory;
 
     @Test
-    void shouldReturnExistingClaimIdWhenLiveClaimAlreadyExists() {
+    void shouldReturnDuplicateWhenLiveClaimAlreadyExists() {
         //Given
         UUID existingClaimId = UUID.randomUUID();
-        setupCommonMocks(existingClaimId);
-        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(INELIGIBLE);
+        given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.of(existingClaimId));
 
         //When
         EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
 
         //Then
-        assertThat(decision).isEqualTo(decisionResponse);
-        verifyCommonMocks(existingClaimId, NOT_DUPLICATE);
-        verifyNoInteractions(duplicateClaimChecker);
-    }
-
-    @Test
-    void shouldReturnEligibleWhenNotDuplicateAndEligible() {
-        //Given
-        setupCommonMocks(NO_EXISTING_CLAIM);
-        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
-        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
-
-        //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
-
-        //Then
-        assertThat(result).isEqualTo(decisionResponse);
-        verifyCommonMocks(NO_EXISTING_CLAIM, NOT_DUPLICATE);
-        verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
+        assertThat(decision.getEligibilityStatus()).isEqualTo(EligibilityStatus.DUPLICATE);
+        assertThat(decision.getExistingClaimId()).isEqualTo(existingClaimId);
+        verifyNoInteractions(client);
     }
 
     @Test
@@ -116,27 +96,19 @@ class EligibilityAndEntitlementServiceV3Test {
     }
 
     @Test
-    void shouldReturnEligibleForExistingClaimantWithVouchers() {
+    void shouldReturnEligibleWhenNotDuplicateAndEligible() {
         //Given
-        PaymentCycle previousCycle = PaymentCycleTestDataFactory.aValidPaymentCycle();
-        given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);
-        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        setupCommonMocks(NO_EXISTING_CLAIM);
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
-        LocalDate cycleStartDate = LocalDate.now().minusDays(1);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateClaimantForPaymentCycle(CLAIMANT, cycleStartDate, previousCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
-        verify(client).checkIdentityAndEligibility(CLAIMANT);
-        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
-                Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
-                DATE_OF_BIRTH_OF_CHILDREN,
-                cycleStartDate,
-                previousCycle.getVoucherEntitlement());
-        verifyDecisionFactoryCalledCorrectly(NO_EXISTING_CLAIM, NOT_DUPLICATE);
-        verifyNoInteractions(duplicateClaimChecker, claimRepository);
+        verifyCommonMocks(NO_EXISTING_CLAIM, NOT_DUPLICATE);
+        verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
     }
 
     private EligibilityAndEntitlementDecision setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus status) {
