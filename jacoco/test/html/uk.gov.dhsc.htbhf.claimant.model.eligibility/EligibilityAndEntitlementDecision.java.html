@@ -31,12 +31,15 @@ public class EligibilityAndEntitlementDecision {
 <span class="fc" id="L31">                .build();</span>
     }
 
-    public boolean claimExistsAndIsEligible() {
-<span class="fc bfc" id="L35" title="All 4 branches covered.">        return existingClaimId != null &amp;&amp; eligibilityStatus == EligibilityStatus.ELIGIBLE;</span>
+    public static EligibilityAndEntitlementDecision buildDuplicateDecisionWithExistingClaimId(UUID existingClaimId) {
+<span class="fc" id="L35">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L36">                .eligibilityStatus(EligibilityStatus.DUPLICATE)</span>
+<span class="fc" id="L37">                .existingClaimId(existingClaimId)</span>
+<span class="fc" id="L38">                .build();</span>
     }
 
     public boolean childrenPresent() {
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
