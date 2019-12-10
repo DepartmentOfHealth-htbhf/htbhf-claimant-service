@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 
 import java.time.LocalDate;
 
@@ -30,5 +30,5 @@ public class PersonDTO {
     private final LocalDate dateOfBirth;
 
     @JsonProperty("address")
-    private final AddressDTO address;
+    private final AddressDTOV3 address;
 }

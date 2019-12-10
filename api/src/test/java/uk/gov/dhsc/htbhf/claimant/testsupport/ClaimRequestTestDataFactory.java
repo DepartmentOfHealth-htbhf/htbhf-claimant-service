@@ -4,7 +4,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest.ClaimRequestBuilder;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.DEVICE_FINGERPRINT;
+
 
 public class ClaimRequestTestDataFactory {
 

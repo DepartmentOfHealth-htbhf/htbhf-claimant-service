@@ -18,7 +18,6 @@ import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
-import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory;
 
 import java.util.Optional;
 
@@ -30,6 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.a
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
@@ -49,10 +49,8 @@ class ClaimControllerV3Test {
     @InjectMocks
     ClaimControllerV3 controller;
 
-    //Single unit test created to make sure the conversion from V3 to V2 objects works correctly, if any of the fields
-    // are not mapped correctly in the code in ClaimControllerV3 then this test will fail.
     @Test
-    void shouldInvokeClaimServiceWithConvertedClaimWithVoucherEntitlement() {
+    void shouldCreateAClaim() {
         // Given
         ClaimDTOV3 dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
@@ -70,7 +68,7 @@ class ClaimControllerV3Test {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(ClaimStatus.NEW));
         verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(ClaimantDTOTestDataFactory.aValidClaimantDTO());
+        verify(claimantConverter).convert(aValidClaimantDTO());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -90,7 +88,7 @@ class ClaimControllerV3Test {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.ERROR));
         verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(ClaimantDTOTestDataFactory.aValidClaimantDTO());
+        verify(claimantConverter).convert(aValidClaimantDTO());
     }
 
     private void verifyCreateOrUpdateClaimCalledCorrectly(Claimant claimant, ClaimDTOV3 dto) {

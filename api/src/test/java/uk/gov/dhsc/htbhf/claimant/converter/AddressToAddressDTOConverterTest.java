@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -17,7 +17,7 @@ class AddressToAddressDTOConverterTest {
         var address = aValidAddress();
 
         // When
-        AddressDTO result = converter.convert(address);
+        AddressDTOV3 result = converter.convert(address);
 
         // Then
         assertThat(result).isNotNull();

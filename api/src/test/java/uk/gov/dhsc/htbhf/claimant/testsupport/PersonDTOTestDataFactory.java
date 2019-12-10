@@ -6,7 +6,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.HOMER_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V1;
 import static uk.gov.dhsc.htbhf.TestConstants.SIMPSON_SURNAME;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
 
 public class PersonDTOTestDataFactory {
 

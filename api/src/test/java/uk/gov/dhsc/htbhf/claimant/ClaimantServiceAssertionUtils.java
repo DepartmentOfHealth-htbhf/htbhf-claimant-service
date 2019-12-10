@@ -5,8 +5,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
-import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 
@@ -22,21 +20,11 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE
 
 public class ClaimantServiceAssertionUtils {
 
-    public static final URI CLAIMANT_ENDPOINT_URI = URI.create("/v2/claims");
     public static final DateTimeFormatter EMAIL_DATE_PATTERN = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
 
     private static final ThreadLocal<DecimalFormat> CURRENCY_FORMAT = ThreadLocal.withInitial(() -> new DecimalFormat("£#,#0.00"));
-
-    public static void assertClaimantMatchesClaimantDTO(ClaimantDTO claimant, Claimant persistedClaim) {
-        assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
-        assertThat(persistedClaim.getFirstName()).isEqualTo(claimant.getFirstName());
-        assertThat(persistedClaim.getLastName()).isEqualTo(claimant.getLastName());
-        assertThat(persistedClaim.getDateOfBirth()).isEqualTo(claimant.getDateOfBirth());
-        assertThat(persistedClaim.getExpectedDeliveryDate()).isEqualTo(claimant.getExpectedDeliveryDate());
-        assertAddressEqual(persistedClaim.getAddress(), claimant.getAddress());
-    }
 
     public static void assertClaimantMatchesClaimantDTO(ClaimantDTOV3 claimant, Claimant persistedClaim) {
         assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
@@ -47,10 +35,7 @@ public class ClaimantServiceAssertionUtils {
         assertAddressEqual(persistedClaim.getAddress(), claimant.getAddress());
     }
 
-    public static RequestEntity buildClaimRequestEntity(Object requestObject) {
-        return buildClaimRequestEntityForUri(requestObject, CLAIMANT_ENDPOINT_URI);
-    }
-
+    // TODO HTBHF-2705 Change this to hardcoded v3 claim endpoint instead of a URI parameter.
     public static RequestEntity buildClaimRequestEntityForUri(Object requestObject, URI uri) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -69,15 +54,6 @@ public class ClaimantServiceAssertionUtils {
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
         assertThat(failedPayments).hasSize(expectedFailureCount);
-    }
-
-    private static void assertAddressEqual(Address actual, AddressDTO expected) {
-        assertThat(actual).isNotNull();
-        assertThat(actual.getAddressLine1()).isEqualTo(expected.getAddressLine1());
-        assertThat(actual.getAddressLine2()).isEqualTo(expected.getAddressLine2());
-        assertThat(actual.getTownOrCity()).isEqualTo(expected.getTownOrCity());
-        assertThat(actual.getCounty()).isEqualTo(expected.getCounty());
-        assertThat(actual.getPostcode()).isEqualTo(expected.getPostcode());
     }
 
     private static void assertAddressEqual(Address actual, AddressDTOV3 expected) {

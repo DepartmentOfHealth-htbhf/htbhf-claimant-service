@@ -13,51 +13,14 @@ info:
 host: "N/A"
 basePath: "/"
 tags:
-- name: "claim-controller"
-  description: "Endpoints for dealing with claims, e.g. persisting a claim."
 - name: "claim-controller-v-3"
   description: "Endpoints for dealing with claims, e.g. persisting a claim."
 paths:
-  /v2/claims:
-    post:
-      tags:
-      - "claim-controller"
-      summary: "Create or update a claim."
-      operationId: "createOrUpdateClaimUsingPOST"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "claimDTO"
-        description: "The claim to persist"
-        required: false
-        schema:
-          $ref: "#/definitions/ClaimDTO"
-      responses:
-        "200":
-          description: "OK"
-          schema:
-            $ref: "#/definitions/ClaimResultDTO"
-        "201":
-          description: "Created"
-        "400":
-          description: "Bad request"
-          schema:
-            $ref: "#/definitions/ErrorResponse"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not Found"
-      deprecated: false
   /v3/claims:
     post:
       tags:
       - "claim-controller-v-3"
-      summary: "Create or update a V3 claim."
+      summary: "Create a claim."
       operationId: "createOrUpdateClaimV3UsingPOST"
       consumes:
       - "application/json"
@@ -65,7 +28,7 @@ paths:
       - "application/json"
       parameters:
       - in: "body"
-        name: "claimDTOV3"
+        name: "claimDTO"
         description: "The claim to persist"
         required: false
         schema:
@@ -89,41 +52,6 @@ paths:
           description: "Not Found"
       deprecated: false
 definitions:
-  AddressDTO:
-    type: "object"
-    properties:
-      addressLine1:
-        type: "string"
-        example: "Flat B"
-        description: "First line of the address"
-        minLength: 1
-        maxLength: 500
-      addressLine2:
-        type: "string"
-        example: "221 Baker Street"
-        description: "Second line of the address"
-        minLength: 0
-        maxLength: 500
-      county:
-        type: "string"
-        example: "Devon"
-        description: "County of the address"
-        minLength: 0
-        maxLength: 500
-      postcode:
-        type: "string"
-        example: "AA1 1AA"
-        description: "The postcode of the address."
-        pattern: "([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\\\
-          s?[0-9][A-Za-z]{2})"
-      townOrCity:
-        type: "string"
-        example: "London"
-        description: "Town or city of the address"
-        minLength: 1
-        maxLength: 500
-    title: "AddressDTO"
-    description: "Multi purpose address object"
   AddressDTOV3:
     type: "object"
     properties:
@@ -159,23 +87,6 @@ definitions:
         maxLength: 500
     title: "AddressDTOV3"
     description: "Multi purpose address object"
-  ClaimDTO:
-    type: "object"
-    properties:
-      claimant:
-        description: "The person making the claim"
-        $ref: "#/definitions/ClaimantDTO"
-      deviceFingerprint:
-        type: "object"
-        description: "The fingerprint of the device used to make the claim, as best\
-          \ it can be identified. Probably a collection of header values."
-      webUIVersion:
-        type: "string"
-        description: "The version of the web-ui application used to create this request.\
-          \ Identifies which version of the Terms and Conditions the applicant accepted."
-    title: "ClaimDTO"
-    description: "A claim (application) for help to buy healthy foods. Contains all\
-      \ details that need to be persisted as part of the application."
   ClaimDTOV3:
     type: "object"
     properties:
@@ -234,60 +145,6 @@ definitions:
         description: "Details of the vouchers that the claimant is entitled to"
         $ref: "#/definitions/VoucherEntitlementDTO"
     title: "ClaimResultDTO"
-  ClaimantDTO:
-    type: "object"
-    properties:
-      address:
-        description: "The address of the claimant"
-        $ref: "#/definitions/AddressDTO"
-      childrenDob:
-        type: "array"
-        description: "The dates of birth of the claimant's children (if they have\
-          \ any)"
-        items:
-          $ref: "#/definitions/LocalDate"
-      dateOfBirth:
-        type: "string"
-        format: "date"
-        example: "1985-12-30"
-        description: "The date of birth, in the format YYYY-MM-DD"
-      emailAddress:
-        type: "string"
-        description: "The claimant's email address. e.g. test@email.com"
-        minLength: 0
-        maxLength: 256
-        pattern: "^[^@]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9-]+$"
-      expectedDeliveryDate:
-        type: "string"
-        format: "date"
-        example: "2019-12-30"
-        description: "If the claimant is pregnant, this is the expected date of delivery\
-          \ (due date) of their baby, in the format YYYY-MM-DD. The due date must\
-          \ be between one month in the past and 8 months in the future."
-      firstName:
-        type: "string"
-        example: "Jo"
-        description: "First (given) name"
-        minLength: 1
-        maxLength: 500
-      lastName:
-        type: "string"
-        example: "Bloggs"
-        description: "Last (family) name"
-        minLength: 1
-        maxLength: 500
-      nino:
-        type: "string"
-        example: "QQ123456C"
-        description: "National Insurance number"
-        pattern: "[a-zA-Z]{2}\\d{6}[a-dA-D]"
-      phoneNumber:
-        type: "string"
-        description: "The claimant's UK phone number. Must be in +44 format, e.g.\
-          \ +447123456789"
-        pattern: "^\\+44\\d{9,10}$"
-    title: "ClaimantDTO"
-    description: "A claimant for help to buy healthy foods."
   ClaimantDTOV3:
     type: "object"
     properties:

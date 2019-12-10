@@ -4,10 +4,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
-import uk.gov.dhsc.htbhf.claimant.model.v2.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 
 import static uk.gov.dhsc.htbhf.TestConstants.*;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
 
 public class CardRequestTestDataFactory {
 
@@ -30,7 +30,7 @@ public class CardRequestTestDataFactory {
         Claimant claimant = claim.getClaimant();
         Address address = claimant.getAddress();
         return CardRequest.builder()
-                .address(AddressDTO.builder()
+                .address(AddressDTOV3.builder()
                         .addressLine1(address.getAddressLine1())
                         .addressLine2(address.getAddressLine2())
                         .townOrCity(address.getTownOrCity())
