@@ -59,7 +59,7 @@ public class ClaimService {
                 List<UpdatableClaimantField> updatedFields = updateClaim(claim, claimRequest.getClaimant());
                 sendAdditionalPaymentMessageIfNewDueDateProvided(claim, updatedFields);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, decision.getDateOfBirthOfChildren(), updatedFields);
+                claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, updatedFields);
                 return ClaimResult.withEntitlementAndUpdatedFields(claim, weeklyEntitlement, updatedFields, decision.getIdentityAndEligibilityResponse());
             }
 
@@ -68,11 +68,11 @@ public class ClaimService {
                 claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+                claimMessageSender.sendReportClaimMessage(claim, ClaimAction.NEW);
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());
             }
 
-            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+            claimMessageSender.sendReportClaimMessage(claim, ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);

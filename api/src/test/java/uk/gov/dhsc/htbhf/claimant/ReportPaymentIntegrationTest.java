@@ -60,8 +60,7 @@ public class ReportPaymentIntegrationTest {
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT,
-                paymentCycle.getTotalEntitlementAmountInPence());
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence());
     }
 
     @Test

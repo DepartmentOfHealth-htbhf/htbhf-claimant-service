@@ -77,11 +77,11 @@ public class EligibilityDecisionHandler {
                                                        EligibilityAndEntitlementDecision decision) {
 
         if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
-            expireClaim(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
+            expireClaim(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
         } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {
-            handleLossOfQualifyingBenefitStatus(claim, decision.getDateOfBirthOfChildren());
+            handleLossOfQualifyingBenefitStatus(claim);
         } else {
-            expireClaim(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
+            expireClaim(claim, UPDATED_FROM_ACTIVE_TO_EXPIRED);
             determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
         }
     }
@@ -93,7 +93,7 @@ public class EligibilityDecisionHandler {
      * @param datesOfBirthOfChildren the dates of birth of the claimant's children
      */
     public void expirePendingExpiryClaim(Claim claim, List<LocalDate> datesOfBirthOfChildren) {
-        expireClaim(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+        expireClaim(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
     }
 
     private boolean shouldExpireActiveClaim(EligibilityAndEntitlementDecision decision, PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
@@ -111,16 +111,16 @@ public class EligibilityDecisionHandler {
                 && !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
     }
 
-    private void handleLossOfQualifyingBenefitStatus(Claim claim, List<LocalDate> dateOfBirthOfChildren) {
+    private void handleLossOfQualifyingBenefitStatus(Claim claim) {
         updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
-        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        claimMessageSender.sendReportClaimMessage(claim, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 
-    private void expireClaim(Claim claim, List<LocalDate> dateOfBirthOfChildren, ClaimAction claimAction) {
+    private void expireClaim(Claim claim, ClaimAction claimAction) {
         updateClaimAndCardStatus(claim, ClaimStatus.EXPIRED, PENDING_CANCELLATION);
         eventAuditor.auditExpiredClaim(claim);
-        claimMessageSender.sendReportClaimMessage(claim, dateOfBirthOfChildren, claimAction);
+        claimMessageSender.sendReportClaimMessage(claim, claimAction);
     }
 
 

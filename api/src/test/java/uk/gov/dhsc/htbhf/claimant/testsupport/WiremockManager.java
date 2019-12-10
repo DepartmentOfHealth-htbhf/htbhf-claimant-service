@@ -184,8 +184,15 @@ public class WiremockManager {
         postcodesMock.verify(1, getRequestedFor(urlEqualTo(expectedPostcodesUrl)));
     }
 
+    public void verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(Claim claim, ClaimAction claimAction) {
+        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, emptyList());
+    }
+
     public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction) {
-        List<LocalDate> childrenDatesOfBirth = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        verifyGoogleAnalyticsCalledForClaimEvent(claim, claimAction, claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4());
+    }
+
+    public void verifyGoogleAnalyticsCalledForClaimEvent(Claim claim, ClaimAction claimAction, List<LocalDate> childrenDatesOfBirth) {
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
         int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
 
@@ -208,8 +215,17 @@ public class WiremockManager {
                                 + ".*"))); // rest of payload data
     }
 
-    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim, PaymentAction paymentAction, Integer paymentAmount) {
-        List<LocalDate> childrenDatesOfBirth = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim,
+                                                           PaymentAction paymentAction,
+                                                           Integer paymentAmount) {
+        List<LocalDate> dobOfChildrenUnder4 = claim.getCurrentIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        verifyGoogleAnalyticsCalledForPaymentEvent(claim, paymentAction, paymentAmount, dobOfChildrenUnder4);
+    }
+
+    public void verifyGoogleAnalyticsCalledForPaymentEvent(Claim claim,
+                                                           PaymentAction paymentAction,
+                                                           Integer paymentAmount,
+                                                           List<LocalDate> childrenDatesOfBirth) {
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 1);
         int numberOfChildrenBetweenOneAndFour = getNumberOfChildrenUnderAgeInYears(childrenDatesOfBirth, 4) - numberOfChildrenUnderOne;
 

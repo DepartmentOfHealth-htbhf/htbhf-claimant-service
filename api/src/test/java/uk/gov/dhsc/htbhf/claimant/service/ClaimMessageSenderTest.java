@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -63,11 +62,10 @@ class ClaimMessageSenderTest {
     @Test
     void shouldSendReportClaimMessage() {
         Claim claim = aValidClaim();
-        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusYears(1));
         ClaimAction claimAction = ClaimAction.NEW;
         LocalDateTime now = LocalDateTime.now();
 
-        claimMessageSender.sendReportClaimMessage(claim, datesOfBirthOfChildren, claimAction);
+        claimMessageSender.sendReportClaimMessage(claim, claimAction);
 
         ArgumentCaptor<ReportClaimMessagePayload> argumentCaptor = ArgumentCaptor.forClass(ReportClaimMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(REPORT_CLAIM));
@@ -80,11 +78,10 @@ class ClaimMessageSenderTest {
     @Test
     void shouldSendReportClaimMessageWithUpdatedClaimantFields() {
         Claim claim = aValidClaim();
-        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusYears(1));
         List<UpdatableClaimantField> updatedClaimantFields = List.of(LAST_NAME);
         LocalDateTime now = LocalDateTime.now();
 
-        claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, datesOfBirthOfChildren, updatedClaimantFields);
+        claimMessageSender.sendReportClaimMessageWithUpdatedClaimantFields(claim, updatedClaimantFields);
 
         ArgumentCaptor<ReportClaimMessagePayload> argumentCaptor = ArgumentCaptor.forClass(ReportClaimMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(REPORT_CLAIM));

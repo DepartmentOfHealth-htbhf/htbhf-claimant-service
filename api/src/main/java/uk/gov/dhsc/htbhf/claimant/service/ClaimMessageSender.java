@@ -45,15 +45,13 @@ public class ClaimMessageSender {
         this.reportABirthMessageDelay = reportABirthMessageDelay;
     }
 
-    public void sendReportClaimMessage(Claim claim, List<LocalDate> datesOfBirthOfChildren, ClaimAction claimAction) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, emptyList());
+    public void sendReportClaimMessage(Claim claim, ClaimAction claimAction) {
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, claimAction, emptyList());
         messageQueueClient.sendMessage(payload, REPORT_CLAIM);
     }
 
-    public void sendReportClaimMessageWithUpdatedClaimantFields(Claim claim,
-                                                                List<LocalDate> datesOfBirthOfChildren,
-                                                                List<UpdatableClaimantField> updatedClaimantFields) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, ClaimAction.UPDATED, updatedClaimantFields);
+    public void sendReportClaimMessageWithUpdatedClaimantFields(Claim claim, List<UpdatableClaimantField> updatedClaimantFields) {
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, ClaimAction.UPDATED, updatedClaimantFields);
         messageQueueClient.sendMessage(payload, REPORT_CLAIM);
     }
 

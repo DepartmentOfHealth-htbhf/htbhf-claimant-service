@@ -118,7 +118,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -182,7 +182,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -213,7 +213,7 @@ class ClaimServiceTest {
         if (eligibilityStatus == ELIGIBLE) {
             verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-            verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+            verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), ClaimAction.NEW);
         }
     }
 
@@ -245,7 +245,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), singletonList(LAST_NAME));
-        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), List.of(LAST_NAME));
+        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, List.of(LAST_NAME));
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -277,7 +277,7 @@ class ClaimServiceTest {
         verify(claimRepository).findClaim(existingClaimId);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditUpdatedClaim(result.getClaim(), emptyList());
-        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, decision.getDateOfBirthOfChildren(), emptyList());
+        verify(claimMessageSender).sendReportClaimMessageWithUpdatedClaimantFields(existingClaim, emptyList());
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -312,7 +312,7 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createOrUpdateClaim(request);
 
         // then
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
     }
 

@@ -16,7 +16,6 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static uk.gov.dhsc.htbhf.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.REJECTED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
@@ -53,7 +52,7 @@ public class ReportClaimIntegrationTest {
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, NEW);
+        claimMessageSender.sendReportClaimMessage(claim, NEW);
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
@@ -67,7 +66,7 @@ public class ReportClaimIntegrationTest {
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        claimMessageSender.sendReportClaimMessage(claim, ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, REJECTED);
+        claimMessageSender.sendReportClaimMessage(claim, REJECTED);
         messageProcessorScheduler.processReportClaimMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
