@@ -6,6 +6,8 @@ import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 import java.time.LocalDate;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithCounty;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTOWithNoNullFields;
@@ -55,6 +57,13 @@ public final class ClaimDTOV3TestDataFactory {
                 .webUIVersion(version)
                 .build();
     }
+
+    public static ClaimDTOV3 aClaimDTOWithCounty(String county) {
+        return aClaimDTOBuilder()
+                .claimant(aClaimantDTOWithAddress(anAddressDTOWithCounty(county)))
+                .build();
+    }
+
 
     private static ClaimDTOV3.ClaimDTOV3Builder aClaimDTOBuilder() {
         return ClaimDTOV3.builder()
