@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 import uk.gov.dhsc.htbhf.swagger.SwaggerGenerationUtil;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class ClaimantServiceApplicationTests {
 
     @Test
     public void datesAreSerialisedCorrectly() throws JsonProcessingException {
-        ClaimantDTO dto = ClaimantDTO.builder().dateOfBirth(LocalDate.of(1970, 1, 31)).build();
+        ClaimantDTOV3 dto = ClaimantDTOV3.builder().dateOfBirth(LocalDate.of(1970, 1, 31)).build();
 
         String output = objectMapper.writeValueAsString(dto);
 

@@ -41,6 +41,13 @@ public class ClaimantDTOV3TestDataFactory {
                 .build();
     }
 
+    public static ClaimantDTOV3 aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
+        return aValidClaimantBuilder()
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .childrenDob(childrenDob)
+                .build();
+    }
+
     public static ClaimantDTOV3 aClaimantDTOWithFirstName(String firstName) {
         return aValidClaimantBuilder()
                 .firstName(firstName)
