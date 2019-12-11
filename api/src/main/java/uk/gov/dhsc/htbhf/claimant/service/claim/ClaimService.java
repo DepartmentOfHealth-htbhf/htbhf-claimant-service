@@ -24,7 +24,6 @@ import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
@@ -52,7 +51,7 @@ public class ClaimService {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createAndSaveClaim(claimRequest, decision);
-                claimMessageSender.sendReportClaimMessage(claim, emptyList(), ClaimAction.REJECTED);
+                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
                 return ClaimResult.withNoEntitlement(claim);
             }
 
@@ -61,11 +60,11 @@ public class ClaimService {
                 claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());
             }
 
-            claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+            claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);

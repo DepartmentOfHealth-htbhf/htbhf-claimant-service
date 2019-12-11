@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,6 +42,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class MessageContextLoaderTest {
@@ -442,7 +442,7 @@ class MessageContextLoaderTest {
                 .claimId(claim.getId())
                 .claimAction(ClaimAction.NEW)
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(singletonList(LocalDate.now().minusYears(1)))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .updatedClaimantFields(List.of(FIRST_NAME))
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
@@ -454,7 +454,7 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getClaimAction()).isEqualTo(payload.getClaimAction());
-        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         assertThat(context.getUpdatedClaimantFields()).isEqualTo(payload.getUpdatedClaimantFields());
         verify(payloadMapper).getPayload(message, ReportClaimMessagePayload.class);

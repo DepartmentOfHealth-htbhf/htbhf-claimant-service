@@ -59,6 +59,6 @@ class ClaimActivationServiceTest {
         verify(claimRepository).save(claim);
         verify(paymentCycleService).createAndSavePaymentCycleForEligibleClaim(claim, originalStatusTimestamp.toLocalDate(), decision);
         verify(eventAuditor).auditNewCard(claim.getId(), CARD_ACCOUNT_ID);
-        verify(claimMessageSender).sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE);
+        verify(claimMessageSender).sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE);
     }
 }
