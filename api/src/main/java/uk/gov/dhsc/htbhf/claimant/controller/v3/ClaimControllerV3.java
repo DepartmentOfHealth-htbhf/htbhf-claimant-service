@@ -51,7 +51,7 @@ public class ClaimControllerV3 {
     @PostMapping
     @ApiOperation("Create a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResultDTO> createOrUpdateClaimV3(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTOV3 claimDTO) {
+    public ResponseEntity<ClaimResultDTO> createClaimV3(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTOV3 claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
         ClaimRequest claimRequest = ClaimRequest.builder()
@@ -59,7 +59,7 @@ public class ClaimControllerV3 {
                 .deviceFingerprint(claimDTO.getDeviceFingerprint())
                 .webUIVersion(claimDTO.getWebUIVersion())
                 .build();
-        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest);
 
         return createResponse(result);
     }

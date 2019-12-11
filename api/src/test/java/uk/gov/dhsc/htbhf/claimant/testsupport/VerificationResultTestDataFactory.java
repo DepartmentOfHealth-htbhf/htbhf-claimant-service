@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
-import uk.gov.dhsc.htbhf.dwp.model.v2.*;
+import uk.gov.dhsc.htbhf.dwp.model.*;
 
 public class VerificationResultTestDataFactory {
 

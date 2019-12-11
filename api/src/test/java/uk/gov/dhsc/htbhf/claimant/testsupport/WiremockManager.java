@@ -16,7 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
-import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
@@ -31,7 +31,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponse;
 
 @Component
 public class WiremockManager {
@@ -74,7 +74,7 @@ public class WiremockManager {
     }
 
     public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
-        CombinedIdentityAndEligibilityResponse response = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrensDateOfBirth, eligibilityOutcome);
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponse(childrensDateOfBirth, eligibilityOutcome);
         eligibilityServiceMock.stubFor(post(urlEqualTo(V2_ELIGIBILITY_URL)).willReturn(jsonResponse(response)));
     }
 

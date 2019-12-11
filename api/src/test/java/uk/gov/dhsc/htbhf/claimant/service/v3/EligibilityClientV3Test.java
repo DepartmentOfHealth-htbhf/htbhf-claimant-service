@@ -23,9 +23,9 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V2;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
-import static uk.gov.dhsc.htbhf.dwp.testhelper.v2.PersonDTOV2TestDataFactory.aPersonDTOV2WithPregnantDependantDob;
+import static uk.gov.dhsc.htbhf.dwp.testhelper.PersonDTOTestDataFactory.aPersonDTOWithPregnantDependantDob;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityClientV3Test {
@@ -46,7 +46,7 @@ class EligibilityClientV3Test {
 
     @Test
     void shouldCheckIdentityAndEligibilitySuccessfully() {
-        Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
+        Claimant claimant = aClaimantWithNino(HOMER_NINO);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
                 .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.OK);
@@ -56,12 +56,12 @@ class EligibilityClientV3Test {
         CombinedIdentityAndEligibilityResponse actualResponse = client.checkIdentityAndEligibility(claimant);
 
         assertThat(actualResponse).isEqualTo(identityAndEligibilityResponse);
-        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOV2WithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOWithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
     }
 
     @Test
     void shouldThrowAnExceptionWhenPostCallNotOk() {
-        Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
+        Claimant claimant = aClaimantWithNino(HOMER_NINO);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
                 .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.BAD_REQUEST);
@@ -73,12 +73,12 @@ class EligibilityClientV3Test {
         assertThat(thrown).as("Should throw an Exception when response code is not OK")
                 .isNotNull()
                 .hasMessage("Response code from Eligibility service was not OK, received: 400");
-        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOV2WithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOWithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
     }
 
     @Test
     void shouldThrowAnExceptionWhenPostCallReturnsError() {
-        Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
+        Claimant claimant = aClaimantWithNino(HOMER_NINO);
         RestClientException testException = new RestClientException("Test exception");
         given(restTemplate.postForEntity(anyString(), any(), eq(CombinedIdentityAndEligibilityResponse.class)))
                 .willThrow(testException);
@@ -89,7 +89,7 @@ class EligibilityClientV3Test {
                 .isNotNull()
                 .hasMessage("Exception caught trying to call eligibility service at: " + FULL_URI)
                 .hasCause(testException);
-        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOV2WithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
+        verify(restTemplate).postForEntity(FULL_URI, aPersonDTOWithPregnantDependantDob(NO_PREGNANT_DEPENDANT), CombinedIdentityAndEligibilityResponse.class);
     }
 
 }

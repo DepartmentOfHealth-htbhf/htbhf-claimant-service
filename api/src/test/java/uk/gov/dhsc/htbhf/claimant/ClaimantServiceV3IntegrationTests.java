@@ -40,7 +40,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V2;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
@@ -220,8 +220,8 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsWithSameNino() {
         //Given
-        ClaimDTOV3 dto = aClaimDTOWithClaimant(aClaimantDTOWithNino(HOMER_NINO_V2));
-        Claimant claimant = aClaimantWithNino(HOMER_NINO_V2);
+        ClaimDTOV3 dto = aClaimDTOWithClaimant(aClaimantDTOWithNino(HOMER_NINO));
+        Claimant claimant = aClaimantWithNino(HOMER_NINO);
         Claim claim = aValidClaimBuilder()
                 .claimant(claimant)
                 .build();

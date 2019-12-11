@@ -88,7 +88,7 @@ public class ClaimantDTOV3TestDataFactory {
         return ClaimantDTOV3.builder()
                 .firstName(HOMER_FORENAME)
                 .lastName(SIMPSON_SURNAME)
-                .nino(HOMER_NINO_V1)
+                .nino(HOMER_NINO)
                 .dateOfBirth(HOMER_DATE_OF_BIRTH)
                 .address(aValidAddressDTO())
                 .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
