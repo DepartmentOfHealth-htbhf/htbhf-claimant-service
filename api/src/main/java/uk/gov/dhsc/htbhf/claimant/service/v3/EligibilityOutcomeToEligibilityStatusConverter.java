@@ -1,10 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.service.v3;
 
-import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 /**
- * Utility for converting from {@link uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome} values
+ * Utility for converting from {@link uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome} values
  * to {@link uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus} values.
  */
 public class EligibilityOutcomeToEligibilityStatusConverter {
