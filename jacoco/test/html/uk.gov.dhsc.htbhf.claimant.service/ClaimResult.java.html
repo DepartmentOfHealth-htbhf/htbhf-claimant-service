@@ -5,12 +5,16 @@ import lombok.Data;
 import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 @Data
 @Builder
@@ -23,53 +27,66 @@ public class ClaimResult {
     private VerificationResult verificationResult;
 
     public static ClaimResult withNoEntitlement(Claim claim) {
-<span class="fc" id="L26">        return ClaimResult.builder()</span>
-<span class="fc" id="L27">                .claim(claim)</span>
-<span class="fc" id="L28">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L29">                .build();</span>
+<span class="fc" id="L30">        return ClaimResult.builder()</span>
+<span class="fc" id="L31">                .claim(claim)</span>
+<span class="fc" id="L32">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L33">                .build();</span>
     }
 
     public static ClaimResult withNoEntitlement(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="fc" id="L33">        return ClaimResult.builder()</span>
-<span class="fc" id="L34">                .claim(claim)</span>
-<span class="fc" id="L35">                .voucherEntitlement(Optional.empty())</span>
-<span class="fc" id="L36">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
-<span class="fc" id="L37">                .build();</span>
+<span class="fc" id="L37">        return ClaimResult.builder()</span>
+<span class="fc" id="L38">                .claim(claim)</span>
+<span class="fc" id="L39">                .voucherEntitlement(Optional.empty())</span>
+<span class="fc" id="L40">                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))</span>
+<span class="fc" id="L41">                .build();</span>
     }
 
     public static ClaimResult withEntitlement(Claim claim, VoucherEntitlement voucherEntitlement,
                                               CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="fc" id="L42">        return ClaimResult.builder()</span>
-<span class="fc" id="L43">                .claim(claim)</span>
-<span class="fc" id="L44">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="fc" id="L45">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
-<span class="fc" id="L46">                .build();</span>
+<span class="fc" id="L46">        return ClaimResult.builder()</span>
+<span class="fc" id="L47">                .claim(claim)</span>
+<span class="fc" id="L48">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="fc" id="L49">                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))</span>
+<span class="fc" id="L50">                .build();</span>
     }
 
     public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List&lt;UpdatableClaimantField&gt; updatedFields,
                                                               CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="nc" id="L51">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
-<span class="nc" id="L52">        return ClaimResult.builder()</span>
-<span class="nc" id="L53">                .claim(claim)</span>
-<span class="nc" id="L54">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
-<span class="nc" id="L55">                .updatedFields(updatedFieldsAsStrings)</span>
-<span class="nc" id="L56">                .claimUpdated(true)</span>
-<span class="nc" id="L57">                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))</span>
-<span class="nc" id="L58">                .build();</span>
+<span class="nc" id="L55">        List&lt;String&gt; updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);</span>
+<span class="nc" id="L56">        return ClaimResult.builder()</span>
+<span class="nc" id="L57">                .claim(claim)</span>
+<span class="nc" id="L58">                .voucherEntitlement(Optional.of(voucherEntitlement))</span>
+<span class="nc" id="L59">                .updatedFields(updatedFieldsAsStrings)</span>
+<span class="nc" id="L60">                .claimUpdated(true)</span>
+<span class="nc" id="L61">                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))</span>
+<span class="nc" id="L62">                .build();</span>
     }
 
-    private static VerificationResult buildVerificationResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="fc" id="L62">        return VerificationResult.builder()</span>
-<span class="fc" id="L63">                .identityOutcome(identityAndEligibilityResponse.getIdentityStatus())</span>
-<span class="fc" id="L64">                .eligibilityOutcome(identityAndEligibilityResponse.getEligibilityStatus())</span>
-<span class="fc" id="L65">                .addressLine1Match(identityAndEligibilityResponse.getAddressLine1Match())</span>
-<span class="fc" id="L66">                .deathVerificationFlag(identityAndEligibilityResponse.getDeathVerificationFlag())</span>
-<span class="fc" id="L67">                .emailAddressMatch(identityAndEligibilityResponse.getEmailAddressMatch())</span>
-<span class="fc" id="L68">                .mobilePhoneMatch(identityAndEligibilityResponse.getMobilePhoneMatch())</span>
-<span class="fc" id="L69">                .postcodeMatch(identityAndEligibilityResponse.getPostcodeMatch())</span>
-<span class="fc" id="L70">                .pregnantChildDOBMatch(identityAndEligibilityResponse.getPregnantChildDOBMatch())</span>
-<span class="fc" id="L71">                .qualifyingBenefits(identityAndEligibilityResponse.getQualifyingBenefits())</span>
-<span class="fc" id="L72">                .build();</span>
+    private static VerificationResult buildVerificationResult(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+<span class="fc" id="L66">        return VerificationResult.builder()</span>
+<span class="fc" id="L67">                .identityOutcome(identityAndEligibilityResponse.getIdentityStatus())</span>
+<span class="fc" id="L68">                .eligibilityOutcome(identityAndEligibilityResponse.getEligibilityStatus())</span>
+<span class="fc" id="L69">                .addressLine1Match(identityAndEligibilityResponse.getAddressLine1Match())</span>
+<span class="fc" id="L70">                .deathVerificationFlag(identityAndEligibilityResponse.getDeathVerificationFlag())</span>
+<span class="fc" id="L71">                .emailAddressMatch(identityAndEligibilityResponse.getEmailAddressMatch())</span>
+<span class="fc" id="L72">                .mobilePhoneMatch(identityAndEligibilityResponse.getMobilePhoneMatch())</span>
+<span class="fc" id="L73">                .postcodeMatch(identityAndEligibilityResponse.getPostcodeMatch())</span>
+<span class="fc" id="L74">                .pregnantChildDOBMatch(identityAndEligibilityResponse.getPregnantChildDOBMatch())</span>
+<span class="fc" id="L75">                .qualifyingBenefits(identityAndEligibilityResponse.getQualifyingBenefits())</span>
+<span class="fc" id="L76">                .isPregnantOrAtLeast1ChildMatched(isPregnantOrAtLeastOneChildMatches(claim, identityAndEligibilityResponse.getDobOfChildrenUnder4()))</span>
+<span class="fc" id="L77">                .build();</span>
+    }
+
+    private static boolean isPregnantOrAtLeastOneChildMatches(Claim claim, List&lt;LocalDate&gt; registeredChildren) {
+<span class="fc" id="L81">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (claimant.getExpectedDeliveryDate() != null) { // relying on validation in ClaimantDTO to ensure this is a valid value</span>
+<span class="fc" id="L83">            return true;</span>
+        }
+<span class="fc" id="L85">        List&lt;LocalDate&gt; declaredChildren = claimant.getChildrenDob();</span>
+<span class="pc bpc" id="L86" title="1 of 4 branches missed.">        if (declaredChildren == null || registeredChildren == null) {</span>
+<span class="fc" id="L87">            return false;</span>
+        }
+<span class="fc" id="L89">        return containsAny(declaredChildren, registeredChildren);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
