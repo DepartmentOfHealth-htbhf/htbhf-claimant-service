@@ -41,11 +41,11 @@ public class ClaimControllerV3 {
 <span class="fc" id="L41">    }</span>
 
     @PostMapping
-    @ApiOperation(&quot;Create or update a V3 claim.&quot;)
+    @ApiOperation(&quot;Create a V3 claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
-    public ResponseEntity&lt;ClaimResultDTO&gt; createOrUpdateClaimV3(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTOV3 claimDTOV3) {
+    public ResponseEntity&lt;ClaimResultDTO&gt; createClaimV3(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTOV3 claimDTOV3) {
 <span class="fc" id="L47">        log.debug(&quot;Received V3 claim&quot;);</span>
-<span class="fc" id="L48">        return claimController.createOrUpdateClaim(buildClaimDTO(claimDTOV3));</span>
+<span class="fc" id="L48">        return claimController.createClaim(buildClaimDTO(claimDTOV3));</span>
     }
 
     private ClaimDTO buildClaimDTO(ClaimDTOV3 v3Claim) {
