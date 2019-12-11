@@ -1,8 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.controller.v2;
 
 import io.swagger.annotations.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +29,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController()
 @RequestMapping(value = "/v2/claims", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-@RequiredArgsConstructor
 @Slf4j
 @Api(description = "Endpoints for dealing with claims, e.g. persisting a claim.")
 public class ClaimController {
@@ -47,6 +46,14 @@ public class ClaimController {
             ClaimStatus.REJECTED, HttpStatus.OK,
             ClaimStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
+
+    public ClaimController(@Qualifier("v2ClaimService") ClaimService claimService,
+                           ClaimantDTOToClaimantConverter claimantConverter,
+                           VoucherEntitlementToDTOConverter voucherConverter) {
+        this.claimService = claimService;
+        this.claimantConverter = claimantConverter;
+        this.voucherConverter = voucherConverter;
+    }
 
     @PostMapping
     @ApiOperation("Create a claim.")

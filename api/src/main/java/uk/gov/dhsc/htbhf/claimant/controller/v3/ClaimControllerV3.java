@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.controller.v3;
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +32,7 @@ public class ClaimControllerV3 {
 
     private final ClaimController claimController;
 
-    public ClaimControllerV3(@Qualifier("v3ClaimService") ClaimService v3ClaimService,
+    public ClaimControllerV3(ClaimService v3ClaimService,
                              ClaimantDTOToClaimantConverter claimantConverter,
                              VoucherEntitlementToDTOConverter voucherConverter) {
         //TODO MRS 28/11/2019: This is a temporary (ugly) work around to make sure we reuse the existing code without duplication, it will be replaced
