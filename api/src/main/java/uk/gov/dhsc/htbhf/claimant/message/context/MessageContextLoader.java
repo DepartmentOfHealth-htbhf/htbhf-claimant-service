@@ -133,7 +133,7 @@ public class MessageContextLoader {
         return ReportClaimMessageContext.builder()
                 .claim(claim)
                 .claimAction(payload.getClaimAction())
-                .datesOfBirthOfChildren(payload.getDatesOfBirthOfChildren())
+                .datesOfBirthOfChildren(payload.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4())
                 .timestamp(payload.getTimestamp())
                 .updatedClaimantFields(payload.getUpdatedClaimantFields())
                 .build();

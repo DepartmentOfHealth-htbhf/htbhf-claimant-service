@@ -9,6 +9,7 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -45,15 +46,15 @@ public class ClaimMessageSender {
         this.reportABirthMessageDelay = reportABirthMessageDelay;
     }
 
-    public void sendReportClaimMessage(Claim claim, List<LocalDate> datesOfBirthOfChildren, ClaimAction claimAction) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, claimAction, emptyList());
+    public void sendReportClaimMessage(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, ClaimAction claimAction) {
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, identityAndEligibilityResponse, claimAction, emptyList());
         messageQueueClient.sendMessage(payload, REPORT_CLAIM);
     }
 
     public void sendReportClaimMessageWithUpdatedClaimantFields(Claim claim,
-                                                                List<LocalDate> datesOfBirthOfChildren,
+                                                                CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                                 List<UpdatableClaimantField> updatedClaimantFields) {
-        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, datesOfBirthOfChildren, ClaimAction.UPDATED, updatedClaimantFields);
+        ReportClaimMessagePayload payload = buildReportClaimMessagePayload(claim, identityAndEligibilityResponse, ClaimAction.UPDATED, updatedClaimantFields);
         messageQueueClient.sendMessage(payload, REPORT_CLAIM);
     }
 

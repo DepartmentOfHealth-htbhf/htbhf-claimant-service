@@ -27,6 +27,7 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -60,6 +61,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityDecisionHandlerTest {
@@ -164,7 +166,7 @@ class EligibilityDecisionHandlerTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
-        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
         verifyNoMoreInteractions(determineEntitlementNotificationHandler);
     }
 
@@ -200,7 +202,7 @@ class EligibilityDecisionHandlerTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
-        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_EXPIRED);
+        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
     }
 
     //HTBHF-1757 Children in current cycle, DWP returns ineligible, varying on pregnancy and children in previous cycle
@@ -236,7 +238,8 @@ class EligibilityDecisionHandlerTest {
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
-        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle,
+                decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
@@ -262,7 +265,8 @@ class EligibilityDecisionHandlerTest {
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
-        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, currentCycleChildrenDobs, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
+        verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle,
+                decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
@@ -301,15 +305,15 @@ class EligibilityDecisionHandlerTest {
     void shouldExpirePendingExpiryClaim() {
         // Given
         Claim claim = aClaimWithClaimStatus(PENDING_EXPIRY);
-        List<LocalDate> datesOfBirthOfChildren = NO_CHILDREN;
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
 
         // When
-        handler.expirePendingExpiryClaim(claim, datesOfBirthOfChildren);
+        handler.expirePendingExpiryClaim(claim, identityAndEligibilityResponse);
 
         // Then
         assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         verify(claimRepository).save(claim);
-        verify(claimMessageSender).sendReportClaimMessage(claim, datesOfBirthOfChildren, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+        verify(claimMessageSender).sendReportClaimMessage(claim, identityAndEligibilityResponse, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
         verify(eventAuditor).auditExpiredClaim(claim);
     }
 

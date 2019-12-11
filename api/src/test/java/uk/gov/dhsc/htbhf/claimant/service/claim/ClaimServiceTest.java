@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -112,7 +111,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -176,7 +175,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -209,7 +208,7 @@ class ClaimServiceTest {
         if (eligibilityStatus == ELIGIBLE) {
             verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-            verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getDateOfBirthOfChildren(), ClaimAction.NEW);
+            verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         }
     }
 
@@ -227,7 +226,7 @@ class ClaimServiceTest {
 
         //then
         verify(claimRepository).save(result.getClaim());
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), emptyList(), ClaimAction.REJECTED);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
@@ -236,15 +235,15 @@ class ClaimServiceTest {
         //given
         Claimant claimant = aValidClaimant();
         // an INELIGIBLE response will cause a claim to be rejected
-        EligibilityAndEntitlementDecision eligibility = buildEligibilityAndEntitlementDecision(INELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
+        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
         ClaimResult result = claimService.createClaim(request);
 
         // then
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
