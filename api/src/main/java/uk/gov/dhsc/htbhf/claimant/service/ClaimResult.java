@@ -2,11 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.Builder;
 import lombok.Data;
-import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
@@ -22,8 +20,6 @@ public class ClaimResult {
 
     private Claim claim;
     private Optional<VoucherEntitlement> voucherEntitlement;
-    private Boolean claimUpdated;
-    private List<String> updatedFields;
     private VerificationResult verificationResult;
 
     public static ClaimResult withNoEntitlement(Claim claim) {
@@ -46,18 +42,6 @@ public class ClaimResult {
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.of(voucherEntitlement))
-                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))
-                .build();
-    }
-
-    public static ClaimResult withEntitlementAndUpdatedFields(Claim claim, VoucherEntitlement voucherEntitlement, List<UpdatableClaimantField> updatedFields,
-                                                              CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-        List<String> updatedFieldsAsStrings = Lists.transform(updatedFields, UpdatableClaimantField::getFieldName);
-        return ClaimResult.builder()
-                .claim(claim)
-                .voucherEntitlement(Optional.of(voucherEntitlement))
-                .updatedFields(updatedFieldsAsStrings)
-                .claimUpdated(true)
                 .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))
                 .build();
     }

@@ -44,7 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -226,8 +226,6 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result.getClaimUpdated()).isNull();
-        assertThat(result.getUpdatedFields()).isNull();
         verify(claimRepository).save(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), emptyList(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
@@ -323,8 +321,6 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result.getClaimUpdated()).isNull();
-        assertThat(result.getUpdatedFields()).isNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
         assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);

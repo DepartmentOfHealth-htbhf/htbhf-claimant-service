@@ -14,8 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.v2.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -27,7 +27,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 
@@ -38,8 +38,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        ClaimDTOV3 claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTOV3 claimant = claimDTO.getClaimant();
         List<LocalDate> childrenDob = claimant.getChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
@@ -70,8 +70,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldUpdateSuccessfulClaimWithPostcodeData() throws JsonProcessingException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        ClaimDTOV3 claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTOV3 claimant = claimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
         List<LocalDate> childrenDob = claimant.getChildrenDob();
@@ -90,8 +90,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldUpdateSuccessfulClaimWhenPostcodesIOReturnsPostcodeNotFound() throws JsonProcessingException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        ClaimDTOV3 claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTOV3 claimant = claimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
         List<LocalDate> childrenDob = claimant.getChildrenDob();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
@@ -110,8 +110,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     @Test
     @SuppressWarnings("VariableDeclarationUsageDistance")
     void shouldRecoverFromErrorsToHandleSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        ClaimDTOV3 claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTOV3 claimant = claimDTO.getClaimant();
         List<LocalDate> childrenDob = claimant.getChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
 

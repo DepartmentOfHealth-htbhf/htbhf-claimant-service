@@ -45,7 +45,6 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInter
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithPostcode;
@@ -241,7 +240,7 @@ class ClaimantServiceV3IntegrationTests {
         ClaimantDTOV3 claimant = aClaimantDTOWithPhoneNumber(null);
         ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
     }
@@ -253,7 +252,7 @@ class ClaimantServiceV3IntegrationTests {
         ClaimantDTOV3 claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.addressLine1", "must not be null");
     }
@@ -265,7 +264,7 @@ class ClaimantServiceV3IntegrationTests {
         ClaimantDTOV3 claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.postcode", "postcodes in the Channel Islands or Isle of Man are not acceptable");
     }
@@ -284,7 +283,8 @@ class ClaimantServiceV3IntegrationTests {
         //Given
         String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claimWithInvalidDate), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response
+                = restTemplate.exchange(buildClaimRequestEntityForUri(claimWithInvalidDate, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
         assertRequestCouldNotBeParsedErrorResponse(response, expectedField, expectedErrorMessage);
     }
@@ -294,7 +294,7 @@ class ClaimantServiceV3IntegrationTests {
         //Given
         String claim = "{}";
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }

@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 
 @ExtendWith(MockitoExtension.class)
