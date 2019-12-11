@@ -95,7 +95,7 @@ public abstract class ReportPropertiesFactory {
         customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());
-        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), claim.getCurrentIdentityAndEligibilityResponse().getQualifyingBenefits());
+        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), context.getIdentityAndEligibilityResponse().getQualifyingBenefits());
 
         return customDimensions;
     }
