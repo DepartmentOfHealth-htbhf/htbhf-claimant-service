@@ -16,6 +16,7 @@ public class VerificationResultTestDataFactory {
                 .qualifyingBenefits(QualifyingBenefits.UNIVERSAL_CREDIT)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .isPregnantOrAtLeast1ChildMatched(true)
                 .build();
     }
 
@@ -30,6 +31,7 @@ public class VerificationResultTestDataFactory {
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SET)
                 .qualifyingBenefits(QualifyingBenefits.NOT_SET)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .isPregnantOrAtLeast1ChildMatched(false)
                 .build();
     }
 }
