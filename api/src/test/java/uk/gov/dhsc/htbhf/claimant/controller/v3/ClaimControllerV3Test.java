@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.controller.v3;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
@@ -49,12 +52,18 @@ class ClaimControllerV3Test {
     @InjectMocks
     ClaimControllerV3 controller;
 
-    @Test
-    void shouldCreateAClaim() {
+    @ParameterizedTest
+    @CsvSource({
+            "NEW, CREATED",
+            "PENDING, OK",
+            "ACTIVE, OK",
+            "PENDING_EXPIRY, OK"
+    })
+    void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         ClaimDTOV3 dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
-        ClaimResult claimResult = aClaimResult(ClaimStatus.NEW, Optional.of(aValidVoucherEntitlement()));
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         given(claimantConverter.convert(any())).willReturn(claimant);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
@@ -65,11 +74,37 @@ class ClaimControllerV3Test {
 
         // Then
         assertThat(response).isNotNull();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(ClaimStatus.NEW));
-        verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
+        verifyCreateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(aValidClaimantDTO());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "REJECTED, OK",
+            "EXPIRED, OK",
+            "ERROR, INTERNAL_SERVER_ERROR"
+    })
+    void shouldInvokeClaimServiceAndReturnCorrectStatusWithoutVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
+        // Given
+        ClaimDTOV3 dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimant();
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(claimService.createClaim(any())).willReturn(claimResult);
+
+        // When
+        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus));
+        verifyCreateClaimCalledCorrectly(claimant, dto);
+        verify(claimantConverter).convert(aValidClaimantDTO());
+        verifyNoInteractions(entitlementConverter);
     }
 
     @Test
@@ -87,11 +122,11 @@ class ClaimControllerV3Test {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.ERROR));
-        verifyCreateOrUpdateClaimCalledCorrectly(claimant, dto);
+        verifyCreateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(aValidClaimantDTO());
     }
 
-    private void verifyCreateOrUpdateClaimCalledCorrectly(Claimant claimant, ClaimDTOV3 dto) {
+    private void verifyCreateClaimCalledCorrectly(Claimant claimant, ClaimDTOV3 dto) {
         ArgumentCaptor<ClaimRequest> captor = ArgumentCaptor.forClass(ClaimRequest.class);
         verify(claimService).createClaim(captor.capture());
         ClaimRequest claimRequest = captor.getValue();

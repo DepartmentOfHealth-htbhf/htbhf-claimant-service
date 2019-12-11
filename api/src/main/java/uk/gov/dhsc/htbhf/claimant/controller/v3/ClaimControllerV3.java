@@ -24,7 +24,6 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 import java.util.Map;
 import javax.validation.Valid;
 
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
@@ -72,8 +71,6 @@ public class ClaimControllerV3 {
                 .claimStatus(claimStatus)
                 .eligibilityStatus(result.getClaim().getEligibilityStatus())
                 .voucherEntitlement(entitlement)
-                .claimUpdated(result.getClaimUpdated())
-                .updatedFields(result.getUpdatedFields())
                 .verificationResult(result.getVerificationResult())
                 .build();
         return new ResponseEntity<>(body, statusCode);
@@ -84,9 +81,6 @@ public class ClaimControllerV3 {
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-        if (isTrue(claimResult.getClaimUpdated())) {
-            return HttpStatus.OK;
-        }
         ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();
         HttpStatus statusCode = statusMap.get(claimStatus);
         if (statusCode == null) {

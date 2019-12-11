@@ -5,8 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
@@ -366,7 +366,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     @DisplayName("Integration test for HTBHF-2182 status set to Expired and no email sent to Claimant who has no children in current cycle, "
             + "not pregnant, children over 4 present in previous cycle, response from DWP has no children")
     @ParameterizedTest(name = "DWP eligibility status={0}")
-    @EnumSource(EligibilityOutcome.class)
+    @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
     void shouldTestClaimBecomingExpiredWhenRollingOffTheScheme(EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
         List<LocalDate> currentPaymentCycleChildrenDobs = NO_CHILDREN;
         List<LocalDate> previousCycleChildrenDobs = SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE;

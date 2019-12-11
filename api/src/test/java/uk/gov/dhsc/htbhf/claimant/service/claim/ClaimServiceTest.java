@@ -226,8 +226,6 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result.getClaimUpdated()).isNull();
-        assertThat(result.getUpdatedFields()).isNull();
         verify(claimRepository).save(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), emptyList(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
@@ -323,8 +321,6 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result.getClaimUpdated()).isNull();
-        assertThat(result.getUpdatedFields()).isNull();
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
         assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
