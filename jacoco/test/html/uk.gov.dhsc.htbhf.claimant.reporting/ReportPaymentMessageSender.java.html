@@ -34,7 +34,7 @@ public class ReportPaymentMessageSender {
 <span class="fc" id="L34">        ReportPaymentMessagePayload payload = ReportPaymentMessagePayload.builder()</span>
 <span class="fc" id="L35">                .claimId(claim.getId())</span>
 <span class="fc" id="L36">                .paymentCycleId(paymentCycle.getId())</span>
-<span class="fc" id="L37">                .datesOfBirthOfChildren(paymentCycle.getChildrenDob())</span>
+<span class="fc" id="L37">                .identityAndEligibilityResponse(paymentCycle.getIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L38">                .timestamp(LocalDateTime.now())</span>
 <span class="fc" id="L39">                .paymentAction(TOP_UP_PAYMENT)</span>
 <span class="fc" id="L40">                .paymentForPregnancy(paymentForPregnancyInPence)</span>
@@ -61,7 +61,7 @@ public class ReportPaymentMessageSender {
 <span class="fc" id="L61">        return ReportPaymentMessagePayload.builder()</span>
 <span class="fc" id="L62">                .claimId(claim.getId())</span>
 <span class="fc" id="L63">                .paymentCycleId(paymentCycle.getId())</span>
-<span class="fc" id="L64">                .datesOfBirthOfChildren(paymentCycle.getChildrenDob())</span>
+<span class="fc" id="L64">                .identityAndEligibilityResponse(paymentCycle.getIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L65">                .timestamp(LocalDateTime.now())</span>
 <span class="fc" id="L66">                .paymentAction(paymentAction)</span>
 <span class="fc" id="L67">                .paymentForChildrenUnderOne(voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence)</span>
