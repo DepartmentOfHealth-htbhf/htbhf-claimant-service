@@ -2,13 +2,13 @@ package uk.gov.dhsc.htbhf.claimant.model;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import uk.gov.dhsc.htbhf.dwp.model.v2.*;
 
 /**
  * Encapsulation of the extra verification outcome information that was returned from DWP.
  */
-@Data
+@Value
 @Builder
 @ApiModel(description = "The result of verifying the claimant's details")
 public class VerificationResult {
@@ -30,5 +30,7 @@ public class VerificationResult {
     private final VerificationOutcome pregnantChildDOBMatch;
 
     private final QualifyingBenefits qualifyingBenefits;
+
+    private final Boolean isPregnantOrAtLeast1ChildMatched;
 
 }

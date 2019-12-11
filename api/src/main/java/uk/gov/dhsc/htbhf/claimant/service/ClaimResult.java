@@ -5,12 +5,16 @@ import lombok.Data;
 import org.javers.common.collections.Lists;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 @Data
 @Builder
@@ -33,7 +37,7 @@ public class ClaimResult {
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.empty())
-                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))
+                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))
                 .build();
     }
 
@@ -42,7 +46,7 @@ public class ClaimResult {
         return ClaimResult.builder()
                 .claim(claim)
                 .voucherEntitlement(Optional.of(voucherEntitlement))
-                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))
+                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))
                 .build();
     }
 
@@ -54,11 +58,11 @@ public class ClaimResult {
                 .voucherEntitlement(Optional.of(voucherEntitlement))
                 .updatedFields(updatedFieldsAsStrings)
                 .claimUpdated(true)
-                .verificationResult(buildVerificationResult(identityAndEligibilityResponse))
+                .verificationResult(buildVerificationResult(claim, identityAndEligibilityResponse))
                 .build();
     }
 
-    private static VerificationResult buildVerificationResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private static VerificationResult buildVerificationResult(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return VerificationResult.builder()
                 .identityOutcome(identityAndEligibilityResponse.getIdentityStatus())
                 .eligibilityOutcome(identityAndEligibilityResponse.getEligibilityStatus())
@@ -69,6 +73,19 @@ public class ClaimResult {
                 .postcodeMatch(identityAndEligibilityResponse.getPostcodeMatch())
                 .pregnantChildDOBMatch(identityAndEligibilityResponse.getPregnantChildDOBMatch())
                 .qualifyingBenefits(identityAndEligibilityResponse.getQualifyingBenefits())
+                .isPregnantOrAtLeast1ChildMatched(isPregnantOrAtLeastOneChildMatches(claim, identityAndEligibilityResponse.getDobOfChildrenUnder4()))
                 .build();
+    }
+
+    private static boolean isPregnantOrAtLeastOneChildMatches(Claim claim, List<LocalDate> registeredChildren) {
+        Claimant claimant = claim.getClaimant();
+        if (claimant.getExpectedDeliveryDate() != null) { // relying on validation in ClaimantDTO to ensure this is a valid value
+            return true;
+        }
+        List<LocalDate> declaredChildren = claimant.getChildrenDob();
+        if (declaredChildren == null || registeredChildren == null) {
+            return false;
+        }
+        return containsAny(declaredChildren, registeredChildren);
     }
 }
