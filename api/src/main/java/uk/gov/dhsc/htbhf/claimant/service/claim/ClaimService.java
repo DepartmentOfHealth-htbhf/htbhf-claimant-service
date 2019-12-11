@@ -47,8 +47,7 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    // TODO HTBHF-2682 Rename this method (and others) to createClaim.
-    public ClaimResult createOrUpdateClaim(ClaimRequest claimRequest) {
+    public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {

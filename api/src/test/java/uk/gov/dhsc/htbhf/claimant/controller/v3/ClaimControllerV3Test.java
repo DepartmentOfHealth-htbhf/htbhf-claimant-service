@@ -60,10 +60,10 @@ class ClaimControllerV3Test {
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         given(claimantConverter.convert(any())).willReturn(claimant);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
-        given(claimService.createOrUpdateClaim(any())).willReturn(claimResult);
+        given(claimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaimV3(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
 
         // Then
         assertThat(response).isNotNull();
@@ -77,13 +77,13 @@ class ClaimControllerV3Test {
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsError() {
         // Given
-        given(claimService.createOrUpdateClaim(any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
+        given(claimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
         Claimant claimant = aValidClaimant();
         given(claimantConverter.convert(any())).willReturn(claimant);
         ClaimDTOV3 dto = aValidClaimDTO();
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createOrUpdateClaimV3(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
 
         // Then
         assertThat(response).isNotNull();
@@ -95,7 +95,7 @@ class ClaimControllerV3Test {
 
     private void verifyCreateOrUpdateClaimCalledCorrectly(Claimant claimant, ClaimDTOV3 dto) {
         ArgumentCaptor<ClaimRequest> captor = ArgumentCaptor.forClass(ClaimRequest.class);
-        verify(claimService).createOrUpdateClaim(captor.capture());
+        verify(claimService).createClaim(captor.capture());
         ClaimRequest claimRequest = captor.getValue();
         assertThat(claimRequest).isNotNull();
         assertThat(claimRequest.getClaimant()).isEqualTo(claimant);

@@ -92,7 +92,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -132,7 +132,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -165,7 +165,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         assertThat(result).isNotNull();
@@ -196,7 +196,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         verify(claimRepository).save(result.getClaim());
@@ -223,7 +223,7 @@ class ClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isNull();
@@ -243,7 +243,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         // then
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), eligibility.getDateOfBirthOfChildren(), ClaimAction.REJECTED);
@@ -261,7 +261,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest);
 
         //then
         assertThat(result).isNotNull();
@@ -281,7 +281,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest);
 
         //then
         assertThat(result).isNotNull();
@@ -301,7 +301,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest);
 
         //then
         assertThat(result).isNotNull();
@@ -320,7 +320,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createOrUpdateClaim(request);
+        ClaimResult result = claimService.createClaim(request);
 
         //then
         assertThat(result.getClaimUpdated()).isNull();
@@ -351,7 +351,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> claimService.createOrUpdateClaim(request), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(request), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(TEST_EXCEPTION);
