@@ -12,21 +12,18 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportPaymentMessagePayload;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static uk.gov.dhsc.htbhf.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.TOP_UP_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithBackdatedVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaimAndChildrenDobs;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 
 @ExtendWith(MockitoExtension.class)
 class ReportPaymentMessageSenderTest {
@@ -40,8 +37,7 @@ class ReportPaymentMessageSenderTest {
     @Test
     void shouldReportTopUpPayment() {
         Claim claim = aValidClaim();
-        List<LocalDate> datesOfBirthOfChildren = ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-        PaymentCycle paymentCycle = aPaymentCycleWithClaimAndChildrenDobs(claim, datesOfBirthOfChildren);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         int paymentForPregnancy = 100;
         LocalDateTime testStart = LocalDateTime.now();
 
@@ -53,7 +49,7 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getTimestamp()).isAfterOrEqualTo(testStart);
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
+        assertThat(payload.getIdentityAndEligibilityResponse()).isEqualTo(paymentCycle.getIdentityAndEligibilityResponse());
         assertThat(payload.getPaymentAction()).isEqualTo(TOP_UP_PAYMENT);
         assertThat(payload.getPaymentForChildrenUnderOne()).isZero();
         assertThat(payload.getPaymentForChildrenBetweenOneAndFour()).isZero();
@@ -63,25 +59,23 @@ class ReportPaymentMessageSenderTest {
     @Test
     void shouldReportInitialPayment() {
         Claim claim = aValidClaim();
-        List<LocalDate> datesOfBirthOfChildren = ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-        PaymentCycle paymentCycle = aPaymentCycleWithClaimAndChildrenDobs(claim, datesOfBirthOfChildren);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         LocalDateTime testStart = LocalDateTime.now();
 
         reportPaymentMessageSender.sendReportInitialPaymentMessage(claim, paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(claim, datesOfBirthOfChildren, paymentCycle, testStart, INITIAL_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, INITIAL_PAYMENT);
     }
 
     @Test
     void shouldReportScheduledPayment() {
         Claim claim = aValidClaim();
-        List<LocalDate> datesOfBirthOfChildren = ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-        PaymentCycle paymentCycle = aPaymentCycleWithClaimAndChildrenDobs(claim, datesOfBirthOfChildren);
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         LocalDateTime testStart = LocalDateTime.now();
 
         reportPaymentMessageSender.sendReportScheduledPayment(claim, paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(claim, datesOfBirthOfChildren, paymentCycle, testStart, SCHEDULED_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
 
     @Test
@@ -91,11 +85,10 @@ class ReportPaymentMessageSenderTest {
 
         reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
 
-        verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle.getChildrenDob(), paymentCycle, testStart, SCHEDULED_PAYMENT);
+        verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
 
     private void verifyNonTopUpPaymentMessageSent(Claim claim,
-                                                  List<LocalDate> datesOfBirthOfChildren,
                                                   PaymentCycle paymentCycle,
                                                   LocalDateTime testStart,
                                                   PaymentAction paymentAction) {
@@ -106,7 +99,7 @@ class ReportPaymentMessageSenderTest {
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getPaymentAction()).isEqualTo(paymentAction);
-        assertThat(payload.getDatesOfBirthOfChildren()).isEqualTo(datesOfBirthOfChildren);
+        assertThat(payload.getIdentityAndEligibilityResponse()).isEqualTo(paymentCycle.getIdentityAndEligibilityResponse());
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
         int voucherValue = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(payload.getPaymentForChildrenUnderOne()).isEqualTo(voucherEntitlement.getVouchersForChildrenUnderOne() * voucherValue);

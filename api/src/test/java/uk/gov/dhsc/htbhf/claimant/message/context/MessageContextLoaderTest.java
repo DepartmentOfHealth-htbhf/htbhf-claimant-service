@@ -28,7 +28,6 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -472,7 +471,7 @@ class MessageContextLoaderTest {
                 .claimId(claim.getId())
                 .paymentAction(PaymentAction.INITIAL_PAYMENT)
                 .paymentCycleId(paymentCycle.getId())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .identityAndEligibilityResponse(paymentCycle.getIdentityAndEligibilityResponse())
                 .paymentForPregnancy(100)
                 .paymentForChildrenUnderOne(100)
                 .paymentForChildrenBetweenOneAndFour(100)
@@ -489,7 +488,7 @@ class MessageContextLoaderTest {
         //Then
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
-        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getDatesOfBirthOfChildren());
+        assertThat(context.getDatesOfBirthOfChildren()).isEqualTo(payload.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4());
         assertThat(context.getTimestamp()).isEqualTo(payload.getTimestamp());
         assertThat(context.getPaymentAction()).isEqualTo(payload.getPaymentAction());
         assertThat(context.getPaymentForPregnancy()).isEqualTo(100);
