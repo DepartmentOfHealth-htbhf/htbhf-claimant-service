@@ -5,8 +5,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -26,7 +26,7 @@ public class ClaimantServiceAssertionUtils {
 
     private static final ThreadLocal<DecimalFormat> CURRENCY_FORMAT = ThreadLocal.withInitial(() -> new DecimalFormat("£#,#0.00"));
 
-    public static void assertClaimantMatchesClaimantDTO(ClaimantDTOV3 claimant, Claimant persistedClaim) {
+    public static void assertClaimantMatchesClaimantDTO(ClaimantDTO claimant, Claimant persistedClaim) {
         assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
         assertThat(persistedClaim.getFirstName()).isEqualTo(claimant.getFirstName());
         assertThat(persistedClaim.getLastName()).isEqualTo(claimant.getLastName());
@@ -56,7 +56,7 @@ public class ClaimantServiceAssertionUtils {
         assertThat(failedPayments).hasSize(expectedFailureCount);
     }
 
-    private static void assertAddressEqual(Address actual, AddressDTOV3 expected) {
+    private static void assertAddressEqual(Address actual, AddressDTO expected) {
         assertThat(actual).isNotNull();
         assertThat(actual.getAddressLine1()).isEqualTo(expected.getAddressLine1());
         assertThat(actual.getAddressLine2()).isEqualTo(expected.getAddressLine2());

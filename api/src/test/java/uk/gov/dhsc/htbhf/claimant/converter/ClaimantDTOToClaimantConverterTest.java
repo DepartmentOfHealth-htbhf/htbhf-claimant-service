@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -15,8 +15,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithNino;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimantDTOToClaimantConverterTest {
@@ -31,7 +31,7 @@ class ClaimantDTOToClaimantConverterTest {
     @Test
     void shouldConvertClaimDTOToEquivalentClaimObject() {
         // Given
-        ClaimantDTOV3 claimantDTO = aValidClaimantDTOWithNoNullFields();
+        ClaimantDTO claimantDTO = aValidClaimantDTOWithNoNullFields();
         when(addressConverter.convert(claimantDTO.getAddress())).thenReturn(ADDRESS);
 
         // When
@@ -55,7 +55,7 @@ class ClaimantDTOToClaimantConverterTest {
     void shouldEnsureNinoIsUppercased() {
         // Given
         String nino = "AA123456A";
-        ClaimantDTOV3 claimantDTO = aClaimantDTOWithNino(nino.toLowerCase());
+        ClaimantDTO claimantDTO = aClaimantDTOWithNino(nino.toLowerCase());
         when(addressConverter.convert(claimantDTO.getAddress())).thenReturn(ADDRESS);
 
         // When

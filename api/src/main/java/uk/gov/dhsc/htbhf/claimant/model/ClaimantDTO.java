@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model.v3;
+package uk.gov.dhsc.htbhf.claimant.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,7 +24,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX_V3;
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 @ApiModel(description = "A claimant for help to buy healthy foods.")
-public class ClaimantDTOV3 {
+public class ClaimantDTO {
 
     @NotNull
     @Size(min = 1, max = 500)
@@ -62,7 +62,7 @@ public class ClaimantDTOV3 {
     @Valid
     @JsonProperty("address")
     @ApiModelProperty(notes = "The address of the claimant")
-    private AddressDTOV3 address;
+    private AddressDTO address;
 
     @NotNull
     @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +44 format, e.g. +447123456789")

@@ -8,10 +8,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -41,9 +41,9 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTI
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aClaimDTOWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
@@ -186,8 +186,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     @Test
     public void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTOV3 claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
-        ClaimantDTOV3 claimant = claimDTO.getClaimant();
+        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
+        ClaimantDTO claimant = claimDTO.getClaimant();
         String cardAccountId = UUID.randomUUID().toString();
         stubExternalServicesForSuccessfulResponses(cardAccountId, NO_CHILDREN);
         makeNewClaimRestRequest(claimDTO);
@@ -337,27 +337,27 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
-        ClaimDTOV3 claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
+        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
         return applyForHealthyStart(claimDTO, NO_CHILDREN);
     }
 
     private UUID applyForHealthyStartAsNonPregnantWomanWithChildren(List<LocalDate> datesOfBirthOfChildren)
             throws JsonProcessingException, NotificationClientException {
-        ClaimDTOV3 claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(null, datesOfBirthOfChildren));
+        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(null, datesOfBirthOfChildren));
         return applyForHealthyStart(claimDTO, datesOfBirthOfChildren);
     }
 
-    private UUID applyForHealthyStart(ClaimDTOV3 claimDTO, List<LocalDate> datesOfBirthOfChildren) throws JsonProcessingException, NotificationClientException {
+    private UUID applyForHealthyStart(ClaimDTO claimDTO, List<LocalDate> datesOfBirthOfChildren) throws JsonProcessingException, NotificationClientException {
         stubExternalServicesForSuccessfulResponses(UUID.randomUUID().toString(), datesOfBirthOfChildren);
         makeNewClaimRestRequest(claimDTO);
         invokeAllSchedulers();
 
-        ClaimantDTOV3 claimant = claimDTO.getClaimant();
+        ClaimantDTO claimant = claimDTO.getClaimant();
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         return claim.getId();
     }
 
-    private void makeNewClaimRestRequest(ClaimDTOV3 claimDTO) {
+    private void makeNewClaimRestRequest(ClaimDTO claimDTO) {
         restTemplate.exchange(buildClaimRequestEntityForUri(claimDTO, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
     }
 
