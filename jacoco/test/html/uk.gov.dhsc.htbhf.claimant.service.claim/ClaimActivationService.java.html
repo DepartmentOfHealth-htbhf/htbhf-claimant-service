@@ -51,7 +51,7 @@ public class ClaimActivationService {
 
     private void reportUpdatedClaim(Claim claim, String cardAccountId, EligibilityAndEntitlementDecision decision) {
 <span class="fc" id="L53">        eventAuditor.auditNewCard(claim.getId(), cardAccountId);</span>
-<span class="fc" id="L54">        claimMessageSender.sendReportClaimMessage(claim, decision.getDateOfBirthOfChildren(), UPDATED_FROM_NEW_TO_ACTIVE);</span>
+<span class="fc" id="L54">        claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_NEW_TO_ACTIVE);</span>
 <span class="fc" id="L55">    }</span>
 
 }

@@ -8,8 +8,8 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,12 +45,12 @@ import java.util.List;
     }
 
     public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim,
-                                                                           List&lt;LocalDate&gt; dateOfBirthOfChildren,
+                                                                           CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                                            ClaimAction claimAction,
                                                                            List&lt;UpdatableClaimantField&gt; updatedClaimantFields) {
 <span class="fc" id="L51">        return ReportClaimMessagePayload.builder()</span>
 <span class="fc" id="L52">                .claimId(claim.getId())</span>
-<span class="fc" id="L53">                .datesOfBirthOfChildren(dateOfBirthOfChildren)</span>
+<span class="fc" id="L53">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
 <span class="fc" id="L54">                .claimAction(claimAction)</span>
 <span class="fc" id="L55">                .timestamp(LocalDateTime.now())</span>
 <span class="fc" id="L56">                .updatedClaimantFields(updatedClaimantFields)</span>
