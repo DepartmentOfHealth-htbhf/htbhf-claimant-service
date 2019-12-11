@@ -452,7 +452,12 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm card service not called to make payment
         wiremockManager.assertThatDepositFundsRequestNotMadeForCard(CARD_ACCOUNT_ID);
 
-        wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, currentCycleChildrenDobs);
+        if (eligibilityOutcome == CONFIRMED) {
+            wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED, currentCycleChildrenDobs);
+        } else {
+            // non confirmed responses will not have children dates of birth
+            wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED);
+        }
 
         // confirm notify component invoked with correct email template & personalisation
         invokeAllSchedulers();
