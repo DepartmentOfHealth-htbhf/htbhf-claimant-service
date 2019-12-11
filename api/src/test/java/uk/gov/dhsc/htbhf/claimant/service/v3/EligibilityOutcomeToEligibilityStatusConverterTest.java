@@ -2,7 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service.v3;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import uk.gov.dhsc.htbhf.dwp.model.v2.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -76,7 +76,7 @@ public final class ClaimantTestDataFactory {
         return Claimant.builder()
                 .firstName(HOMER_FORENAME)
                 .lastName(SIMPSON_SURNAME)
-                .nino(HOMER_NINO_V1)
+                .nino(HOMER_NINO)
                 .dateOfBirth(HOMER_DATE_OF_BIRTH)
                 .phoneNumber(HOMER_MOBILE)
                 .emailAddress(HOMER_EMAIL)

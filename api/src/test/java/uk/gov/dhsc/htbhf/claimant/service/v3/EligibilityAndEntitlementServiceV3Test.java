@@ -27,7 +27,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V1;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -129,7 +129,7 @@ class EligibilityAndEntitlementServiceV3Test {
     }
 
     private void verifyCommonMocks(UUID existingClaimId, boolean duplicate) {
-        verify(claimRepository).findLiveClaimWithNino(HOMER_NINO_V1);
+        verify(claimRepository).findLiveClaimWithNino(HOMER_NINO);
         verify(client).checkIdentityAndEligibility(CLAIMANT);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
