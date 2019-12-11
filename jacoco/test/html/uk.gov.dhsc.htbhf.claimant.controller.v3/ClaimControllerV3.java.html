@@ -2,7 +2,6 @@
 
 import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,57 +26,57 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(value = &quot;/v3/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-<span class="fc" id="L30">@Slf4j</span>
+<span class="fc" id="L29">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimControllerV3 {
 
     private final ClaimController claimController;
 
-    public ClaimControllerV3(@Qualifier(&quot;v3ClaimService&quot;) ClaimService v3ClaimService,
+    public ClaimControllerV3(ClaimService v3ClaimService,
                              ClaimantDTOToClaimantConverter claimantConverter,
-<span class="fc" id="L38">                             VoucherEntitlementToDTOConverter voucherConverter) {</span>
+<span class="fc" id="L37">                             VoucherEntitlementToDTOConverter voucherConverter) {</span>
         //TODO MRS 28/11/2019: This is a temporary (ugly) work around to make sure we reuse the existing code without duplication, it will be replaced
-<span class="fc" id="L40">        claimController = new ClaimController(v3ClaimService, claimantConverter, voucherConverter);</span>
-<span class="fc" id="L41">    }</span>
+<span class="fc" id="L39">        claimController = new ClaimController(v3ClaimService, claimantConverter, voucherConverter);</span>
+<span class="fc" id="L40">    }</span>
 
     @PostMapping
     @ApiOperation(&quot;Create a V3 claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;ClaimResultDTO&gt; createClaimV3(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTOV3 claimDTOV3) {
-<span class="fc" id="L47">        log.debug(&quot;Received V3 claim&quot;);</span>
-<span class="fc" id="L48">        return claimController.createClaim(buildClaimDTO(claimDTOV3));</span>
+<span class="fc" id="L46">        log.debug(&quot;Received V3 claim&quot;);</span>
+<span class="fc" id="L47">        return claimController.createClaim(buildClaimDTO(claimDTOV3));</span>
     }
 
     private ClaimDTO buildClaimDTO(ClaimDTOV3 v3Claim) {
-<span class="fc" id="L52">        return ClaimDTO.builder()</span>
-<span class="fc" id="L53">                .deviceFingerprint(v3Claim.getDeviceFingerprint())</span>
-<span class="fc" id="L54">                .webUIVersion(v3Claim.getWebUIVersion())</span>
-<span class="fc" id="L55">                .claimant(buildClaimantDTO(v3Claim.getClaimant()))</span>
-<span class="fc" id="L56">                .build();</span>
+<span class="fc" id="L51">        return ClaimDTO.builder()</span>
+<span class="fc" id="L52">                .deviceFingerprint(v3Claim.getDeviceFingerprint())</span>
+<span class="fc" id="L53">                .webUIVersion(v3Claim.getWebUIVersion())</span>
+<span class="fc" id="L54">                .claimant(buildClaimantDTO(v3Claim.getClaimant()))</span>
+<span class="fc" id="L55">                .build();</span>
     }
 
     private ClaimantDTO buildClaimantDTO(ClaimantDTOV3 v3Claimant) {
-<span class="fc" id="L60">        return ClaimantDTO.builder()</span>
-<span class="fc" id="L61">                .firstName(v3Claimant.getFirstName())</span>
-<span class="fc" id="L62">                .lastName(v3Claimant.getLastName())</span>
-<span class="fc" id="L63">                .nino(v3Claimant.getNino())</span>
-<span class="fc" id="L64">                .dateOfBirth(v3Claimant.getDateOfBirth())</span>
-<span class="fc" id="L65">                .emailAddress(v3Claimant.getEmailAddress())</span>
-<span class="fc" id="L66">                .phoneNumber(v3Claimant.getPhoneNumber())</span>
-<span class="fc" id="L67">                .address(buildAddressDTO(v3Claimant.getAddress()))</span>
-<span class="fc" id="L68">                .expectedDeliveryDate(v3Claimant.getExpectedDeliveryDate())</span>
-<span class="fc" id="L69">                .childrenDob(v3Claimant.getChildrenDob())</span>
-<span class="fc" id="L70">                .build();</span>
+<span class="fc" id="L59">        return ClaimantDTO.builder()</span>
+<span class="fc" id="L60">                .firstName(v3Claimant.getFirstName())</span>
+<span class="fc" id="L61">                .lastName(v3Claimant.getLastName())</span>
+<span class="fc" id="L62">                .nino(v3Claimant.getNino())</span>
+<span class="fc" id="L63">                .dateOfBirth(v3Claimant.getDateOfBirth())</span>
+<span class="fc" id="L64">                .emailAddress(v3Claimant.getEmailAddress())</span>
+<span class="fc" id="L65">                .phoneNumber(v3Claimant.getPhoneNumber())</span>
+<span class="fc" id="L66">                .address(buildAddressDTO(v3Claimant.getAddress()))</span>
+<span class="fc" id="L67">                .expectedDeliveryDate(v3Claimant.getExpectedDeliveryDate())</span>
+<span class="fc" id="L68">                .childrenDob(v3Claimant.getChildrenDob())</span>
+<span class="fc" id="L69">                .build();</span>
     }
 
     private AddressDTO buildAddressDTO(AddressDTOV3 v3Address) {
-<span class="fc" id="L74">        return AddressDTO.builder()</span>
-<span class="fc" id="L75">                .addressLine1(v3Address.getAddressLine1())</span>
-<span class="fc" id="L76">                .addressLine2(v3Address.getAddressLine2())</span>
-<span class="fc" id="L77">                .townOrCity(v3Address.getTownOrCity())</span>
-<span class="fc" id="L78">                .county(v3Address.getCounty())</span>
-<span class="fc" id="L79">                .postcode(v3Address.getPostcode())</span>
-<span class="fc" id="L80">                .build();</span>
+<span class="fc" id="L73">        return AddressDTO.builder()</span>
+<span class="fc" id="L74">                .addressLine1(v3Address.getAddressLine1())</span>
+<span class="fc" id="L75">                .addressLine2(v3Address.getAddressLine2())</span>
+<span class="fc" id="L76">                .townOrCity(v3Address.getTownOrCity())</span>
+<span class="fc" id="L77">                .county(v3Address.getCounty())</span>
+<span class="fc" id="L78">                .postcode(v3Address.getPostcode())</span>
+<span class="fc" id="L79">                .build();</span>
     }
 
 }

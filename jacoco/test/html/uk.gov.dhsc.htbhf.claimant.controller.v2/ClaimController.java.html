@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.controller.v2</a> &gt; <span class="el_source">ClaimController.java</span></div><h1>ClaimController.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.controller.v2;
 
 import io.swagger.annotations.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +29,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController()
 @RequestMapping(value = &quot;/v2/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-@RequiredArgsConstructor
-<span class="fc" id="L33">@Slf4j</span>
+<span class="fc" id="L32">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimController {
 
@@ -38,7 +37,7 @@ public class ClaimController {
     private final ClaimantDTOToClaimantConverter claimantConverter;
     private final VoucherEntitlementToDTOConverter voucherConverter;
 
-    private final Map&lt;ClaimStatus, HttpStatus&gt; statusMap = Map.of(
+<span class="fc" id="L40">    private final Map&lt;ClaimStatus, HttpStatus&gt; statusMap = Map.of(</span>
             ClaimStatus.NEW, HttpStatus.CREATED,
             ClaimStatus.PENDING, HttpStatus.OK,
             ClaimStatus.ACTIVE, HttpStatus.OK,
@@ -48,52 +47,60 @@ public class ClaimController {
             ClaimStatus.ERROR, HttpStatus.INTERNAL_SERVER_ERROR
     );
 
+    public ClaimController(@Qualifier(&quot;v2ClaimService&quot;) ClaimService claimService,
+                           ClaimantDTOToClaimantConverter claimantConverter,
+<span class="fc" id="L52">                           VoucherEntitlementToDTOConverter voucherConverter) {</span>
+<span class="fc" id="L53">        this.claimService = claimService;</span>
+<span class="fc" id="L54">        this.claimantConverter = claimantConverter;</span>
+<span class="fc" id="L55">        this.voucherConverter = voucherConverter;</span>
+<span class="fc" id="L56">    }</span>
+
     @PostMapping
     @ApiOperation(&quot;Create a claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
-<span class="fc" id="L55">        log.debug(&quot;Received claim&quot;);</span>
-<span class="fc" id="L56">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
-<span class="fc" id="L57">        ClaimRequest claimRequest = ClaimRequest.builder()</span>
-<span class="fc" id="L58">                .claimant(claimant)</span>
-<span class="fc" id="L59">                .deviceFingerprint(claimDTO.getDeviceFingerprint())</span>
-<span class="fc" id="L60">                .webUIVersion(claimDTO.getWebUIVersion())</span>
-<span class="fc" id="L61">                .build();</span>
-<span class="fc" id="L62">        ClaimResult result = claimService.createClaim(claimRequest);</span>
+<span class="fc" id="L62">        log.debug(&quot;Received claim&quot;);</span>
+<span class="fc" id="L63">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
+<span class="fc" id="L64">        ClaimRequest claimRequest = ClaimRequest.builder()</span>
+<span class="fc" id="L65">                .claimant(claimant)</span>
+<span class="fc" id="L66">                .deviceFingerprint(claimDTO.getDeviceFingerprint())</span>
+<span class="fc" id="L67">                .webUIVersion(claimDTO.getWebUIVersion())</span>
+<span class="fc" id="L68">                .build();</span>
+<span class="fc" id="L69">        ClaimResult result = claimService.createClaim(claimRequest);</span>
 
-<span class="fc" id="L64">        return createResponse(result);</span>
+<span class="fc" id="L71">        return createResponse(result);</span>
     }
 
     private ResponseEntity&lt;ClaimResultDTO&gt; createResponse(ClaimResult result) {
-<span class="fc" id="L68">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
-<span class="fc" id="L69">        HttpStatus statusCode = getHttpStatus(result);</span>
-<span class="fc" id="L70">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
-<span class="fc" id="L71">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
-<span class="fc" id="L72">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L73">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
-<span class="fc" id="L74">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L75">                .claimUpdated(result.getClaimUpdated())</span>
-<span class="fc" id="L76">                .updatedFields(result.getUpdatedFields())</span>
-<span class="fc" id="L77">                .verificationResult(result.getVerificationResult())</span>
-<span class="fc" id="L78">                .build();</span>
-<span class="fc" id="L79">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L75">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
+<span class="fc" id="L76">        HttpStatus statusCode = getHttpStatus(result);</span>
+<span class="fc" id="L77">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
+<span class="fc" id="L78">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
+<span class="fc" id="L79">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L80">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
+<span class="fc" id="L81">                .voucherEntitlement(entitlement)</span>
+<span class="fc" id="L82">                .claimUpdated(result.getClaimUpdated())</span>
+<span class="fc" id="L83">                .updatedFields(result.getUpdatedFields())</span>
+<span class="fc" id="L84">                .verificationResult(result.getVerificationResult())</span>
+<span class="fc" id="L85">                .build();</span>
+<span class="fc" id="L86">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
-<span class="fc" id="L83">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
+<span class="fc" id="L90">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
-<span class="fc" id="L88">            return HttpStatus.OK;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (isTrue(claimResult.getClaimUpdated())) {</span>
+<span class="fc" id="L95">            return HttpStatus.OK;</span>
         }
-<span class="fc" id="L90">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
-<span class="fc" id="L91">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (statusCode == null) {</span>
-<span class="fc" id="L93">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
-<span class="fc" id="L94">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="fc" id="L97">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
+<span class="fc" id="L98">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (statusCode == null) {</span>
+<span class="fc" id="L100">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="fc" id="L101">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L96">        return statusCode;</span>
+<span class="fc" id="L103">        return statusCode;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

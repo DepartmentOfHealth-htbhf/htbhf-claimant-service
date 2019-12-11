@@ -3,16 +3,12 @@
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
-import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.claimant.service.v2.EligibilityAndEntitlementServiceV2;
 import uk.gov.dhsc.htbhf.claimant.service.v3.EligibilityAndEntitlementServiceV3;
-import uk.gov.dhsc.htbhf.claimant.service.v3.EligibilityClientV3;
 
 /**
  * Configuration class for setting up the beans to support both v2 and v3 versions of the {@link uk.gov.dhsc.htbhf.claimant.controller.v2.ClaimController}.
@@ -20,32 +16,23 @@ import uk.gov.dhsc.htbhf.claimant.service.v3.EligibilityClientV3;
  * for the dependency injection to work correctly for that version.
  */
 @Configuration
-<span class="fc" id="L23">public class VersionConfiguration {</span>
+<span class="fc" id="L19">public class VersionConfiguration {</span>
 
-    @Primary
     @Bean
     public ClaimService v2ClaimService(ClaimRepository claimRepository,
                                        EligibilityAndEntitlementServiceV2 eligibilityAndEntitlementServiceV2,
                                        EventAuditor eventAuditor,
                                        ClaimMessageSender claimMessageSender) {
-<span class="fc" id="L31">        return new ClaimService(claimRepository, eligibilityAndEntitlementServiceV2, eventAuditor, claimMessageSender);</span>
+<span class="fc" id="L26">        return new ClaimService(claimRepository, eligibilityAndEntitlementServiceV2, eventAuditor, claimMessageSender);</span>
     }
 
-    @Bean
-    public EligibilityAndEntitlementServiceV3 eligibilityAndEntitlementServiceV3(EligibilityClientV3 client,
-                                                                                 DuplicateClaimChecker duplicateClaimChecker,
-                                                                                 ClaimRepository claimRepository,
-                                                                                 PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator,
-                                                                                 EligibilityAndEntitlementDecisionFactory factory) {
-<span class="fc" id="L40">        return new EligibilityAndEntitlementServiceV3(client, duplicateClaimChecker, claimRepository, paymentCycleEntitlementCalculator, factory);</span>
-    }
-
+    @Primary
     @Bean
     public ClaimService v3ClaimService(ClaimRepository claimRepository,
                                        EligibilityAndEntitlementServiceV3 eligibilityAndEntitlementServiceV3,
                                        EventAuditor eventAuditor,
                                        ClaimMessageSender claimMessageSender) {
-<span class="fc" id="L48">        return new ClaimService(claimRepository, eligibilityAndEntitlementServiceV3, eventAuditor, claimMessageSender);</span>
+<span class="fc" id="L35">        return new ClaimService(claimRepository, eligibilityAndEntitlementServiceV3, eventAuditor, claimMessageSender);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
