@@ -47,7 +47,6 @@ public class MessagePayloadTestDataFactory {
                                                                              List<LocalDate> datesOfBirth) {
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = aValidDecisionBuilder()
                 .voucherEntitlement(voucherEntitlement)
-                .dateOfBirthOfChildren(datesOfBirth)
                 .build();
         return defaultRequestNewCardMessagePayloadBuilder()
                 .claimId(claimId)

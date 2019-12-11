@@ -21,7 +21,6 @@ import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -35,6 +34,7 @@ import javax.transaction.Transactional;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 /**
  * Populates the claimant and DWP database with the data in a {@link ClaimantInfo} object.
@@ -152,9 +152,7 @@ public class ClaimantLoader {
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
                 .eligibilityStatus(EligibilityStatus.ELIGIBLE)
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
-                .childrenDob(childrenDobs)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
         return paymentCycleRepository.save(paymentCycle);
     }

@@ -54,7 +54,6 @@ public class EligibilityAndEntitlementTestDataFactory {
                 : CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse();
         return builder
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
-                .dateOfBirthOfChildren(childrenDobs)
                 .build();
     }
 
@@ -73,8 +72,7 @@ public class EligibilityAndEntitlementTestDataFactory {
                         CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(children))
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers())
-                .dateOfBirthOfChildren(children);
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementWithVouchers());
     }
 
     private static List<LocalDate> createChildren(Integer numberOfChildrenUnderOne, Integer numberOfChildrenUnderFour) {

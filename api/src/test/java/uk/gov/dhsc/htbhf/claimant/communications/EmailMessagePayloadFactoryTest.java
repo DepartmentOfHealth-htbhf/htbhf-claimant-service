@@ -124,7 +124,6 @@ class EmailMessagePayloadFactoryTest {
         Claim claim = aClaimWithExpectedDeliveryDateAndChildrenDobs(LocalDate.now().minusYears(4), List.of(LocalDate.now().minusYears(4).plusDays(1)));
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(claim.getClaimant().getChildrenDob())
                 .identityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
                         .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(claim.getClaimant().getChildrenDob()))
                 .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), claim.getClaimant().getChildrenDob()))

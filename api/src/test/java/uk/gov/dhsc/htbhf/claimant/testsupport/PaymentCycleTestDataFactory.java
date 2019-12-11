@@ -6,7 +6,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +17,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersFromDate;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class PaymentCycleTestDataFactory {
 
@@ -35,10 +35,8 @@ public class PaymentCycleTestDataFactory {
                 .voucherEntitlement(paymentCycleVoucherEntitlement)
                 .totalVouchers(paymentCycleVoucherEntitlement.getTotalVoucherEntitlement())
                 .claim(claim)
-                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -51,10 +49,8 @@ public class PaymentCycleTestDataFactory {
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleStartDate(startDate)
                 .claim(claim)
-                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -83,9 +79,7 @@ public class PaymentCycleTestDataFactory {
                 .cycleEndDate(endDate)
                 .totalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence())
                 .totalVouchers(4)
-                .childrenDob(childrenDobs)
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -93,10 +87,8 @@ public class PaymentCycleTestDataFactory {
         List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
         paymentCycle.addPayment(payment);
         return paymentCycle;
@@ -106,10 +98,8 @@ public class PaymentCycleTestDataFactory {
         List<LocalDate> childrenDobs = nullSafeGetChildrenDob(claim);
         return aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(childrenDobs)
                 .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -119,18 +109,14 @@ public class PaymentCycleTestDataFactory {
 
     public static PaymentCycle aPaymentCycleWithChildrenDobs(List<LocalDate> childrenDobs) {
         return aValidPaymentCycleBuilder()
-                .childrenDob(childrenDobs)
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
     public static PaymentCycle aPaymentCycleWithClaimAndChildrenDobs(Claim claim, List<LocalDate> childrenDobs) {
         return aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(childrenDobs)
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
 
@@ -156,11 +142,9 @@ public class PaymentCycleTestDataFactory {
                 //Next cycle starts 4 weeks after the current one so last day of current cycle is one day less
                 .cycleEndDate(LocalDate.now().plusDays(27))
                 .totalVouchers(TOTAL_VOUCHERS)
-                .childrenDob(childrenDobs)
                 .totalEntitlementAmountInPence(TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE)
                 .expectedDeliveryDate(claim.getClaimant().getExpectedDeliveryDate())
-                .identityAndEligibilityResponse(
-                        CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs));
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs));
     }
 
     private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
