@@ -1,20 +1,19 @@
 package uk.gov.dhsc.htbhf.claimant.message.payload;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
-@Data
+@Value
 @Builder
 public class ReportPaymentMessagePayload implements MessagePayload {
     private UUID claimId;
     private UUID paymentCycleId;
-    private List<LocalDate> datesOfBirthOfChildren;
+    private CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
     private PaymentAction paymentAction;
     private int paymentForPregnancy;
     private int paymentForChildrenUnderOne;
