@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
-import uk.gov.dhsc.htbhf.dwp.model.v2.PersonDTOV2;
+import uk.gov.dhsc.htbhf.dwp.model.PersonDTO;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 /**
@@ -32,7 +32,7 @@ public class EligibilityClientV3 {
 
     public CombinedIdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
 <span class="fc" id="L34">        log.debug(&quot;Checking V2 eligibility&quot;);</span>
-<span class="fc" id="L35">        PersonDTOV2 person = buildPersonDTOV2(claimant);</span>
+<span class="fc" id="L35">        PersonDTO person = buildPersonDTO(claimant);</span>
         try {
 <span class="fc" id="L37">            ResponseEntity&lt;CombinedIdentityAndEligibilityResponse&gt; response = restTemplate.postForEntity(</span>
                     eligibilityUri,
@@ -50,8 +50,8 @@ public class EligibilityClientV3 {
         }
     }
 
-    private PersonDTOV2 buildPersonDTOV2(Claimant claimant) {
-<span class="fc" id="L54">        return PersonDTOV2.builder()</span>
+    private PersonDTO buildPersonDTO(Claimant claimant) {
+<span class="fc" id="L54">        return PersonDTO.builder()</span>
 <span class="fc" id="L55">                .surname(claimant.getLastName())</span>
 <span class="fc" id="L56">                .nino(claimant.getNino())</span>
 <span class="fc" id="L57">                .dateOfBirth(claimant.getDateOfBirth())</span>
