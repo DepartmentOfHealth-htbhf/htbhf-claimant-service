@@ -3,7 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.model;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Value;
-import uk.gov.dhsc.htbhf.dwp.model.v2.*;
+import uk.gov.dhsc.htbhf.dwp.model.*;
 
 /**
  * Encapsulation of the extra verification outcome information that was returned from DWP.

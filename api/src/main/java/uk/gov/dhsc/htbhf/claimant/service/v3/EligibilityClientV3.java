@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
-import uk.gov.dhsc.htbhf.dwp.model.v2.PersonDTOV2;
+import uk.gov.dhsc.htbhf.dwp.model.PersonDTO;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 /**
@@ -32,7 +32,7 @@ public class EligibilityClientV3 {
 
     public CombinedIdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
         log.debug("Checking V2 eligibility");
-        PersonDTOV2 person = buildPersonDTOV2(claimant);
+        PersonDTO person = buildPersonDTO(claimant);
         try {
             ResponseEntity<CombinedIdentityAndEligibilityResponse> response = restTemplate.postForEntity(
                     eligibilityUri,
@@ -50,8 +50,8 @@ public class EligibilityClientV3 {
         }
     }
 
-    private PersonDTOV2 buildPersonDTOV2(Claimant claimant) {
-        return PersonDTOV2.builder()
+    private PersonDTO buildPersonDTO(Claimant claimant) {
+        return PersonDTO.builder()
                 .surname(claimant.getLastName())
                 .nino(claimant.getNino())
                 .dateOfBirth(claimant.getDateOfBirth())
