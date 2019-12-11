@@ -2,6 +2,8 @@ package uk.gov.dhsc.htbhf.claimant.service.v3;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -19,6 +21,8 @@ import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 
+@Primary
+@Service
 @AllArgsConstructor
 @Slf4j
 public class EligibilityAndEntitlementServiceV3 implements EligibilityAndEntitlementService {

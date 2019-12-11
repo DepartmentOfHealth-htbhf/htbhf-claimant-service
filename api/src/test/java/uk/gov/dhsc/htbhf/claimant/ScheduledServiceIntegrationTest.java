@@ -23,6 +23,7 @@ import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 
+import java.net.URI;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +43,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
 abstract class ScheduledServiceIntegrationTest {
+
+    protected static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
 
     @Autowired
     RepositoryMediator repositoryMediator;

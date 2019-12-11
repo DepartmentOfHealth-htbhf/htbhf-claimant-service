@@ -14,10 +14,10 @@ import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
-import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityResponse;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
-import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,14 +31,13 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardRequestTestDataFactory.aCardRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardResponseTestDataFactory.aCardResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithChildrenAndStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.childrenWithBirthdates;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponse;
 
 @Component
 public class WiremockManager {
     private static final String POSTCODES_IO_PATH = "/postcodes/";
     private static final String REPORT_ENDPOINT = "/collect";
-    private static final String V1_ELIGIBILITY_URL = "/v1/eligibility";
+    private static final String V2_ELIGIBILITY_URL = "/v2/eligibility";
     private static final String V1_CARDS_URL = "/v1/cards";
     private static final String POSTCODES_URL = "/postcodes/";
     private WireMockServer eligibilityServiceMock;
@@ -67,21 +66,20 @@ public class WiremockManager {
     }
 
     public void stubSuccessfulEligibilityResponse(List<LocalDate> childrensDateOfBirth) throws JsonProcessingException {
-        stubEligibilityResponse(childrensDateOfBirth, EligibilityStatus.ELIGIBLE);
+        stubEligibilityResponse(childrensDateOfBirth, EligibilityOutcome.CONFIRMED);
     }
 
     public void stubIneligibleEligibilityResponse() throws JsonProcessingException {
-        stubEligibilityResponse(emptyList(), EligibilityStatus.INELIGIBLE);
+        stubEligibilityResponse(emptyList(), EligibilityOutcome.NOT_CONFIRMED);
     }
 
-    public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityStatus eligibilityStatus) throws JsonProcessingException {
-        EligibilityResponse eligibilityResponse = anEligibilityResponseWithChildrenAndStatus(childrenWithBirthdates(childrensDateOfBirth),
-                eligibilityStatus);
-        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(jsonResponse(eligibilityResponse)));
+    public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponse(childrensDateOfBirth, eligibilityOutcome);
+        eligibilityServiceMock.stubFor(post(urlEqualTo(V2_ELIGIBILITY_URL)).willReturn(jsonResponse(response)));
     }
 
     public void stubErrorEligibilityResponse() {
-        eligibilityServiceMock.stubFor(post(urlEqualTo(V1_ELIGIBILITY_URL)).willReturn(aResponse()
+        eligibilityServiceMock.stubFor(post(urlEqualTo(V2_ELIGIBILITY_URL)).willReturn(aResponse()
                 .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .withBody("Something went badly wrong")));
     }
