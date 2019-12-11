@@ -30,7 +30,7 @@ import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO_V1;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -359,7 +359,7 @@ class ClaimRepositoryTest {
         claimRepository.save(claim);
 
         //When
-        Optional<UUID> claimId = claimRepository.findLiveClaimWithNino(HOMER_NINO_V1);
+        Optional<UUID> claimId = claimRepository.findLiveClaimWithNino(HOMER_NINO);
 
         //Then
         assertThat(claimId).hasValue(claim.getId());
@@ -370,7 +370,7 @@ class ClaimRepositoryTest {
         //Given - no claims
 
         //When
-        Optional<UUID> claimIds = claimRepository.findLiveClaimWithNino(HOMER_NINO_V1);
+        Optional<UUID> claimIds = claimRepository.findLiveClaimWithNino(HOMER_NINO);
 
         //Then
         assertThat(claimIds).isEmpty();
@@ -383,7 +383,7 @@ class ClaimRepositoryTest {
         claimRepository.save(aValidClaim());
 
         //When
-        Throwable thrown = catchThrowableOfType(() -> claimRepository.findLiveClaimWithNino(HOMER_NINO_V1), MultipleClaimsWithSameNinoException.class);
+        Throwable thrown = catchThrowableOfType(() -> claimRepository.findLiveClaimWithNino(HOMER_NINO), MultipleClaimsWithSameNinoException.class);
 
         //Then
         assertThat(thrown).isNotNull();
