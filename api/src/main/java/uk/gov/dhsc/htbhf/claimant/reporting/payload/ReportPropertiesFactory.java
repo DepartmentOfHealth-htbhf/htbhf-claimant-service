@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -81,8 +82,9 @@ public abstract class ReportPropertiesFactory {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
         Claim claim = context.getClaim();
+        List<LocalDate> dobOfChildrenUnder4 = context.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
         ClaimantCategory claimantCategory = claimantCategoryCalculator
-                .determineClaimantCategory(claim.getClaimant(), context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+                .determineClaimantCategory(claim.getClaimant(), dobOfChildrenUnder4, context.getTimestamp().toLocalDate());
 
         customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
         PostcodeData postcodeData = claim.getPostcodeData();
@@ -103,8 +105,9 @@ public abstract class ReportPropertiesFactory {
         Claimant claimant = context.getClaim().getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
-        long childrenUnder4 = getNumberOfChildrenUnderFour(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
-        long childrenUnder1 = getNumberOfChildrenUnderOne(context.getDatesOfBirthOfChildren(), context.getTimestamp().toLocalDate());
+        List<LocalDate> dobOfChildrenUnder4 = context.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, atDate);
+        long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, atDate);
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
         customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);
         LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();

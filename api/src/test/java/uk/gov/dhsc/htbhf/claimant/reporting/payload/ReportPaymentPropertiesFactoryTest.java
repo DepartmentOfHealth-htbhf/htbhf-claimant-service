@@ -26,6 +26,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYME
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithDueDateAndPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
@@ -83,7 +84,7 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 .paymentForChildrenBetweenOneAndFour(100)
                 .paymentForBackdatedVouchers(100)
                 .claim(claim)
-                .datesOfBirthOfChildren(datesOfBirthOfChildren)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirthOfChildren))
                 .timestamp(timestamp)
                 .build();
     }
