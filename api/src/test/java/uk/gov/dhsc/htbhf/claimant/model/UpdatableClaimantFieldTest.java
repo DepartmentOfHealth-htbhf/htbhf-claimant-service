@@ -22,7 +22,7 @@ class UpdatableClaimantFieldTest {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = aValidClaimantBuilder()
                 .expectedDeliveryDate(LocalDate.now())
-                .childrenDob(singletonList(LocalDate.now()))
+                .initiallyDeclaredChildrenDob(singletonList(LocalDate.now()))
                 .build();
 
         assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isTrue();
@@ -110,7 +110,7 @@ class UpdatableClaimantFieldTest {
 
         UpdatableClaimantField.CHILDREN_DOB.updateOriginal(originalClaimant, newClaimant);
 
-        assertThat(originalClaimant.getChildrenDob()).isEqualTo(newClaimant.getChildrenDob());
+        assertThat(originalClaimant.getInitiallyDeclaredChildrenDob()).isEqualTo(newClaimant.getInitiallyDeclaredChildrenDob());
     }
 
     @Test

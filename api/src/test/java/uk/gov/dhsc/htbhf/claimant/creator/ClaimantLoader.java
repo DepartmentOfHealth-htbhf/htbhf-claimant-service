@@ -134,7 +134,7 @@ public class ClaimantLoader {
                 .lastName(claimantInfo.getLastName())
                 .nino(claimantInfo.getNino())
                 .expectedDeliveryDate(claimantInfo.getExpectedDeliveryDate())
-                .childrenDob(createListOfChildrenDatesOfBirth(claimantInfo.getChildrenInfo()))
+                .initiallyDeclaredChildrenDob(createListOfChildrenDatesOfBirth(claimantInfo.getChildrenInfo()))
                 .build();
     }
 

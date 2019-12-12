@@ -318,6 +318,6 @@ class ClaimantTest extends AbstractValidationTest {
         //When
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("dates of birth of children should be all in the past", "childrenDob");
+        assertThat(violations).hasSingleConstraintViolation("dates of birth of children should be all in the past", "initiallyDeclaredChildrenDob");
     }
 }

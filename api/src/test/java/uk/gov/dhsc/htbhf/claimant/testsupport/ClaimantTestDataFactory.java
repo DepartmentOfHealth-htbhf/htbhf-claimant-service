@@ -25,7 +25,7 @@ public final class ClaimantTestDataFactory {
     }
 
     public static Claimant aClaimantWithChildrenDob(LocalDate... dateOfBirth) {
-        return aValidClaimantBuilder().childrenDob(Arrays.asList(dateOfBirth)).build();
+        return aValidClaimantBuilder().initiallyDeclaredChildrenDob(Arrays.asList(dateOfBirth)).build();
     }
 
     public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {

@@ -66,8 +66,8 @@ public class Claimant extends VersionedEntity {
     @Column(name = "email_address")
     private String emailAddress;
 
-    @Column(name = "children_dob_json")
+    @Column(name = "initially_declared_children_dob")
     @Type(type = JSON_TYPE)
     @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
-    private List<LocalDate> childrenDob;
+    private List<LocalDate> initiallyDeclaredChildrenDob;
 }

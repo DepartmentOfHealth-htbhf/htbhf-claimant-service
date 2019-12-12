@@ -30,7 +30,7 @@ public class ClaimantDTOToClaimantConverter {
                 .phoneNumber(claimant.getPhoneNumber())
                 .emailAddress(claimant.getEmailAddress())
                 .address(addressConverter.convert(claimant.getAddress()))
-                .childrenDob(claimant.getChildrenDob())
+                .initiallyDeclaredChildrenDob(claimant.getChildrenDob())
                 .build();
     }
 

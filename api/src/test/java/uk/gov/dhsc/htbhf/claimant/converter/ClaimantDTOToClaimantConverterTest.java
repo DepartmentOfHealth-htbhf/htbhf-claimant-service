@@ -47,7 +47,7 @@ class ClaimantDTOToClaimantConverterTest {
         assertThat(result.getAddress()).isEqualTo(ADDRESS);
         assertThat(result.getPhoneNumber()).isEqualTo(claimantDTO.getPhoneNumber());
         assertThat(result.getEmailAddress()).isEqualTo(claimantDTO.getEmailAddress());
-        assertThat(result.getChildrenDob()).containsExactly(MAGGIE_DATE_OF_BIRTH);
+        assertThat(result.getInitiallyDeclaredChildrenDob()).containsExactly(MAGGIE_DATE_OF_BIRTH);
         verify(addressConverter).convert(claimantDTO.getAddress());
     }
 
