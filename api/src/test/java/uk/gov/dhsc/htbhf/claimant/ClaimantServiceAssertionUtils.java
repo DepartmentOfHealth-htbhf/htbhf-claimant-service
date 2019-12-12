@@ -20,11 +20,14 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE
 
 public class ClaimantServiceAssertionUtils {
 
+
     public static final DateTimeFormatter EMAIL_DATE_PATTERN = DateTimeFormatter.ofPattern("dd MMM yyyy");
 
     private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
 
     private static final ThreadLocal<DecimalFormat> CURRENCY_FORMAT = ThreadLocal.withInitial(() -> new DecimalFormat("£#,#0.00"));
+
+    private static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
 
     public static void assertClaimantMatchesClaimantDTO(ClaimantDTO claimant, Claimant persistedClaim) {
         assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
@@ -35,11 +38,10 @@ public class ClaimantServiceAssertionUtils {
         assertAddressEqual(persistedClaim.getAddress(), claimant.getAddress());
     }
 
-    // TODO HTBHF-2705 Change this to hardcoded v3 claim endpoint instead of a URI parameter.
-    public static RequestEntity buildClaimRequestEntityForUri(Object requestObject, URI uri) {
+    public static RequestEntity buildClaimRequestEntity(Object requestObject) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, uri);
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
     }
 
     public static String formatVoucherAmount(int voucherCount) {
