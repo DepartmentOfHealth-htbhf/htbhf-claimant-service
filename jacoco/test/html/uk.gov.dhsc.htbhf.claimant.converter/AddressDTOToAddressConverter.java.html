@@ -3,17 +3,17 @@
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
 import static org.apache.commons.lang3.StringUtils.upperCase;
 
 /**
- * Converts a {@link AddressDTOV3} into a {@link Address}.
+ * Converts a {@link AddressDTO} into a {@link Address}.
  */
 @Component
 <span class="fc" id="L14">public class AddressDTOToAddressConverter {</span>
 
-    public Address convert(AddressDTOV3 source) {
+    public Address convert(AddressDTO source) {
 <span class="fc" id="L17">        Assert.notNull(source, &quot;source AddressDTO must not be null&quot;);</span>
 <span class="fc" id="L18">        return Address.builder()</span>
 <span class="fc" id="L19">                .addressLine1(source.getAddressLine1())</span>
