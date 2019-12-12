@@ -10,6 +10,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class ReportPaymentMessageContextTestDataFactory {
 
@@ -21,7 +22,7 @@ public class ReportPaymentMessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .paymentAction(INITIAL_PAYMENT)
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(SINGLE_THREE_YEAR_OLD))
                 .build();
     }
 
@@ -32,7 +33,7 @@ public class ReportPaymentMessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .paymentAction(INITIAL_PAYMENT)
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(SINGLE_THREE_YEAR_OLD))
                 .build();
     }
 }
