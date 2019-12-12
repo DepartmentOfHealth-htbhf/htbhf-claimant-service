@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 /**
  * Mediates between test case and the repositories to create & persist entities, and ensure that loaded entities are fully initialised.
@@ -96,12 +97,12 @@ public class RepositoryMediator {
                 cycleStartDate, childrensDatesOfBirth, claim.getClaimant().getExpectedDeliveryDate());
         PaymentCycle completedPaymentCycle = PaymentCycleTestDataFactory.aValidPaymentCycleBuilder()
                 .claim(claim)
-                .childrenDob(childrensDatesOfBirth)
                 .cycleStartDate(cycleStartDate)
                 .cycleEndDate(cycleStartDate.plusDays(27))
                 .paymentCycleStatus(PaymentCycleStatus.FULL_PAYMENT_MADE)
                 .voucherEntitlement(voucherEntitlement)
                 .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, voucherEntitlement))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrensDatesOfBirth))
                 .build();
         paymentCycleRepository.save(completedPaymentCycle);
         return completedPaymentCycle;

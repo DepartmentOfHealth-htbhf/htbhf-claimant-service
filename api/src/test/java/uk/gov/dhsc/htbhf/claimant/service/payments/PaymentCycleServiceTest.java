@@ -15,10 +15,10 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +41,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELI
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentCycleServiceTest {
@@ -85,11 +86,10 @@ class PaymentCycleServiceTest {
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithPregnancyVouchers();
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
-                CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirth);
+                anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirth);
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder()
                 .existingClaimId(claim.getId())
                 .voucherEntitlement(entitlement)
-                .dateOfBirthOfChildren(datesOfBirth)
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
@@ -116,12 +116,10 @@ class PaymentCycleServiceTest {
         Claim claim = aClaimWithExpectedDeliveryDate(expectedDeliveryDate);
         List<LocalDate> datesOfBirth = List.of(LocalDate.now(), LocalDate.now().minusDays(2));
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithoutPregnancyVouchers();
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
-                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirth);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirth);
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder()
                 .existingClaimId(claim.getId())
                 .voucherEntitlement(entitlement)
-                .dateOfBirthOfChildren(datesOfBirth)
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .build();
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
@@ -212,7 +210,7 @@ class PaymentCycleServiceTest {
                 .claim(claim)
                 .eligibilityStatus(ELIGIBLE)
                 .paymentCycleStatus(NEW)
-                .childrenDob(null)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(Collections.emptyList()))
                 .voucherEntitlement(null)
                 .expectedDeliveryDate(null)
                 .build();
@@ -221,10 +219,8 @@ class PaymentCycleServiceTest {
     private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(PaymentCycleVoucherEntitlement voucherEntitlement) {
         List<LocalDate> dateOfBirthOfChildren = List.of(LocalDate.now().minusYears(1));
         return EligibilityAndEntitlementDecision.builder()
-                .dateOfBirthOfChildren(dateOfBirthOfChildren)
                 .eligibilityStatus(INELIGIBLE)
-                .identityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(dateOfBirthOfChildren))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(dateOfBirthOfChildren))
                 .voucherEntitlement(voucherEntitlement)
                 .build();
     }
@@ -233,7 +229,6 @@ class PaymentCycleServiceTest {
         assertThat(paymentCycle.getId()).isEqualTo(paymentCycle.getId());
         assertThat(paymentCycle.getEligibilityStatus()).isEqualTo(INELIGIBLE);
         assertThat(paymentCycle.getIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
-        assertThat(paymentCycle.getChildrenDob()).isEqualTo(decision.getDateOfBirthOfChildren());
         assertThat(paymentCycle.getTotalEntitlementAmountInPence()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherValueInPence());
         assertThat(paymentCycle.getTotalVouchers()).isEqualTo(decision.getVoucherEntitlement().getTotalVoucherEntitlement());
         assertThat(paymentCycle.getExpectedDeliveryDate()).isEqualTo(expectedDeliveryDate);

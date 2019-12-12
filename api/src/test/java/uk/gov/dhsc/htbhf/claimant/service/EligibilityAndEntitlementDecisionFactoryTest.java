@@ -9,7 +9,6 @@ import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityRe
 
 import java.util.UUID;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_HOUSEHOLD_IDENTIFIER_PROVIDED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
@@ -97,7 +96,6 @@ class EligibilityAndEntitlementDecisionFactoryTest {
                 .dwpHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_PROVIDED)
                 .hmrcHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_PROVIDED)
                 .voucherEntitlement(null)
-                .dateOfBirthOfChildren(emptyList())
                 .existingClaimId(EXISTING_CLAIM_UUID)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);

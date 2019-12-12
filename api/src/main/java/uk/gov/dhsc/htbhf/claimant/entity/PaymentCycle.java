@@ -14,7 +14,9 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableSet;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 @Entity
 @Table(name = "payment_cycle")
@@ -57,10 +59,6 @@ public class PaymentCycle extends VersionedEntity {
     @Column(name = "expected_delivery_date")
     private LocalDate expectedDeliveryDate;
 
-    @Column(name = "children_dob_json")
-    @Type(type = JSON_TYPE)
-    private List<LocalDate> childrenDob; // not used in code, but useful for MI and helpdesk
-
     @Column(name = "total_vouchers")
     private Integer totalVouchers;
 
@@ -101,5 +99,12 @@ public class PaymentCycle extends VersionedEntity {
             this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());
             this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());
         }
+    }
+
+    public List<LocalDate> getChildrenDob() {
+        if (this.identityAndEligibilityResponse == null) {
+            return emptyList();
+        }
+        return emptyIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4());
     }
 }

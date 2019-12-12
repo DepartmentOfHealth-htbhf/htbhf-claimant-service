@@ -39,7 +39,6 @@ public class EligibilityAndEntitlementDecisionFactory {
                 .eligibilityStatus(eligibilityStatus)
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .voucherEntitlement(voucherEntitlement)
-                .dateOfBirthOfChildren(identityAndEligibilityResponse.getDobOfChildrenUnder4())
                 .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())
                 .existingClaimId(existingClaimId)
                 .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();

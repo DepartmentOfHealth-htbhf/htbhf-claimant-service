@@ -73,7 +73,6 @@ public class PaymentCycleService {
                 .cycleEndDate(cycleStartDate.plusDays(cycleDurationInDays - 1))
                 .eligibilityStatus(ELIGIBLE)
                 .identityAndEligibilityResponse(eligibilityAndEntitlementDecision.getIdentityAndEligibilityResponse())
-                .childrenDob(eligibilityAndEntitlementDecision.getDateOfBirthOfChildren())
                 .expectedDeliveryDate(getExpectedDeliveryDateIfRelevant(claim, cycleStartDate))
                 .build();
 
@@ -120,7 +119,6 @@ public class PaymentCycleService {
     public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
         paymentCycle.setIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse());
-        paymentCycle.setChildrenDob(decision.getDateOfBirthOfChildren());
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
         PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);

@@ -8,8 +8,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -22,7 +20,6 @@ public class EligibilityAndEntitlementDecision {
     private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
-    private final List<LocalDate> dateOfBirthOfChildren;
     private final PaymentCycleVoucherEntitlement voucherEntitlement;
 
     public static EligibilityAndEntitlementDecision buildWithStatus(EligibilityStatus eligibilityStatus) {
@@ -39,6 +36,6 @@ public class EligibilityAndEntitlementDecision {
     }
 
     public boolean childrenPresent() {
-        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);
+        return identityAndEligibilityResponse != null && !CollectionUtils.isEmpty(identityAndEligibilityResponse.getDobOfChildrenUnder4());
     }
 }

@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaimAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
 
 @ExtendWith(MockitoExtension.class)
@@ -140,7 +140,7 @@ class UpcomingBirthdayEmailHandlerTest {
 
     private PaymentCycle buildPaymentCycle(List<LocalDate> childrensDob) {
         Claim claim = aClaimWithExpectedDeliveryDate(null);
-        return aValidPaymentCycleBuilder().claim(claim).childrenDob(childrensDob).build();
+        return aPaymentCycleWithClaimAndChildrenDobs(claim, childrensDob);
     }
 
     private void verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload,
