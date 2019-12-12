@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v3;
+package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,8 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.claimant.service.DuplicateClaimChecker;
-import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementDecisionFactory;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
@@ -35,7 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELI
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityAndEntitlementServiceV3Test {
+class EligibilityAndEntitlementServiceTest {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
@@ -47,10 +45,10 @@ class EligibilityAndEntitlementServiceV3Test {
     private static final UUID NO_EXISTING_CLAIM = null;
 
     @InjectMocks
-    EligibilityAndEntitlementServiceV3 eligibilityAndEntitlementServiceV3;
+    EligibilityAndEntitlementService eligibilityAndEntitlementService;
 
     @Mock
-    EligibilityClientV3 client;
+    EligibilityClient client;
 
     @Mock
     DuplicateClaimChecker duplicateClaimChecker;
@@ -71,7 +69,7 @@ class EligibilityAndEntitlementServiceV3Test {
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.of(existingClaimId));
 
         //When
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(decision.getEligibilityStatus()).isEqualTo(EligibilityStatus.DUPLICATE);
@@ -87,7 +85,7 @@ class EligibilityAndEntitlementServiceV3Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -103,7 +101,7 @@ class EligibilityAndEntitlementServiceV3Test {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementServiceV3.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);

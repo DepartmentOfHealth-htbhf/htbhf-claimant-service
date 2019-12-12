@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v3;
+package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.dwp.testhelper.PersonDTOTestDataFactory.aPersonDTOWithPregnantDependantDob;
 
 @ExtendWith(MockitoExtension.class)
-class EligibilityClientV3Test {
+class EligibilityClientTest {
 
     private static final String BASE_URI = "http://localhost:8100";
     private static final String FULL_URI = "http://localhost:8100/v2/eligibility";
@@ -37,11 +37,11 @@ class EligibilityClientV3Test {
     @Mock
     private RestTemplate restTemplate;
 
-    private EligibilityClientV3 client;
+    private EligibilityClient client;
 
     @BeforeEach
     void setup() {
-        client = new EligibilityClientV3(BASE_URI, restTemplate);
+        client = new EligibilityClient(BASE_URI, restTemplate);
     }
 
     @Test

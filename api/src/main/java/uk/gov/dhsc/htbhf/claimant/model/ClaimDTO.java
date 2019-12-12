@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model.v3;
+package uk.gov.dhsc.htbhf.claimant.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,13 +16,13 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 @ApiModel(description = "A claim (application) for help to buy healthy foods. Contains all details that need to be persisted as part of the application.")
-public class ClaimDTOV3 {
+public class ClaimDTO {
 
     @JsonProperty("claimant")
     @Valid
     @NotNull
     @ApiModelProperty(notes = "The person making the claim")
-    private ClaimantDTOV3 claimant;
+    private ClaimantDTO claimant;
 
     @JsonProperty("deviceFingerprint")
     @ApiModelProperty(notes = "The fingerprint of the device used to make the claim, as best it can be identified. Probably a collection of header values.")

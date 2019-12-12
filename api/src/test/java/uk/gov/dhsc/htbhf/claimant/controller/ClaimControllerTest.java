@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.controller.v3;
+package uk.gov.dhsc.htbhf.claimant.controller;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +13,10 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
@@ -28,17 +28,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
 @ExtendWith(MockitoExtension.class)
-class ClaimControllerV3Test {
+class ClaimControllerTest {
 
     @Mock
     ClaimService claimService;
@@ -50,7 +50,7 @@ class ClaimControllerV3Test {
     VoucherEntitlementToDTOConverter entitlementConverter;
 
     @InjectMocks
-    ClaimControllerV3 controller;
+    ClaimController controller;
 
     @ParameterizedTest
     @CsvSource({
@@ -61,7 +61,7 @@ class ClaimControllerV3Test {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        ClaimDTOV3 dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
@@ -70,7 +70,7 @@ class ClaimControllerV3Test {
         given(claimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
 
         // Then
         assertThat(response).isNotNull();
@@ -89,14 +89,14 @@ class ClaimControllerV3Test {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithoutVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        ClaimDTOV3 dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
         given(claimantConverter.convert(any())).willReturn(claimant);
         given(claimService.createClaim(any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
 
         // Then
         assertThat(response).isNotNull();
@@ -113,10 +113,10 @@ class ClaimControllerV3Test {
         given(claimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
         Claimant claimant = aValidClaimant();
         given(claimantConverter.convert(any())).willReturn(claimant);
-        ClaimDTOV3 dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaimV3(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
 
         // Then
         assertThat(response).isNotNull();
@@ -126,7 +126,7 @@ class ClaimControllerV3Test {
         verify(claimantConverter).convert(aValidClaimantDTO());
     }
 
-    private void verifyCreateClaimCalledCorrectly(Claimant claimant, ClaimDTOV3 dto) {
+    private void verifyCreateClaimCalledCorrectly(Claimant claimant, ClaimDTO dto) {
         ArgumentCaptor<ClaimRequest> captor = ArgumentCaptor.forClass(ClaimRequest.class);
         verify(claimService).createClaim(captor.capture());
         ClaimRequest claimRequest = captor.getValue();

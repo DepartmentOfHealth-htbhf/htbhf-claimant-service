@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.controller.v3;
+package uk.gov.dhsc.htbhf.claimant.controller;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
@@ -31,7 +31,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequiredArgsConstructor
 @Slf4j
 @Api(description = "Endpoints for dealing with claims, e.g. persisting a claim.")
-public class ClaimControllerV3 {
+public class ClaimController {
 
     private final ClaimService claimService;
     private final ClaimantDTOToClaimantConverter claimantConverter;
@@ -50,7 +50,7 @@ public class ClaimControllerV3 {
     @PostMapping
     @ApiOperation("Create a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResultDTO> createClaimV3(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTOV3 claimDTO) {
+    public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
         ClaimRequest claimRequest = ClaimRequest.builder()

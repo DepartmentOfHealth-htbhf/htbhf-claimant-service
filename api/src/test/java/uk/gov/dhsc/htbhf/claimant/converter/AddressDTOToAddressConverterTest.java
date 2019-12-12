@@ -2,12 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithPostcode;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
 
 class AddressDTOToAddressConverterTest {
 
@@ -16,7 +16,7 @@ class AddressDTOToAddressConverterTest {
     @Test
     void shouldConvertAddressDTOToEquivalentAddressObject() {
         // Given
-        AddressDTOV3 addressDTO = aValidAddressDTO();
+        AddressDTO addressDTO = aValidAddressDTO();
 
         // When
         Address result = converter.convert(addressDTO);
@@ -33,7 +33,7 @@ class AddressDTOToAddressConverterTest {
     @Test
     void shouldConvertPostcodeToUppercase() {
         // Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode("aa11aa");
+        AddressDTO addressDTO = anAddressDTOWithPostcode("aa11aa");
 
         // When
         Address result = converter.convert(addressDTO);

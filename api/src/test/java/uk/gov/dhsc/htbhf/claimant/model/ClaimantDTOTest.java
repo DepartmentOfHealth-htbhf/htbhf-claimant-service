@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model.v3;
+package uk.gov.dhsc.htbhf.claimant.model;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,17 +12,17 @@ import java.util.Set;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithLine1;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.*;
 
-class ClaimantDTOV3Test extends AbstractValidationTest {
+class ClaimantDTOTest extends AbstractValidationTest {
 
     @Test
     void shouldSuccessfullyValidateClaimant() {
         //Given
-        ClaimantDTOV3 claimant = aValidClaimantDTO();
+        ClaimantDTO claimant = aValidClaimantDTO();
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasNoViolations();
     }
@@ -30,9 +30,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithNullFirstName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithFirstName(null);
+        ClaimantDTO claimant = aClaimantDTOWithFirstName(null);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "firstName");
     }
@@ -40,9 +40,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithTooLongFirstName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithFirstName(LONG_STRING);
+        ClaimantDTO claimant = aClaimantDTOWithFirstName(LONG_STRING);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "firstName");
     }
@@ -50,9 +50,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithBlankFirstName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithFirstName("");
+        ClaimantDTO claimant = aClaimantDTOWithFirstName("");
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "firstName");
     }
@@ -60,9 +60,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithNullLastName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithLastName(null);
+        ClaimantDTO claimant = aClaimantDTOWithLastName(null);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "lastName");
     }
@@ -70,9 +70,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithTooLongLastName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithLastName(LONG_STRING);
+        ClaimantDTO claimant = aClaimantDTOWithLastName(LONG_STRING);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
     }
@@ -80,9 +80,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithBlankLastName() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithLastName("");
+        ClaimantDTO claimant = aClaimantDTOWithLastName("");
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
     }
@@ -90,9 +90,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithNullNino() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithNino(null);
+        ClaimantDTO claimant = aClaimantDTOWithNino(null);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "nino");
     }
@@ -109,9 +109,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailValidationWithInvalidNino(String nino) {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithNino(nino);
+        ClaimantDTO claimant = aClaimantDTOWithNino(nino);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must match \"^(?!BG|GB|NK|KN|TN|NT|ZZ)[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z](\\d{6})[A-D]$\"",
                 "nino");
@@ -120,9 +120,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailValidationWithNullDateOfBirth() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithDateOfBirth(null);
+        ClaimantDTO claimant = aClaimantDTOWithDateOfBirth(null);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "dateOfBirth");
     }
@@ -131,9 +131,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     void shouldFailValidationWithDateOfBirthInFuture() {
         //Given
         LocalDate dateInFuture = LocalDate.now().plusYears(1);
-        ClaimantDTOV3 claimant = aClaimantDTOWithDateOfBirth(dateInFuture);
+        ClaimantDTO claimant = aClaimantDTOWithDateOfBirth(dateInFuture);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must be a past date", "dateOfBirth");
     }
@@ -142,9 +142,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     void shouldFailValidationWithExpectedDeliveryDateTooFarInFuture() {
         //Given
         LocalDate dateInFuture = LocalDate.now().plusYears(2);
-        ClaimantDTOV3 claimant = aClaimantDTOWithExpectedDeliveryDate(dateInFuture);
+        ClaimantDTO claimant = aClaimantDTOWithExpectedDeliveryDate(dateInFuture);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be more than one month in the past or 8 months in the future",
                 "expectedDeliveryDate");
@@ -154,9 +154,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     void shouldFailValidationWithExpectedDeliveryDateTooFarInPast() {
         //Given
         LocalDate dateInPast = LocalDate.now().minusYears(2);
-        ClaimantDTOV3 claimant = aClaimantDTOWithExpectedDeliveryDate(dateInPast);
+        ClaimantDTO claimant = aClaimantDTOWithExpectedDeliveryDate(dateInPast);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be more than one month in the past or 8 months in the future",
                 "expectedDeliveryDate");
@@ -171,9 +171,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailWithInvalidPhoneNumber(String phoneNumber) {
         // Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithPhoneNumber(phoneNumber);
+        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(phoneNumber);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("invalid UK phone number, must be in +44 format, e.g. +447123456789", "phoneNumber");
     }
@@ -186,9 +186,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailWithInvalidEmailAddress(String emailAddress) {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithEmailAddress(emailAddress);
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(emailAddress);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("invalid email address", "emailAddress");
     }
@@ -197,9 +197,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     void shouldFailWithTooLongEmailAddress() {
         //Given
         String longEmailAddress = CharBuffer.allocate(256).toString().replace('\0', 'A') + "@email.com";
-        ClaimantDTOV3 claimant = aClaimantDTOWithEmailAddress(longEmailAddress);
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddress(longEmailAddress);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 256", "emailAddress");
     }
@@ -207,10 +207,10 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithInvalidAddress() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine1(null);
-        ClaimantDTOV3 claimant = aClaimantDTOWithAddress(addressDTO);
+        AddressDTO addressDTO = anAddressDTOWithLine1(null);
+        ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "address.addressLine1");
     }
@@ -218,9 +218,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimantWithNullAddress() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithAddress(null);
+        ClaimantDTO claimant = aClaimantDTOWithAddress(null);
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "address");
     }
@@ -229,9 +229,9 @@ class ClaimantDTOV3Test extends AbstractValidationTest {
     void shouldFailToValidateClaimantWithChildDobInFuture() {
         //Given
         LocalDate dateInFuture = LocalDate.now().plusYears(1);
-        ClaimantDTOV3 claimant = aClaimantDTOWithChildrenDob(Collections.singletonList(dateInFuture));
+        ClaimantDTO claimant = aClaimantDTOWithChildrenDob(Collections.singletonList(dateInFuture));
         //When
-        Set<ConstraintViolation<ClaimantDTOV3>> violations = validator.validate(claimant);
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("dates of birth of children should be all in the past", "childrenDob");
     }

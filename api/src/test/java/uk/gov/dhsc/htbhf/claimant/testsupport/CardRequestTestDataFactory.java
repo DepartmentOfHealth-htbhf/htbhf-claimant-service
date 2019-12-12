@@ -3,11 +3,11 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardRequest;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
 
 import static uk.gov.dhsc.htbhf.TestConstants.*;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.aValidAddressDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 
 public class CardRequestTestDataFactory {
 
@@ -30,7 +30,7 @@ public class CardRequestTestDataFactory {
         Claimant claimant = claim.getClaimant();
         Address address = claimant.getAddress();
         return CardRequest.builder()
-                .address(AddressDTOV3.builder()
+                .address(AddressDTO.builder()
                         .addressLine1(address.getAddressLine1())
                         .addressLine2(address.getAddressLine2())
                         .townOrCity(address.getTownOrCity())
