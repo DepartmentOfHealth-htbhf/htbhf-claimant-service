@@ -133,7 +133,7 @@ public class MessageContextLoader {
 <span class="fc" id="L133">        return ReportClaimMessageContext.builder()</span>
 <span class="fc" id="L134">                .claim(claim)</span>
 <span class="fc" id="L135">                .claimAction(payload.getClaimAction())</span>
-<span class="fc" id="L136">                .datesOfBirthOfChildren(payload.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4())</span>
+<span class="fc" id="L136">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L137">                .timestamp(payload.getTimestamp())</span>
 <span class="fc" id="L138">                .updatedClaimantFields(payload.getUpdatedClaimantFields())</span>
 <span class="fc" id="L139">                .build();</span>
@@ -151,7 +151,7 @@ public class MessageContextLoader {
 <span class="fc" id="L151">                .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())</span>
 <span class="fc" id="L152">                .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())</span>
 <span class="fc" id="L153">                .paymentForBackdatedVouchers(payload.getPaymentForBackdatedVouchers())</span>
-<span class="fc" id="L154">                .datesOfBirthOfChildren(payload.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4())</span>
+<span class="fc" id="L154">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L155">                .paymentAction(payload.getPaymentAction())</span>
 <span class="fc" id="L156">                .timestamp(payload.getTimestamp())</span>
 <span class="fc" id="L157">                .build();</span>
