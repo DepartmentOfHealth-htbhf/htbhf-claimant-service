@@ -66,7 +66,7 @@ public class ClaimResult {
 <span class="fc bfc" id="L66" title="All 2 branches covered.">        if (claimant.getExpectedDeliveryDate() != null) { // relying on validation in ClaimantDTO to ensure this is a valid value</span>
 <span class="fc" id="L67">            return true;</span>
         }
-<span class="fc" id="L69">        List&lt;LocalDate&gt; declaredChildren = claimant.getChildrenDob();</span>
+<span class="fc" id="L69">        List&lt;LocalDate&gt; declaredChildren = claimant.getInitiallyDeclaredChildrenDob();</span>
 <span class="pc bpc" id="L70" title="1 of 4 branches missed.">        if (declaredChildren == null || registeredChildren == null) {</span>
 <span class="fc" id="L71">            return false;</span>
         }

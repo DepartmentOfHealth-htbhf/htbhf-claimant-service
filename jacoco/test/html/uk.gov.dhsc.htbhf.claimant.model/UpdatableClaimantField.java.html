@@ -70,12 +70,12 @@ public enum UpdatableClaimantField {
 <span class="fc" id="L70">    CHILDREN_DOB(&quot;childrenDob&quot;) {</span>
         @Override
         Object getValue(Claimant claimant) {
-<span class="fc" id="L73">            return claimant.getChildrenDob();</span>
+<span class="fc" id="L73">            return claimant.getInitiallyDeclaredChildrenDob();</span>
         }
 
         @Override
         public void updateOriginal(Claimant originalClaimant, Claimant newClaimant) {
-<span class="fc" id="L78">            originalClaimant.setChildrenDob(newClaimant.getChildrenDob());</span>
+<span class="fc" id="L78">            originalClaimant.setInitiallyDeclaredChildrenDob(newClaimant.getInitiallyDeclaredChildrenDob());</span>
 <span class="fc" id="L79">        }</span>
     },
 <span class="fc" id="L81">    ADDRESS(&quot;address&quot;) {</span>
