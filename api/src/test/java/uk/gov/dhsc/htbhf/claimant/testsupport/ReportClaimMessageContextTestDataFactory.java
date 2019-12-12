@@ -12,6 +12,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class ReportClaimMessageContextTestDataFactory {
 
@@ -29,7 +30,7 @@ public class ReportClaimMessageContextTestDataFactory {
                 .claim(aValidClaim())
                 .updatedClaimantFields(List.of(FIRST_NAME, LAST_NAME))
                 .timestamp(LocalDateTime.now())
-                .datesOfBirthOfChildren(SINGLE_THREE_YEAR_OLD)
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(SINGLE_THREE_YEAR_OLD))
                 .claimAction(NEW);
     }
 }
