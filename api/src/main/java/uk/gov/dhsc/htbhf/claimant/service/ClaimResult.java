@@ -66,7 +66,7 @@ public class ClaimResult {
         if (claimant.getExpectedDeliveryDate() != null) { // relying on validation in ClaimantDTO to ensure this is a valid value
             return true;
         }
-        List<LocalDate> declaredChildren = claimant.getChildrenDob();
+        List<LocalDate> declaredChildren = claimant.getInitiallyDeclaredChildrenDob();
         if (declaredChildren == null || registeredChildren == null) {
             return false;
         }

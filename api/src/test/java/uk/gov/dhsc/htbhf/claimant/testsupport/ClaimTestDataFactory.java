@@ -49,7 +49,7 @@ public class ClaimTestDataFactory {
                 .claimant(
                         ClaimantTestDataFactory.aValidClaimantBuilder()
                                 .expectedDeliveryDate(expectedDeliveryDate)
-                                .childrenDob(childrenDobs)
+                                .initiallyDeclaredChildrenDob(childrenDobs)
                                 .build())
                 .build();
     }
