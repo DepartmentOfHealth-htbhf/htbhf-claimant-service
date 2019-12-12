@@ -39,26 +39,25 @@ import static uk.gov.dhsc.htbhf.claimant.service.EligibilityOutcomeToEligibility
 <span class="fc" id="L39">                .eligibilityStatus(eligibilityStatus)</span>
 <span class="fc" id="L40">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
 <span class="fc" id="L41">                .voucherEntitlement(voucherEntitlement)</span>
-<span class="fc" id="L42">                .dateOfBirthOfChildren(identityAndEligibilityResponse.getDobOfChildrenUnder4())</span>
-<span class="fc" id="L43">                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L44">                .existingClaimId(existingClaimId)</span>
-<span class="fc" id="L45">                .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();</span>
+<span class="fc" id="L42">                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L43">                .existingClaimId(existingClaimId)</span>
+<span class="fc" id="L44">                .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();</span>
     }
 
     private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
                                                                                              EligibilityStatus eligibilityStatus) {
-<span class="fc bfc" id="L50" title="All 2 branches covered.">        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;</span>
     }
 
     private EligibilityStatus determineEligibilityStatus(CombinedIdentityAndEligibilityResponse response,
                                                          PaymentCycleVoucherEntitlement voucherEntitlement,
                                                          boolean duplicateHouseholdIdentifierFound) {
-<span class="fc bfc" id="L56" title="All 4 branches covered.">        if (response.isEligible() &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
-<span class="fc" id="L57">            return EligibilityStatus.INELIGIBLE;</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">        } else if (duplicateHouseholdIdentifierFound) {</span>
-<span class="fc" id="L59">            return EligibilityStatus.DUPLICATE;</span>
+<span class="fc bfc" id="L55" title="All 4 branches covered.">        if (response.isEligible() &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
+<span class="fc" id="L56">            return EligibilityStatus.INELIGIBLE;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if (duplicateHouseholdIdentifierFound) {</span>
+<span class="fc" id="L58">            return EligibilityStatus.DUPLICATE;</span>
         }
-<span class="fc" id="L61">        return fromEligibilityOutcome(response.getEligibilityStatus());</span>
+<span class="fc" id="L60">        return fromEligibilityOutcome(response.getEligibilityStatus());</span>
     }
 
 }

@@ -8,8 +8,6 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -22,24 +20,23 @@ public class EligibilityAndEntitlementDecision {
     private final UUID existingClaimId;
     private final String dwpHouseholdIdentifier;
     private final String hmrcHouseholdIdentifier;
-    private final List&lt;LocalDate&gt; dateOfBirthOfChildren;
     private final PaymentCycleVoucherEntitlement voucherEntitlement;
 
     public static EligibilityAndEntitlementDecision buildWithStatus(EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L29">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L30">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L31">                .build();</span>
+<span class="fc" id="L26">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L27">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L28">                .build();</span>
     }
 
     public static EligibilityAndEntitlementDecision buildDuplicateDecisionWithExistingClaimId(UUID existingClaimId) {
-<span class="fc" id="L35">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L36">                .eligibilityStatus(EligibilityStatus.DUPLICATE)</span>
-<span class="fc" id="L37">                .existingClaimId(existingClaimId)</span>
-<span class="fc" id="L38">                .build();</span>
+<span class="fc" id="L32">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L33">                .eligibilityStatus(EligibilityStatus.DUPLICATE)</span>
+<span class="fc" id="L34">                .existingClaimId(existingClaimId)</span>
+<span class="fc" id="L35">                .build();</span>
     }
 
     public boolean childrenPresent() {
-<span class="fc bfc" id="L42" title="All 2 branches covered.">        return !CollectionUtils.isEmpty(dateOfBirthOfChildren);</span>
+<span class="pc bpc" id="L39" title="1 of 4 branches missed.">        return identityAndEligibilityResponse != null &amp;&amp; !CollectionUtils.isEmpty(identityAndEligibilityResponse.getDobOfChildrenUnder4());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

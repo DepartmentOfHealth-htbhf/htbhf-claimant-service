@@ -14,7 +14,9 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableSet;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 
 @Entity
 @Table(name = &quot;payment_cycle&quot;)
@@ -57,10 +59,6 @@ public class PaymentCycle extends VersionedEntity {
     @Column(name = &quot;expected_delivery_date&quot;)
     private LocalDate expectedDeliveryDate;
 
-    @Column(name = &quot;children_dob_json&quot;)
-    @Type(type = JSON_TYPE)
-    private List&lt;LocalDate&gt; childrenDob; // not used in code, but useful for MI and helpdesk
-
     @Column(name = &quot;total_vouchers&quot;)
     private Integer totalVouchers;
 
@@ -79,13 +77,13 @@ public class PaymentCycle extends VersionedEntity {
     private PaymentCycleStatus paymentCycleStatus;
 
     public PaymentCycle addPayment(Payment payment) {
-<span class="fc" id="L82">        this.payments.add(payment);</span>
-<span class="fc" id="L83">        payment.setPaymentCycle(this);</span>
-<span class="fc" id="L84">        return this;</span>
+<span class="fc" id="L80">        this.payments.add(payment);</span>
+<span class="fc" id="L81">        payment.setPaymentCycle(this);</span>
+<span class="fc" id="L82">        return this;</span>
     }
 
     public Set&lt;Payment&gt; getPayments() {
-<span class="fc" id="L88">        return unmodifiableSet(payments);</span>
+<span class="fc" id="L86">        return unmodifiableSet(payments);</span>
     }
 
     /**
@@ -93,14 +91,21 @@ public class PaymentCycle extends VersionedEntity {
      * @param voucherEntitlement the entitlement to apply.
      */
     public void applyVoucherEntitlement(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L96">        this.setVoucherEntitlement(voucherEntitlement);</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
-<span class="fc" id="L98">            this.setTotalEntitlementAmountInPence(null);</span>
-<span class="fc" id="L99">            this.setTotalVouchers(null);</span>
+<span class="fc" id="L94">        this.setVoucherEntitlement(voucherEntitlement);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (voucherEntitlement == null) {</span>
+<span class="fc" id="L96">            this.setTotalEntitlementAmountInPence(null);</span>
+<span class="fc" id="L97">            this.setTotalVouchers(null);</span>
         } else {
-<span class="fc" id="L101">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
-<span class="fc" id="L102">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
+<span class="fc" id="L99">            this.setTotalEntitlementAmountInPence(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L100">            this.setTotalVouchers(voucherEntitlement.getTotalVoucherEntitlement());</span>
         }
-<span class="fc" id="L104">    }</span>
+<span class="fc" id="L102">    }</span>
+
+    public List&lt;LocalDate&gt; getChildrenDob() {
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">        if (this.identityAndEligibilityResponse == null) {</span>
+<span class="nc" id="L106">            return emptyList();</span>
+        }
+<span class="fc" id="L108">        return emptyIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4());</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
