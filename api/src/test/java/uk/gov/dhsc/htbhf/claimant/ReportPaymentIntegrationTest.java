@@ -14,6 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
+import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -38,6 +39,8 @@ public class ReportPaymentIntegrationTest {
     private PaymentCycleRepository paymentCycleRepository;
     @Autowired
     private WiremockManager wiremockManager;
+    @Autowired
+    private RepositoryMediator repositoryMediator;
 
     @BeforeEach
     void setup() {
@@ -47,6 +50,7 @@ public class ReportPaymentIntegrationTest {
     @AfterEach
     void tearDown() {
         wiremockManager.stopWireMock();
+        repositoryMediator.deleteAllEntities();
     }
 
     @Test

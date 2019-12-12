@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.model.PostcodeDataResponse;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimMessageSender;
+import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
@@ -36,6 +37,8 @@ public class ReportClaimIntegrationTest {
     private ClaimRepository claimRepository;
     @Autowired
     private WiremockManager wiremockManager;
+    @Autowired
+    private RepositoryMediator repositoryMediator;
 
     @BeforeEach
     void setup() {
@@ -45,6 +48,7 @@ public class ReportClaimIntegrationTest {
     @AfterEach
     void tearDown() {
         wiremockManager.stopWireMock();
+        repositoryMediator.deleteAllEntities();
     }
 
     @Test
