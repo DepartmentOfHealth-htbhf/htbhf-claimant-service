@@ -29,7 +29,6 @@ import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityRespons
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
-import java.net.URI;
 import java.util.stream.Stream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -45,7 +44,7 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInter
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
@@ -72,7 +71,6 @@ import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligib
 @AutoConfigureWireMock(port = 8100)
 class ClaimantServiceIntegrationTests {
 
-    private static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
     private static final String ELIGIBILITY_SERVICE_URL = "/v2/eligibility";
 
     @Autowired
@@ -100,7 +98,7 @@ class ClaimantServiceIntegrationTests {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
@@ -117,7 +115,7 @@ class ClaimantServiceIntegrationTests {
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(json, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(json), ClaimResultDTO.class);
 
         //Then
         assertThatClaimResultHasNewClaim(response);
@@ -134,7 +132,7 @@ class ClaimantServiceIntegrationTests {
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
         assertThatClaimResultHasNewClaim(response);
@@ -156,7 +154,7 @@ class ClaimantServiceIntegrationTests {
         stubEligibilityServiceWithUnsuccessfulResponse();
 
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
 
         //Then
         assertInternalServerErrorResponse(response);
@@ -188,7 +186,7 @@ class ClaimantServiceIntegrationTests {
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -211,7 +209,7 @@ class ClaimantServiceIntegrationTests {
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -228,7 +226,7 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntityForUri(dto, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertDuplicateResponse(response);
@@ -240,7 +238,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
     }
@@ -252,7 +250,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.addressLine1", "must not be null");
     }
@@ -264,7 +262,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.postcode", "postcodes in the Channel Islands or Isle of Man are not acceptable");
     }
@@ -284,7 +282,7 @@ class ClaimantServiceIntegrationTests {
         String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
         //When
         ResponseEntity<ErrorResponse> response
-                = restTemplate.exchange(buildClaimRequestEntityForUri(claimWithInvalidDate, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+                = restTemplate.exchange(buildClaimRequestEntity(claimWithInvalidDate), ErrorResponse.class);
         //Then
         assertRequestCouldNotBeParsedErrorResponse(response, expectedField, expectedErrorMessage);
     }
@@ -294,7 +292,7 @@ class ClaimantServiceIntegrationTests {
         //Given
         String claim = "{}";
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
