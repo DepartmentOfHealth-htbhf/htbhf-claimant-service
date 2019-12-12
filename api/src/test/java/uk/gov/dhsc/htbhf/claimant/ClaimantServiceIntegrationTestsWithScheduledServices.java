@@ -25,7 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.CREATED;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
@@ -48,7 +48,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailResponse();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntityForUri(claimDTO, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
         invokeAllSchedulers();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -79,7 +79,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntityForUri(claimDTO, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -98,7 +98,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubNotFoundPostcodesIOResponse(postcode);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntityForUri(claimDTO, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -124,7 +124,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailError();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntityForUri(claimDTO, CLAIMANT_ENDPOINT_URI_V3), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
 
         // invoke all schedulers multiple times, fixing the next error in turn each time
         invokeAllSchedulers();
