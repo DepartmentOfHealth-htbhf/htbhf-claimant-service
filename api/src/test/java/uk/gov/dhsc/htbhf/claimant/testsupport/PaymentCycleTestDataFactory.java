@@ -148,7 +148,7 @@ public class PaymentCycleTestDataFactory {
     }
 
     private static List<LocalDate> nullSafeGetChildrenDob(Claim claim) {
-        return (claim == null) ? emptyList() : claim.getClaimant().getChildrenDob();
+        return (claim == null) ? emptyList() : claim.getClaimant().getInitiallyDeclaredChildrenDob();
     }
 
     private static LocalDate nullSafeGetExpectedDeliveryDate(Claim claim) {

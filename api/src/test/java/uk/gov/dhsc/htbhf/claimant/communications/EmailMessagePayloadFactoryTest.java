@@ -7,7 +7,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,6 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 class EmailMessagePayloadFactoryTest {
 
@@ -122,11 +122,11 @@ class EmailMessagePayloadFactoryTest {
     @Test
     void shouldBuildEmailMessageWithZeroAmountForNextCycle() {
         Claim claim = aClaimWithExpectedDeliveryDateAndChildrenDobs(LocalDate.now().minusYears(4), List.of(LocalDate.now().minusYears(4).plusDays(1)));
+        List<LocalDate> childrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .claim(claim)
-                .identityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(claim.getClaimant().getChildrenDob()))
-                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), claim.getClaimant().getChildrenDob()))
+                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDob))
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), childrenDob))
                 .build();
 
         EmailMessagePayload payload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, EmailType.CHILD_TURNS_FOUR);
