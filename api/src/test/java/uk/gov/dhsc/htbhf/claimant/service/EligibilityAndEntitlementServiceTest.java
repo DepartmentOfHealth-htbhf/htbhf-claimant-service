@@ -89,7 +89,7 @@ class EligibilityAndEntitlementServiceTest {
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
-        verifyCommonMocks(NO_EXISTING_CLAIM, DUPLICATE);
+        verifyCommonMocks(DUPLICATE);
         verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
     }
 
@@ -105,13 +105,13 @@ class EligibilityAndEntitlementServiceTest {
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
-        verifyCommonMocks(NO_EXISTING_CLAIM, NOT_DUPLICATE);
+        verifyCommonMocks(NOT_DUPLICATE);
         verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
     }
 
     private EligibilityAndEntitlementDecision setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus status) {
         EligibilityAndEntitlementDecision decisionResponse = aDecisionWithStatus(status);
-        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), any(), anyBoolean())).willReturn(decisionResponse);
+        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decisionResponse);
         return decisionResponse;
     }
 
@@ -121,19 +121,14 @@ class EligibilityAndEntitlementServiceTest {
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.ofNullable(existingClaimId));
     }
 
-    private void verifyDecisionFactoryCalledCorrectly(UUID existingClaimId, boolean duplicate) {
-        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE,
-                VOUCHER_ENTITLEMENT, existingClaimId, duplicate);
-    }
-
-    private void verifyCommonMocks(UUID existingClaimId, boolean duplicate) {
+    private void verifyCommonMocks(boolean duplicate) {
         verify(claimRepository).findLiveClaimWithNino(HOMER_NINO);
         verify(client).checkIdentityAndEligibility(CLAIMANT);
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
                 DATE_OF_BIRTH_OF_CHILDREN,
                 LocalDate.now());
-        verifyDecisionFactoryCalledCorrectly(existingClaimId, duplicate);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, duplicate);
     }
 
 }
