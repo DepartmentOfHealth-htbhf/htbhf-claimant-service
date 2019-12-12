@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model.v3;
+package uk.gov.dhsc.htbhf.claimant.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,7 +20,7 @@ import static uk.gov.dhsc.htbhf.claimant.regex.PostcodeRegex.UK_POST_CODE_REGEX_
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 @ApiModel(description = "Multi purpose address object")
-public class AddressDTOV3 {
+public class AddressDTO {
 
     @NotNull
     @Size(min = 1, max = 500)

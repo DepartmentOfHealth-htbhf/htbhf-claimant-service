@@ -1,18 +1,18 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.time.LocalDate;
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithCounty;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aValidClaimantDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithCounty;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTOWithNoNullFields;
 
-public final class ClaimDTOV3TestDataFactory {
+public final class ClaimDTOTestDataFactory {
 
     private static final String WEB_UI_VERSION = "1.0.0";
     public static final Map<String, Object> DEVICE_FINGERPRINT = Map.of(
@@ -23,50 +23,50 @@ public final class ClaimDTOV3TestDataFactory {
             "accept-language", "en-GB,en-US;q=0.9,en;q=0.8");
 
 
-    public static ClaimDTOV3 aValidClaimDTO() {
+    public static ClaimDTO aValidClaimDTO() {
         return aClaimDTOBuilder()
                 .build();
     }
 
-    public static ClaimDTOV3 aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+    public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate))
                 .build();
     }
 
-    public static ClaimDTOV3 aValidClaimDTOWithNoNullFields() {
+    public static ClaimDTO aValidClaimDTOWithNoNullFields() {
         return aClaimDTOBuilder()
                 .claimant(aValidClaimantDTOWithNoNullFields())
                 .build();
     }
 
-    public static ClaimDTOV3 aClaimDTOWithClaimant(ClaimantDTOV3 claimant) {
+    public static ClaimDTO aClaimDTOWithClaimant(ClaimantDTO claimant) {
         return aClaimDTOBuilder()
                 .claimant(claimant)
                 .build();
     }
 
-    public static ClaimDTOV3 aClaimDTOWithDeviceFingerprint(Map<String, Object> fingerprint) {
+    public static ClaimDTO aClaimDTOWithDeviceFingerprint(Map<String, Object> fingerprint) {
         return aClaimDTOBuilder()
                 .deviceFingerprint(fingerprint)
                 .build();
     }
 
-    public static ClaimDTOV3 aClaimDTOWithWebUIVersion(String version) {
+    public static ClaimDTO aClaimDTOWithWebUIVersion(String version) {
         return aClaimDTOBuilder()
                 .webUIVersion(version)
                 .build();
     }
 
-    public static ClaimDTOV3 aClaimDTOWithCounty(String county) {
+    public static ClaimDTO aClaimDTOWithCounty(String county) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithAddress(anAddressDTOWithCounty(county)))
                 .build();
     }
 
 
-    private static ClaimDTOV3.ClaimDTOV3Builder aClaimDTOBuilder() {
-        return ClaimDTOV3.builder()
+    private static ClaimDTO.ClaimDTOBuilder aClaimDTOBuilder() {
+        return ClaimDTO.builder()
                 .claimant(aValidClaimantDTO())
                 .deviceFingerprint(DEVICE_FINGERPRINT)
                 .webUIVersion(WEB_UI_VERSION);

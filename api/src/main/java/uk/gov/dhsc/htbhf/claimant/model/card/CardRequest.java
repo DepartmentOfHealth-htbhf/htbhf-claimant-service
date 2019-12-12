@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 
 import java.time.LocalDate;
 
@@ -21,7 +21,7 @@ public class CardRequest {
     private String lastName;
 
     @JsonProperty("address")
-    private AddressDTOV3 address;
+    private AddressDTO address;
 
     @JsonProperty("dateOfBirth")
     private final LocalDate dateOfBirth;

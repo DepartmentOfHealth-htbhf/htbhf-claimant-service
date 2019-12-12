@@ -18,11 +18,11 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.v3.AddressDTOV3;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimDTOV3;
-import uk.gov.dhsc.htbhf.claimant.model.v3.ClaimantDTOV3;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
@@ -46,16 +46,16 @@ import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertReque
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntityForUri;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithLine1;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.anAddressDTOWithPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aClaimDTOWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aClaimDTOWithCounty;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOV3TestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithCounty;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithAddress;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithNino;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOV3TestDataFactory.aClaimantDTOWithPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
@@ -70,7 +70,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligib
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
 @AutoConfigureWireMock(port = 8100)
-class ClaimantServiceV3IntegrationTests {
+class ClaimantServiceIntegrationTests {
 
     private static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
     private static final String ELIGIBILITY_SERVICE_URL = "/v2/eligibility";
@@ -96,7 +96,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         //Given
-        ClaimDTOV3 claim = aValidClaimDTOWithNoNullFields();
+        ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
         //When
@@ -110,7 +110,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldIgnoreUnknownFieldsInValidClaimRequest() throws JsonProcessingException {
         //Given
-        ClaimDTOV3 claim = aValidClaimDTOWithNoNullFields();
+        ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         String webUiVersionProperty = "\"" + claim.getWebUIVersion() + "\",";
         String json = objectMapper.writeValueAsString(claim).replace(webUiVersionProperty, webUiVersionProperty + " \"foo\":\"bar\",");
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
@@ -129,7 +129,7 @@ class ClaimantServiceV3IntegrationTests {
     @MethodSource("provideArgumentsForMissingAddressFields")
     void shouldAcceptAndCreateANewValidClaimWithMissingAddressFields(String county) throws JsonProcessingException {
         //Given
-        ClaimDTOV3 claim = aClaimDTOWithCounty(county);
+        ClaimDTO claim = aClaimDTOWithCounty(county);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
 
@@ -152,7 +152,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldFailWhenEligibilityServiceCallThrowsException() {
         //Given
-        ClaimDTOV3 claim = aValidClaimDTO();
+        ClaimDTO claim = aValidClaimDTO();
         stubEligibilityServiceWithUnsuccessfulResponse();
 
         //When
@@ -175,7 +175,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForDwpHouseholdIdentifier() throws JsonProcessingException {
         //Given
-        ClaimDTOV3 dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
         Claim claim = aValidClaimBuilder()
                 .dwpHouseholdIdentifier(DWP_HOUSEHOLD_IDENTIFIER)
@@ -198,7 +198,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsForHmrcHouseholdIdentifier() throws JsonProcessingException {
         //Given
-        ClaimDTOV3 dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimantInSameHouseholdBuilder().build();
         Claim claim = aValidClaimBuilder()
                 .hmrcHouseholdIdentifier(HMRC_HOUSEHOLD_IDENTIFIER)
@@ -220,7 +220,7 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldReturnDuplicateStatusWhenEligibleClaimAlreadyExistsWithSameNino() {
         //Given
-        ClaimDTOV3 dto = aClaimDTOWithClaimant(aClaimantDTOWithNino(HOMER_NINO));
+        ClaimDTO dto = aClaimDTOWithClaimant(aClaimantDTOWithNino(HOMER_NINO));
         Claimant claimant = aClaimantWithNino(HOMER_NINO);
         Claim claim = aValidClaimBuilder()
                 .claimant(claimant)
@@ -237,8 +237,8 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldFailWithClaimantValidationError() {
         //Given
-        ClaimantDTOV3 claimant = aClaimantDTOWithPhoneNumber(null);
-        ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
+        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
@@ -248,9 +248,9 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldFailWithAddressValidationError() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine1(null);
-        ClaimantDTOV3 claimant = aClaimantDTOWithAddress(addressDTO);
-        ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
+        AddressDTO addressDTO = anAddressDTOWithLine1(null);
+        ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
@@ -260,9 +260,9 @@ class ClaimantServiceV3IntegrationTests {
     @Test
     void shouldFailWithChannelIslandPostcode() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode("GY11AA");
-        ClaimantDTOV3 claimant = aClaimantDTOWithAddress(addressDTO);
-        ClaimDTOV3 claim = aClaimDTOWithClaimant(claimant);
+        AddressDTO addressDTO = anAddressDTOWithPostcode("GY11AA");
+        ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
+        ClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntityForUri(claim, CLAIMANT_ENDPOINT_URI_V3), ErrorResponse.class);
         //Then
@@ -316,22 +316,22 @@ class ClaimantServiceV3IntegrationTests {
         assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
-    private void assertClaimPersistedSuccessfully(ClaimDTOV3 claimDTOV3,
+    private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
                                                   EligibilityStatus eligibilityStatus) {
-        Claim persistedClaim = assertClaimPersistedWithClaimStatus(claimDTOV3, eligibilityStatus);
+        Claim persistedClaim = assertClaimPersistedWithClaimStatus(claimDTO, eligibilityStatus);
         assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(DWP_HOUSEHOLD_IDENTIFIER);
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
-    private void assertClaimPersistedWithError(ClaimDTOV3 claimDTOV3) {
-        assertClaimPersistedWithClaimStatus(claimDTOV3, ERROR);
+    private void assertClaimPersistedWithError(ClaimDTO claimDTO) {
+        assertClaimPersistedWithClaimStatus(claimDTO, ERROR);
     }
 
-    private Claim assertClaimPersistedWithClaimStatus(ClaimDTOV3 claimDTOV3, EligibilityStatus eligibilityStatus) {
+    private Claim assertClaimPersistedWithClaimStatus(ClaimDTO claimDTO, EligibilityStatus eligibilityStatus) {
         Iterable<Claim> claims = claimRepository.findAll();
         assertThat(claims).hasSize(1);
         Claim persistedClaim = claims.iterator().next();
-        assertClaimantMatchesClaimantDTO(claimDTOV3.getClaimant(), persistedClaim.getClaimant());
+        assertClaimantMatchesClaimantDTO(claimDTO.getClaimant(), persistedClaim.getClaimant());
         assertThat(persistedClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
         return persistedClaim;
     }

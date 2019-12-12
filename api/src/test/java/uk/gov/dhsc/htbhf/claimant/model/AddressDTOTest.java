@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.model.v3;
+package uk.gov.dhsc.htbhf.claimant.model;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -9,16 +9,16 @@ import java.util.Set;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOV3TestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.*;
 
-class AddressDTOV3Test extends AbstractValidationTest {
+class AddressDTOTest extends AbstractValidationTest {
 
     @Test
     void shouldSuccessfullyValidateAddress() {
         //Given
-        AddressDTOV3 addressDTO = aValidAddressDTO();
+        AddressDTO addressDTO = aValidAddressDTO();
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasNoViolations();
     }
@@ -26,9 +26,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldSuccessfullyValidateAddressWithNoAddressLine2() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine2(null);
+        AddressDTO addressDTO = anAddressDTOWithLine2(null);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasNoViolations();
     }
@@ -36,9 +36,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldSuccessfullyValidateAddressWithNoCounty() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithCounty(null);
+        AddressDTO addressDTO = anAddressDTOWithCounty(null);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasNoViolations();
     }
@@ -46,9 +46,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldSuccessfullyValidateAddressWithEmptyStringCounty() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithCounty("");
+        AddressDTO addressDTO = anAddressDTOWithCounty("");
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasNoViolations();
     }
@@ -56,9 +56,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNoLine1() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine1(null);
+        AddressDTO addressDTO = anAddressDTOWithLine1(null);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "addressLine1");
     }
@@ -66,9 +66,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithTooLongLine1() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine1(LONG_STRING);
+        AddressDTO addressDTO = anAddressDTOWithLine1(LONG_STRING);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "addressLine1");
     }
@@ -76,9 +76,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithTooLongLine2() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithLine2(LONG_STRING);
+        AddressDTO addressDTO = anAddressDTOWithLine2(LONG_STRING);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 500", "addressLine2");
     }
@@ -86,9 +86,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithTooLongTownOrCity() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithTownOrCity(LONG_STRING);
+        AddressDTO addressDTO = anAddressDTOWithTownOrCity(LONG_STRING);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "townOrCity");
     }
@@ -96,9 +96,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithTooLongCounty() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithCounty(LONG_STRING);
+        AddressDTO addressDTO = anAddressDTOWithCounty(LONG_STRING);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("size must be between 0 and 500", "county");
     }
@@ -106,9 +106,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNullTownOrCity() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithTownOrCity(null);
+        AddressDTO addressDTO = anAddressDTOWithTownOrCity(null);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "townOrCity");
     }
@@ -116,9 +116,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     @Test
     void shouldFailToValidateAddressWithNullPostcode() {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode(null);
+        AddressDTO addressDTO = anAddressDTOWithPostcode(null);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "postcode");
     }
@@ -133,9 +133,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailValidationWithInvalidPostcode(String postcode) {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode(postcode);
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("invalid postcode format", "postcode");
     }
@@ -148,9 +148,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailValidationWithChannelIslandPostcode(String postcode) {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode(postcode);
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasSingleConstraintViolation("postcodes in the Channel Islands or Isle of Man are not acceptable", "postcode");
     }
@@ -163,9 +163,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     })
     void shouldFailValidationWithChannelIslandPostcodeAndInvalidFormat(String postcode) {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode(postcode);
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasTotalViolations(2)
                 .hasViolation("postcodes in the Channel Islands or Isle of Man are not acceptable", "postcode")
@@ -183,9 +183,9 @@ class AddressDTOV3Test extends AbstractValidationTest {
     })
     void shouldPassValidationWithNonChannelIslandPostcode(String postcode) {
         //Given
-        AddressDTOV3 addressDTO = anAddressDTOWithPostcode(postcode);
+        AddressDTO addressDTO = anAddressDTOWithPostcode(postcode);
         //When
-        Set<ConstraintViolation<AddressDTOV3>> violations = validator.validate(addressDTO);
+        Set<ConstraintViolation<AddressDTO>> violations = validator.validate(addressDTO);
         //Then
         assertThat(violations).hasNoViolations();
     }

@@ -13,15 +13,15 @@ info:
 host: "N/A"
 basePath: "/"
 tags:
-- name: "claim-controller-v-3"
+- name: "claim-controller"
   description: "Endpoints for dealing with claims, e.g. persisting a claim."
 paths:
   /v3/claims:
     post:
       tags:
-      - "claim-controller-v-3"
+      - "claim-controller"
       summary: "Create a claim."
-      operationId: "createClaimV3UsingPOST"
+      operationId: "createClaimUsingPOST"
       consumes:
       - "application/json"
       produces:
@@ -32,7 +32,7 @@ paths:
         description: "The claim to persist"
         required: false
         schema:
-          $ref: "#/definitions/ClaimDTOV3"
+          $ref: "#/definitions/ClaimDTO"
       responses:
         "200":
           description: "OK"
@@ -52,7 +52,7 @@ paths:
           description: "Not Found"
       deprecated: false
 definitions:
-  AddressDTOV3:
+  AddressDTO:
     type: "object"
     properties:
       addressLine1:
@@ -85,14 +85,14 @@ definitions:
         description: "Town or city of the address"
         minLength: 1
         maxLength: 500
-    title: "AddressDTOV3"
+    title: "AddressDTO"
     description: "Multi purpose address object"
-  ClaimDTOV3:
+  ClaimDTO:
     type: "object"
     properties:
       claimant:
         description: "The person making the claim"
-        $ref: "#/definitions/ClaimantDTOV3"
+        $ref: "#/definitions/ClaimantDTO"
       deviceFingerprint:
         type: "object"
         description: "The fingerprint of the device used to make the claim, as best\
@@ -101,7 +101,7 @@ definitions:
         type: "string"
         description: "The version of the web-ui application used to create this request.\
           \ Identifies which version of the Terms and Conditions the applicant accepted."
-    title: "ClaimDTOV3"
+    title: "ClaimDTO"
     description: "A claim (application) for help to buy healthy foods. Contains all\
       \ details that need to be persisted as part of the application."
   ClaimResultDTO:
@@ -145,12 +145,12 @@ definitions:
         description: "Details of the vouchers that the claimant is entitled to"
         $ref: "#/definitions/VoucherEntitlementDTO"
     title: "ClaimResultDTO"
-  ClaimantDTOV3:
+  ClaimantDTO:
     type: "object"
     properties:
       address:
         description: "The address of the claimant"
-        $ref: "#/definitions/AddressDTOV3"
+        $ref: "#/definitions/AddressDTO"
       childrenDob:
         type: "array"
         description: "The dates of birth of the claimant's children (if they have\
@@ -198,7 +198,7 @@ definitions:
         description: "The claimant's UK phone number. Must be in +44 format, e.g.\
           \ +447123456789"
         pattern: "^\\+44\\d{9,10}$"
-    title: "ClaimantDTOV3"
+    title: "ClaimantDTO"
     description: "A claimant for help to buy healthy foods."
   ErrorResponse:
     type: "object"

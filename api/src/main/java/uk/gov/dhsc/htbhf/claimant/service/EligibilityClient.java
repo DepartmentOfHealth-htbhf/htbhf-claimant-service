@@ -1,4 +1,4 @@
-package uk.gov.dhsc.htbhf.claimant.service.v3;
+package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,20 +18,20 @@ import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityRespons
  */
 @Component
 @Slf4j
-public class EligibilityClientV3 {
+public class EligibilityClient {
 
     private static final String ELIGIBILITY_ENDPOINT = "/v2/eligibility";
     private final RestTemplate restTemplate;
     private final String eligibilityUri;
 
-    public EligibilityClientV3(@Value("${eligibility.base-uri}") String baseUri,
-                               RestTemplate restTemplate) {
+    public EligibilityClient(@Value("${eligibility.base-uri}") String baseUri,
+                             RestTemplate restTemplate) {
         this.eligibilityUri = baseUri + ELIGIBILITY_ENDPOINT;
         this.restTemplate = restTemplate;
     }
 
     public CombinedIdentityAndEligibilityResponse checkIdentityAndEligibility(Claimant claimant) {
-        log.debug("Checking V2 eligibility");
+        log.debug("Checking eligibility");
         PersonDTO person = buildPersonDTO(claimant);
         try {
             ResponseEntity<CombinedIdentityAndEligibilityResponse> response = restTemplate.postForEntity(
