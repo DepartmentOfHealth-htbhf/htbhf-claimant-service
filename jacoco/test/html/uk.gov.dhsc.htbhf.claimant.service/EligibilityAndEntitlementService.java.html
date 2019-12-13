@@ -67,17 +67,16 @@ public class EligibilityAndEntitlementService {
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
-    // TODO HTBHF-2682 Add unit test for method.
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
-<span class="fc" id="L74">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);</span>
-<span class="fc" id="L75">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L76">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
-<span class="fc" id="L77">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
+<span class="fc" id="L73">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);</span>
+<span class="fc" id="L74">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L75">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
+<span class="fc" id="L76">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
                 cycleStartDate,
-<span class="fc" id="L79">                previousCycle.getVoucherEntitlement());</span>
-<span class="fc" id="L80">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
+<span class="fc" id="L78">                previousCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L79">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
                 entitlement, false);
     }
 
