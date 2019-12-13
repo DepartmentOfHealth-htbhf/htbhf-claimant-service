@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static uk.gov.dhsc.htbhf.claimant.factory.VerificationResultFactory.buildVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
 
 @Service
@@ -50,22 +52,23 @@ public class ClaimService {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
-                Claim claim = createAndSaveClaim(claimRequest, decision);
+                Claim claim = createDuplicateClaim(claimRequest, decision);
                 claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
                 return ClaimResult.withNoEntitlement(claim);
             }
 
-            Claim claim = createAndSaveClaim(claimRequest, decision);
+            VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), decision.getIdentityAndEligibilityResponse());
+            Claim claim = createNewClaim(claimRequest, decision, verificationResult);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
                 claimMessageSender.sendNewCardMessage(claim, decision);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
                 claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
-                return ClaimResult.withEntitlement(claim, weeklyEntitlement, decision.getIdentityAndEligibilityResponse());
+                return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);
             }
 
             claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
-            return ClaimResult.withNoEntitlement(claim, decision.getIdentityAndEligibilityResponse());
+            return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
             throw e;
@@ -79,7 +82,7 @@ public class ClaimService {
 
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
         EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
-        Claim claim = buildClaim(claimRequest, decision);
+        Claim claim = buildClaim(ClaimStatus.ERROR, claimRequest, decision);
         NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
         FailureEvent failureEvent = FailureEvent.builder()
                 .failureDescription("Unable to create (or update) claim")
@@ -90,8 +93,17 @@ public class ClaimService {
         claimRepository.save(claim);
     }
 
-    private Claim createAndSaveClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-        Claim claim = buildClaim(claimRequest, decision);
+    private Claim createDuplicateClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+        return buildAndSaveClaim(ClaimStatus.REJECTED, claimRequest, decision);
+    }
+
+    private Claim createNewClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, VerificationResult verificationResult) {
+        ClaimStatus claimStatus = getClaimStatus(decision.getEligibilityStatus(), verificationResult);
+        return buildAndSaveClaim(claimStatus, claimRequest, decision);
+    }
+
+    private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+        Claim claim = buildClaim(claimStatus, claimRequest, decision);
         log.info("Saving new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
         claimRepository.save(claim);
         eventAuditor.auditNewClaim(claim);
@@ -100,8 +112,7 @@ public class ClaimService {
 
     @SuppressFBWarnings(value = "SECMD5",
             justification = "Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption")
-    private Claim buildClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-        ClaimStatus claimStatus = STATUS_MAP.get(decision.getEligibilityStatus());
+    private Claim buildClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Map<String, Object> deviceFingerprint = claimRequest.getDeviceFingerprint();
         String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());
@@ -121,4 +132,11 @@ public class ClaimService {
                 .build();
     }
 
+    private ClaimStatus getClaimStatus(EligibilityStatus eligibilityStatus, VerificationResult verificationResult) {
+        if (verificationResult.getIsPregnantOrAtLeast1ChildMatched()) {
+            return STATUS_MAP.get(eligibilityStatus);
+        } else {
+            return ClaimStatus.REJECTED;
+        }
+    }
 }

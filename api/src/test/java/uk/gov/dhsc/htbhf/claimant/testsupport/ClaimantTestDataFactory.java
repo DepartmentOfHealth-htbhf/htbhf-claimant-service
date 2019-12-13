@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressTestDataFactory.aValidAddress;
@@ -30,6 +31,13 @@ public final class ClaimantTestDataFactory {
 
     public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aValidClaimantBuilder().expectedDeliveryDate(expectedDeliveryDate).build();
+    }
+
+    public static Claimant aClaimantWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDatesOfBirth) {
+        return aValidClaimantBuilder()
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .initiallyDeclaredChildrenDob(childrenDatesOfBirth)
+                .build();
     }
 
     public static Claimant aClaimantWithCardDeliveryAddress(Address address) {

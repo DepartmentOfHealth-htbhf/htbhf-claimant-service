@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -87,7 +86,6 @@ public class ChildrenDateOfBirthMatchIntegrationTest {
     }
 
     @Test
-    @Disabled("TODO HTBHF-2727 Enable test once checking children's dob")
     void shouldRejectClaimWhenNotPregnantAndNoChildrenDobMatch() throws JsonProcessingException {
         ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(null, SINGLE_THREE_YEAR_OLD);
         wiremockManager.stubSuccessfulEligibilityResponse(SINGLE_SIX_MONTH_OLD);
