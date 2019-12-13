@@ -67,7 +67,6 @@ public class EligibilityAndEntitlementService {
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
-    // TODO HTBHF-2682 Add unit test for method.
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
