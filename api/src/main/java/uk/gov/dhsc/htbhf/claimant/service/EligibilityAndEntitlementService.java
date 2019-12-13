@@ -53,7 +53,7 @@ public class EligibilityAndEntitlementService {
                 LocalDate.now());
         boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                entitlement, null, duplicateHouseholdIdentifierFound);
+                entitlement, duplicateHouseholdIdentifierFound);
     }
 
     /**
@@ -67,7 +67,6 @@ public class EligibilityAndEntitlementService {
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
-    // TODO HTBHF-2682 Add unit test for method.
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
@@ -78,7 +77,7 @@ public class EligibilityAndEntitlementService {
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
-                entitlement, null, false);
+                entitlement, false);
     }
 
 }

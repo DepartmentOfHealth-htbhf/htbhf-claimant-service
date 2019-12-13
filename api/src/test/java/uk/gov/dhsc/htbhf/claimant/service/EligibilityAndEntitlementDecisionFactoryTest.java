@@ -5,15 +5,13 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_HOUSEHOLD_IDENTIFIER_PROVIDED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aValidDecisionBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithZeroVouchers;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityNotConfirmedResponse;
 
 class EligibilityAndEntitlementDecisionFactoryTest {
@@ -21,10 +19,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
     private EligibilityAndEntitlementDecisionFactory factory = new EligibilityAndEntitlementDecisionFactory();
-    private static final CombinedIdentityAndEligibilityResponse ELIGIBILITY_RESPONSE = CombinedIdAndEligibilityResponseTestDataFactory
-            .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
-    private static final UUID EXISTING_CLAIM_UUID = UUID.randomUUID();
-    private static final UUID NO_EXISTING_CLAIM_UUID = null;
+    private static final CombinedIdentityAndEligibilityResponse ELIGIBILITY_RESPONSE = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
 
     @Test
     void shouldBuildDecisionWithoutExistingClaimUUID() {
@@ -32,8 +27,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE,
-                entitlement, NO_EXISTING_CLAIM_UUID, NOT_DUPLICATE);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE, entitlement,  NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -48,8 +42,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE,
-                entitlement, NO_EXISTING_CLAIM_UUID, DUPLICATE);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE, entitlement, DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -66,15 +59,13 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE,
-                entitlement, EXISTING_CLAIM_UUID, NOT_DUPLICATE);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(ELIGIBILITY_RESPONSE, entitlement, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
                 .eligibilityStatus(EligibilityStatus.INELIGIBLE)
                 .identityAndEligibilityResponse(ELIGIBILITY_RESPONSE)
                 .voucherEntitlement(null)
-                .existingClaimId(EXISTING_CLAIM_UUID)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
     }
@@ -86,8 +77,7 @@ class EligibilityAndEntitlementDecisionFactoryTest {
         PaymentCycleVoucherEntitlement entitlement = aPaymentCycleVoucherEntitlementWithZeroVouchers();
 
         //When
-        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement,
-                EXISTING_CLAIM_UUID, NOT_DUPLICATE);
+        EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = factory.buildDecision(identityAndEligibilityResponse, entitlement, NOT_DUPLICATE);
 
         //Then
         EligibilityAndEntitlementDecision expectedDecision = aValidDecisionBuilder()
@@ -96,7 +86,6 @@ class EligibilityAndEntitlementDecisionFactoryTest {
                 .dwpHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_PROVIDED)
                 .hmrcHouseholdIdentifier(NO_HOUSEHOLD_IDENTIFIER_PROVIDED)
                 .voucherEntitlement(null)
-                .existingClaimId(EXISTING_CLAIM_UUID)
                 .build();
         assertThat(eligibilityAndEntitlementDecision).isEqualTo(expectedDecision);
     }
