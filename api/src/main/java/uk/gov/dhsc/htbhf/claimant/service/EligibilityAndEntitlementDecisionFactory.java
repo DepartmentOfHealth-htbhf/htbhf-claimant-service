@@ -7,8 +7,6 @@ import uk.gov.dhsc.htbhf.dwp.model.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.util.UUID;
-
 import static uk.gov.dhsc.htbhf.claimant.service.EligibilityOutcomeToEligibilityStatusConverter.fromEligibilityOutcome;
 
 /**
@@ -25,14 +23,12 @@ public class EligibilityAndEntitlementDecisionFactory {
      *
      * @param identityAndEligibilityResponse    The response from DWP.
      * @param entitlement                       The already calculated entitlement.
-     * @param existingClaimId                   The matching live claim id from the db.
      * @param duplicateHouseholdIdentifierFound Has a duplicate household identifier been found or not
      * @return The built decision.
      */
     // TODO HTbhf-2705 Remove existingClaimId parameter as it is only called with null.
     public EligibilityAndEntitlementDecision buildDecision(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                           UUID existingClaimId,
                                                            boolean duplicateHouseholdIdentifierFound) {
         EligibilityStatus eligibilityStatus = determineEligibilityStatus(identityAndEligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);
         PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);
@@ -41,7 +37,6 @@ public class EligibilityAndEntitlementDecisionFactory {
                 .identityAndEligibilityResponse(identityAndEligibilityResponse)
                 .voucherEntitlement(voucherEntitlement)
                 .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())
-                .existingClaimId(existingClaimId)
                 .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();
     }
 
