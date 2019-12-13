@@ -7,8 +7,6 @@ import uk.gov.dhsc.htbhf.dwp.model.IdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
-import java.util.UUID;
-
 import static uk.gov.dhsc.htbhf.claimant.service.EligibilityOutcomeToEligibilityStatusConverter.fromEligibilityOutcome;
 
 /**
@@ -16,7 +14,7 @@ import static uk.gov.dhsc.htbhf.claimant.service.EligibilityOutcomeToEligibility
  * on the provided response object from DWP API call.
  */
 @Component
-<span class="fc" id="L19">public class EligibilityAndEntitlementDecisionFactory {</span>
+<span class="fc" id="L17">public class EligibilityAndEntitlementDecisionFactory {</span>
 
     /**
      * Builds a decision based on the given data. This will also store the existing claim id on the decision
@@ -25,39 +23,36 @@ import static uk.gov.dhsc.htbhf.claimant.service.EligibilityOutcomeToEligibility
      *
      * @param identityAndEligibilityResponse    The response from DWP.
      * @param entitlement                       The already calculated entitlement.
-     * @param existingClaimId                   The matching live claim id from the db.
      * @param duplicateHouseholdIdentifierFound Has a duplicate household identifier been found or not
      * @return The built decision.
      */
     public EligibilityAndEntitlementDecision buildDecision(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                            PaymentCycleVoucherEntitlement entitlement,
-                                                           UUID existingClaimId,
                                                            boolean duplicateHouseholdIdentifierFound) {
-<span class="fc" id="L36">        EligibilityStatus eligibilityStatus = determineEligibilityStatus(identityAndEligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);</span>
-<span class="fc" id="L37">        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);</span>
-<span class="fc" id="L38">        return EligibilityAndEntitlementDecision.builder()</span>
-<span class="fc" id="L39">                .eligibilityStatus(eligibilityStatus)</span>
-<span class="fc" id="L40">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
-<span class="fc" id="L41">                .voucherEntitlement(voucherEntitlement)</span>
-<span class="fc" id="L42">                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L43">                .existingClaimId(existingClaimId)</span>
-<span class="fc" id="L44">                .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();</span>
+<span class="fc" id="L32">        EligibilityStatus eligibilityStatus = determineEligibilityStatus(identityAndEligibilityResponse, entitlement, duplicateHouseholdIdentifierFound);</span>
+<span class="fc" id="L33">        PaymentCycleVoucherEntitlement voucherEntitlement = determinePaymentCycleVoucherEntitlementFromStatus(entitlement, eligibilityStatus);</span>
+<span class="fc" id="L34">        return EligibilityAndEntitlementDecision.builder()</span>
+<span class="fc" id="L35">                .eligibilityStatus(eligibilityStatus)</span>
+<span class="fc" id="L36">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
+<span class="fc" id="L37">                .voucherEntitlement(voucherEntitlement)</span>
+<span class="fc" id="L38">                .dwpHouseholdIdentifier(identityAndEligibilityResponse.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L39">                .hmrcHouseholdIdentifier(identityAndEligibilityResponse.getHmrcHouseholdIdentifier()).build();</span>
     }
 
     private PaymentCycleVoucherEntitlement determinePaymentCycleVoucherEntitlementFromStatus(PaymentCycleVoucherEntitlement entitlement,
                                                                                              EligibilityStatus eligibilityStatus) {
-<span class="fc bfc" id="L49" title="All 2 branches covered.">        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        return (eligibilityStatus == EligibilityStatus.ELIGIBLE) ? entitlement : null;</span>
     }
 
     private EligibilityStatus determineEligibilityStatus(CombinedIdentityAndEligibilityResponse response,
                                                          PaymentCycleVoucherEntitlement voucherEntitlement,
                                                          boolean duplicateHouseholdIdentifierFound) {
-<span class="fc bfc" id="L55" title="All 4 branches covered.">        if (response.isEligible() &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
-<span class="fc" id="L56">            return EligibilityStatus.INELIGIBLE;</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if (duplicateHouseholdIdentifierFound) {</span>
-<span class="fc" id="L58">            return EligibilityStatus.DUPLICATE;</span>
+<span class="fc bfc" id="L50" title="All 4 branches covered.">        if (response.isEligible() &amp;&amp; voucherEntitlement.getTotalVoucherEntitlement() == 0) {</span>
+<span class="fc" id="L51">            return EligibilityStatus.INELIGIBLE;</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        } else if (duplicateHouseholdIdentifierFound) {</span>
+<span class="fc" id="L53">            return EligibilityStatus.DUPLICATE;</span>
         }
-<span class="fc" id="L60">        return fromEligibilityOutcome(response.getEligibilityStatus());</span>
+<span class="fc" id="L55">        return fromEligibilityOutcome(response.getEligibilityStatus());</span>
     }
 
 }

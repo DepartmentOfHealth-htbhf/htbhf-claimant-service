@@ -53,7 +53,7 @@ public class EligibilityAndEntitlementService {
 <span class="fc" id="L53">                LocalDate.now());</span>
 <span class="fc" id="L54">        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);</span>
 <span class="fc" id="L55">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
-                entitlement, null, duplicateHouseholdIdentifierFound);
+                entitlement, duplicateHouseholdIdentifierFound);
     }
 
     /**
@@ -78,7 +78,7 @@ public class EligibilityAndEntitlementService {
                 cycleStartDate,
 <span class="fc" id="L79">                previousCycle.getVoucherEntitlement());</span>
 <span class="fc" id="L80">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
-                entitlement, null, false);
+                entitlement, false);
     }
 
 }
