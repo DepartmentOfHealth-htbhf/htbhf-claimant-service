@@ -36,11 +36,13 @@ import static org.apache.commons.collections4.CollectionUtils.containsAny;
 <span class="fc bfc" id="L36" title="All 2 branches covered.">        if (claimant.getExpectedDeliveryDate() != null) {</span>
 <span class="fc" id="L37">            return true;</span>
         }
-<span class="fc" id="L39">        List&lt;LocalDate&gt; declaredChildren = claimant.getInitiallyDeclaredChildrenDob();</span>
-<span class="pc bpc" id="L40" title="1 of 4 branches missed.">        if (declaredChildren == null || registeredChildren == null) {</span>
-<span class="fc" id="L41">            return false;</span>
+
+<span class="fc" id="L40">        List&lt;LocalDate&gt; declaredChildren = claimant.getInitiallyDeclaredChildrenDob();</span>
+<span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (declaredChildren == null || registeredChildren == null) {</span>
+<span class="fc" id="L42">            return false;</span>
         }
-<span class="fc" id="L43">        return containsAny(declaredChildren, registeredChildren);</span>
+
+<span class="fc" id="L45">        return containsAny(declaredChildren, registeredChildren);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
