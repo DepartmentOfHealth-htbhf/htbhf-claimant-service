@@ -36,10 +36,12 @@ public class VerificationResultFactory {
         if (claimant.getExpectedDeliveryDate() != null) {
             return true;
         }
+
         List<LocalDate> declaredChildren = claimant.getInitiallyDeclaredChildrenDob();
         if (declaredChildren == null || registeredChildren == null) {
             return false;
         }
+
         return containsAny(declaredChildren, registeredChildren);
     }
 }
