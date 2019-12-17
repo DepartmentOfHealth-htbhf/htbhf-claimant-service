@@ -34,4 +34,39 @@ public class VerificationResultTestDataFactory {
                 .isPregnantOrAtLeast1ChildMatched(false)
                 .build();
     }
+
+    public static VerificationResult aPostcodeMismatchVerificationResult() {
+        return anEligibleDefaultBuilder()
+                .addressLine1Match(VerificationOutcome.MATCHED)
+                .postcodeMatch(VerificationOutcome.NOT_MATCHED)
+                .build();
+    }
+
+    public static VerificationResult anAddressLine1MismatchVerificationResult() {
+        return anEligibleDefaultBuilder()
+                .addressLine1Match(VerificationOutcome.NOT_MATCHED)
+                .postcodeMatch(VerificationOutcome.MATCHED)
+                .build();
+    }
+
+    public static VerificationResult aFullAddressMismatchVerificationResult() {
+        return anEligibleDefaultBuilder()
+                .addressLine1Match(VerificationOutcome.NOT_MATCHED)
+                .postcodeMatch(VerificationOutcome.NOT_MATCHED)
+                .build();
+    }
+
+    private static VerificationResult.VerificationResultBuilder anEligibleDefaultBuilder() {
+        return VerificationResult.builder()
+                .identityOutcome(IdentityOutcome.MATCHED)
+                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
+                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
+                .emailAddressMatch(VerificationOutcome.NOT_SET)
+                .addressLine1Match(VerificationOutcome.NOT_SET)
+                .postcodeMatch(VerificationOutcome.NOT_SET)
+                .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
+                .qualifyingBenefits(QualifyingBenefits.NOT_SET)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .isPregnantOrAtLeast1ChildMatched(false);
+    }
 }

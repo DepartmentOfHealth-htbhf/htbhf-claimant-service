@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import lombok.Builder;
 import lombok.Value;
@@ -32,5 +33,10 @@ public class VerificationResult {
     private final QualifyingBenefits qualifyingBenefits;
 
     private final Boolean isPregnantOrAtLeast1ChildMatched;
+
+    @JsonIgnore
+    public boolean isAddressMismatch() {
+        return VerificationOutcome.NOT_MATCHED == addressLine1Match || VerificationOutcome.NOT_MATCHED == postcodeMatch;
+    }
 
 }
