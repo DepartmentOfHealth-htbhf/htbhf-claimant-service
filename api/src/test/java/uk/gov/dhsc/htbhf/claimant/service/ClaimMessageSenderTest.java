@@ -34,6 +34,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
@@ -146,6 +147,16 @@ class ClaimMessageSenderTest {
 
         MessagePayload emailMessagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
         verify(messageQueueClient).sendMessageWithDelay(emailMessagePayload, SEND_EMAIL, REPORT_A_BIRTH_MESSAGE_DELAY);
+    }
+
+    @Test
+    void shouldSendDecisionPendingMessage() {
+        Claim claim  = aValidClaim();
+
+        claimMessageSender.sendDecisionPendingEmailMessage(claim);
+
+        MessagePayload emailMessagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, PENDING_DECISION);
+        verify(messageQueueClient).sendMessage(emailMessagePayload, SEND_EMAIL);
     }
 
 }

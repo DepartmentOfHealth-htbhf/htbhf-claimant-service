@@ -23,6 +23,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANC
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 
 /**
@@ -78,5 +79,10 @@ public class ClaimMessageSender {
     public void sendReportABirthEmailMessage(Claim claim) {
         MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
         messageQueueClient.sendMessageWithDelay(payload, SEND_EMAIL, reportABirthMessageDelay);
+    }
+
+    public void sendDecisionPendingEmailMessage(Claim claim) {
+        MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, PENDING_DECISION);
+        messageQueueClient.sendMessage(payload, SEND_EMAIL);
     }
 }
