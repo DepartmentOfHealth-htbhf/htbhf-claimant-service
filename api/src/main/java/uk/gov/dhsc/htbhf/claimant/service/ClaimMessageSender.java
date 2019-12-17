@@ -17,12 +17,10 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
+import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 
@@ -84,5 +82,10 @@ public class ClaimMessageSender {
     public void sendDecisionPendingEmailMessage(Claim claim) {
         MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, PENDING_DECISION);
         messageQueueClient.sendMessage(payload, SEND_EMAIL);
+    }
+
+    public void sendUpdateYourAddressLetterMessage(Claim claim) {
+        MessagePayload payload = buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        messageQueueClient.sendMessage(payload, SEND_LETTER);
     }
 }
