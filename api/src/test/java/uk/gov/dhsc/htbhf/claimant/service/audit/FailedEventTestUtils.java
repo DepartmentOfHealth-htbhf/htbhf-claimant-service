@@ -4,6 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -13,13 +14,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.EMAIL_TEMPLATE_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.EMAIL_TYPE;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION_MESSAGE;
 import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.EXCEPTION_DETAIL_KEY;
 import static uk.gov.dhsc.htbhf.logging.event.FailureEvent.FAILED_EVENT_KEY;
@@ -57,8 +52,21 @@ public class FailedEventTestUtils {
         Map<String, Object> metadata = exception.getFailureEvent().getEventMetadata();
         assertExceptionDetailCorrect(metadata, "Test exception from message send", "EmailMessageProcessor.processMessage");
         assertThat(metadata).contains(
-                entry(EMAIL_TEMPLATE_ID.getKey(), templateId),
+                entry(TEMPLATE_ID.getKey(), templateId),
                 entry(EMAIL_TYPE.getKey(), EmailType.INSTANT_SUCCESS.name()));
+    }
+
+    public static void verifySendLetterEventFailExceptionAndEventAreCorrect(Claim claim,
+                                                                           NotificationClientException testException,
+                                                                           EventFailedException exception,
+                                                                           String templateId) {
+        String expectedFailureMessage = "Failed to send UPDATE_YOUR_ADDRESS letter, exception is: Test exception from message send";
+        verifyCommonEventFailureDetail(exception, testException, expectedFailureMessage, claim, ClaimEventType.FAILED_LETTER);
+        Map<String, Object> metadata = exception.getFailureEvent().getEventMetadata();
+        assertExceptionDetailCorrect(metadata, "Test exception from message send", "LetterMessageProcessor.processMessage");
+        assertThat(metadata).contains(
+                entry(TEMPLATE_ID.getKey(), templateId),
+                entry(LETTER_TYPE.getKey(), LetterType.UPDATE_YOUR_ADDRESS.name()));
     }
 
 

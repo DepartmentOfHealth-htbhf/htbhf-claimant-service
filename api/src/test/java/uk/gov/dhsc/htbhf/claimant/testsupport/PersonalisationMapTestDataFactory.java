@@ -2,10 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import java.util.Map;
 
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
-import static uk.gov.dhsc.htbhf.TestConstants.SIMPSON_SURNAME;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 
-public class EmailPersonalisationMapTestDataFactory {
+public class PersonalisationMapTestDataFactory {
 
     /**
      * Builds test email personalisation for email parameterisation.
@@ -20,6 +19,20 @@ public class EmailPersonalisationMapTestDataFactory {
                 "children_under_1_payment", "",
                 "children_under_4_payment", "\n* £6.80 for 2 children between 1 and 3 years old",
                 "next_payment_date", "27 July 2019");
+    }
+
+    /**
+     * Builds test personalisation for letter parameterisation.
+     *
+     * @return The Map of parameters and their values for testing.
+     */
+    public static Map<String, Object> buildLetterPersonalisation() {
+        return Map.of("address_line_1", HOMER_FORENAME + " " + SIMPSON_SURNAME,
+                "address_line_2", SIMPSONS_ADDRESS_LINE_1,
+                "address_line_3", SIMPSONS_ADDRESS_LINE_2,
+                "address_line_4", SIMPSONS_TOWN,
+                "address_line_5", SIMPSONS_COUNTY,
+                "postcode", SIMPSONS_POSTCODE);
     }
 
 }

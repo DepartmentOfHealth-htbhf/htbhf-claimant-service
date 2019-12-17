@@ -15,9 +15,13 @@ import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Component that inflates a {@link MessagePayload} into the appropriate MessageContext by loading the objects identified by id in the payload.
+ */
 @Component
 @AllArgsConstructor
 @Slf4j
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
@@ -26,12 +30,6 @@ public class MessageContextLoader {
 
     private PayloadMapper payloadMapper;
 
-    /**
-     * Method used to inflate the contents of the objects identified by ids in the DETERMINE_ENTITLEMENT message payload.
-     *
-     * @param message The message containing the payload to inflate
-     * @return A wrapper object with the inflated objects from the message
-     */
     public DetermineEntitlementMessageContext loadDetermineEntitlementContext(Message message) {
 
         DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);
@@ -47,12 +45,6 @@ public class MessageContextLoader {
                 .build();
     }
 
-    /**
-     * Method used to inflate the contents of the objects identified by ids in the MAKE_PAYMENT message payload.
-     *
-     * @param message The message containing the payload to inflate
-     * @return A wrapper object with the inflated objects
-     */
     public MakePaymentMessageContext loadMakePaymentContext(Message message) {
 
         MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);
@@ -68,12 +60,6 @@ public class MessageContextLoader {
                 .build();
     }
 
-    /**
-     * Method used to inflate the contents of a NEW_CARD message, which is currently just the claim.
-     *
-     * @param message The message to inflate.
-     * @return A wrapper object with the inflated objects
-     */
     public RequestNewCardMessageContext loadRequestNewCardContext(Message message) {
         RequestNewCardMessagePayload payload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);
 
@@ -95,12 +81,6 @@ public class MessageContextLoader {
                 .build();
     }
 
-    /**
-     * Method used to inflate the contents of a SEND_EMAIL message.
-     *
-     * @param message The message to inflate.
-     * @return A wrapper object with the inflated objects
-     */
     public EmailMessageContext loadEmailMessageContext(Message message) {
         EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);
 
@@ -109,6 +89,17 @@ public class MessageContextLoader {
                 .claim(claim)
                 .emailPersonalisation(payload.getEmailPersonalisation())
                 .emailType(payload.getEmailType())
+                .build();
+    }
+
+    public LetterMessageContext loadLetterMessageContext(Message message) {
+        LetterMessagePayload payload = payloadMapper.getPayload(message, LetterMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        return LetterMessageContext.builder()
+                .claim(claim)
+                .personalisation(payload.getPersonalisation())
+                .letterType(payload.getLetterType())
                 .build();
     }
 
