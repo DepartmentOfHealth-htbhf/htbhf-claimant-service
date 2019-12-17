@@ -105,10 +105,8 @@ public class MessageContextLoader {
         EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);
 
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        String templateId = payload.getEmailType().getTemplateId();
         return EmailMessageContext.builder()
                 .claim(claim)
-                .templateId(templateId)
                 .emailPersonalisation(payload.getEmailPersonalisation())
                 .emailType(payload.getEmailType())
                 .build();

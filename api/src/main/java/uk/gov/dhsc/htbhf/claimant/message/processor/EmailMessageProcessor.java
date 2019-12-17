@@ -39,7 +39,7 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
         UUID messageReference = UUID.randomUUID();
         try {
             SendEmailResponse sendEmailResponse = client.sendEmail(
-                    messageContext.getTemplateId(),
+                    messageContext.getEmailType().getTemplateId(),
                     messageContext.getClaim().getClaimant().getEmailAddress(),
                     messageContext.getEmailPersonalisation(),
                     messageReference.toString(),
@@ -58,7 +58,7 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
         return FailedEmailEvent.builder()
                 .claimId(context.getClaim().getId())
                 .emailType(context.getEmailType())
-                .templateId(context.getTemplateId())
+                .templateId(context.getEmailType().getTemplateId())
                 .build();
     }
 

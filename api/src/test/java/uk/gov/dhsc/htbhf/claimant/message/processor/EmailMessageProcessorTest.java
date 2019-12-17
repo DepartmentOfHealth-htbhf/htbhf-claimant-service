@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.context.EmailMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
@@ -30,6 +29,7 @@ import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifySendEmailEventFailExceptionAndEventAreCorrect;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
@@ -65,13 +65,11 @@ class EmailMessageProcessorTest {
     void shouldSendMessage() throws NotificationClientException {
         //Given
         Claim claim = aValidClaim();
-        String templateId = "12334546";
         Map<String, Object> emailPersonalisation = buildEmailPersonalisation();
         EmailMessageContext context = EmailMessageContext.builder()
                 .claim(claim)
-                .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.INSTANT_SUCCESS)
+                .emailType(INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         given(client.sendEmail(any(), any(), any(), any(), any())).willReturn(mock(SendEmailResponse.class));
@@ -83,20 +81,18 @@ class EmailMessageProcessorTest {
         //Then
         assertThat(status).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadEmailMessageContext(message);
-        verify(client).sendEmail(eq(templateId), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
+        verify(client).sendEmail(eq(INSTANT_SUCCESS.getTemplateId()), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
     }
 
     @Test
     void shouldNotLogEmailBodyOrSubject() throws NotificationClientException {
         //Given
         Claim claim = aValidClaim();
-        String templateId = "12334546";
         Map<String, Object> emailPersonalisation = buildEmailPersonalisation();
         EmailMessageContext context = EmailMessageContext.builder()
                 .claim(claim)
-                .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.INSTANT_SUCCESS)
+                .emailType(INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         SendEmailResponse response = mock(SendEmailResponse.class);
@@ -125,13 +121,11 @@ class EmailMessageProcessorTest {
     void shouldThrowFailedEventExceptionWhenSendMessageFails() throws NotificationClientException {
         //Given
         Claim claim = aValidClaim();
-        String templateId = "12334546";
         Map<String, Object> emailPersonalisation = buildEmailPersonalisation();
         EmailMessageContext context = EmailMessageContext.builder()
                 .claim(claim)
-                .templateId(templateId)
                 .emailPersonalisation(emailPersonalisation)
-                .emailType(EmailType.INSTANT_SUCCESS)
+                .emailType(INSTANT_SUCCESS)
                 .build();
         given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
         Message message = aValidMessageWithType(SEND_EMAIL);
@@ -143,9 +137,9 @@ class EmailMessageProcessorTest {
         EventFailedException thrown = catchThrowableOfType(() -> emailMessageProcessor.processMessage(message), EventFailedException.class);
 
         //Then
-        verifySendEmailEventFailExceptionAndEventAreCorrect(claim, testException, thrown, templateId);
+        verifySendEmailEventFailExceptionAndEventAreCorrect(claim, testException, thrown, INSTANT_SUCCESS.getTemplateId());
         verify(messageContextLoader).loadEmailMessageContext(message);
-        verify(client).sendEmail(eq(templateId), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
+        verify(client).sendEmail(eq(INSTANT_SUCCESS.getTemplateId()), eq(HOMER_EMAIL), eq(emailPersonalisation), any(String.class), eq(REPLY_TO_ADDRESS_ID));
     }
 
 }
