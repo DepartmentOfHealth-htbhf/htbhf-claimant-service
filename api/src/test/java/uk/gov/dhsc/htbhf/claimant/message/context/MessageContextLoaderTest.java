@@ -31,7 +31,6 @@ import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EmailPersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayloadForRestartedPayment;
@@ -40,6 +39,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aVal
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonalisationMapTestDataFactory.buildEmailPersonalisation;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonalisationMapTestDataFactory.buildLetterPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
@@ -427,6 +428,32 @@ class MessageContextLoaderTest {
         assertThat(context.getEmailPersonalisation()).isEqualTo(buildEmailPersonalisation());
         assertThat(context.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);
         verify(payloadMapper).getPayload(message, EmailMessagePayload.class);
+        verify(claimRepository).findById(claimId);
+        verifyNoInteractions(paymentCycleRepository);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadLetterMessageContext() {
+        //Given
+        Claim claim = aValidClaim();
+        UUID claimId = claim.getId();
+        Message message = aValidMessageWithType(SEND_LETTER);
+        LetterMessagePayload payload = LetterMessagePayload.builder()
+                .claimId(claimId)
+                .letterType(LetterType.UPDATE_YOUR_ADDRESS)
+                .personalisation(buildLetterPersonalisation())
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(payloadMapper.getPayload(message, LetterMessagePayload.class)).willReturn(payload);
+
+        //When
+        LetterMessageContext context = loader.loadLetterMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPersonalisation()).isEqualTo(buildLetterPersonalisation());
+        assertThat(context.getLetterType()).isEqualTo(LetterType.UPDATE_YOUR_ADDRESS);
+        verify(payloadMapper).getPayload(message, LetterMessagePayload.class);
         verify(claimRepository).findById(claimId);
         verifyNoInteractions(paymentCycleRepository);
     }

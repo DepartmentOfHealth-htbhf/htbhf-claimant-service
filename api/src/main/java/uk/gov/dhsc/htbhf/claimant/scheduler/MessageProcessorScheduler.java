@@ -52,6 +52,16 @@ public class MessageProcessorScheduler {
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
+            name = "Process SEND_LETTER messages",
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:SEND_LETTER")
+    public void processSendLetterMessages() {
+        messageProcessor.processMessagesOfType(MessageType.SEND_LETTER);
+    }
+
+    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @SchedulerLock(
             name = "Process REQUEST_NEW_CARD messages",
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)

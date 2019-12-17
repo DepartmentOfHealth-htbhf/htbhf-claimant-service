@@ -49,12 +49,12 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
         } catch (NotificationClientException e) {
             log.error("Failed to send email message", e);
             String failureMessage = String.format("Failed to send %s email message, exception is: %s", messageContext.getEmailType(), e.getMessage());
-            throw new EventFailedException(buildFailedNewCardEmailEvent(messageContext), e, failureMessage);
+            throw new EventFailedException(buildFailedEmailEvent(messageContext), e, failureMessage);
         }
         return MessageStatus.COMPLETED;
     }
 
-    private FailedEmailEvent buildFailedNewCardEmailEvent(EmailMessageContext context) {
+    private FailedEmailEvent buildFailedEmailEvent(EmailMessageContext context) {
         return FailedEmailEvent.builder()
                 .claimId(context.getClaim().getId())
                 .emailType(context.getEmailType())

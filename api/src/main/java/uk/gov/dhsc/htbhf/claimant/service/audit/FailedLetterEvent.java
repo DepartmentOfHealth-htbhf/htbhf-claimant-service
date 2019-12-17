@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.service.audit;
 
 import lombok.Builder;
-import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.logging.event.Event;
 
 import java.time.LocalDateTime;
@@ -10,20 +10,20 @@ import java.util.Map;
 import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.EMAIL_TYPE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.LETTER_TYPE;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.TEMPLATE_ID;
 
-public class FailedEmailEvent extends Event {
+public class FailedLetterEvent extends Event {
 
     @Builder
-    public FailedEmailEvent(UUID claimId, String templateId, EmailType emailType) {
-        super(ClaimEventType.FAILED_EMAIL, LocalDateTime.now(), constructMetaData(claimId, templateId, emailType));
+    public FailedLetterEvent(UUID claimId, String templateId, LetterType letterType) {
+        super(ClaimEventType.FAILED_LETTER, LocalDateTime.now(), constructMetaData(claimId, templateId, letterType));
     }
 
-    private static Map<String, Object> constructMetaData(UUID claimId, String templateId, EmailType emailType) {
+    private static Map<String, Object> constructMetaData(UUID claimId, String templateId, LetterType letterType) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(CLAIM_ID.getKey(), claimId);
-        metadata.put(EMAIL_TYPE.getKey(), emailType.name());
+        metadata.put(LETTER_TYPE.getKey(), letterType.name());
         metadata.put(TEMPLATE_ID.getKey(), templateId);
         return metadata;
     }

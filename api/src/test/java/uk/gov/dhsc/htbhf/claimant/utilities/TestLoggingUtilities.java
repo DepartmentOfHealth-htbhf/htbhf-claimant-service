@@ -19,6 +19,7 @@ public class TestLoggingUtilities {
         logger.addAppender(TEST_APPENDER);
         logger.setLevel(Level.DEBUG);
         logger.setAdditive(false);
+        TestAppender.clearAllEvents();
     }
 
     public static void stopRecordingLogsFor(Class clazz) {
