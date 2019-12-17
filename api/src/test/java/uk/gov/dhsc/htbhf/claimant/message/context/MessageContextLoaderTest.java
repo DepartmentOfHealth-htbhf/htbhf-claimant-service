@@ -423,7 +423,6 @@ class MessageContextLoaderTest {
         EmailMessageContext context = loader.loadEmailMessageContext(message);
 
         //Then
-        assertThat(context.getTemplateId()).isEqualTo("bbbd8805-b020-41c9-b43f-c0e62318a6d5");
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getEmailPersonalisation()).isEqualTo(buildEmailPersonalisation());
         assertThat(context.getEmailType()).isEqualTo(EmailType.INSTANT_SUCCESS);

@@ -11,7 +11,6 @@ import java.util.Map;
 @Builder
 public class EmailMessageContext {
     private Claim claim;
-    private String templateId;
     private EmailType emailType;
     private Map<String, Object> emailPersonalisation;
 }
