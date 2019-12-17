@@ -4,8 +4,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -14,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -34,6 +37,7 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,19 +53,26 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndExistingClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anIdMatchedEligibilityNotConfirmedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedFullAddressNotMatchedResponse;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedPostcodeNotMatchedResponse;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceTest {
@@ -89,29 +100,17 @@ class ClaimServiceTest {
     @Test
     void shouldSaveNonExistingEligibleClaimantAndSendMessages() {
         //given
-        Claimant claimant = aValidClaimant();
-        VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result).isNotNull();
-        assertThat(result.getClaim()).isNotNull();
-        assertThat(result.getClaim().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
-        assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(ELIGIBLE);
-        assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
-        assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
-        assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
-        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
-        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
-        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result);
 
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
@@ -130,43 +129,27 @@ class ClaimServiceTest {
     })
     void shouldSaveNonExistingIneligibleClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
-        Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision eligibility = buildEligibilityAndEntitlementDecision(eligibilityStatus);
+        EligibilityAndEntitlementDecision eligibility = aDecisionWithStatus(eligibilityStatus);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(eligibility);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result).isNotNull();
-        Claim actualClaim = result.getClaim();
-        assertThat(actualClaim).isNotNull();
-        assertThat(actualClaim.getClaimStatus()).isEqualTo(claimStatus);
-        assertThat(actualClaim.getClaimStatusTimestamp()).isNotNull();
-        assertThat(actualClaim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
-        assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
-        assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
-        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(eligibility.getIdentityAndEligibilityResponse());
-        assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
-        assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
-        assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
-        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
-        verify(claimRepository).save(actualClaim);
-        verify(eventAuditor).auditNewClaim(actualClaim);
+        assertIneligibleClaimResult(eligibilityStatus, claimStatus, eligibility.getIdentityAndEligibilityResponse(), result);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
     }
 
     @Test
     void shouldCorrectlyCalculateVoucherEntitlement() {
         //given
-        Claimant claimant = aValidClaimant();
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -176,7 +159,7 @@ class ClaimServiceTest {
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(firstVoucherEntitlement));
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
 
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -194,10 +177,9 @@ class ClaimServiceTest {
     @EnumSource(EligibilityStatus.class)
     void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
         //given
-        Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(eligibilityStatus);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(eligibilityStatus);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -205,11 +187,9 @@ class ClaimServiceTest {
         //then
         verify(claimRepository).save(result.getClaim());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
-        if (eligibilityStatus != DUPLICATE) {
-            assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        }
+        assertCorrectVerificationStatus(eligibilityStatus, result);
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         if (eligibilityStatus == ELIGIBLE) {
             verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -238,11 +218,10 @@ class ClaimServiceTest {
     @Test
     void shouldReportClaimWhenTheClaimIsRejected() {
         //given
-        Claimant claimant = aValidClaimant();
         // an INELIGIBLE response will cause a claim to be rejected
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(INELIGIBLE);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -256,8 +235,7 @@ class ClaimServiceTest {
     void shouldHandleNullDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(null)
                 .build();
@@ -276,8 +254,7 @@ class ClaimServiceTest {
     void shouldHandleEmptyDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(emptyMap())
                 .build();
@@ -296,8 +273,7 @@ class ClaimServiceTest {
     void shouldHandleNullWebUIVersion() {
         //given
         Claimant claimant = aValidClaimant();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(ELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .webUIVersion(null)
                 .build();
@@ -317,7 +293,7 @@ class ClaimServiceTest {
         LocalDate expectedDeliveryDate = LocalDate.now().plusMonths(6);
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         UUID existingClaimId = UUID.randomUUID();
-        EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(INELIGIBLE, existingClaimId);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndExistingClaim(INELIGIBLE, existingClaimId);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
@@ -325,14 +301,7 @@ class ClaimServiceTest {
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertThat(result.getClaim()).isNotNull();
-        assertThat(result.getClaim().getEligibilityStatus()).isEqualTo(INELIGIBLE);
-        assertThat(result.getClaim().getDeviceFingerprint()).isEqualTo(deviceFingerprint);
-        assertThat(result.getClaim().getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
-        assertThat(result.getClaim().getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
-        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
-        assertThat(result.getClaim().getInitialIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
-        assertThat(result.getClaim().getCurrentIdentityAndEligibilityResponse()).isEqualTo(decision.getIdentityAndEligibilityResponse());
+        assertIneligibleClaimResult(INELIGIBLE, ClaimStatus.REJECTED, decision.getIdentityAndEligibilityResponse(), result);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -346,19 +315,18 @@ class ClaimServiceTest {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        Claimant claimant = aValidClaimant();
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willThrow(TEST_EXCEPTION);
-        ClaimRequest request = aClaimRequestForClaimant(claimant);
+        ClaimRequest request = aValidClaimRequest();
 
         //when
         RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(request), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(TEST_EXCEPTION);
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         ArgumentCaptor<Claim> claimArgumentCaptor = ArgumentCaptor.forClass(Claim.class);
         verify(claimRepository).save(claimArgumentCaptor.capture());
-        assertClaimPersistedCorrectly(claimArgumentCaptor, claimant);
+        assertErrorClaimPersistedCorrectly(claimArgumentCaptor, request.getClaimant());
         ArgumentCaptor<FailureEvent> eventCaptor = ArgumentCaptor.forClass(FailureEvent.class);
         verify(eventAuditor).auditFailedEvent(eventCaptor.capture());
         assertThat(eventCaptor.getValue().getEventType()).isEqualTo(CommonEventType.FAILURE);
@@ -396,6 +364,7 @@ class ClaimServiceTest {
         assertThat(result.getClaim()).isNotNull();
         assertThat(result.getClaim().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
         assertThat(result.getVerificationResult().getIsPregnantOrAtLeast1ChildMatched()).isFalse();
+        assertThat(result.getVerificationResult().isAddressMismatch()).isFalse();
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
@@ -404,29 +373,84 @@ class ClaimServiceTest {
         verifyNoMoreInteractions(claimMessageSender);
     }
 
-    private void assertClaimPersistedCorrectly(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
+    @ParameterizedTest
+    @MethodSource("provideArgumentsForAddressMismatchResponses")
+    void shouldRejectClaimWhenAddressMismatch(CombinedIdentityAndEligibilityResponse response) {
+        //given
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, response);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        ClaimRequest request = aValidClaimRequest();
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+
+        //then
+        assertThat(result).isNotNull();
+        assertThat(result.getClaim()).isNotNull();
+        assertThat(result.getClaim().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
+        assertThat(result.getVerificationResult().isAddressMismatch()).isTrue();
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), response, ClaimAction.REJECTED);
+        verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    private void assertErrorClaimPersistedCorrectly(ArgumentCaptor<Claim> claimArgumentCaptor, Claimant claimant) {
         Claim actualClaim = claimArgumentCaptor.getValue();
+        assertClaimPropertiesAreSet(actualClaim, ClaimStatus.ERROR, EligibilityStatus.ERROR, null);
         assertThat(actualClaim.getDwpHouseholdIdentifier()).isNull();
         assertThat(actualClaim.getHmrcHouseholdIdentifier()).isNull();
-        assertThat(actualClaim.getClaimStatusTimestamp()).isNotNull();
-        assertThat(actualClaim.getClaimStatus()).isEqualTo(ClaimStatus.ERROR);
-        assertThat(actualClaim.getEligibilityStatus()).isEqualTo(EligibilityStatus.ERROR);
-        assertThat(actualClaim.getEligibilityStatusTimestamp()).isNotNull();
         assertThat(actualClaim.getClaimant()).isEqualTo(claimant);
-        assertThat(actualClaim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
-        assertThat(actualClaim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
-        assertThat(actualClaim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
-        assertThat(actualClaim.getInitialIdentityAndEligibilityResponse()).isNull();
-        assertThat(actualClaim.getCurrentIdentityAndEligibilityResponse()).isNull();
     }
 
-    private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus, UUID existingClaimId) {
-        return aDecisionWithStatusAndExistingClaim(eligibilityStatus, existingClaimId).toBuilder()
-                .identityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
-                .build();
+    private void assertEligibleClaimResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, ClaimResult result) {
+        assertThat(result).isNotNull();
+        Claim claim = result.getClaim();
+        assertClaimPropertiesAreSet(claim, ClaimStatus.NEW, ELIGIBLE, identityAndEligibilityResponse);
+        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(aVoucherEntitlementWithEntitlementDate(LocalDate.now())));
+        assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
-    private EligibilityAndEntitlementDecision buildEligibilityAndEntitlementDecision(EligibilityStatus eligibilityStatus) {
-        return buildEligibilityAndEntitlementDecision(eligibilityStatus, null);
+    private void assertIneligibleClaimResult(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus,
+                                             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, ClaimResult result) {
+        assertThat(result).isNotNull();
+        Claim actualClaim = result.getClaim();
+        assertClaimPropertiesAreSet(actualClaim, claimStatus, eligibilityStatus, identityAndEligibilityResponse);
+        assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
+        assertThat(result.getVerificationResult()).isEqualTo(anIdMatchedEligibilityNotConfirmedVerificationResult());
     }
+
+    private void assertClaimPropertiesAreSet(Claim claim, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus,
+                                             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+        assertThat(claim).isNotNull();
+        assertThat(claim.getClaimStatusTimestamp()).isNotNull();
+        assertThat(claim.getEligibilityStatusTimestamp()).isNotNull();
+        assertThat(claim.getClaimStatus()).isEqualTo(claimStatus);
+        assertThat(claim.getEligibilityStatus()).isEqualTo(eligibilityStatus);
+        assertThat(claim.getInitialIdentityAndEligibilityResponse()).isEqualTo(identityAndEligibilityResponse);
+        assertThat(claim.getCurrentIdentityAndEligibilityResponse()).isEqualTo(identityAndEligibilityResponse);
+        assertThat(claim.getDeviceFingerprint()).isEqualTo(deviceFingerprint);
+        assertThat(claim.getDeviceFingerprintHash()).isEqualTo(deviceFingerprintHash);
+        assertThat(claim.getWebUIVersion()).isEqualTo(WEB_UI_VERSION);
+    }
+
+    private static Stream<Arguments> provideArgumentsForAddressMismatchResponses() {
+        return Stream.of(
+                Arguments.of(anIdMatchedEligibilityConfirmedPostcodeNotMatchedResponse()),
+                Arguments.of(anIdMatchedEligibilityConfirmedAddressNotMatchedResponse()),
+                Arguments.of(anIdMatchedEligibilityConfirmedFullAddressNotMatchedResponse())
+        );
+    }
+
+    private void assertCorrectVerificationStatus(EligibilityStatus eligibilityStatus, ClaimResult result) {
+        if (eligibilityStatus != DUPLICATE) {
+            VerificationResult expectedVerificationResult = (eligibilityStatus == ELIGIBLE)
+                    ? anAllMatchedVerificationResult() : anIdMatchedEligibilityNotConfirmedVerificationResult();
+            assertThat(result.getVerificationResult()).isEqualTo(expectedVerificationResult);
+        }
+    }
+
 }
