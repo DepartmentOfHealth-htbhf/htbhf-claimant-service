@@ -49,12 +49,12 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
 <span class="fc" id="L49">        } catch (NotificationClientException e) {</span>
 <span class="fc" id="L50">            log.error(&quot;Failed to send email message&quot;, e);</span>
 <span class="fc" id="L51">            String failureMessage = String.format(&quot;Failed to send %s email message, exception is: %s&quot;, messageContext.getEmailType(), e.getMessage());</span>
-<span class="fc" id="L52">            throw new EventFailedException(buildFailedNewCardEmailEvent(messageContext), e, failureMessage);</span>
+<span class="fc" id="L52">            throw new EventFailedException(buildFailedEmailEvent(messageContext), e, failureMessage);</span>
 <span class="fc" id="L53">        }</span>
 <span class="fc" id="L54">        return MessageStatus.COMPLETED;</span>
     }
 
-    private FailedEmailEvent buildFailedNewCardEmailEvent(EmailMessageContext context) {
+    private FailedEmailEvent buildFailedEmailEvent(EmailMessageContext context) {
 <span class="fc" id="L58">        return FailedEmailEvent.builder()</span>
 <span class="fc" id="L59">                .claimId(context.getClaim().getId())</span>
 <span class="fc" id="L60">                .emailType(context.getEmailType())</span>

@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.EMAIL_TEMPLATE_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.EMAIL_TYPE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.TEMPLATE_ID;
 
 public class FailedEmailEvent extends Event {
 
@@ -24,7 +24,7 @@ public class FailedEmailEvent extends Event {
 <span class="fc" id="L24">        Map&lt;String, Object&gt; metadata = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L25">        metadata.put(CLAIM_ID.getKey(), claimId);</span>
 <span class="fc" id="L26">        metadata.put(EMAIL_TYPE.getKey(), emailType.name());</span>
-<span class="fc" id="L27">        metadata.put(EMAIL_TEMPLATE_ID.getKey(), templateId);</span>
+<span class="fc" id="L27">        metadata.put(TEMPLATE_ID.getKey(), templateId);</span>
 <span class="fc" id="L28">        return metadata;</span>
     }
 }
