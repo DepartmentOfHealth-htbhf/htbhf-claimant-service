@@ -35,6 +35,21 @@ public class VerificationResultTestDataFactory {
                 .build();
     }
 
+    public static VerificationResult anIdMatchedEligibilityNotConfirmedVerificationResult() {
+        return VerificationResult.builder()
+                .identityOutcome(IdentityOutcome.MATCHED)
+                .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
+                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
+                .emailAddressMatch(VerificationOutcome.NOT_SET)
+                .addressLine1Match(VerificationOutcome.NOT_SET)
+                .postcodeMatch(VerificationOutcome.NOT_SET)
+                .pregnantChildDOBMatch(VerificationOutcome.NOT_SET)
+                .qualifyingBenefits(QualifyingBenefits.NOT_SET)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .isPregnantOrAtLeast1ChildMatched(true)
+                .build();
+    }
+
     public static VerificationResult aPostcodeMismatchVerificationResult() {
         return anEligibleDefaultBuilder()
                 .addressLine1Match(VerificationOutcome.MATCHED)
