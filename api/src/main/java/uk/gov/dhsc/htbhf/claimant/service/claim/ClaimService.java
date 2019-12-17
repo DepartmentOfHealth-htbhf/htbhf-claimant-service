@@ -67,6 +67,9 @@ public class ClaimService {
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);
             }
 
+            if (verificationResult.isAddressMismatch()) {
+                claimMessageSender.sendDecisionPendingEmailMessage(claim);
+            }
             claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
@@ -133,10 +136,11 @@ public class ClaimService {
     }
 
     private ClaimStatus getClaimStatus(EligibilityStatus eligibilityStatus, VerificationResult verificationResult) {
-        if (verificationResult.getIsPregnantOrAtLeast1ChildMatched()) {
-            return STATUS_MAP.get(eligibilityStatus);
-        } else {
+        if (verificationResult.isAddressMismatch()) {
             return ClaimStatus.REJECTED;
+        } else if (verificationResult.getIsPregnantOrAtLeast1ChildMatched()) {
+            return STATUS_MAP.get(eligibilityStatus);
         }
+        return ClaimStatus.REJECTED;
     }
 }

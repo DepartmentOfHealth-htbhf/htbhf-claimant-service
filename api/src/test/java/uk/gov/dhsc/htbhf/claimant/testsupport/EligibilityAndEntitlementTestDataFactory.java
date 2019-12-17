@@ -44,6 +44,13 @@ public class EligibilityAndEntitlementTestDataFactory {
         return builder.build();
     }
 
+    public static EligibilityAndEntitlementDecision aDecisionWithStatusAndResponse(EligibilityStatus eligibilityStatus,
+                                                                                   CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+        return aValidDecisionBuilder()
+                .eligibilityStatus(eligibilityStatus)
+                .identityAndEligibilityResponse(identityAndEligibilityResponse).build();
+    }
+
     public static EligibilityAndEntitlementDecision aDecisionWithStatusAndChildren(EligibilityStatus eligibilityStatus,
                                                                                    EligibilityOutcome eligibilityOutcome,
                                                                                    List<LocalDate> childrenDobs) {
