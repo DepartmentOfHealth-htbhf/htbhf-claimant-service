@@ -395,6 +395,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), response, ClaimAction.REJECTED);
         verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());
+        verify(claimMessageSender).sendUpdateYourAddressLetterMessage(result.getClaim());
         verifyNoMoreInteractions(claimMessageSender);
     }
 

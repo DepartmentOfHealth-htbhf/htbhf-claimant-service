@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
@@ -29,10 +30,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_CLAIM;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
@@ -106,11 +104,11 @@ class ClaimMessageSenderTest {
 
         claimMessageSender.sendNewCardMessage(claim, decision);
 
-        RequestNewCardMessagePayload requestNewCardMessagePayload = RequestNewCardMessagePayload.builder()
+        RequestNewCardMessagePayload expectedPayload = RequestNewCardMessagePayload.builder()
                 .claimId(claim.getId())
                 .eligibilityAndEntitlementDecision(decision)
                 .build();
-        verify(messageQueueClient).sendMessage(requestNewCardMessagePayload, REQUEST_NEW_CARD);
+        verify(messageQueueClient).sendMessage(expectedPayload, REQUEST_NEW_CARD);
     }
 
     @Test
@@ -145,8 +143,8 @@ class ClaimMessageSenderTest {
 
         claimMessageSender.sendReportABirthEmailMessage(claim);
 
-        MessagePayload emailMessagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
-        verify(messageQueueClient).sendMessageWithDelay(emailMessagePayload, SEND_EMAIL, REPORT_A_BIRTH_MESSAGE_DELAY);
+        MessagePayload expectedPayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
+        verify(messageQueueClient).sendMessageWithDelay(expectedPayload, SEND_EMAIL, REPORT_A_BIRTH_MESSAGE_DELAY);
     }
 
     @Test
@@ -155,8 +153,17 @@ class ClaimMessageSenderTest {
 
         claimMessageSender.sendDecisionPendingEmailMessage(claim);
 
-        MessagePayload emailMessagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, PENDING_DECISION);
-        verify(messageQueueClient).sendMessage(emailMessagePayload, SEND_EMAIL);
+        MessagePayload expectedPayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, PENDING_DECISION);
+        verify(messageQueueClient).sendMessage(expectedPayload, SEND_EMAIL);
     }
 
+    @Test
+    void shouldSendUpdateYourAddressLetterMessage() {
+        Claim claim  = aValidClaim();
+
+        claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
+
+        LetterMessagePayload expectedPayload = LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
+    }
 }

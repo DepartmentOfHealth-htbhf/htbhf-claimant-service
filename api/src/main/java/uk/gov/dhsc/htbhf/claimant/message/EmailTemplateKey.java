@@ -1,8 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.message;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Enum containing the keys that are used for parameterised values within Notify email templates.
  */
+@Getter
+@RequiredArgsConstructor
 public enum EmailTemplateKey {
 
     FIRST_NAME("First_name"),
@@ -16,13 +21,5 @@ public enum EmailTemplateKey {
     REGULAR_PAYMENT("regular_payment"),
     BACKDATED_AMOUNT("backdated_amount");
 
-    private String templateKeyName;
-
-    EmailTemplateKey(String templateKeyName) {
-        this.templateKeyName = templateKeyName;
-    }
-
-    public String getTemplateKeyName() {
-        return templateKeyName;
-    }
+    private final String templateKeyName;
 }

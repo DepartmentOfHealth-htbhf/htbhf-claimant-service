@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -40,18 +41,18 @@ import static uk.gov.dhsc.htbhf.claimant.utilities.TestLoggingUtilities.stopReco
 @ExtendWith(MockitoExtension.class)
 class LetterMessageProcessorTest {
 
+    private static final String LETTER_BODY = "[the letter body]";
+    private static final String LETTER_SUBJECT = "[the letter subject]";
+
     @Mock
     private NotificationClient client;
     @Mock
     private MessageContextLoader messageContextLoader;
-    
+    @InjectMocks
     private LetterMessageProcessor letterMessageProcessor;
-    public static final String LETTER_BODY = "[the letter body]";
-    public static final String LETTER_SUBJECT = "[the letter subject]";
 
     @BeforeEach
     void init() {
-        letterMessageProcessor = new LetterMessageProcessor(client, messageContextLoader);
         startRecordingLogsFor(LetterMessageProcessor.class);
     }
 

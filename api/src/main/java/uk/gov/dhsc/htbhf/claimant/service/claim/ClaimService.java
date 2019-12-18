@@ -69,6 +69,7 @@ public class ClaimService {
 
             if (verificationResult.isAddressMismatch()) {
                 claimMessageSender.sendDecisionPendingEmailMessage(claim);
+                claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
             }
             claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
             return ClaimResult.withNoEntitlement(claim, verificationResult);
