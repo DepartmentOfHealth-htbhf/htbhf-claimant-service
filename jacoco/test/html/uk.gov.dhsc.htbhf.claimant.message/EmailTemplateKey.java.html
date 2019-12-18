@@ -1,29 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailTemplateKey.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message</a> &gt; <span class="el_source">EmailTemplateKey.java</span></div><h1>EmailTemplateKey.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Enum containing the keys that are used for parameterised values within Notify email templates.
  */
-<span class="fc" id="L6">public enum EmailTemplateKey {</span>
+<span class="fc" id="L9">@Getter</span>
+@RequiredArgsConstructor
+public enum EmailTemplateKey {
 
-<span class="fc" id="L8">    FIRST_NAME(&quot;First_name&quot;),</span>
-<span class="fc" id="L9">    LAST_NAME(&quot;Last_name&quot;),</span>
-<span class="fc" id="L10">    PAYMENT_AMOUNT(&quot;payment_amount&quot;),</span>
-<span class="fc" id="L11">    PREGNANCY_PAYMENT(&quot;pregnancy_payment&quot;),</span>
-<span class="fc" id="L12">    CHILDREN_UNDER_1_PAYMENT(&quot;children_under_1_payment&quot;),</span>
-<span class="fc" id="L13">    CHILDREN_UNDER_4_PAYMENT(&quot;children_under_4_payment&quot;),</span>
-<span class="fc" id="L14">    NEXT_PAYMENT_DATE(&quot;next_payment_date&quot;),</span>
-<span class="fc" id="L15">    MULTIPLE_CHILDREN(&quot;multiple_children&quot;),</span>
-<span class="fc" id="L16">    REGULAR_PAYMENT(&quot;regular_payment&quot;),</span>
-<span class="fc" id="L17">    BACKDATED_AMOUNT(&quot;backdated_amount&quot;);</span>
+<span class="fc" id="L13">    FIRST_NAME(&quot;First_name&quot;),</span>
+<span class="fc" id="L14">    LAST_NAME(&quot;Last_name&quot;),</span>
+<span class="fc" id="L15">    PAYMENT_AMOUNT(&quot;payment_amount&quot;),</span>
+<span class="fc" id="L16">    PREGNANCY_PAYMENT(&quot;pregnancy_payment&quot;),</span>
+<span class="fc" id="L17">    CHILDREN_UNDER_1_PAYMENT(&quot;children_under_1_payment&quot;),</span>
+<span class="fc" id="L18">    CHILDREN_UNDER_4_PAYMENT(&quot;children_under_4_payment&quot;),</span>
+<span class="fc" id="L19">    NEXT_PAYMENT_DATE(&quot;next_payment_date&quot;),</span>
+<span class="fc" id="L20">    MULTIPLE_CHILDREN(&quot;multiple_children&quot;),</span>
+<span class="fc" id="L21">    REGULAR_PAYMENT(&quot;regular_payment&quot;),</span>
+<span class="fc" id="L22">    BACKDATED_AMOUNT(&quot;backdated_amount&quot;);</span>
 
-    private String templateKeyName;
-
-<span class="fc" id="L21">    EmailTemplateKey(String templateKeyName) {</span>
-<span class="fc" id="L22">        this.templateKeyName = templateKeyName;</span>
-<span class="fc" id="L23">    }</span>
-
-    public String getTemplateKeyName() {
-<span class="fc" id="L26">        return templateKeyName;</span>
-    }
+    private final String templateKeyName;
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
