@@ -114,6 +114,16 @@ Set the preferred maintenance window (For production this is currently every Sun
 cf update-service htbhf-claimant-service-postgres -c '{"preferred_maintenance_window": "Sun:03:00-Sun:03:30"}'
 ```
 
+Emptying the database
+----------------------
+
+The development and staging spaces may need their database emptied from time to time, as the scheduled services will continue to send emails and letters for all active claims.
+To do so, connect to the database as described above then run the following commands:
+```
+TRUNCATE TABLE message_queue, payment, payment_cycle, claim, claimant, address CASCADE;
+TRUNCATE TABLE schedule_tasks_locks, jv_snapshot, jv_global_id, jv_commit_property, jv_commit CASCADE;
+```
+
 Claim auditing
 -----------
 All changes to claims are audited using the [javers](https://javers.org/) library. 
