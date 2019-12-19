@@ -26,7 +26,6 @@ public class EligibilityAndEntitlementDecisionFactory {
      * @param duplicateHouseholdIdentifierFound Has a duplicate household identifier been found or not
      * @return The built decision.
      */
-    // TODO HTbhf-2705 Remove existingClaimId parameter as it is only called with null.
     public EligibilityAndEntitlementDecision buildDecision(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                            PaymentCycleVoucherEntitlement entitlement,
                                                            boolean duplicateHouseholdIdentifierFound) {

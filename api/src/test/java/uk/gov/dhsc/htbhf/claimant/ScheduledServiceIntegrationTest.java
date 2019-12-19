@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.scheduler.CardCancellationScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
@@ -22,9 +24,11 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
+import uk.gov.service.notify.SendLetterResponse;
 
 import java.util.Map;
 
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,6 +62,8 @@ abstract class ScheduledServiceIntegrationTest {
     NotificationClient notificationClient;
     @Mock
     private SendEmailResponse sendEmailResponse;
+    @Mock
+    private SendLetterResponse sendLetterResponse;
 
     @BeforeEach
     void setup() {
@@ -70,9 +76,12 @@ abstract class ScheduledServiceIntegrationTest {
         wiremockManager.stopWireMock();
     }
 
-
     void stubNotificationEmailResponse() throws NotificationClientException {
         when(notificationClient.sendEmail(any(), any(), any(), any(), any())).thenReturn(sendEmailResponse);
+    }
+
+    void stubNotificationLetterResponse() throws NotificationClientException {
+        when(notificationClient.sendLetter(any(), any(), any())).thenReturn(sendLetterResponse);
     }
 
     void stubNotificationEmailError() throws NotificationClientException {
@@ -163,7 +172,7 @@ abstract class ScheduledServiceIntegrationTest {
         assertThatEmailWithNameOnlyWasSent(claim, CARD_IS_ABOUT_TO_BE_CANCELLED);
     }
 
-    private void assertThatEmailWithNameOnlyWasSent(Claim claim, EmailType emailType) throws NotificationClientException {
+    void assertThatEmailWithNameOnlyWasSent(Claim claim, EmailType emailType) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
                 eq(emailType.getTemplateId()),
@@ -175,6 +184,30 @@ abstract class ScheduledServiceIntegrationTest {
         Map personalisationMap = mapArgumentCaptor.getValue();
         assertThat(personalisationMap).hasSize(2);
         assertNameEmailFields(claim, personalisationMap);
+    }
+
+    void assertThatLetterWithAddressOnlyWasSent(Claim claim, LetterType letterType) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendLetter(
+                eq(letterType.getTemplateId()),
+                mapArgumentCaptor.capture(),
+                any());
+
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertThatMapContainsLetterAddressFieldsOnly(claim, personalisationMap);
+    }
+
+    private void assertThatMapContainsLetterAddressFieldsOnly(Claim claim, Map personalisationMap) {
+        Claimant claimant = claim.getClaimant();
+        Address address = claimant.getAddress();
+        assertThat(personalisationMap).containsOnly(
+                entry("address_line_1", claimant.getFirstName() + " " + claimant.getLastName()),
+                entry("address_line_2", address.getAddressLine1()),
+                entry("address_line_3", address.getAddressLine2()),
+                entry("address_line_4", address.getTownOrCity()),
+                entry("address_line_5", address.getCounty()),
+                entry("postcode", address.getPostcode())
+        );
     }
 
     private void assertChildTurnsOneInFirstWeekEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {

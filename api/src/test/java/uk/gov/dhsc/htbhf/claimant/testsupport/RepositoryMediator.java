@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
@@ -15,6 +16,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +28,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligib
  * Mediates between test case and the repositories to create & persist entities, and ensure that loaded entities are fully initialised.
  */
 @Component
+@Slf4j
 public class RepositoryMediator {
 
     @Autowired
@@ -60,7 +64,10 @@ public class RepositoryMediator {
 
     @Transactional
     public Claim getClaimForNino(String nino) {
-        List<UUID> claimIds = claimRepository.findLiveClaimsWithNino(nino);
+        List<UUID> claimIds = StreamSupport.stream(claimRepository.findAll().spliterator(), false)
+                .filter(claim -> claim.getClaimant().getNino().equals(nino))
+                .map(Claim::getId)
+                .collect(Collectors.toList());
         assertThat(claimIds).isNotEmpty();
         Optional<Claim> optional = claimRepository.findById(claimIds.get(0));
         assertThat(optional.isPresent()).isTrue();
