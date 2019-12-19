@@ -75,6 +75,10 @@ public class WiremockManager {
 
     public void stubEligibilityResponse(List<LocalDate> childrensDateOfBirth, EligibilityOutcome eligibilityOutcome) throws JsonProcessingException {
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponse(childrensDateOfBirth, eligibilityOutcome);
+        stubEligibilityResponse(response);
+    }
+
+    public void stubEligibilityResponse(CombinedIdentityAndEligibilityResponse response) throws JsonProcessingException {
         eligibilityServiceMock.stubFor(post(urlEqualTo(V2_ELIGIBILITY_URL)).willReturn(jsonResponse(response)));
     }
 

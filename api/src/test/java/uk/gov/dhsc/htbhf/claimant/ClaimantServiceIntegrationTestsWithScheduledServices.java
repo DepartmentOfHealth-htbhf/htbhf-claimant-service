@@ -11,11 +11,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
-import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -23,13 +20,17 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
 
 public class ClaimantServiceIntegrationTestsWithScheduledServices extends ScheduledServiceIntegrationTest {
 
@@ -66,6 +67,25 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+    }
+
+    @Test
+    void shouldSendWeWillLetYouKnowEmailAndLetterForAddressMismatch() throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedAddressNotMatchedResponse());
+        stubNotificationEmailResponse();
+        stubNotificationLetterResponse();
+        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
+
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        invokeAllSchedulers();
+
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        Claim claim = repositoryMediator.getClaimForNino(claimDTO.getClaimant().getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
+
+        assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
+        assertThatLetterWithAddressOnlyWasSent(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @Test
@@ -166,6 +186,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         messageProcessorScheduler.processCompleteNewCardMessages();
         messageProcessorScheduler.processFirstPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processSendLetterMessages();
         messageProcessorScheduler.processReportClaimMessages();
     }
 
