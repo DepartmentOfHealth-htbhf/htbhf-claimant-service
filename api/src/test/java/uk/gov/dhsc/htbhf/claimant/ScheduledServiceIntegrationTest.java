@@ -151,7 +151,7 @@ abstract class ScheduledServiceIntegrationTest {
         assertThatEmailWithNameOnlyWasSent(claim, CLAIM_NO_LONGER_ELIGIBLE);
     }
 
-    void assertThatNewCardEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
+    void assertThatInstantSuccessEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
         ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
                 eq(EmailType.INSTANT_SUCCESS.getTemplateId()), eq(claim.getClaimant().getEmailAddress()), mapArgumentCaptor.capture(), any(), any());

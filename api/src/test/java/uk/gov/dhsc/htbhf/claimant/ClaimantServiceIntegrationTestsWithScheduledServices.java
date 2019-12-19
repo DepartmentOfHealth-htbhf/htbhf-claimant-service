@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
 
 public class ClaimantServiceIntegrationTestsWithScheduledServices extends ScheduledServiceIntegrationTest {
 
@@ -64,9 +66,10 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         Payment payment = paymentCycle.getPayments().iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
-        assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
+        assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     @Test
@@ -85,6 +88,39 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
         assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
         assertThatLetterWithAddressOnlyWasSent(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
+    void shouldSendWeWillLetYouKnowEmailForEligibleApplicantWhoseEmailOrPhoneDontMatch() throws JsonProcessingException, NotificationClientException {
+        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = claimDTO.getClaimant();
+        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithMatches(
+                VerificationOutcome.NOT_MATCHED, VerificationOutcome.NOT_HELD, childrenDob));
+        String cardAccountId = UUID.randomUUID().toString();
+        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        stubNotificationEmailResponse();
+        stubNotificationLetterResponse();
+
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        invokeAllSchedulers();
+
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedEntitlement =
+                aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        Payment payment = paymentCycle.getPayments().iterator().next();
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
+
+        assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
+        wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -174,7 +210,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         assertThatPaymentCycleHasFailedPayments(paymentCycle, 1);
         assertThat(claim.getPostcodeData()).isEqualTo(postcodeData);
 
-        assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
+        assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         wiremockManager.assertThatPostcodeDataRetrievedForPostcode(postcode);

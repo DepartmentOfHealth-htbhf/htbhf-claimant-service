@@ -407,7 +407,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertPaymentHasCorrectAmount(claim, paymentCycle, datesOfBirthOfChildren);
-        assertThatNewCardEmailSentCorrectly(claim, paymentCycle);
+        assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
         verifyNoMoreInteractions(notificationClient);
         // invoke scheduler to report payment
         invokeAllSchedulers();
