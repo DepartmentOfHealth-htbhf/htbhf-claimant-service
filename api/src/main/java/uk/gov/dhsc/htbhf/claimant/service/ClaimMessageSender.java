@@ -84,8 +84,8 @@ public class ClaimMessageSender {
         messageQueueClient.sendMessage(payload, SEND_EMAIL);
     }
 
-    public void sendUpdateYourAddressLetterMessage(Claim claim) {
-        MessagePayload payload = buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+    public void sendLetterWithAddressOnlyMessage(Claim claim, LetterType letterType) {
+        MessagePayload payload = buildLetterPayloadWithAddressOnly(claim, letterType);
         messageQueueClient.sendMessage(payload, SEND_LETTER);
     }
 }
