@@ -51,98 +51,115 @@ public class ClaimService {
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
 <span class="fc" id="L53">            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">            if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {</span>
-<span class="fc" id="L55">                Claim claim = createDuplicateClaim(claimRequest, decision);</span>
-<span class="fc" id="L56">                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);</span>
-<span class="fc" id="L57">                return ClaimResult.withNoEntitlement(claim);</span>
+<span class="fc" id="L54">            CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {</span>
+<span class="fc" id="L56">                Claim claim = createDuplicateClaim(claimRequest, decision);</span>
+<span class="fc" id="L57">                claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);</span>
+<span class="fc" id="L58">                return ClaimResult.withNoEntitlement(claim);</span>
             }
 
-<span class="fc" id="L60">            VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), decision.getIdentityAndEligibilityResponse());</span>
-<span class="fc" id="L61">            Claim claim = createNewClaim(claimRequest, decision, verificationResult);</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
-<span class="fc" id="L63">                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);</span>
-<span class="fc" id="L64">                claimMessageSender.sendNewCardMessage(claim, decision);</span>
+<span class="fc" id="L61">            VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), identityAndEligibilityResponse);</span>
+<span class="fc" id="L62">            Claim claim = createNewClaim(claimRequest, decision, verificationResult);</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (claim.getClaimStatus() == ClaimStatus.NEW) {</span>
+<span class="fc" id="L64">                sendMessagesForNewClaim(decision, identityAndEligibilityResponse, claim);</span>
 <span class="fc" id="L65">                VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();</span>
-<span class="fc" id="L66">                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);</span>
-<span class="fc" id="L67">                return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);</span>
+<span class="fc" id="L66">                return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);</span>
             }
 
-<span class="fc bfc" id="L70" title="All 2 branches covered.">            if (verificationResult.isAddressMismatch()) {</span>
-<span class="fc" id="L71">                claimMessageSender.sendDecisionPendingEmailMessage(claim);</span>
-<span class="fc" id="L72">                claimMessageSender.sendUpdateYourAddressLetterMessage(claim);</span>
-            }
-<span class="fc" id="L74">            claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);</span>
-<span class="fc" id="L75">            return ClaimResult.withNoEntitlement(claim, verificationResult);</span>
-<span class="fc" id="L76">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L77">            handleFailedClaim(claimRequest, e);</span>
-<span class="fc" id="L78">            throw e;</span>
+<span class="fc" id="L69">            sendMessagesForRejectedClaim(identityAndEligibilityResponse, verificationResult, claim);</span>
+<span class="fc" id="L70">            return ClaimResult.withNoEntitlement(claim, verificationResult);</span>
+<span class="fc" id="L71">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L72">            handleFailedClaim(claimRequest, e);</span>
+<span class="fc" id="L73">            throw e;</span>
         }
     }
 
+    private void sendMessagesForNewClaim(EligibilityAndEntitlementDecision decision,
+                                         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                         Claim claim) {
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {</span>
+<span class="fc" id="L81">            claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);</span>
+        } else {
+<span class="fc" id="L83">            claimMessageSender.sendDecisionPendingEmailMessage(claim);</span>
+        }
+<span class="fc" id="L85">        claimMessageSender.sendNewCardMessage(claim, decision);</span>
+<span class="fc" id="L86">        claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);</span>
+<span class="fc" id="L87">    }</span>
+
+    private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                              VerificationResult verificationResult,
+                                              Claim claim) {
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (verificationResult.isAddressMismatch()) {</span>
+<span class="fc" id="L93">            claimMessageSender.sendDecisionPendingEmailMessage(claim);</span>
+<span class="fc" id="L94">            claimMessageSender.sendUpdateYourAddressLetterMessage(claim);</span>
+        }
+<span class="fc" id="L96">        claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);</span>
+<span class="fc" id="L97">    }</span>
+
     public void updateCurrentIdentityAndEligibilityResponse(Claim claim, CombinedIdentityAndEligibilityResponse response) {
-<span class="fc" id="L83">        claim.setCurrentIdentityAndEligibilityResponse(response);</span>
-<span class="fc" id="L84">        claimRepository.save(claim);</span>
-<span class="fc" id="L85">    }</span>
+<span class="fc" id="L100">        claim.setCurrentIdentityAndEligibilityResponse(response);</span>
+<span class="fc" id="L101">        claimRepository.save(claim);</span>
+<span class="fc" id="L102">    }</span>
 
     private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
-<span class="fc" id="L88">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
-<span class="fc" id="L89">        Claim claim = buildClaim(ClaimStatus.ERROR, claimRequest, decision);</span>
-<span class="fc" id="L90">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
-<span class="fc" id="L91">        FailureEvent failureEvent = FailureEvent.builder()</span>
-<span class="fc" id="L92">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
-<span class="fc" id="L93">                .failedEvent(newClaimEvent)</span>
-<span class="fc" id="L94">                .exception(e)</span>
-<span class="fc" id="L95">                .build();</span>
-<span class="fc" id="L96">        eventAuditor.auditFailedEvent(failureEvent);</span>
-<span class="fc" id="L97">        claimRepository.save(claim);</span>
-<span class="fc" id="L98">    }</span>
+<span class="fc" id="L105">        EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);</span>
+<span class="fc" id="L106">        Claim claim = buildClaim(ClaimStatus.ERROR, claimRequest, decision);</span>
+<span class="fc" id="L107">        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);</span>
+<span class="fc" id="L108">        FailureEvent failureEvent = FailureEvent.builder()</span>
+<span class="fc" id="L109">                .failureDescription(&quot;Unable to create (or update) claim&quot;)</span>
+<span class="fc" id="L110">                .failedEvent(newClaimEvent)</span>
+<span class="fc" id="L111">                .exception(e)</span>
+<span class="fc" id="L112">                .build();</span>
+<span class="fc" id="L113">        eventAuditor.auditFailedEvent(failureEvent);</span>
+<span class="fc" id="L114">        claimRepository.save(claim);</span>
+<span class="fc" id="L115">    }</span>
 
     private Claim createDuplicateClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L101">        return buildAndSaveClaim(ClaimStatus.REJECTED, claimRequest, decision);</span>
+<span class="fc" id="L118">        return buildAndSaveClaim(ClaimStatus.REJECTED, claimRequest, decision);</span>
     }
 
     private Claim createNewClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, VerificationResult verificationResult) {
-<span class="fc" id="L105">        ClaimStatus claimStatus = getClaimStatus(decision.getEligibilityStatus(), verificationResult);</span>
-<span class="fc" id="L106">        return buildAndSaveClaim(claimStatus, claimRequest, decision);</span>
+<span class="fc" id="L122">        ClaimStatus claimStatus = getClaimStatus(decision.getEligibilityStatus(), verificationResult);</span>
+<span class="fc" id="L123">        return buildAndSaveClaim(claimStatus, claimRequest, decision);</span>
     }
 
     private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L110">        Claim claim = buildClaim(claimStatus, claimRequest, decision);</span>
-<span class="fc" id="L111">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L112">        claimRepository.save(claim);</span>
-<span class="fc" id="L113">        eventAuditor.auditNewClaim(claim);</span>
-<span class="fc" id="L114">        return claim;</span>
+<span class="fc" id="L127">        Claim claim = buildClaim(claimStatus, claimRequest, decision);</span>
+<span class="fc" id="L128">        log.info(&quot;Saving new claim: {} with status {}&quot;, claim.getId(), claim.getEligibilityStatus());</span>
+<span class="fc" id="L129">        claimRepository.save(claim);</span>
+<span class="fc" id="L130">        eventAuditor.auditNewClaim(claim);</span>
+<span class="fc" id="L131">        return claim;</span>
     }
 
     @SuppressFBWarnings(value = &quot;SECMD5&quot;,
             justification = &quot;Using a hash of the device fingerprint to identify multiple claims from the same device, not for encryption&quot;)
     private Claim buildClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L120">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
-<span class="fc" id="L121">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
-<span class="fc bfc" id="L122" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
-<span class="fc" id="L123">        return Claim.builder()</span>
-<span class="fc" id="L124">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L125">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L126">                .eligibilityStatus(decision.getEligibilityStatus())</span>
-<span class="fc" id="L127">                .eligibilityStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L128">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L129">                .claimStatusTimestamp(currentDateTime)</span>
-<span class="fc" id="L130">                .claimant(claimRequest.getClaimant())</span>
-<span class="fc" id="L131">                .deviceFingerprint(deviceFingerprint)</span>
-<span class="fc" id="L132">                .deviceFingerprintHash(fingerprintHash)</span>
-<span class="fc" id="L133">                .webUIVersion(claimRequest.getWebUIVersion())</span>
-<span class="fc" id="L134">                .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L135">                .currentIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L136">                .build();</span>
+<span class="fc" id="L137">        LocalDateTime currentDateTime = LocalDateTime.now();</span>
+<span class="fc" id="L138">        Map&lt;String, Object&gt; deviceFingerprint = claimRequest.getDeviceFingerprint();</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());</span>
+<span class="fc" id="L140">        return Claim.builder()</span>
+<span class="fc" id="L141">                .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L142">                .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L143">                .eligibilityStatus(decision.getEligibilityStatus())</span>
+<span class="fc" id="L144">                .eligibilityStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L145">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L146">                .claimStatusTimestamp(currentDateTime)</span>
+<span class="fc" id="L147">                .claimant(claimRequest.getClaimant())</span>
+<span class="fc" id="L148">                .deviceFingerprint(deviceFingerprint)</span>
+<span class="fc" id="L149">                .deviceFingerprintHash(fingerprintHash)</span>
+<span class="fc" id="L150">                .webUIVersion(claimRequest.getWebUIVersion())</span>
+<span class="fc" id="L151">                .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L152">                .currentIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L153">                .build();</span>
     }
 
     private ClaimStatus getClaimStatus(EligibilityStatus eligibilityStatus, VerificationResult verificationResult) {
-<span class="fc bfc" id="L140" title="All 2 branches covered.">        if (verificationResult.isAddressMismatch()) {</span>
-<span class="fc" id="L141">            return ClaimStatus.REJECTED;</span>
-<span class="fc bfc" id="L142" title="All 2 branches covered.">        } else if (verificationResult.getIsPregnantOrAtLeast1ChildMatched()) {</span>
-<span class="fc" id="L143">            return STATUS_MAP.get(eligibilityStatus);</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">        if (verificationResult.isAddressMismatch()) {</span>
+<span class="fc" id="L158">            return ClaimStatus.REJECTED;</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        } else if (verificationResult.getIsPregnantOrAtLeast1ChildMatched()) {</span>
+<span class="fc" id="L160">            return STATUS_MAP.get(eligibilityStatus);</span>
         }
-<span class="fc" id="L145">        return ClaimStatus.REJECTED;</span>
+<span class="fc" id="L162">        return ClaimStatus.REJECTED;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
