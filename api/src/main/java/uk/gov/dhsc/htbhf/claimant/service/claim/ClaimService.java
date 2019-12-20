@@ -51,32 +51,49 @@ public class ClaimService {
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
+            CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createDuplicateClaim(claimRequest, decision);
-                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
+                claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
                 return ClaimResult.withNoEntitlement(claim);
             }
 
-            VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), decision.getIdentityAndEligibilityResponse());
+            VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), identityAndEligibilityResponse);
             Claim claim = createNewClaim(claimRequest, decision, verificationResult);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
-                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
-                claimMessageSender.sendNewCardMessage(claim, decision);
+                sendMessagesForNewClaim(decision, identityAndEligibilityResponse, claim);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
-                claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);
             }
 
-            if (verificationResult.isAddressMismatch()) {
-                claimMessageSender.sendDecisionPendingEmailMessage(claim);
-                claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
-            }
-            claimMessageSender.sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
+            sendMessagesForRejectedClaim(identityAndEligibilityResponse, verificationResult, claim);
             return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
             throw e;
         }
+    }
+
+    private void sendMessagesForNewClaim(EligibilityAndEntitlementDecision decision,
+                                         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                         Claim claim) {
+        if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
+            claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+        } else {
+            claimMessageSender.sendDecisionPendingEmailMessage(claim);
+        }
+        claimMessageSender.sendNewCardMessage(claim, decision);
+        claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);
+    }
+
+    private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                              VerificationResult verificationResult,
+                                              Claim claim) {
+        if (verificationResult.isAddressMismatch()) {
+            claimMessageSender.sendDecisionPendingEmailMessage(claim);
+            claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
+        }
+        claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
     }
 
     public void updateCurrentIdentityAndEligibilityResponse(Claim claim, CombinedIdentityAndEligibilityResponse response) {

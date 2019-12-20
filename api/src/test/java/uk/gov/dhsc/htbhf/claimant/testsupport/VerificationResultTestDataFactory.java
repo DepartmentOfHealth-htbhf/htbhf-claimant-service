@@ -20,6 +20,21 @@ public class VerificationResultTestDataFactory {
                 .build();
     }
 
+    public static VerificationResult anAllMatchedVerificationResultWithPhoneAndEmail(VerificationOutcome phoneMatched, VerificationOutcome emailMatched) {
+        return VerificationResult.builder()
+                .identityOutcome(IdentityOutcome.MATCHED)
+                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
+                .mobilePhoneMatch(phoneMatched)
+                .emailAddressMatch(emailMatched)
+                .addressLine1Match(VerificationOutcome.MATCHED)
+                .postcodeMatch(VerificationOutcome.MATCHED)
+                .qualifyingBenefits(QualifyingBenefits.UNIVERSAL_CREDIT)
+                .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .isPregnantOrAtLeast1ChildMatched(true)
+                .build();
+    }
+
     public static VerificationResult aNothingMatchedVerificationResult() {
         return VerificationResult.builder()
                 .identityOutcome(IdentityOutcome.NOT_MATCHED)
