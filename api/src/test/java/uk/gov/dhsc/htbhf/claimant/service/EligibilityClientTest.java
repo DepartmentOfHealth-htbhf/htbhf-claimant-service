@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.exception.EligibilityClientException;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 
@@ -26,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.dwp.testhelper.PersonDTOTestDataFactory.aPersonDTOWithPregnantDependantDob;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityClientTest {
@@ -47,8 +47,7 @@ class EligibilityClientTest {
     @Test
     void shouldCheckIdentityAndEligibilitySuccessfully() {
         Claimant claimant = aClaimantWithNino(HOMER_NINO);
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
-                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.OK);
         given(restTemplate.postForEntity(anyString(), any(), eq(CombinedIdentityAndEligibilityResponse.class)))
                 .willReturn(response);
@@ -62,8 +61,7 @@ class EligibilityClientTest {
     @Test
     void shouldThrowAnExceptionWhenPostCallNotOk() {
         Claimant claimant = aClaimantWithNino(HOMER_NINO);
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = CombinedIdAndEligibilityResponseTestDataFactory
-                .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         ResponseEntity<CombinedIdentityAndEligibilityResponse> response = new ResponseEntity<>(identityAndEligibilityResponse, HttpStatus.BAD_REQUEST);
         given(restTemplate.postForEntity(anyString(), any(), eq(CombinedIdentityAndEligibilityResponse.class)))
                 .willReturn(response);

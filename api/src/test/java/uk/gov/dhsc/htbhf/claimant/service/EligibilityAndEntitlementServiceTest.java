@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,18 +34,17 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class EligibilityAndEntitlementServiceTest {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
-    private static final CombinedIdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE =
-            CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+    private static final CombinedIdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
     private static final List<LocalDate> DATE_OF_BIRTH_OF_CHILDREN = IDENTITY_AND_ELIGIBILITY_RESPONSE.getDobOfChildrenUnder4();
     private static final PaymentCycleVoucherEntitlement VOUCHER_ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
     private static final Claimant CLAIMANT = aValidClaimant();
-    private static final UUID NO_EXISTING_CLAIM = null;
 
     @InjectMocks
     EligibilityAndEntitlementService eligibilityAndEntitlementService;
@@ -84,7 +82,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldReturnDuplicateForExistingHousehold() {
         //Given
-        setupCommonMocks(NO_EXISTING_CLAIM);
+        setupCommonMocks();
         given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
@@ -100,7 +98,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldReturnEligibleWhenNotDuplicateAndEligible() {
         //Given
-        setupCommonMocks(NO_EXISTING_CLAIM);
+        setupCommonMocks();
         given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
@@ -141,10 +139,10 @@ class EligibilityAndEntitlementServiceTest {
         return decisionResponse;
     }
 
-    private void setupCommonMocks(UUID existingClaimId) {
+    private void setupCommonMocks() {
         given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
-        given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.ofNullable(existingClaimId));
+        given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.empty());
     }
 
     private void verifyCommonMocks(boolean duplicate) {

@@ -10,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -20,12 +19,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityResponseTestDataFactory.anEligibilityResponseWithStatus;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class DuplicateClaimCheckerTest {
 
-    private static final CombinedIdentityAndEligibilityResponse ELIGIBLE_RESPONSE =
-            CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+    private static final CombinedIdentityAndEligibilityResponse ELIGIBLE_RESPONSE = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
 
     @InjectMocks
     private DuplicateClaimChecker duplicateClaimChecker;

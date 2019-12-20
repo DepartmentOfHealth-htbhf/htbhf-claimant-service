@@ -32,6 +32,12 @@ public final class ClaimDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimDTO aValidClaimDTOWitChildrenDob(List<LocalDate> childrenDob) {
+        return aClaimDTOBuilder()
+                .claimant(aClaimantDTOWithChildrenDob(childrenDob))
+                .build();
+    }
+
     public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, childrenDob))
