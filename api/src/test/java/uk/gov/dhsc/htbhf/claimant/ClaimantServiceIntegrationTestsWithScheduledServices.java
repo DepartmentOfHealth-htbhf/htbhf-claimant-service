@@ -13,7 +13,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.*;
-import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -31,6 +30,8 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECIS
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
 
@@ -94,12 +95,12 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     }
 
     @Test
-    void shouldSendWeWillLetYouKnowEmailForEligibleApplicantWhoseEmailOrPhoneDontMatch() throws JsonProcessingException, NotificationClientException {
+    void shouldSendWeWillLetYouKnowEmailAndInstantSuccessLetterForEligibleApplicantWhoseEmailOrPhoneDontMatch()
+            throws JsonProcessingException, NotificationClientException {
         ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimant = claimDTO.getClaimant();
         List<LocalDate> childrenDob = claimant.getChildrenDob();
-        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithMatches(
-                VerificationOutcome.NOT_MATCHED, VerificationOutcome.NOT_HELD, childrenDob));
+        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithMatches(NOT_MATCHED, NOT_HELD, childrenDob));
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
@@ -123,6 +124,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
         assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
+        assertThatLetterWithAddressOnlyWasSent(claim, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         verifyNoMoreInteractions(notificationClient);

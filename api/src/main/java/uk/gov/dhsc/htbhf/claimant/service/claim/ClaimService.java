@@ -7,6 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -22,7 +23,9 @@ import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityRespons
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -80,10 +83,22 @@ public class ClaimService {
         if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
             claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
         } else {
-            claimMessageSender.sendDecisionPendingEmailMessage(claim);
+            sendMessagesForPhoneOrEmailMismatch(claim, identityAndEligibilityResponse);
         }
         claimMessageSender.sendNewCardMessage(claim, decision);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);
+    }
+
+    private void sendMessagesForPhoneOrEmailMismatch(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+        claimMessageSender.sendDecisionPendingEmailMessage(claim);
+
+        List<LocalDate> childrenDobFromBenefitAgency = identityAndEligibilityResponse.getDobOfChildrenUnder4();
+        List<LocalDate> declaredChildrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
+
+        LetterType letterType = childrenDobFromBenefitAgency.containsAll(declaredChildrenDob)
+                ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH
+                : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
+        claimMessageSender.sendLetterWithAddressOnlyMessage(claim, letterType);
     }
 
     private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
@@ -91,7 +106,7 @@ public class ClaimService {
                                               Claim claim) {
         if (verificationResult.isAddressMismatch()) {
             claimMessageSender.sendDecisionPendingEmailMessage(claim);
-            claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
+            claimMessageSender.sendLetterWithAddressOnlyMessage(claim, LetterType.UPDATE_YOUR_ADDRESS);
         }
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
     }

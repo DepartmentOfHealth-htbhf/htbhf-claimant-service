@@ -8,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
-import uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
@@ -30,6 +29,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
+import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
@@ -158,12 +158,12 @@ class ClaimMessageSenderTest {
     }
 
     @Test
-    void shouldSendUpdateYourAddressLetterMessage() {
-        Claim claim  = aValidClaim();
+    void shouldSendLetterMessage() {
+        Claim claim = aValidClaim();
 
-        claimMessageSender.sendUpdateYourAddressLetterMessage(claim);
+        claimMessageSender.sendLetterWithAddressOnlyMessage(claim, LetterType.UPDATE_YOUR_ADDRESS);
 
-        LetterMessagePayload expectedPayload = LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
         verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
     }
 }

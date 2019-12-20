@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -35,11 +36,13 @@ import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -48,18 +51,20 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDateAndChildrenDob;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndExistingClaim;
@@ -69,6 +74,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataF
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResultWithPhoneAndEmail;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anIdMatchedEligibilityNotConfirmedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.MATCHED;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -122,29 +130,49 @@ class ClaimServiceTest {
         verifyNoMoreInteractions(claimMessageSender);
     }
 
-    @Test
-    void shouldSaveNewEligibleClaimantAndSendWeWillLetYouKnowEmailWhenEmailOrPhoneMismatch() {
+    @ParameterizedTest
+    @MethodSource("emailOrPhoneMismatchArguments")
+    void shouldSaveNewEligibleClaimantAndSendWeWillLetYouKnowEmailAndInstantSuccessLetterWhenEmailOrPhoneMismatch(VerificationOutcome emailVerification,
+                                                                                                                  VerificationOutcome phoneVerification,
+                                                                                                                  List<LocalDate> declaredChildrenDob,
+                                                                                                                  List<LocalDate> benefitAgencyChildrenDob,
+                                                                                                                  LetterType letterType) {
         //given
-        ClaimRequest request = aValidClaimRequest();
+        ClaimRequest request = aClaimRequestForClaimant(aClaimantWithChildrenDob(declaredChildrenDob));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, anIdMatchedEligibilityConfirmedUCResponseWithMatches(
-                        VerificationOutcome.NOT_HELD, VerificationOutcome.NOT_HELD, request.getClaimant().getInitiallyDeclaredChildrenDob()));
+                phoneVerification, emailVerification, benefitAgencyChildrenDob));
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
 
         //when
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        VerificationResult expectedVerificationResult = anAllMatchedVerificationResultWithPhoneAndEmail(VerificationOutcome.NOT_HELD,
-                VerificationOutcome.NOT_HELD);
+        VerificationResult expectedVerificationResult = anAllMatchedVerificationResultWithPhoneAndEmail(phoneVerification, emailVerification);
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, expectedVerificationResult);
 
+        Claim claim = result.getClaim();
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
-        verify(claimRepository).save(result.getClaim());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());
-        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
-        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verify(claimRepository).save(claim);
+        verify(eventAuditor).auditNewClaim(claim);
+        verify(claimMessageSender).sendDecisionPendingEmailMessage(claim);
+        verify(claimMessageSender).sendLetterWithAddressOnlyMessage(claim, letterType);
+        verify(claimMessageSender).sendNewCardMessage(claim, decision);
+        verify(claimMessageSender).sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    // children match when the children return from the benefit agency contains all of the declared children.
+    private static Stream<Arguments> emailOrPhoneMismatchArguments() {
+        return Stream.of(
+                // email match, phone match, declared children dob, benefit agency dob, letter type
+                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), INSTANT_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH)
+        );
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -423,7 +451,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), response, ClaimAction.REJECTED);
         verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());
-        verify(claimMessageSender).sendUpdateYourAddressLetterMessage(result.getClaim());
+        verify(claimMessageSender).sendLetterWithAddressOnlyMessage(result.getClaim(), UPDATE_YOUR_ADDRESS);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
