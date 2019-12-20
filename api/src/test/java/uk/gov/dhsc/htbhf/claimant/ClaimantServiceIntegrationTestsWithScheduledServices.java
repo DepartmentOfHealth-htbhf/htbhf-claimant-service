@@ -52,10 +52,12 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
         ResponseEntity<ClaimResultDTO> response
                 = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
-        invokeAllSchedulers();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+
+        invokeAllSchedulers();
+
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
@@ -105,9 +107,11 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationLetterResponse();
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
-        invokeAllSchedulers();
 
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+
+        invokeAllSchedulers();
+
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
@@ -182,6 +186,9 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         ResponseEntity<ClaimResultDTO> response
                 = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
 
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+
         // invoke all schedulers multiple times, fixing the next error in turn each time
         invokeAllSchedulers();
         wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
@@ -195,8 +202,6 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
         invokeAllSchedulers();
 
-        assertThat(response.getStatusCode()).isEqualTo(CREATED);
-        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
