@@ -30,7 +30,6 @@ import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
@@ -72,6 +71,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataF
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedFullAddressNotMatchedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedPostcodeNotMatchedResponse;
@@ -366,7 +366,7 @@ class ClaimServiceTest {
     void shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse() {
         // given
         Claim claim = aValidClaim();
-        CombinedIdentityAndEligibilityResponse response = CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse();
+        CombinedIdentityAndEligibilityResponse response = anIdMatchFailedResponse();
 
         // when
         claimService.updateCurrentIdentityAndEligibilityResponse(claim, response);

@@ -6,7 +6,6 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
-import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +18,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aCl
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class ClaimTestDataFactory {
 
@@ -119,10 +119,8 @@ public class ClaimTestDataFactory {
                 .claimStatus(claimStatus)
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .cardStatus(CardStatus.ACTIVE)
-                .initialIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
-                .currentIdentityAndEligibilityResponse(CombinedIdAndEligibilityResponseTestDataFactory
-                        .anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                .initialIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
+                .currentIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .cardStatusTimestamp(LocalDateTime.now());
     }
 
