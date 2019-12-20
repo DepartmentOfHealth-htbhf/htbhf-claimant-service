@@ -2,6 +2,9 @@ package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -13,24 +16,29 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.*;
-import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWitChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
 
@@ -93,39 +101,49 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Test
-    void shouldSendWeWillLetYouKnowEmailForEligibleApplicantWhoseEmailOrPhoneDontMatch() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
-        List<LocalDate> childrenDob = claimant.getChildrenDob();
-        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithMatches(
-                VerificationOutcome.NOT_MATCHED, VerificationOutcome.NOT_HELD, childrenDob));
+    @ParameterizedTest
+    @MethodSource("emailAndOrPhoneMismatchParameters")
+    void shouldSendWeWillLetYouKnowEmailAndInstantSuccessLetterForEligibleApplicantWhoseEmailOrPhoneDontMatch(List<LocalDate> declaredChildrenDob,
+                                                                                                              List<LocalDate> benefitAgencyChildrenDob,
+                                                                                                              LetterType letterType)
+            throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithMatches(NOT_MATCHED, NOT_HELD, benefitAgencyChildrenDob));
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
         stubNotificationLetterResponse();
+        ClaimDTO claimDTO = aValidClaimDTOWitChildrenDob(declaredChildrenDob);
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
 
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
-
         invokeAllSchedulers();
-
-        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        Claim claim = repositoryMediator.getClaimForNino(claimDTO.getClaimant().getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        PaymentCycleVoucherEntitlement expectedEntitlement =
-                aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+        PaymentCycleVoucherEntitlement expectedEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                LocalDate.now(), benefitAgencyChildrenDob, claim.getClaimant().getExpectedDeliveryDate());
         assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         Payment payment = paymentCycle.getPayments().iterator().next();
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
         assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
+        assertThatLetterWithAddressOnlyWasSent(claim, letterType);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         verifyNoMoreInteractions(notificationClient);
+    }
+
+    // send children_mismatch letter when declared children contains a dob not in the children returned from the benefit agency.
+    private static Stream<Arguments> emailAndOrPhoneMismatchParameters() {
+        return Stream.of(
+                // only testing subset of all permutations of email/phone being matched, not_matched, not_held, not_set and not_supplied in this integration
+                // test. A larger set of permutations is tested by a unit test.
+                Arguments.of(MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH)
+        );
     }
 
     @Test

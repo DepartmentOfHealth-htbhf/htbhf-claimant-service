@@ -29,6 +29,10 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().initiallyDeclaredChildrenDob(Arrays.asList(dateOfBirth)).build();
     }
 
+    public static Claimant aClaimantWithChildrenDob(List<LocalDate> childrenDatesOfBirth) {
+        return aValidClaimantBuilder().initiallyDeclaredChildrenDob(childrenDatesOfBirth).build();
+    }
+
     public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aValidClaimantBuilder().expectedDeliveryDate(expectedDeliveryDate).build();
     }
