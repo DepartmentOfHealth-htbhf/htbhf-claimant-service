@@ -131,8 +131,8 @@ public class WiremockManager {
         PostcodeDataResponse postcodeDataResponse = new PostcodeDataResponse(postcodeData);
         postcodesMock.stubFor(get(urlEqualTo(getPostcodeUrl(postcode)))
                 .willReturn(aResponse().withStatus(HttpStatus.OK.value())
-                .withHeader("Content-Type", "application/json")
-                .withBody(objectMapper.writeValueAsString(postcodeDataResponse))));
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(objectMapper.writeValueAsString(postcodeDataResponse))));
     }
 
     public void stubNotFoundPostcodesIOResponse(String postcode) {
@@ -155,6 +155,10 @@ public class WiremockManager {
     public void stubGoogleAnalyticsCall() {
         googleAnalyticsMock.stubFor(post(urlEqualTo(REPORT_ENDPOINT)).withHeader("Content-Type", equalTo(TEXT_PLAIN_VALUE))
                 .willReturn(ok()));
+    }
+
+    public void assertThatEligibilityRequestMade() {
+        eligibilityServiceMock.verify(1, postRequestedFor(urlEqualTo(V2_ELIGIBILITY_URL)));
     }
 
     public void assertThatGetBalanceRequestMadeForClaim(String cardAccountId) {

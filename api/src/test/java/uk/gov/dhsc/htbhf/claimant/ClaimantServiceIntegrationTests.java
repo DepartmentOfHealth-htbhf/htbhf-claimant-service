@@ -2,10 +2,10 @@ package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,7 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -25,13 +24,15 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
+import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -47,10 +48,7 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertCla
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithCounty;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
@@ -68,10 +66,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligib
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase
-@AutoConfigureWireMock(port = 8100)
 class ClaimantServiceIntegrationTests {
-
-    private static final String ELIGIBILITY_SERVICE_URL = "/v2/eligibility";
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -85,10 +80,18 @@ class ClaimantServiceIntegrationTests {
     @Autowired
     RepositoryMediator repositoryMediator;
 
+    @Autowired
+    WiremockManager wiremockManager;
+
+    @BeforeEach
+    void setup() {
+        wiremockManager.startWireMock();
+    }
+
     @AfterEach
     void cleanup() {
         repositoryMediator.deleteAllEntities();
-        WireMock.reset();
+        wiremockManager.stopWireMock();
     }
 
     @Test
@@ -96,13 +99,13 @@ class ClaimantServiceIntegrationTests {
         //Given
         ClaimDTO claim = aValidClaimDTOWithNoNullFields();
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
-        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
-        verifyPostToEligibilityService();
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     @Test
@@ -112,7 +115,7 @@ class ClaimantServiceIntegrationTests {
         String webUiVersionProperty = "\"" + claim.getWebUIVersion() + "\",";
         String json = objectMapper.writeValueAsString(claim).replace(webUiVersionProperty, webUiVersionProperty + " \"foo\":\"bar\",");
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
-        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(json), ClaimResultDTO.class);
@@ -120,7 +123,7 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
-        verifyPostToEligibilityService();
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     @ParameterizedTest
@@ -129,7 +132,7 @@ class ClaimantServiceIntegrationTests {
         //Given
         ClaimDTO claim = aClaimDTOWithCounty(county);
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
-        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
@@ -137,7 +140,22 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
-        verifyPostToEligibilityService();
+        wiremockManager.assertThatEligibilityRequestMade();
+    }
+
+    @Test
+    void shouldRejectEligibleClaimantWhenNoChildrensDatesOfBirthMatch() throws JsonProcessingException {
+        ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(null, List.of(LocalDate.now().minusDays(1)));
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+
+        //Then
+        assertRejectedResponse(response, ELIGIBLE);
+        assertThat(response.getBody().getVerificationResult().getIsPregnantOrAtLeast1ChildMatched()).isFalse();
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     private static Stream<Arguments> provideArgumentsForMissingAddressFields() {
@@ -151,7 +169,7 @@ class ClaimantServiceIntegrationTests {
     void shouldFailWhenEligibilityServiceCallThrowsException() {
         //Given
         ClaimDTO claim = aValidClaimDTO();
-        stubEligibilityServiceWithUnsuccessfulResponse();
+        wiremockManager.stubErrorEligibilityResponse();
 
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
@@ -159,7 +177,7 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertInternalServerErrorResponse(response);
         assertClaimPersistedWithError(claim);
-        verifyPostToEligibilityService();
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     @Test
@@ -183,14 +201,14 @@ class ClaimantServiceIntegrationTests {
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
                 = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier(DWP_HOUSEHOLD_IDENTIFIER);
-        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertDuplicateResponse(response);
-        verifyPostToEligibilityService();
+        assertRejectedResponse(response, DUPLICATE);
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     @Test
@@ -206,13 +224,13 @@ class ClaimantServiceIntegrationTests {
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
                 = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndHmrcHouseIdentifier(HMRC_HOUSEHOLD_IDENTIFIER);
-        stubEligibilityServiceWithSuccessfulResponse(identityAndEligibilityResponse);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertDuplicateResponse(response);
+        assertRejectedResponse(response, DUPLICATE);
     }
 
     @Test
@@ -229,7 +247,7 @@ class ClaimantServiceIntegrationTests {
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
-        assertDuplicateResponse(response);
+        assertRejectedResponse(response, DUPLICATE);
     }
 
     @Test
@@ -297,11 +315,11 @@ class ClaimantServiceIntegrationTests {
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
 
-    private void assertDuplicateResponse(ResponseEntity<ClaimResultDTO> response) {
+    private void assertRejectedResponse(ResponseEntity<ClaimResultDTO> response, EligibilityStatus eligibilityStatus) {
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(DUPLICATE);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
+        assertThat(response.getBody().getEligibilityStatus()).isEqualTo(eligibilityStatus);
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
     }
 
@@ -316,16 +334,16 @@ class ClaimantServiceIntegrationTests {
 
     private void assertClaimPersistedSuccessfully(ClaimDTO claimDTO,
                                                   EligibilityStatus eligibilityStatus) {
-        Claim persistedClaim = assertClaimPersistedWithClaimStatus(claimDTO, eligibilityStatus);
+        Claim persistedClaim = assertClaimPersistedWithEligibilityStatus(claimDTO, eligibilityStatus);
         assertThat(persistedClaim.getDwpHouseholdIdentifier()).isEqualTo(DWP_HOUSEHOLD_IDENTIFIER);
         assertThat(persistedClaim.getHmrcHouseholdIdentifier()).isEqualTo(HMRC_HOUSEHOLD_IDENTIFIER);
     }
 
     private void assertClaimPersistedWithError(ClaimDTO claimDTO) {
-        assertClaimPersistedWithClaimStatus(claimDTO, ERROR);
+        assertClaimPersistedWithEligibilityStatus(claimDTO, ERROR);
     }
 
-    private Claim assertClaimPersistedWithClaimStatus(ClaimDTO claimDTO, EligibilityStatus eligibilityStatus) {
+    private Claim assertClaimPersistedWithEligibilityStatus(ClaimDTO claimDTO, EligibilityStatus eligibilityStatus) {
         Iterable<Claim> claims = claimRepository.findAll();
         assertThat(claims).hasSize(1);
         Claim persistedClaim = claims.iterator().next();
@@ -334,20 +352,6 @@ class ClaimantServiceIntegrationTests {
         return persistedClaim;
     }
 
-
-    private void stubEligibilityServiceWithSuccessfulResponse(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse)
-            throws JsonProcessingException {
-        String json = objectMapper.writeValueAsString(identityAndEligibilityResponse);
-        stubFor(post(urlEqualTo(ELIGIBILITY_SERVICE_URL)).willReturn(okJson(json)));
-    }
-
-    private void stubEligibilityServiceWithUnsuccessfulResponse() {
-        stubFor(post(urlEqualTo(ELIGIBILITY_SERVICE_URL)).willReturn(serverError()));
-    }
-
-    private void verifyPostToEligibilityService() {
-        verify(exactly(1), postRequestedFor(urlEqualTo(ELIGIBILITY_SERVICE_URL)));
-    }
 
     private String modifyFieldOnClaimantInJson(Object originalValue, String fieldName, String newValue) throws JsonProcessingException {
         String json = objectMapper.writeValueAsString(originalValue);
