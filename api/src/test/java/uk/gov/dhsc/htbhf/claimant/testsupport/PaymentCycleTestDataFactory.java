@@ -13,10 +13,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersOnly;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchersFromDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class PaymentCycleTestDataFactory {
@@ -116,6 +113,7 @@ public class PaymentCycleTestDataFactory {
     public static PaymentCycle aPaymentCycleWithClaimAndChildrenDobs(Claim claim, List<LocalDate> childrenDobs) {
         return aValidPaymentCycleBuilder()
                 .claim(claim)
+                .voucherEntitlement(aPaymentCycleVoucherEntitlementMatchingChildren(LocalDate.now(), childrenDobs))
                 .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(childrenDobs))
                 .build();
     }
