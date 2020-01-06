@@ -109,6 +109,13 @@ abstract class ScheduledServiceIntegrationTest {
         assertChildTurnsFourEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
     }
 
+    void assertThatPaymentStoppingEmailWasSent(PaymentCycle currentCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendEmail(
+                eq(PAYMENT_STOPPING.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
+        assertChildTurnsFourEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
+    }
+
     void assertThatRegularPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
         assertThatPaymentEmailWasSent(newCycle, EmailType.REGULAR_PAYMENT);
     }
