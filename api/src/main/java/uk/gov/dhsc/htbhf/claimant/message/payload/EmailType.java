@@ -21,7 +21,8 @@ public enum EmailType {
     CARD_IS_ABOUT_TO_BE_CANCELLED("c4818a9f-564d-40de-adbf-c8b1a6594d75"),
     REPORT_A_BIRTH_REMINDER("0c3e273a-3cc0-4420-a7e6-187fe678ee7f"),
     RESTARTED_PAYMENT("85b454fa-15d3-4113-8cef-f42ff5780991"),
-    PENDING_DECISION("5a905524-af13-4f30-9c45-aea5314986c5");
+    PENDING_DECISION("5a905524-af13-4f30-9c45-aea5314986c5"),
+    PAYMENT_STOPPING("aba9718a-33c0-410d-8627-459cdb35e3f1");
 
     private final String templateId;
 }
