@@ -113,7 +113,7 @@ abstract class ScheduledServiceIntegrationTest {
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notificationClient).sendEmail(
                 eq(PAYMENT_STOPPING.getTemplateId()), eq(currentCycle.getClaim().getClaimant().getEmailAddress()), argumentCaptor.capture(), any(), any());
-        assertChildTurnsFourEmailPersonalisationMap(currentCycle, argumentCaptor.getValue());
+        assertYoungestChildTurnsFourEmailPersonalisationMap(argumentCaptor.getValue());
     }
 
     void assertThatRegularPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
@@ -251,6 +251,13 @@ abstract class ScheduledServiceIntegrationTest {
                 .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
         assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
+    }
+
+    private void assertYoungestChildTurnsFourEmailPersonalisationMap(Map personalisationMap) {
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(4)); // one voucher each week
+        assertThat(personalisationMap.get(EmailTemplateKey.MULTIPLE_CHILDREN.getTemplateKeyName()))
+                .isEqualTo(false); // only one child turning four
     }
 
     private void assertPaymentEmailPersonalisationMap(PaymentCycle newCycle, Map personalisationMap) {

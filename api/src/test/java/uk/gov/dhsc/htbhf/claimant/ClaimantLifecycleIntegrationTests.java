@@ -131,7 +131,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
-        // TODO assert that payment stopping email has been sent
+        // TODO AFHS-545 - assert that payment stopping email has been sent
     }
 
     /**
