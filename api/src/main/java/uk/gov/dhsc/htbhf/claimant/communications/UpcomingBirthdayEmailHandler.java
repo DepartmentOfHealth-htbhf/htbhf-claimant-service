@@ -14,13 +14,13 @@ import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.formatPaymentAmountSummary;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.MULTIPLE_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Component responsible for determining if any additional emails need to be sent out in addition to
@@ -68,12 +68,34 @@ public class UpcomingBirthdayEmailHandler {
         messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);
     }
 
+    public void sendPaymentStoppingYoungestChildTurnsFourEmail(PaymentCycle paymentCycle, NextPaymentCycleSummary dateOfBirthSummaryAffectingNextPayment) {
+        boolean multipleChildrenTurningFourInNextMonth = dateOfBirthSummaryAffectingNextPayment.hasMultipleChildrenTurningFour();
+        EmailMessagePayload messagePayload = buildPaymentStoppingNotificationEmailPayload(paymentCycle,
+                multipleChildrenTurningFourInNextMonth);
+        log.debug("Sending email for payment stopping when youngest child turns 4 for Payment Cycle after cycle with id: [{}], with a delay of {}",
+                paymentCycle.getId(), changeInPaymentEmailDelay);
+        messageQueueClient.sendMessageWithDelay(messagePayload, MessageType.SEND_EMAIL, changeInPaymentEmailDelay);
+    }
+
     private EmailMessagePayload buildChildTurnsAgeNotificationEmailPayload(PaymentCycle paymentCycle,
                                                                            PaymentCycleVoucherEntitlement entitlementNextMonth,
                                                                            boolean multipleChildrenTurningAgeInMonth,
                                                                            EmailType emailType) {
         Map<String, Object> emailPersonalisation = createEmailPersonalisationMapForNextCycle(paymentCycle, entitlementNextMonth);
         emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningAgeInMonth);
+        return buildEmailMessagePayload(paymentCycle, emailType, emailPersonalisation);
+    }
+
+    private EmailMessagePayload buildPaymentStoppingNotificationEmailPayload(PaymentCycle paymentCycle,
+                                                                           boolean multipleChildrenTurningAgeInMonth) {
+        Map<String, Object> emailPersonalisation = new HashMap<>();
+        String paymentAmount = convertPenceToPounds(paymentCycle.getVoucherEntitlement().getTotalVoucherValueInPence());
+        emailPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);
+        emailPersonalisation.put(MULTIPLE_CHILDREN.getTemplateKeyName(), multipleChildrenTurningAgeInMonth);
+        return buildEmailMessagePayload(paymentCycle, EmailType.PAYMENT_STOPPING, emailPersonalisation);
+    }
+
+    private EmailMessagePayload buildEmailMessagePayload(PaymentCycle paymentCycle, EmailType emailType, Map<String, Object> emailPersonalisation) {
         return EmailMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .emailType(emailType)

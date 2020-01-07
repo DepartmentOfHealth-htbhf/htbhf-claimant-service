@@ -26,9 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
@@ -88,6 +86,21 @@ class UpcomingBirthdayEmailHandlerTest {
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
         verify(emailMessagePayloadFactory).createCommonEmailPersonalisationMap(paymentCycle, nextEntitlement);
         verifyChildTurnsFourEmailNotificationSentWhenChildTurnsFourInNextCycle(paymentCycle, payloadCaptor.getValue(), false);
+    }
+
+    @Test
+    void shouldSendEmailForPaymentStoppingWhenYoungestChildTurnsFourInNextCycle() {
+        NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
+
+        List<LocalDate> childrensDob = List.of(TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
+        PaymentCycle paymentCycle = buildPaymentCycle(childrensDob);
+
+        upcomingBirthdayEmailHandler.sendPaymentStoppingYoungestChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+
+        ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
+        verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
+        verifyNoInteractions(emailMessagePayloadFactory, paymentCycleEntitlementCalculator);
+        verifyPaymentStoppedEmailNotificationSentWhenChildTurnsFourInNextCycle(paymentCycle, payloadCaptor.getValue(), false);
     }
 
     @Test
@@ -154,6 +167,17 @@ class UpcomingBirthdayEmailHandlerTest {
                 entry("multiple_children", multipleChildren)
         );
         assertThat(emailPersonalisation).containsAllEntriesOf(COMMON_EMAIL_MAP);
+    }
+
+    private void verifyPaymentStoppedEmailNotificationSentWhenChildTurnsFourInNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload,
+                                                                                        boolean multipleChildren) {
+        assertThat(payload.getEmailType()).isEqualTo(EmailType.PAYMENT_STOPPING);
+        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
+        Map<String, Object> emailPersonalisation = payload.getEmailPersonalisation();
+        assertThat(emailPersonalisation).containsOnly(
+                entry("payment_amount", "£12.40"),
+                entry("multiple_children", multipleChildren)
+        );
     }
 
     private void verifyChildTurnsOneEmailNotificationSentWhenChildTurnsOneInNextCycle(PaymentCycle paymentCycle, EmailMessagePayload payload) {
