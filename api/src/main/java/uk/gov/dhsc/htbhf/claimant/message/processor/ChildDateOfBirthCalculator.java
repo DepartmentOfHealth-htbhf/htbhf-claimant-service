@@ -65,9 +65,11 @@ public class ChildDateOfBirthCalculator {
         LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);
         int childrenAgedOneAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 1);
         int childrenAgedFourAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 4);
+        boolean childrenUnderFourAtEndOfCycle = hadChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), lastEntitlementDateInNextCycle);
         return NextPaymentCycleSummary.builder()
                 .numberOfChildrenTurningOne(childrenAgedOneAffectingNextPayment)
                 .numberOfChildrenTurningFour(childrenAgedFourAffectingNextPayment)
+                .childrenUnderFourPresentAtEndOfCycle(childrenUnderFourAtEndOfCycle)
                 .build();
     }
 
