@@ -40,12 +40,12 @@ public class ClaimantCategoryCalculator {
             if (claimantAgeInYears < EIGHTEEN) {
                 return PREGNANT_AND_UNDER_18;
             }
-            if (childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
+            if (childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
                 return PREGNANT_WITH_CHILDREN;
             }
             return PREGNANT_WITH_NO_CHILDREN;
         }
-        if (childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
+        if (childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate)) {
             return NOT_PREGNANT_WITH_CHILDREN;
         }
         // this could happen once a claim has expired

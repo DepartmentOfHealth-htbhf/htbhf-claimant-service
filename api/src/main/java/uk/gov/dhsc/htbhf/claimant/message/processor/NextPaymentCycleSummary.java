@@ -14,9 +14,14 @@ public class NextPaymentCycleSummary {
 
     private int numberOfChildrenTurningOne;
     private int numberOfChildrenTurningFour;
+    private boolean childrenUnderFourPresentAtEndOfCycle;
 
     public boolean hasChildrenTurningFour() {
         return numberOfChildrenTurningFour > 0;
+    }
+
+    public boolean lastChildTurnsFour() {
+        return hasChildrenTurningFour() && !childrenUnderFourPresentAtEndOfCycle;
     }
 
     public boolean hasMultipleChildrenTurningFour() {
