@@ -143,7 +143,7 @@ class EligibilityDecisionHandlerTest {
         //Given
         //Claimant has children under 4 at the previous payment cycle that would still over 4 now (but not reported by DWP).
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
-        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
+        given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
 
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
 
@@ -164,7 +164,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
+        verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(SINGLE_NEARLY_FOUR_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
         verifyNoMoreInteractions(determineEntitlementNotificationHandler);
@@ -179,7 +179,7 @@ class EligibilityDecisionHandlerTest {
         //Given
         //Claimant has children under 4 at the previous payment cycle that would still be under 4 now (but not reported by DWP).
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
-        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
+        given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
 
         List<LocalDate> currentCycleChildrenDobs = NO_CHILDREN;
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(previousCycleExpectedDeliveryDate, SINGLE_THREE_YEAR_OLD);
@@ -200,7 +200,7 @@ class EligibilityDecisionHandlerTest {
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
+        verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(SINGLE_THREE_YEAR_OLD, currentPaymentCycleStartDate);
         verify(eventAuditor).auditExpiredClaim(claimAtCurrentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
     }
@@ -215,7 +215,7 @@ class EligibilityDecisionHandlerTest {
 
         //Had children in last cycle who are under 4 at the start of the current payment cycle.
         given(childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(any())).willReturn(true);
-        given(childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
+        given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
 
         //Given - their children would still be under 4 but DWP doesn't return them if they're NOT_CONFIRMED.
         Claim claimAtPreviousCycle = aClaimWithExpectedDeliveryDateAndChildrenDobs(previousCycleExpectedDeliveryDate, previousCycleChildrenDobs);
@@ -236,7 +236,7 @@ class EligibilityDecisionHandlerTest {
         verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
         LocalDate currentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
-        verify(childDateOfBirthCalculator).hadChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
+        verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle,
                 decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);

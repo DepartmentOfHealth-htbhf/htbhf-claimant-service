@@ -374,7 +374,7 @@ class ChildDateOfBirthCalculatorTest {
     @MethodSource("provideArgumentsForChildrenUnderFour")
     void shouldReturnHadChildrenForGivenDate(List<LocalDate> childrenDobs) {
         //When
-        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
+        boolean hasChildren = childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isTrue();
     }
@@ -383,7 +383,7 @@ class ChildDateOfBirthCalculatorTest {
     @MethodSource("provideArgumentsForChildrenFourAndOver")
     void shouldReturnHadNoChildrenForGivenDate(List<LocalDate> childrenDobs) {
         //When
-        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
+        boolean hasChildren = childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isFalse();
     }

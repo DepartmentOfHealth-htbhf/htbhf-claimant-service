@@ -65,7 +65,7 @@ public class ChildDateOfBirthCalculator {
         LocalDate lastEntitlementDateInNextCycle = getLatestEntitlementDateFromCycleStartDate(nextCycleStartDate);
         int childrenAgedOneAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 1);
         int childrenAgedFourAffectingNextPayment = countChildrenOfAge(paymentCycle, lastEntitlementDateInCurrentCycle, lastEntitlementDateInNextCycle, 4);
-        boolean childrenUnderFourAtEndOfCycle = hadChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), lastEntitlementDateInNextCycle);
+        boolean childrenUnderFourAtEndOfCycle = hasChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), lastEntitlementDateInNextCycle);
         return NextPaymentCycleSummary.builder()
                 .numberOfChildrenTurningOne(childrenAgedOneAffectingNextPayment)
                 .numberOfChildrenTurningFour(childrenAgedFourAffectingNextPayment)
@@ -80,7 +80,7 @@ public class ChildDateOfBirthCalculator {
      * @return true if any children were under 4 at the start of the given PaymentCycle.
      */
     public boolean hadChildrenUnder4AtStartOfPaymentCycle(PaymentCycle paymentCycle) {
-        return hadChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), paymentCycle.getCycleStartDate());
+        return hasChildrenUnderFourAtGivenDate(paymentCycle.getChildrenDob(), paymentCycle.getCycleStartDate());
     }
 
     /**
@@ -89,7 +89,7 @@ public class ChildDateOfBirthCalculator {
      * @param atDate the date to compare the children's date of birth against
      * @return true if any children were under four at the given date
      */
-    public boolean hadChildrenUnderFourAtGivenDate(List<LocalDate> childrenDob, LocalDate atDate) {
+    public boolean hasChildrenUnderFourAtGivenDate(List<LocalDate> childrenDob, LocalDate atDate) {
         if (CollectionUtils.isEmpty(childrenDob)) {
             return false;
         }

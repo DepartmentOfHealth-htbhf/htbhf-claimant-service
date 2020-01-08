@@ -106,7 +106,7 @@ public class EligibilityDecisionHandler {
 
     private boolean childrenExistedInPreviousCycleAndNowOver4(PaymentCycle previousPaymentCycle, PaymentCycle currentPaymentCycle) {
         return childDateOfBirthCalculator.hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle)
-                && !childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
+                && !childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
     }
 
     private void handleLossOfQualifyingBenefitStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
