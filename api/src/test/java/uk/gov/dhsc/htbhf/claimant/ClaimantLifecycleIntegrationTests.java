@@ -69,7 +69,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * ..................| New baby reported to DWP
      * ....................| Backdated vouchers paid
      * ........................................................| email about upcoming changes to payment
-     * ........................................................................| email that the card will be cancelled in one week
+     * ...................................................[4 years]............| email that the card will be cancelled in one week
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
