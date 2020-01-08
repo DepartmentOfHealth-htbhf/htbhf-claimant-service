@@ -52,7 +52,6 @@ class LetterMessagePayloadFactoryTest {
 
         LetterMessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, INSTANT_SUCCESS_CHILDREN_MATCH);
 
-
         assertThat(payload).isNotNull();
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getLetterType()).isEqualTo(INSTANT_SUCCESS_CHILDREN_MATCH);
@@ -61,7 +60,7 @@ class LetterMessagePayloadFactoryTest {
         int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(payload.getPersonalisation()).contains(
                 entry("payment_amount", voucherEntitlement.getTotalVoucherValueInPence()),
-                entry("pregnancy_amount", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
+                entry("pregnancy_payment", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
                 entry("children_under_1_payment", voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence),
                 entry("children_under_4_payment", voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
         );
