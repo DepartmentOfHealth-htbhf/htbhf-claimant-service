@@ -221,7 +221,7 @@ abstract class ScheduledServiceIntegrationTest {
         int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(personalisationMap).contains(
                 entry("payment_amount", voucherEntitlement.getTotalVoucherValueInPence()),
-                entry("pregnancy_amount", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
+                entry("pregnancy_payment", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
                 entry("children_under_1_payment", voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence),
                 entry("children_under_4_payment", voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
         );

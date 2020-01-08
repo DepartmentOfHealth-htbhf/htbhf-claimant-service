@@ -62,7 +62,7 @@ public class LetterMessagePayloadFactory {
         int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         return Map.of(
                 PAYMENT_AMOUNT.getTemplateKeyName(), voucherEntitlement.getTotalVoucherValueInPence(),
-                PREGNANCY_AMOUNT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,
+                PREGNANCY_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,
                 CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence,
                 CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence
         );

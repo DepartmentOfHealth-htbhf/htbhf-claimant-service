@@ -15,7 +15,7 @@ public enum LetterTemplateKey {
     ADDRESS_LINE_6("address_line_6"),
     POSTCODE("postcode"),
     PAYMENT_AMOUNT("payment_amount"),
-    PREGNANCY_AMOUNT("pregnancy_amount"),
+    PREGNANCY_PAYMENT("pregnancy_payment"),
     CHILDREN_UNDER_1_PAYMENT("children_under_1_payment"),
     CHILDREN_UNDER_4_PAYMENT("children_under_4_payment");
 
