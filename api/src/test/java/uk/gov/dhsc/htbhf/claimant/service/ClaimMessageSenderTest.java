@@ -33,6 +33,7 @@ import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFact
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
@@ -137,6 +138,21 @@ class ClaimMessageSenderTest {
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
         verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate, INSTANT_SUCCESS);
+    }
+
+    @Test
+    void shouldSendInstantSuccessPartialChildrenMatchMessage() {
+        Claim claim = aValidClaim();
+        EmailMessagePayload payload = mock(EmailMessagePayload.class);
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any(), any(), any())).willReturn(payload);
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
+
+        claimMessageSender.sendInstantSuccessPartialChildrenMatchEmailMessage(claim, decision);
+
+        verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
+        LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate,
+                INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
     }
 
     @Test
