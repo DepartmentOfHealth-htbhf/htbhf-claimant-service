@@ -83,13 +83,15 @@ public class ClaimService {
         if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
             claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
         } else {
-            sendMessagesForPhoneOrEmailMismatch(claim, identityAndEligibilityResponse);
+            sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }
         claimMessageSender.sendNewCardMessage(claim, decision);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);
     }
 
-    private void sendMessagesForPhoneOrEmailMismatch(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private void sendMessagesForPhoneOrEmailMismatch(Claim claim,
+                                                     EligibilityAndEntitlementDecision decision,
+                                                     CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         claimMessageSender.sendDecisionPendingEmailMessage(claim);
 
         List<LocalDate> childrenDobFromBenefitAgency = identityAndEligibilityResponse.getDobOfChildrenUnder4();
@@ -98,7 +100,7 @@ public class ClaimService {
         LetterType letterType = childrenDobFromBenefitAgency.containsAll(declaredChildrenDob)
                 ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH
                 : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
-        claimMessageSender.sendLetterWithAddressOnlyMessage(claim, letterType);
+        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
     }
 
     private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,

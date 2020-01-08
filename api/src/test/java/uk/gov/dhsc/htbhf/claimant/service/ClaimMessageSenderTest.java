@@ -29,6 +29,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
+import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressAndPaymentFields;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
@@ -38,6 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
@@ -158,12 +160,23 @@ class ClaimMessageSenderTest {
     }
 
     @Test
-    void shouldSendLetterMessage() {
+    void shouldSendLetterWithAddressOnlyMessage() {
         Claim claim = aValidClaim();
 
         claimMessageSender.sendLetterWithAddressOnlyMessage(claim, LetterType.UPDATE_YOUR_ADDRESS);
 
         LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
+    }
+
+    @Test
+    void shouldSendLetterWithAddressAndPaymentFieldsMessage() {
+        Claim claim = aValidClaim();
+        EligibilityAndEntitlementDecision decision = anEligibleDecision();
+
+        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH);
+
+        LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH);
         verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
     }
 }
