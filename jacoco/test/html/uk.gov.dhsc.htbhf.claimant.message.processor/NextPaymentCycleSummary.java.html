@@ -14,25 +14,30 @@ public class NextPaymentCycleSummary {
 
     private int numberOfChildrenTurningOne;
     private int numberOfChildrenTurningFour;
+    private boolean childrenUnderFourPresentAtEndOfCycle;
 
     public boolean hasChildrenTurningFour() {
-<span class="fc bfc" id="L19" title="All 2 branches covered.">        return numberOfChildrenTurningFour &gt; 0;</span>
+<span class="fc bfc" id="L20" title="All 2 branches covered.">        return numberOfChildrenTurningFour &gt; 0;</span>
+    }
+
+    public boolean lastChildTurnsFour() {
+<span class="fc bfc" id="L24" title="All 4 branches covered.">        return hasChildrenTurningFour() &amp;&amp; !childrenUnderFourPresentAtEndOfCycle;</span>
     }
 
     public boolean hasMultipleChildrenTurningFour() {
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        return numberOfChildrenTurningFour &gt; 1;</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        return numberOfChildrenTurningFour &gt; 1;</span>
     }
 
     public boolean hasChildrenTurningOne() {
-<span class="fc bfc" id="L27" title="All 2 branches covered.">        return numberOfChildrenTurningOne &gt; 0;</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        return numberOfChildrenTurningOne &gt; 0;</span>
     }
 
     public boolean hasMultipleChildrenTurningOne() {
-<span class="fc bfc" id="L31" title="All 2 branches covered.">        return numberOfChildrenTurningOne &gt; 1;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        return numberOfChildrenTurningOne &gt; 1;</span>
     }
 
     public int getNumberOfChildrenTurningOneOrFour() {
-<span class="fc" id="L35">        return numberOfChildrenTurningOne + numberOfChildrenTurningFour;</span>
+<span class="fc" id="L40">        return numberOfChildrenTurningOne + numberOfChildrenTurningFour;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
