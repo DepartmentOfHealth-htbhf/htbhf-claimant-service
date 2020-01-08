@@ -62,7 +62,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
 <span class="fc" id="L62">        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();</span>
 <span class="fc" id="L63">        return Map.of(</span>
 <span class="fc" id="L64">                PAYMENT_AMOUNT.getTemplateKeyName(), voucherEntitlement.getTotalVoucherValueInPence(),</span>
-<span class="fc" id="L65">                PREGNANCY_AMOUNT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,</span>
+<span class="fc" id="L65">                PREGNANCY_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,</span>
 <span class="fc" id="L66">                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence,</span>
 <span class="fc" id="L67">                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence</span>
         );
