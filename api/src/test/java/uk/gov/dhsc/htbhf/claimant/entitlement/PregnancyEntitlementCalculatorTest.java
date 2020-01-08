@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDateAndClaim;
 
 class PregnancyEntitlementCalculatorTest {
 
@@ -111,6 +112,43 @@ class PregnancyEntitlementCalculatorTest {
                 Arguments.of(today, today),
                 Arguments.of(today, today.minusWeeks(1)),
                 Arguments.of(today, today.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("isPregnantOnDayAfterPaymentCycle")
+    void shouldReturnTrueWhenClaimantIsPregnantAfterPaymentCycle(PaymentCycle paymentCycle) {
+        boolean result = calculator.claimantIsPregnantAfterCycle(paymentCycle);
+
+        assertThat(result).isTrue();
+    }
+
+    private static Stream<Arguments> isPregnantOnDayAfterPaymentCycle() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusWeeks(4);
+        return Stream.of(
+                Arguments.of(aPaymentCycleWithStartAndEndDateAndClaim(startDate, today, aClaimWithExpectedDeliveryDate(today))),
+                Arguments.of(aPaymentCycleWithStartAndEndDateAndClaim(startDate, today,
+                        aClaimWithExpectedDeliveryDate(today.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS).plusDays(1)))),
+                Arguments.of(aPaymentCycleWithStartAndEndDateAndClaim(startDate, today, aClaimWithExpectedDeliveryDate(today.minusDays(1))))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("isNotPregnantOnDayAfterPaymentCycle")
+    void shouldReturnFalseWhenClaimantIsNotPregnantAfterPaymentCycle(PaymentCycle paymentCycle) {
+        boolean result = calculator.claimantIsPregnantAfterCycle(paymentCycle);
+
+        assertThat(result).isFalse();
+    }
+
+    private static Stream<Arguments> isNotPregnantOnDayAfterPaymentCycle() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusWeeks(4);
+        return Stream.of(
+                Arguments.of(aPaymentCycleWithStartAndEndDateAndClaim(startDate, today, aClaimWithExpectedDeliveryDate(null))),
+                Arguments.of(aPaymentCycleWithStartAndEndDateAndClaim(startDate, today,
+                        aClaimWithExpectedDeliveryDate(today.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS))))
         );
     }
 

@@ -134,7 +134,7 @@ class PaymentCycleNotificationHandlerTest {
         given(nextPaymentCycleSummary.hasChildrenTurningFour()).willReturn(true);
         given(nextPaymentCycleSummary.hasChildrenTurningOne()).willReturn(false);
         given(nextPaymentCycleSummary.youngestChildTurnsFour()).willReturn(true);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantAfterCycle(any())).willReturn(true);
 
         paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 
@@ -147,7 +147,7 @@ class PaymentCycleNotificationHandlerTest {
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(ClaimTestDataFactory.aClaimWithExpectedDeliveryDate(null));
         given(childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle)).willReturn(nextPaymentCycleSummary);
         given(nextPaymentCycleSummary.youngestChildTurnsFour()).willReturn(true);
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.claimantIsPregnantAfterCycle(any())).willReturn(false);
 
         paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
 

@@ -11,8 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
-import java.time.LocalDate;
-
 @Component
 @AllArgsConstructor
 public class PaymentCycleNotificationHandler {
@@ -58,7 +56,7 @@ public class PaymentCycleNotificationHandler {
 
     private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
         NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
-        if (isPaymentStoppingAsYoungestChildTurnsFour(paymentCycle, nextPaymentCycleSummary)) {
+        if (nextPaymentCycleSummary.youngestChildTurnsFour() && !pregnancyEntitlementCalculator.claimantIsPregnantAfterCycle(paymentCycle)) {
             upcomingBirthdayEmailHandler.sendPaymentStoppingYoungestChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
         } else {
             if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
@@ -68,12 +66,5 @@ public class PaymentCycleNotificationHandler {
                 upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
             }
         }
-    }
-
-    private boolean isPaymentStoppingAsYoungestChildTurnsFour(PaymentCycle paymentCycle, NextPaymentCycleSummary nextPaymentCycleSummary) {
-        LocalDate expectedDeliveryDate = paymentCycle.getClaim().getClaimant().getExpectedDeliveryDate();
-        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);
-        boolean isNotPregnant = !pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);
-        return nextPaymentCycleSummary.youngestChildTurnsFour() && isNotPregnant;
     }
 }
