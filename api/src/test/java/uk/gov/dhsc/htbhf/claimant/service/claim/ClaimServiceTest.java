@@ -155,7 +155,7 @@ class ClaimServiceTest {
         verify(claimRepository).save(claim);
         verify(eventAuditor).auditNewClaim(claim);
         verify(claimMessageSender).sendDecisionPendingEmailMessage(claim);
-        verify(claimMessageSender).sendLetterWithAddressOnlyMessage(claim, letterType);
+        verify(claimMessageSender).sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
         verify(claimMessageSender).sendNewCardMessage(claim, decision);
         verify(claimMessageSender).sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
