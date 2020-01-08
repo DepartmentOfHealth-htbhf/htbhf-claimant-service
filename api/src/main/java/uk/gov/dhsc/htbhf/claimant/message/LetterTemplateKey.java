@@ -13,7 +13,11 @@ public enum LetterTemplateKey {
     ADDRESS_LINE_4("address_line_4"),
     ADDRESS_LINE_5("address_line_5"),
     ADDRESS_LINE_6("address_line_6"),
-    POSTCODE("postcode");
+    POSTCODE("postcode"),
+    PAYMENT_AMOUNT("payment_amount"),
+    PREGNANCY_AMOUNT("pregnancy_amount"),
+    CHILDREN_UNDER_1_PAYMENT("children_under_1_payment"),
+    CHILDREN_UNDER_4_PAYMENT("children_under_4_payment");
 
     private final String templateKeyName;
 

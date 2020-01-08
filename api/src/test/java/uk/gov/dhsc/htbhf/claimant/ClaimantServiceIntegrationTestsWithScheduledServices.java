@@ -130,7 +130,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
         assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
-        assertThatLetterWithAddressOnlyWasSent(claim, letterType);
+        assertThatLetterWithAddressAndPaymentFieldsWasSent(claim, paymentCycle, letterType);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         verifyNoMoreInteractions(notificationClient);

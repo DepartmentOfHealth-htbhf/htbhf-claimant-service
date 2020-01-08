@@ -1,11 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
 public class LetterMessagePayloadFactory {
 
     public static LetterMessagePayload buildLetterPayloadWithAddressOnly(Claim claim, LetterType letterType) {
-        Map<String, Object> personalisationMap = populatePersonalisationMap(claim.getClaimant());
+        Map<String, Object> personalisationMap = createAddressPersonalisationMap(claim.getClaimant());
 
         return LetterMessagePayload.builder()
                 .claimId(claim.getId())
@@ -30,7 +32,21 @@ public class LetterMessagePayloadFactory {
                 .build();
     }
 
-    private static Map<String, Object> populatePersonalisationMap(Claimant claimant) {
+    public static LetterMessagePayload buildLetterPayloadWithAddressAndPaymentFields(Claim claim,
+                                                                                     EligibilityAndEntitlementDecision decision,
+                                                                                     LetterType letterType) {
+        Map<String, Object> personalisationMap = new HashMap<>();
+        personalisationMap.putAll(createAddressPersonalisationMap(claim.getClaimant()));
+        personalisationMap.putAll(createPaymentPersonalisationMap(decision.getVoucherEntitlement()));
+
+        return LetterMessagePayload.builder()
+                .claimId(claim.getId())
+                .letterType(letterType)
+                .personalisation(personalisationMap)
+                .build();
+    }
+
+    private static Map<String, Object> createAddressPersonalisationMap(Claimant claimant) {
         Address address = claimant.getAddress();
         Map<String, Object> personalisationMap = new HashMap<>();
         personalisationMap.put(ADDRESS_LINE_1.getTemplateKeyName(), claimant.getFirstName() + " " + claimant.getLastName());
@@ -40,6 +56,16 @@ public class LetterMessagePayloadFactory {
         personalisationMap.put(ADDRESS_LINE_5.getTemplateKeyName(), address.getCounty());
         personalisationMap.put(POSTCODE.getTemplateKeyName(), address.getPostcode());
         return personalisationMap;
+    }
+
+    private static Map<String, Object> createPaymentPersonalisationMap(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
+        return Map.of(
+                PAYMENT_AMOUNT.getTemplateKeyName(), voucherEntitlement.getTotalVoucherValueInPence(),
+                PREGNANCY_AMOUNT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,
+                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence,
+                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence
+        );
     }
 
 }
