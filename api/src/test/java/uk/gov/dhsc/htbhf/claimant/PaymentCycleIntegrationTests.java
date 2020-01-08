@@ -210,7 +210,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @Test
-    @Disabled("AFHS-355 enable when code is in place")
     void shouldSendEmailWhenYoungestChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
         List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
 
@@ -230,6 +229,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
         // confirm notify component invoked with correct email template & personalisation
+        assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatPaymentStoppingEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }

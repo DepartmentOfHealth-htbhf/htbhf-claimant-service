@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -10,12 +11,15 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.message.processor.NextPaymentCycleSummary;
 
+import java.time.LocalDate;
+
 @Component
 @AllArgsConstructor
 public class PaymentCycleNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
@@ -54,11 +58,22 @@ public class PaymentCycleNotificationHandler {
 
     private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
         NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
-        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
-            upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        if (isPaymentStoppingAsYoungestChildTurnsFour(paymentCycle, nextPaymentCycleSummary)) {
+            upcomingBirthdayEmailHandler.sendPaymentStoppingYoungestChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        } else {
+            if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
+                upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+            }
+            if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
+                upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+            }
         }
-        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-            upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
-        }
+    }
+
+    private boolean isPaymentStoppingAsYoungestChildTurnsFour(PaymentCycle paymentCycle, NextPaymentCycleSummary nextPaymentCycleSummary) {
+        LocalDate expectedDeliveryDate = paymentCycle.getClaim().getClaimant().getExpectedDeliveryDate();
+        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);
+        boolean isNotPregnant = !pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);
+        return nextPaymentCycleSummary.youngestChildTurnsFour() && isNotPregnant;
     }
 }
