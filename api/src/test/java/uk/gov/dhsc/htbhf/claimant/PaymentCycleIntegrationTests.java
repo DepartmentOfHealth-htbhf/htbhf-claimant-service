@@ -201,7 +201,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @Test
-    void shouldSendEmailWhenYoungestChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
+    void shouldSendEmailWhenYoungestChildTurnsFourAndNotPregnantInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
         List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
@@ -222,6 +222,31 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm notify component invoked with correct email template & personalisation
         assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatPaymentStoppingEmailWasSent(currentCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
+    void shouldSendEmailWhenYoungestChildTurnsFourAndPregnantInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
+        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
+
+        wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to make payment
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        Payment payment = currentCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatRegularPaymentEmailWasSent(currentCycle);
+        assertThatChildTurnsFourEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 

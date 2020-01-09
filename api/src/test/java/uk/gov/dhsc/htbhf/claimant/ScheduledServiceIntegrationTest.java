@@ -26,6 +26,7 @@ import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
 import uk.gov.service.notify.SendLetterResponse;
 
+import java.time.LocalDate;
 import java.util.Map;
 
 import static java.util.Map.entry;
@@ -268,12 +269,27 @@ abstract class ScheduledServiceIntegrationTest {
 
     private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
         assertCommonPaymentEmailFields(currentCycle, personalisationMap);
+        boolean isPregnant = currentCycle.getExpectedDeliveryDate() != null && currentCycle.getExpectedDeliveryDate().isAfter(LocalDate.now().minusWeeks(12));
         assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // no children under one
         assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(4)); // only one child will be under four
+                .contains(formatVoucherAmount(isPregnant ? 0 : 4));
+        assertThat(personalisationMap.get(PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(isPregnant ? 4 : 0));
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(5)); // four vouchers for the three year old and one voucher in first week only for child turning four
+        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
+    }
+
+    private void assertYoungestChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
+        assertCommonPaymentEmailFields(currentCycle, personalisationMap);
+        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(0)); // no children under one
+        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
+                .contains(formatVoucherAmount(0)); // no children under four
+        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(5)); // one voucher in first week only for child turning four and four pregnancy
         assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
