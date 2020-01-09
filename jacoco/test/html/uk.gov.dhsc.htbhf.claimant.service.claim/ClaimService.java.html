@@ -102,8 +102,8 @@ public class ClaimService {
 <span class="fc" id="L102">        claimMessageSender.sendDecisionPendingEmailMessage(claim);</span>
 
 <span class="fc bfc" id="L104" title="All 2 branches covered.">        LetterType letterType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)</span>
-<span class="fc" id="L105">                ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH</span>
-<span class="fc" id="L106">                : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;</span>
+<span class="fc" id="L105">                ? LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH</span>
+<span class="fc" id="L106">                : LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;</span>
 <span class="fc" id="L107">        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);</span>
 <span class="fc" id="L108">    }</span>
 
