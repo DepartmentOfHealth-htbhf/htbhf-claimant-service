@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -56,13 +55,11 @@ class LetterMessagePayloadFactoryTest {
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getLetterType()).isEqualTo(APPLICATION_SUCCESS_CHILDREN_MATCH);
         assertThat(payload.getPersonalisation()).contains(ADDRESS_ENTRIES);
-        PaymentCycleVoucherEntitlement voucherEntitlement = decision.getVoucherEntitlement();
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(payload.getPersonalisation()).contains(
-                entry("payment_amount", voucherEntitlement.getTotalVoucherValueInPence()),
-                entry("pregnancy_payment", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
-                entry("children_under_1_payment", voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence),
-                entry("children_under_4_payment", voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
+                entry("payment_amount", "£49.60"),
+                entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
+                entry("children_under_1_payment", "\n* £24.80 for children under 1"),
+                entry("children_under_4_payment", "\n* £12.40 for children between 1 and 4")
         );
     }
 }
