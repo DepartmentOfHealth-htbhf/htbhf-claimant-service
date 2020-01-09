@@ -83,7 +83,7 @@ class NextPaymentCycleSummaryTest {
                 .numberOfChildrenTurningFour(childrenTurningFour)
                 .childrenUnderFourPresentAtEndOfCycle(childrenUnderFourPresentAtEndOfCycle)
                 .build();
-        assertThat(summary.lastChildTurnsFour()).isEqualTo(expected);
+        assertThat(summary.youngestChildTurnsFour()).isEqualTo(expected);
     }
 
 }

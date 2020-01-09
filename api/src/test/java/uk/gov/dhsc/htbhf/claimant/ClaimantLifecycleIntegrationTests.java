@@ -31,9 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -102,8 +100,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // run through 13 cycles per year until we near the 4th birthday (13 + 13 + 12 = 38)
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 38);
 
-        // should get notification about child turning four in the next cycle
-        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, CHILD_TURNS_FOUR);
+        // should get notification about youngest child turning four in the next cycle
+        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, PAYMENT_STOPPING);
 
         // should make a final payment
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 1);
@@ -131,7 +129,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
-        // TODO AFHS-545 - assert that payment stopping email has been sent
     }
 
     /**

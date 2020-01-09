@@ -20,7 +20,7 @@ public class NextPaymentCycleSummary {
         return numberOfChildrenTurningFour > 0;
     }
 
-    public boolean lastChildTurnsFour() {
+    public boolean youngestChildTurnsFour() {
         return hasChildrenTurningFour() && !childrenUnderFourPresentAtEndOfCycle;
     }
 
