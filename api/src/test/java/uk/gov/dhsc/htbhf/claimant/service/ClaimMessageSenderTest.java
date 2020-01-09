@@ -133,7 +133,7 @@ class ClaimMessageSenderTest {
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any(), any(), any())).willReturn(payload);
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
 
-        claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+        claimMessageSender.sendInstantSuccessEmail(claim, decision, INSTANT_SUCCESS);
 
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
@@ -147,7 +147,7 @@ class ClaimMessageSenderTest {
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any(), any(), any())).willReturn(payload);
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
 
-        claimMessageSender.sendInstantSuccessPartialChildrenMatchEmailMessage(claim, decision);
+        claimMessageSender.sendInstantSuccessEmail(claim, decision, INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
 
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);

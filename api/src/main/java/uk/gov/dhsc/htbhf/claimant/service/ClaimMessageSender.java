@@ -29,7 +29,6 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRT
  * Responsible for sending messages related to claims (new or updated).
  */
 @Component
-@SuppressWarnings("PMD.TooManyMethods")
 public class ClaimMessageSender {
 
     private final MessageQueueClient messageQueueClient;
@@ -69,15 +68,7 @@ public class ClaimMessageSender {
         messageQueueClient.sendMessage(payload, REQUEST_NEW_CARD);
     }
 
-    public void sendInstantSuccessEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-        sendInstantSuccessEmail(claim, decision, EmailType.INSTANT_SUCCESS);
-    }
-
-    public void sendInstantSuccessPartialChildrenMatchEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
-        sendInstantSuccessEmail(claim, decision, EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
-    }
-
-    private void sendInstantSuccessEmail(Claim claim, EligibilityAndEntitlementDecision decision, EmailType emailType) {
+    public void sendInstantSuccessEmail(Claim claim, EligibilityAndEntitlementDecision decision, EmailType emailType) {
         LocalDate nextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(cycleDurationInDays);
         EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(
                 claim, decision.getVoucherEntitlement(), nextPaymentDate, emailType);

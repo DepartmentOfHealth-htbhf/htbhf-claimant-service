@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
@@ -105,12 +106,17 @@ class ClaimServiceTest {
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
-    @Test
-    void shouldSaveNewEligibleClaimantAndSendMessages() {
+    @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
+    @MethodSource("provideAllChildrenRegisteredChildrenDobs")
+    void shouldSaveNewEligibleClaimantAndSendMessagesAllDeclaredChildrenPresentInEligibilityResponse(List<LocalDate> initiallyDeclaredChildren,
+                                                                                                     List<LocalDate> eligibilityResponseChildren) {
         //given
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
+                anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aValidClaimRequest();
+        Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -121,7 +127,7 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
@@ -130,7 +136,7 @@ class ClaimServiceTest {
     @Test
     void shouldSaveNewEligibleClaimantThatIsPregnantWithNoChildren() {
         //given
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NULL_CHILDREN);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NO_CHILDREN);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
         Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
@@ -145,14 +151,14 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
     @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
-    @MethodSource("provideChildrenDobs")
+    @MethodSource("providePartialMatchChildrenDobs")
     void shouldSaveNewEligibleClaimantAndSendMessagesWhenPartialChildrenMatch(List<LocalDate> initiallyDeclaredChildren,
                                                                               List<LocalDate> eligibilityResponseChildren) {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
@@ -171,20 +177,26 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessPartialChildrenMatchEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
     }
 
-    private static Stream<Arguments> provideChildrenDobs() {
+    private static Stream<Arguments> providePartialMatchChildrenDobs() {
+        //First param is initiallyDeclaredChildren, second param is those returned from the eligibility service.
+        return Stream.of(
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NULL_CHILDREN),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NO_CHILDREN),
+                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS)
+        );
+    }
+
+    private static Stream<Arguments> provideAllChildrenRegisteredChildrenDobs() {
         //First param is initiallyDeclaredChildren, second param is those returned from the eligibility service.
         return Stream.of(
                 Arguments.of(singletonList(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
                 Arguments.of(singletonList(LISA_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
-                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NULL_CHILDREN),
-                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NO_CHILDREN),
-                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
                 Arguments.of(NULL_CHILDREN, singletonList(LISA_DATE_OF_BIRTH)),
                 Arguments.of(NO_CHILDREN, singletonList(LISA_DATE_OF_BIRTH))
         );
@@ -277,7 +289,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
@@ -307,7 +319,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         if (eligibilityStatus == ELIGIBLE) {
-            verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+            verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         }

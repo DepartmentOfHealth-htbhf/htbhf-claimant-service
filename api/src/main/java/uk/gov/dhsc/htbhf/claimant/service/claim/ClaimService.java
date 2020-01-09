@@ -4,10 +4,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
@@ -29,6 +29,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.factory.VerificationResultFactory.buildVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
@@ -83,11 +85,10 @@ public class ClaimService {
                                          CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                          Claim claim) {
         if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
-            if (registeredChildrenMatchDeclaredChildren(identityAndEligibilityResponse, claim)) {
-                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
-            } else {
-                claimMessageSender.sendInstantSuccessPartialChildrenMatchEmailMessage(claim, decision);
-            }
+            EmailType emailType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
+                    ? EmailType.INSTANT_SUCCESS
+                    : EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
+            claimMessageSender.sendInstantSuccessEmail(claim, decision, emailType);
         } else {
             sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }
@@ -100,10 +101,7 @@ public class ClaimService {
                                                      CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         claimMessageSender.sendDecisionPendingEmailMessage(claim);
 
-        List<LocalDate> childrenDobFromBenefitAgency = identityAndEligibilityResponse.getDobOfChildrenUnder4();
-        List<LocalDate> declaredChildrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
-
-        LetterType letterType = childrenDobFromBenefitAgency.containsAll(declaredChildrenDob)
+        LetterType letterType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
                 ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH
                 : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
         claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
@@ -185,16 +183,9 @@ public class ClaimService {
         return ClaimStatus.REJECTED;
     }
 
-    private boolean registeredChildrenMatchDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
-        List<LocalDate> initiallyDeclaredChildrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
-        List<LocalDate> identityAndEligibilityResponseChildren = identityAndEligibilityResponse.getDobOfChildrenUnder4();
-        //These two if statement are here because CollectionUtils.isEqualCollection isn't null safe, any other results are handled
-        if (CollectionUtils.isEmpty(initiallyDeclaredChildrenDob) && CollectionUtils.isEmpty(identityAndEligibilityResponseChildren)) {
-            return true;
-        }
-        if (CollectionUtils.isEmpty(initiallyDeclaredChildrenDob) || CollectionUtils.isEmpty(identityAndEligibilityResponseChildren)) {
-            return false;
-        }
-        return CollectionUtils.isEqualCollection(identityAndEligibilityResponseChildren, initiallyDeclaredChildrenDob);
+    private boolean registeredChildrenContainAllDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
+        List<LocalDate> initiallyDeclaredChildrenDob = defaultIfNull(claim.getClaimant().getInitiallyDeclaredChildrenDob(), emptyList());
+        List<LocalDate> identityAndEligibilityResponseChildren = defaultIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4(), emptyList());
+        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob);
     }
 }
