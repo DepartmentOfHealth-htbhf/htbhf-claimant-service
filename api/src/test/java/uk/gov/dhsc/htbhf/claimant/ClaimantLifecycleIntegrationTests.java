@@ -141,7 +141,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * | claim starts (due date in 25 weeks)
      * |........................| Due date
      * |...............................| email asking claimant to tell their benefit agency about new child
-     * |.......................................| email about coming off the scheme
      * |.......................................................| email that the card will be cancelled in one week
      */
     @Test
@@ -173,6 +172,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+        verifyNoMoreInteractions(notificationClient);
 
         // should schedule the card for cancellation after four cycles
         ageByNumberOfCycles(4);
@@ -234,6 +234,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.CLAIM_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         LocalDateTime now = LocalDateTime.now();
         // 16 weeks pass
@@ -261,6 +262,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.CLAIM_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         // eligible decision moves claim back to active
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
@@ -286,6 +288,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         // invoke schedulers to report the claim expiring
         invokeAllSchedulers();
@@ -301,6 +304,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+    }
+
+    private void assertSingleEmailSent(EmailType emailType, PaymentCycle currentPaymentCycleForClaim) throws NotificationClientException {
+        assertEmailSent(emailType, currentPaymentCycleForClaim);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
@@ -321,8 +329,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         resetNotificationClient();
         childrenDob = ageByOneCycle(childrenDob);
         PaymentCycle paymentCycle = assertPaymentCyclePaidCorrectly(claimId, childrenDob, REGULAR_PAYMENT);
-        assertEmailSent(emailType, paymentCycle);
-        verifyNoMoreInteractions(notificationClient);
+        assertSingleEmailSent(emailType, paymentCycle);
         return childrenDob;
     }
 
