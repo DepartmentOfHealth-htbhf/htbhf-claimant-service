@@ -2,6 +2,7 @@
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -16,6 +17,7 @@ public class PaymentCycleNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
@@ -26,11 +28,11 @@ public class PaymentCycleNotificationHandler {
      * @param paymentCycle the current payment cycle
      */
     public void sendNotificationEmailsForRegularPayment(PaymentCycle paymentCycle) {
-<span class="fc bfc" id="L29" title="All 2 branches covered.">        EmailType emailType = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
-<span class="fc" id="L30">                ? EmailType.NEW_CHILD_FROM_PREGNANCY</span>
-<span class="fc" id="L31">                : EmailType.REGULAR_PAYMENT;</span>
-<span class="fc" id="L32">        sendNotificationEmail(paymentCycle, emailType);</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        EmailType emailType = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)</span>
+<span class="fc" id="L32">                ? EmailType.NEW_CHILD_FROM_PREGNANCY</span>
+<span class="fc" id="L33">                : EmailType.REGULAR_PAYMENT;</span>
+<span class="fc" id="L34">        sendNotificationEmail(paymentCycle, emailType);</span>
+<span class="fc" id="L35">    }</span>
 
     /**
      * Sends a notification for a restarted payment (claimant was pending_expiry and is now active).
@@ -39,27 +41,31 @@ public class PaymentCycleNotificationHandler {
      * @param paymentCycle the current payment cycle
      */
     public void sendNotificationEmailsForRestartedPayment(PaymentCycle paymentCycle) {
-<span class="fc" id="L42">        sendNotificationEmail(paymentCycle, EmailType.RESTARTED_PAYMENT);</span>
-<span class="fc" id="L43">    }</span>
+<span class="fc" id="L44">        sendNotificationEmail(paymentCycle, EmailType.RESTARTED_PAYMENT);</span>
+<span class="fc" id="L45">    }</span>
 
     private void sendNotificationEmail(PaymentCycle paymentCycle, EmailType emailType) {
-<span class="fc" id="L46">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);</span>
-<span class="fc" id="L47">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
-<span class="fc" id="L48">        handleUpcomingBirthdayEmails(paymentCycle);</span>
-<span class="fc" id="L49">    }</span>
+<span class="fc" id="L48">        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);</span>
+<span class="fc" id="L49">        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);</span>
+<span class="fc" id="L50">        handleUpcomingBirthdayEmails(paymentCycle);</span>
+<span class="fc" id="L51">    }</span>
 
     private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {
-<span class="fc bfc" id="L52" title="All 2 branches covered.">        return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() &gt; 0;</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        return paymentCycle.getVoucherEntitlement().getBackdatedVouchers() &gt; 0;</span>
     }
 
     private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
-<span class="fc" id="L56">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
-<span class="fc" id="L58">            upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+<span class="fc" id="L58">        NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);</span>
+<span class="fc bfc" id="L59" title="All 4 branches covered.">        if (nextPaymentCycleSummary.youngestChildTurnsFour() &amp;&amp; !pregnancyEntitlementCalculator.claimantIsPregnantAfterCycle(paymentCycle)) {</span>
+<span class="fc" id="L60">            upcomingBirthdayEmailHandler.sendPaymentStoppingYoungestChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+        } else {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">            if (nextPaymentCycleSummary.hasChildrenTurningFour()) {</span>
+<span class="fc" id="L63">                upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);</span>
+            }
+<span class="fc bfc" id="L65" title="All 2 branches covered.">            if (nextPaymentCycleSummary.hasChildrenTurningOne()) {</span>
+<span class="fc" id="L66">                upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);</span>
+            }
         }
-<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {</span>
-<span class="fc" id="L61">            upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);</span>
-        }
-<span class="fc" id="L63">    }</span>
+<span class="fc" id="L69">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

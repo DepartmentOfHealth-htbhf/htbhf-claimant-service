@@ -79,12 +79,12 @@
 </thead>
 <tr>
 <td class="success">shouldAuditFailedEventWhenAnEventFailedExceptionIsThrown()</td>
-<td class="success">0.017s</td>
+<td class="success">0.018s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldCallDummyProcessors()</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -112,8 +112,8 @@
 <div id="tab1" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>10:21:18.078 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
-10:21:18.078 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id 82eada69-8a41-46c1-be4c-6adbf6030b86, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:186))
+<pre>11:17:35.605 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
+11:17:35.606 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Failure event caught for message with id cc01ee4b-2cdd-41b6-b668-fead81154e43, exception detail: Something went badly wrong (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)), wraps: test exception (at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService.depositFundsToCard(PaymentService.java:186))
 uk.gov.dhsc.htbhf.claimant.exception.EventFailedException: Something went badly wrong
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -215,15 +215,15 @@ Caused by: java.lang.RuntimeException: test exception
 	at org.assertj.core.api.Assertions.catchThrowableOfType(Assertions.java:1244)
 	at uk.gov.dhsc.htbhf.claimant.service.payments.PaymentServiceTest.shouldAuditFailedPaymentWhenInterimPaymentFails(PaymentServiceTest.java:173)
 	... 76 common frames omitted
-10:21:18.079 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
-10:21:18.081 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
-10:21:18.081 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
-10:21:18.082 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 REQUEST_NEW_CARD message(s)
-10:21:18.083 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 REQUEST_NEW_CARD message(s) with status COMPLETED
-10:21:18.084 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 SEND_EMAIL message(s)
-10:21:18.084 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$1599971298
-10:21:18.085 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 REQUEST_NEW_CARD message(s)
-10:21:18.086 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id a5e7aa48-e5c7-4a1e-bd18-229da9eee60e, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
+11:17:35.606 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
+11:17:35.608 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 REQUEST_NEW_CARD message(s)
+11:17:35.608 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
+11:17:35.609 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 2 REQUEST_NEW_CARD message(s)
+11:17:35.610 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 2 REQUEST_NEW_CARD message(s) with status COMPLETED
+11:17:35.610 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 SEND_EMAIL message(s)
+11:17:35.611 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Received null message status from MessageTypeProcessor: uk.gov.dhsc.htbhf.claimant.message.SendEmailDummyMessageTypeProcessor$MockitoMock$1814787657
+11:17:35.612 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 3 REQUEST_NEW_CARD message(s)
+11:17:35.612 [Test worker] ERROR u.g.d.h.c.message.MessageProcessor - Unable to process message with id a0dae8db-022b-4904-8273-24eaf1de67ab, exception detail: foo (at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80))
 java.lang.RuntimeException: foo
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.invokeMessageTypeProcessor(MessageProcessor.java:80)
 	at uk.gov.dhsc.htbhf.claimant.message.MessageProcessor.processMessage(MessageProcessor.java:73)
@@ -314,10 +314,10 @@ java.lang.RuntimeException: foo
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
 	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
 	at java.base/java.lang.Thread.run(Thread.java:834)
-10:21:18.086 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
-10:21:18.086 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
-10:21:18.087 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status FAILED
-10:21:18.089 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 MAKE_PAYMENT message(s)
+11:17:35.613 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status COMPLETED
+11:17:35.613 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status ERROR
+11:17:35.613 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processed 1 REQUEST_NEW_CARD message(s) with status FAILED
+11:17:35.615 [Test worker] INFO  u.g.d.h.c.message.MessageProcessor - Processing 1 MAKE_PAYMENT message(s)
 </pre>
 </span>
 </div>
@@ -329,7 +329,7 @@ java.lang.RuntimeException: foo
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Jan 9, 2020, 10:21:38 AM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Jan 9, 2020, 11:17:45 AM</p>
 </div>
 </div>
 </body>
