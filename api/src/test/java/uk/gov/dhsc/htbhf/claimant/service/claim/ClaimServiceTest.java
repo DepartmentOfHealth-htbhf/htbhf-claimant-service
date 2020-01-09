@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,10 +51,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
-import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
@@ -79,14 +77,13 @@ import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedFullAddressNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedPostcodeNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceTest {
+
+    private static final List<LocalDate> NULL_CHILDREN = null;
+    private static final List<LocalDate> NO_CHILDREN = emptyList();
 
     private static final String WEB_UI_VERSION = "1.1.1";
 
@@ -128,6 +125,69 @@ class ClaimServiceTest {
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    @Test
+    void shouldSaveNewEligibleClaimantThatIsPregnantWithNoChildren() {
+        //given
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NULL_CHILDREN);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
+        ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+
+        //then
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result);
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
+    @MethodSource("provideChildrenDobs")
+    void shouldSaveNewEligibleClaimantAndSendMessagesWhenPartialChildrenMatch(List<LocalDate> initiallyDeclaredChildren,
+                                                                              List<LocalDate> eligibilityResponseChildren) {
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
+                anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+
+        //then
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result);
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessPartialChildrenMatchEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    private static Stream<Arguments> provideChildrenDobs() {
+        //First param is initiallyDeclaredChildren, second param is those returned from the eligibility service.
+        return Stream.of(
+                Arguments.of(singletonList(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NULL_CHILDREN),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NO_CHILDREN),
+                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                Arguments.of(NULL_CHILDREN, singletonList(LISA_DATE_OF_BIRTH)),
+                Arguments.of(NO_CHILDREN, singletonList(LISA_DATE_OF_BIRTH))
+        );
     }
 
     @ParameterizedTest

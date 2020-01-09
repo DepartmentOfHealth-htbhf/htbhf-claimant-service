@@ -22,8 +22,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -54,7 +54,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 @SuppressWarnings("PMD.AvoidReassigningParameters")
 public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
-    public static final int CYCLE_DURATION = 28;
+    private static final int CYCLE_DURATION = 28;
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -89,7 +89,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         verifyNoMoreInteractions(notificationClient);
 
         // child was born exactly on due date - one and a half cycles ago - notify in time to get backdated vouchers
-        List<LocalDate> childrenDob = ageByOneCycle(asList(expectedDeliveryDate));
+        List<LocalDate> childrenDob = ageByOneCycle(singletonList(expectedDeliveryDate));
         assertPaymentCycleWithBackdatedVouchersForNewChild(claimId, childrenDob);
         verifyNoMoreInteractions(notificationClient);
 
@@ -145,7 +145,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
+    void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
         assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
@@ -186,7 +186,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     @Test
-    public void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
+    void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
         ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
         ClaimantDTO claimant = claimDTO.getClaimant();
         String cardAccountId = UUID.randomUUID().toString();

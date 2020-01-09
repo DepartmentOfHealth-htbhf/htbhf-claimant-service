@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -35,6 +36,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.ExcessiveImports"})
 public class ClaimService {
 
     private final ClaimRepository claimRepository;
@@ -81,7 +83,11 @@ public class ClaimService {
                                          CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                          Claim claim) {
         if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
-            claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+            if (registeredChildrenMatchDeclaredChildren(identityAndEligibilityResponse, claim)) {
+                claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+            } else {
+                claimMessageSender.sendInstantSuccessPartialChildrenMatchEmailMessage(claim, decision);
+            }
         } else {
             sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }
@@ -177,5 +183,18 @@ public class ClaimService {
             return STATUS_MAP.get(eligibilityStatus);
         }
         return ClaimStatus.REJECTED;
+    }
+
+    private boolean registeredChildrenMatchDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
+        List<LocalDate> initiallyDeclaredChildrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
+        List<LocalDate> identityAndEligibilityResponseChildren = identityAndEligibilityResponse.getDobOfChildrenUnder4();
+        //These two if statement are here because CollectionUtils.isEqualCollection isn't null safe, any other results are handled
+        if (CollectionUtils.isEmpty(initiallyDeclaredChildrenDob) && CollectionUtils.isEmpty(identityAndEligibilityResponseChildren)) {
+            return true;
+        }
+        if (CollectionUtils.isEmpty(initiallyDeclaredChildrenDob) || CollectionUtils.isEmpty(identityAndEligibilityResponseChildren)) {
+            return false;
+        }
+        return CollectionUtils.isEqualCollection(identityAndEligibilityResponseChildren, initiallyDeclaredChildrenDob);
     }
 }

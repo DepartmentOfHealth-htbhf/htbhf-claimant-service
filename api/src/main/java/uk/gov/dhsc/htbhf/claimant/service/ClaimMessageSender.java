@@ -29,6 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRT
  * Responsible for sending messages related to claims (new or updated).
  */
 @Component
+@SuppressWarnings("PMD.TooManyMethods")
 public class ClaimMessageSender {
 
     private final MessageQueueClient messageQueueClient;
