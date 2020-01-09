@@ -282,18 +282,6 @@ abstract class ScheduledServiceIntegrationTest {
                 .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
     }
 
-    private void assertYoungestChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
-        assertCommonPaymentEmailFields(currentCycle, personalisationMap);
-        assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(0)); // no children under one
-        assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(0)); // no children under four
-        assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
-                .isEqualTo(formatVoucherAmount(5)); // one voucher in first week only for child turning four and four pregnancy
-        assertThat(personalisationMap.get(EmailTemplateKey.REGULAR_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(4)); // child has turned four, so no vouchers going forward
-    }
-
     private void assertYoungestChildTurnsFourEmailPersonalisationMap(Map personalisationMap) {
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
                 .isEqualTo(formatVoucherAmount(4)); // one voucher each week
