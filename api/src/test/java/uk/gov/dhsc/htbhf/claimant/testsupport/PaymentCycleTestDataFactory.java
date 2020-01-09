@@ -63,6 +63,7 @@ public class PaymentCycleTestDataFactory {
                 .totalVouchers(voucherEntitlement.getTotalVoucherEntitlement())
                 .cycleEndDate(endDate)
                 .claim(claim)
+                .expectedDeliveryDate(nullSafeGetExpectedDeliveryDate(claim))
                 .build();
     }
 
