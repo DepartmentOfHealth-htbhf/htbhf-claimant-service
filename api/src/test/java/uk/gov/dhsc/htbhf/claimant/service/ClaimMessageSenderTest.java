@@ -190,9 +190,9 @@ class ClaimMessageSenderTest {
         Claim claim = aValidClaim();
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
 
-        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH);
+        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH);
 
-        LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH);
+        LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH);
         verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
     }
 }

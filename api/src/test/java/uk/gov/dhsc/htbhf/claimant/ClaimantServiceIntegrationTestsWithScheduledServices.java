@@ -141,8 +141,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         return Stream.of(
                 // only testing subset of all permutations of email/phone being matched, not_matched, not_held, not_set and not_supplied in this integration
                 // test. A larger set of permutations is tested by a unit test.
-                Arguments.of(MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, LetterType.INSTANT_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH)
+                Arguments.of(MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH)
         );
     }
 

@@ -53,8 +53,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.*;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
@@ -237,13 +237,13 @@ class ClaimServiceTest {
     private static Stream<Arguments> emailOrPhoneMismatchArguments() {
         return Stream.of(
                 // email match, phone match, declared children dob, benefit agency dob, letter type
-                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH)
+                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH)
         );
     }
 

@@ -16,7 +16,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressAndPaymentFields;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
@@ -50,11 +50,11 @@ class LetterMessagePayloadFactoryTest {
         Claim claim = aValidClaim();
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
 
-        LetterMessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, INSTANT_SUCCESS_CHILDREN_MATCH);
+        LetterMessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, APPLICATION_SUCCESS_CHILDREN_MATCH);
 
         assertThat(payload).isNotNull();
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getLetterType()).isEqualTo(INSTANT_SUCCESS_CHILDREN_MATCH);
+        assertThat(payload.getLetterType()).isEqualTo(APPLICATION_SUCCESS_CHILDREN_MATCH);
         assertThat(payload.getPersonalisation()).contains(ADDRESS_ENTRIES);
         PaymentCycleVoucherEntitlement voucherEntitlement = decision.getVoucherEntitlement();
         int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();

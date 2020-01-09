@@ -102,8 +102,8 @@ public class ClaimService {
         claimMessageSender.sendDecisionPendingEmailMessage(claim);
 
         LetterType letterType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
-                ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH
-                : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
+                ? LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH
+                : LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
         claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
     }
 
