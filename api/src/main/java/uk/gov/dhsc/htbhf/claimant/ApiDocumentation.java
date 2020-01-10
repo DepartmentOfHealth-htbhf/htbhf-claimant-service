@@ -29,7 +29,7 @@ import static springfox.documentation.schema.AlternateTypeRules.newRule;
 @Slf4j
 public class ApiDocumentation {
 
-    @Value("${app.version:1.0}") // use APP_VERSION env variable if available, otherwise give no version info
+    @Value("${app.version:1.0}") // use APP_VERSION env variable if available, otherwise default to 1.0
     private String appVersion;
 
     @Autowired
