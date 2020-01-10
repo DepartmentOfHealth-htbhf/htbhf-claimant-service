@@ -11,5 +11,5 @@ public class MakePaymentMessagePayload implements MessagePayload {
     private UUID claimId;
     private UUID paymentCycleId;
     private String cardAccountId;
-    private boolean paymentRestarted;
+    private PaymentType paymentType;
 }
