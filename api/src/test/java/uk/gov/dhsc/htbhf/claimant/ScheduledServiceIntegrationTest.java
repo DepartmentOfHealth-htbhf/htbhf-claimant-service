@@ -272,10 +272,11 @@ abstract class ScheduledServiceIntegrationTest {
     private void assertChildTurnsFourEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {
         assertCommonPaymentEmailFields(currentCycle, personalisationMap);
         boolean isPregnant = currentCycle.getExpectedDeliveryDate() != null && currentCycle.getExpectedDeliveryDate().isAfter(LocalDate.now().minusWeeks(12));
+        boolean childUnder4 = currentCycle.getChildrenDob().stream().anyMatch(localDate -> localDate.isAfter(LocalDate.now().minusYears(3)));
         assertThat(personalisationMap.get(CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(0)); // no children under one
         assertThat(personalisationMap.get(CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName())).asString()
-                .contains(formatVoucherAmount(isPregnant ? 0 : 4));
+                .contains(formatVoucherAmount(childUnder4 ? 4 : 0));
         assertThat(personalisationMap.get(PREGNANCY_PAYMENT.getTemplateKeyName())).asString()
                 .contains(formatVoucherAmount(isPregnant ? 4 : 0));
         assertThat(personalisationMap.get(PAYMENT_AMOUNT.getTemplateKeyName()))
