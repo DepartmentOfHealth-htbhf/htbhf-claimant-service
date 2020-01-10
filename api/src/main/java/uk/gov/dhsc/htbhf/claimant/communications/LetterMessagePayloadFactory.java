@@ -1,16 +1,23 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Builds the message payload required to send a letter message. The letter template has parameterised values
@@ -21,7 +28,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
 public class LetterMessagePayloadFactory {
 
     public static LetterMessagePayload buildLetterPayloadWithAddressOnly(Claim claim, LetterType letterType) {
-        Map<String, Object> personalisationMap = populatePersonalisationMap(claim.getClaimant());
+        Map<String, Object> personalisationMap = createAddressPersonalisationMap(claim.getClaimant());
 
         return LetterMessagePayload.builder()
                 .claimId(claim.getId())
@@ -30,7 +37,21 @@ public class LetterMessagePayloadFactory {
                 .build();
     }
 
-    private static Map<String, Object> populatePersonalisationMap(Claimant claimant) {
+    public static LetterMessagePayload buildLetterPayloadWithAddressAndPaymentFields(Claim claim,
+                                                                                     EligibilityAndEntitlementDecision decision,
+                                                                                     LetterType letterType) {
+        Map<String, Object> personalisationMap = new HashMap<>();
+        personalisationMap.putAll(createAddressPersonalisationMap(claim.getClaimant()));
+        personalisationMap.putAll(createPaymentPersonalisationMap(decision.getVoucherEntitlement()));
+
+        return LetterMessagePayload.builder()
+                .claimId(claim.getId())
+                .letterType(letterType)
+                .personalisation(personalisationMap)
+                .build();
+    }
+
+    private static Map<String, Object> createAddressPersonalisationMap(Claimant claimant) {
         Address address = claimant.getAddress();
         Map<String, Object> personalisationMap = new HashMap<>();
         personalisationMap.put(ADDRESS_LINE_1.getTemplateKeyName(), claimant.getFirstName() + " " + claimant.getLastName());
@@ -40,6 +61,16 @@ public class LetterMessagePayloadFactory {
         personalisationMap.put(ADDRESS_LINE_5.getTemplateKeyName(), address.getCounty());
         personalisationMap.put(POSTCODE.getTemplateKeyName(), address.getPostcode());
         return personalisationMap;
+    }
+
+    private static Map<String, Object> createPaymentPersonalisationMap(PaymentCycleVoucherEntitlement voucherEntitlement) {
+        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());
+        return Map.of(
+                PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount,
+                PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement),
+                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement),
+                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement)
+        );
     }
 
 }

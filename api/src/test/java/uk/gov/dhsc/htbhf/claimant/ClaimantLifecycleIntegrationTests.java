@@ -22,8 +22,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -31,9 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_FOUR;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -54,7 +52,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 @SuppressWarnings("PMD.AvoidReassigningParameters")
 public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
-    public static final int CYCLE_DURATION = 28;
+    private static final int CYCLE_DURATION = 28;
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -69,7 +67,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * ..................| New baby reported to DWP
      * ....................| Backdated vouchers paid
      * ........................................................| email about upcoming changes to payment
-     * ........................................................................| email that the card will be cancelled in one week
+     * ...................................................[4 years]............| email that the card will be cancelled in one week
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -89,7 +87,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         verifyNoMoreInteractions(notificationClient);
 
         // child was born exactly on due date - one and a half cycles ago - notify in time to get backdated vouchers
-        List<LocalDate> childrenDob = ageByOneCycle(asList(expectedDeliveryDate));
+        List<LocalDate> childrenDob = ageByOneCycle(singletonList(expectedDeliveryDate));
         assertPaymentCycleWithBackdatedVouchersForNewChild(claimId, childrenDob);
         verifyNoMoreInteractions(notificationClient);
 
@@ -102,8 +100,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // run through 13 cycles per year until we near the 4th birthday (13 + 13 + 12 = 38)
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 38);
 
-        // should get notification about child turning four in the next cycle
-        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, CHILD_TURNS_FOUR);
+        // should get notification about youngest child turning four in the next cycle
+        childrenDob = progressThroughCycleWithUpcomingBirthday(claimId, childrenDob, PAYMENT_STOPPING);
 
         // should make a final payment
         childrenDob = progressThroughRegularPaymentCycles(claimId, childrenDob, 1);
@@ -131,7 +129,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
-        // TODO AFHS-545 - assert that payment stopping email has been sent
     }
 
     /**
@@ -141,12 +138,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * | claim starts (due date in 25 weeks)
      * |........................| Due date
      * |...............................| email asking claimant to tell their benefit agency about new child
-     * |.......................................| email about coming off the scheme
      * |.......................................................| email that the card will be cancelled in one week
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
+    void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
         assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
@@ -173,6 +169,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
         assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+        verifyNoMoreInteractions(notificationClient);
 
         // should schedule the card for cancellation after four cycles
         ageByNumberOfCycles(4);
@@ -186,7 +183,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     @Test
-    public void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
+    void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
         ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
         ClaimantDTO claimant = claimDTO.getClaimant();
         String cardAccountId = UUID.randomUUID().toString();
@@ -234,6 +231,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.CLAIM_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         LocalDateTime now = LocalDateTime.now();
         // 16 weeks pass
@@ -261,6 +259,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.CLAIM_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         // eligible decision moves claim back to active
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
@@ -286,6 +285,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
 
         // invoke schedulers to report the claim expiring
         invokeAllSchedulers();
@@ -301,6 +301,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
         assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+    }
+
+    private void assertSingleEmailSent(EmailType emailType, PaymentCycle currentPaymentCycleForClaim) throws NotificationClientException {
+        assertEmailSent(emailType, currentPaymentCycleForClaim);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancy(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
@@ -321,8 +326,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         resetNotificationClient();
         childrenDob = ageByOneCycle(childrenDob);
         PaymentCycle paymentCycle = assertPaymentCyclePaidCorrectly(claimId, childrenDob, REGULAR_PAYMENT);
-        assertEmailSent(emailType, paymentCycle);
-        verifyNoMoreInteractions(notificationClient);
+        assertSingleEmailSent(emailType, paymentCycle);
         return childrenDob;
     }
 

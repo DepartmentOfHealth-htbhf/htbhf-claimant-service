@@ -29,15 +29,18 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
+import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressAndPaymentFields;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
@@ -130,11 +133,26 @@ class ClaimMessageSenderTest {
         given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any(), any(), any())).willReturn(payload);
         EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
 
-        claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+        claimMessageSender.sendInstantSuccessEmail(claim, decision, INSTANT_SUCCESS);
 
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
         verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate, INSTANT_SUCCESS);
+    }
+
+    @Test
+    void shouldSendInstantSuccessPartialChildrenMatchMessage() {
+        Claim claim = aValidClaim();
+        EmailMessagePayload payload = mock(EmailMessagePayload.class);
+        given(emailMessagePayloadFactory.buildEmailMessagePayload(any(), any(), any(), any())).willReturn(payload);
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
+
+        claimMessageSender.sendInstantSuccessEmail(claim, decision, INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
+
+        verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
+        LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
+        verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate,
+                INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
     }
 
     @Test
@@ -158,12 +176,23 @@ class ClaimMessageSenderTest {
     }
 
     @Test
-    void shouldSendLetterMessage() {
+    void shouldSendLetterWithAddressOnlyMessage() {
         Claim claim = aValidClaim();
 
         claimMessageSender.sendLetterWithAddressOnlyMessage(claim, LetterType.UPDATE_YOUR_ADDRESS);
 
         LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressOnly(claim, LetterType.UPDATE_YOUR_ADDRESS);
+        verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
+    }
+
+    @Test
+    void shouldSendLetterWithAddressAndPaymentFieldsMessage() {
+        Claim claim = aValidClaim();
+        EligibilityAndEntitlementDecision decision = anEligibleDecision();
+
+        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH);
+
+        LetterMessagePayload expectedPayload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH);
         verify(messageQueueClient).sendMessage(expectedPayload, SEND_LETTER);
     }
 }

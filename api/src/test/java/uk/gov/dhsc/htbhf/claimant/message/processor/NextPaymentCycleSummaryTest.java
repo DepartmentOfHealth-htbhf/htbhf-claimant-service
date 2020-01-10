@@ -71,4 +71,19 @@ class NextPaymentCycleSummaryTest {
 
         assertThat(summary.getNumberOfChildrenTurningOneOrFour()).isEqualTo(total);
     }
+
+    @ParameterizedTest
+    @CsvSource({"0, true, false",
+            "1, true, false",
+            "1, false, true",
+            "2, false, true",
+            "0, false, false"})
+    void shouldReportLastChildTurningFour(int childrenTurningFour, boolean childrenUnderFourPresentAtEndOfCycle, boolean expected) {
+        NextPaymentCycleSummary summary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(childrenTurningFour)
+                .childrenUnderFourPresentAtEndOfCycle(childrenUnderFourPresentAtEndOfCycle)
+                .build();
+        assertThat(summary.youngestChildTurnsFour()).isEqualTo(expected);
+    }
+
 }

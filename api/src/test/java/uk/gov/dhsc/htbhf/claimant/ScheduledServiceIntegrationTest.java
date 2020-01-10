@@ -37,6 +37,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 
@@ -204,17 +207,41 @@ abstract class ScheduledServiceIntegrationTest {
         assertThatMapContainsLetterAddressFieldsOnly(claim, personalisationMap);
     }
 
+    void assertThatLetterWithAddressAndPaymentFieldsWasSent(Claim claim, PaymentCycle paymentCycle, LetterType letterType) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendLetter(
+                eq(letterType.getTemplateId()),
+                mapArgumentCaptor.capture(),
+                any());
+
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertThatMapContainsAddressAndPaymentFields(claim, paymentCycle, personalisationMap);
+    }
+
+    protected void assertThatMapContainsAddressAndPaymentFields(Claim claim, PaymentCycle paymentCycle, Map personalisationMap) {
+        assertThat(personalisationMap).contains(addressEntries(claim.getClaimant()));
+        PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
+        assertThat(personalisationMap).contains(
+                entry("payment_amount", formatVoucherAmount(voucherEntitlement.getTotalVoucherEntitlement())),
+                entry("pregnancy_payment", buildPregnancyPaymentAmountSummary(voucherEntitlement)),
+                entry("children_under_1_payment", buildUnder1PaymentSummary(voucherEntitlement)),
+                entry("children_under_4_payment", buildUnder4PaymentSummary(voucherEntitlement))
+        );
+    }
+
     private void assertThatMapContainsLetterAddressFieldsOnly(Claim claim, Map personalisationMap) {
-        Claimant claimant = claim.getClaimant();
+        assertThat(personalisationMap).containsOnly(addressEntries(claim.getClaimant()));
+    }
+
+    private Map.Entry[] addressEntries(Claimant claimant) {
         Address address = claimant.getAddress();
-        assertThat(personalisationMap).containsOnly(
+        return new Map.Entry[]{
                 entry("address_line_1", claimant.getFirstName() + " " + claimant.getLastName()),
                 entry("address_line_2", address.getAddressLine1()),
                 entry("address_line_3", address.getAddressLine2()),
                 entry("address_line_4", address.getTownOrCity()),
                 entry("address_line_5", address.getCounty()),
-                entry("postcode", address.getPostcode())
-        );
+                entry("postcode", address.getPostcode())};
     }
 
     private void assertChildTurnsOneInFirstWeekEmailPersonalisationMap(PaymentCycle currentCycle, Map personalisationMap) {

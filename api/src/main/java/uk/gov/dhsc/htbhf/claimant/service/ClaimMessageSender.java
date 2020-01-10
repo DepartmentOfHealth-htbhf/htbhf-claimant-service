@@ -17,6 +17,7 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.buildEmailMessagePayloadWithFirstAndLastNameOnly;
+import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressAndPaymentFields;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
@@ -67,10 +68,10 @@ public class ClaimMessageSender {
         messageQueueClient.sendMessage(payload, REQUEST_NEW_CARD);
     }
 
-    public void sendInstantSuccessEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
+    public void sendInstantSuccessEmail(Claim claim, EligibilityAndEntitlementDecision decision, EmailType emailType) {
         LocalDate nextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(cycleDurationInDays);
         EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(
-                claim, decision.getVoucherEntitlement(), nextPaymentDate, EmailType.INSTANT_SUCCESS);
+                claim, decision.getVoucherEntitlement(), nextPaymentDate, emailType);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 
@@ -86,6 +87,11 @@ public class ClaimMessageSender {
 
     public void sendLetterWithAddressOnlyMessage(Claim claim, LetterType letterType) {
         MessagePayload payload = buildLetterPayloadWithAddressOnly(claim, letterType);
+        messageQueueClient.sendMessage(payload, SEND_LETTER);
+    }
+
+    public void sendLetterWithAddressAndPaymentFieldsMessage(Claim claim, EligibilityAndEntitlementDecision decision, LetterType letterType) {
+        MessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, letterType);
         messageQueueClient.sendMessage(payload, SEND_LETTER);
     }
 }

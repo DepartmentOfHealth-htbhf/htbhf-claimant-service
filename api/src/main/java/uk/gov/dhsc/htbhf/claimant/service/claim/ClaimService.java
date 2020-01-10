@@ -7,6 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
@@ -28,6 +29,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static uk.gov.dhsc.htbhf.claimant.factory.VerificationResultFactory.buildVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildWithStatus;
@@ -35,6 +38,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.ExcessiveImports"})
 public class ClaimService {
 
     private final ClaimRepository claimRepository;
@@ -81,24 +85,26 @@ public class ClaimService {
                                          CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                          Claim claim) {
         if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
-            claimMessageSender.sendInstantSuccessEmailMessage(claim, decision);
+            EmailType emailType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
+                    ? EmailType.INSTANT_SUCCESS
+                    : EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
+            claimMessageSender.sendInstantSuccessEmail(claim, decision, emailType);
         } else {
-            sendMessagesForPhoneOrEmailMismatch(claim, identityAndEligibilityResponse);
+            sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }
         claimMessageSender.sendNewCardMessage(claim, decision);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);
     }
 
-    private void sendMessagesForPhoneOrEmailMismatch(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private void sendMessagesForPhoneOrEmailMismatch(Claim claim,
+                                                     EligibilityAndEntitlementDecision decision,
+                                                     CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         claimMessageSender.sendDecisionPendingEmailMessage(claim);
 
-        List<LocalDate> childrenDobFromBenefitAgency = identityAndEligibilityResponse.getDobOfChildrenUnder4();
-        List<LocalDate> declaredChildrenDob = claim.getClaimant().getInitiallyDeclaredChildrenDob();
-
-        LetterType letterType = childrenDobFromBenefitAgency.containsAll(declaredChildrenDob)
-                ? LetterType.INSTANT_SUCCESS_CHILDREN_MATCH
-                : LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
-        claimMessageSender.sendLetterWithAddressOnlyMessage(claim, letterType);
+        LetterType letterType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
+                ? LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH
+                : LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
+        claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
     }
 
     private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
@@ -175,5 +181,11 @@ public class ClaimService {
             return STATUS_MAP.get(eligibilityStatus);
         }
         return ClaimStatus.REJECTED;
+    }
+
+    private boolean registeredChildrenContainAllDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
+        List<LocalDate> initiallyDeclaredChildrenDob = defaultIfNull(claim.getClaimant().getInitiallyDeclaredChildrenDob(), emptyList());
+        List<LocalDate> identityAndEligibilityResponseChildren = defaultIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4(), emptyList());
+        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob);
     }
 }

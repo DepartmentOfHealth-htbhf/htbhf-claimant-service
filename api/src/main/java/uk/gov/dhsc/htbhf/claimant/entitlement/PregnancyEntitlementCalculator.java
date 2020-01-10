@@ -71,4 +71,18 @@ public class PregnancyEntitlementCalculator {
     public boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
         return isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());
     }
+    
+    /**
+     * Determines if a claimant is still pregnant on the day after the payment cycle ends, based on their due date and the pregnancy grace period.
+     * Returns true if the claimant's due date is before or equal to the day after payment cycle end date plus the grace period duration.
+     * @param paymentCycle the payment cycle to check when the claimant is pregnant
+     *
+     * @return true if the claimant is entitled to a voucher on the day after the given cycle ends.
+     */
+    public boolean claimantIsPregnantAfterCycle(PaymentCycle paymentCycle) {
+        LocalDate expectedDeliveryDate = paymentCycle.getExpectedDeliveryDate();
+        LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);
+        return isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);
+    }
+
 }

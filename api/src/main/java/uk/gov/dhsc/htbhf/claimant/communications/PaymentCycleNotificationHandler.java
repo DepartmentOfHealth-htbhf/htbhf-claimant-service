@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -16,6 +17,7 @@ public class PaymentCycleNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
     private final ChildDateOfBirthCalculator childDateOfBirthCalculator;
+    private final PregnancyEntitlementCalculator pregnancyEntitlementCalculator;
     private final UpcomingBirthdayEmailHandler upcomingBirthdayEmailHandler;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
 
@@ -54,11 +56,15 @@ public class PaymentCycleNotificationHandler {
 
     private void handleUpcomingBirthdayEmails(PaymentCycle paymentCycle) {
         NextPaymentCycleSummary nextPaymentCycleSummary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
-        if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
-            upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
-        }
-        if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
-            upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+        if (nextPaymentCycleSummary.youngestChildTurnsFour() && !pregnancyEntitlementCalculator.claimantIsPregnantAfterCycle(paymentCycle)) {
+            upcomingBirthdayEmailHandler.sendPaymentStoppingYoungestChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+        } else {
+            if (nextPaymentCycleSummary.hasChildrenTurningFour()) {
+                upcomingBirthdayEmailHandler.sendChildTurnsFourEmail(paymentCycle, nextPaymentCycleSummary);
+            }
+            if (nextPaymentCycleSummary.hasChildrenTurningOne()) {
+                upcomingBirthdayEmailHandler.sendChildTurnsOneEmail(paymentCycle, nextPaymentCycleSummary);
+            }
         }
     }
 }

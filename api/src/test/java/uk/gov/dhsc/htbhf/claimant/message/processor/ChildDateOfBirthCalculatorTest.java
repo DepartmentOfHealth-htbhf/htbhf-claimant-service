@@ -34,6 +34,10 @@ class ChildDateOfBirthCalculatorTest {
     private static final LocalDate CURRENT_CYCLE_FINAL_ENTITLEMENT_DATE = LocalDate.now().plusWeeks(3);
     private static final LocalDate NEXT_CYCLE_FINAL_ENTITLEMENT_DATE = LocalDate.now().plusWeeks(7);
 
+    private static final NextPaymentCycleSummary NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS = NextPaymentCycleSummary.builder()
+            .childrenUnderFourPresentAtEndOfCycle(true)
+            .build();
+
     @Mock
     private PaymentCycleEntitlementCalculator paymentCycleEntitlementCalculator;
 
@@ -68,7 +72,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -81,7 +85,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -95,7 +102,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -109,7 +119,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -122,7 +132,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -135,7 +145,42 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
+        assertThat(summary).isEqualTo(expectedSummary);
+    }
+
+    @Test
+    void shouldReturnLastChildTurningFourWithBirthdayJustAfterStartBoundary() {
+        //Given eldest child will turn 4 the day after the start of the last entitlement date for the current PaymentCycle
+        PaymentCycle paymentCycle = buildPaymentCycleWithChildDobs(
+                CURRENT_CYCLE_FINAL_ENTITLEMENT_DATE.minusYears(4).plusDays(1)
+        );
+        //When
+        NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
+        //Then
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(false)
+                .build();
+        assertThat(summary).isEqualTo(expectedSummary);
+    }
+
+    @Test
+    void shouldReturnLastChildTurningFourWithBirthdayOnEndBoundary() {
+        //Given youngest child will turn 4 on the final day of the last entitlement period of the next PaymentCycle.
+        PaymentCycle paymentCycle = buildPaymentCycleWithChildDobs(
+                NEXT_CYCLE_FINAL_ENTITLEMENT_DATE.minusYears(4)
+        );
+        //When
+        NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
+        //Then
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(false)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -150,7 +195,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningFour(2).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningFour(2)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -174,7 +222,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -187,7 +235,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -201,7 +252,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -215,7 +269,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -228,7 +282,7 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        assertThat(summary).isEqualTo(NO_CHILDREN);
+        assertThat(summary).isEqualTo(NO_CHILDREN_WITH_UPCOMING_BIRTHDAYS);
     }
 
     @Test
@@ -241,7 +295,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -256,7 +313,10 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(2).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(2)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -280,7 +340,11 @@ class ChildDateOfBirthCalculatorTest {
         //When
         NextPaymentCycleSummary summary = childDateOfBirthCalculator.getNextPaymentCycleSummary(paymentCycle);
         //Then
-        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).numberOfChildrenTurningFour(1).build();
+        NextPaymentCycleSummary expectedSummary = NextPaymentCycleSummary.builder()
+                .numberOfChildrenTurningOne(1)
+                .numberOfChildrenTurningFour(1)
+                .childrenUnderFourPresentAtEndOfCycle(true)
+                .build();
         assertThat(summary).isEqualTo(expectedSummary);
     }
 
@@ -310,7 +374,7 @@ class ChildDateOfBirthCalculatorTest {
     @MethodSource("provideArgumentsForChildrenUnderFour")
     void shouldReturnHadChildrenForGivenDate(List<LocalDate> childrenDobs) {
         //When
-        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
+        boolean hasChildren = childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isTrue();
     }
@@ -319,7 +383,7 @@ class ChildDateOfBirthCalculatorTest {
     @MethodSource("provideArgumentsForChildrenFourAndOver")
     void shouldReturnHadNoChildrenForGivenDate(List<LocalDate> childrenDobs) {
         //When
-        boolean hasChildren = childDateOfBirthCalculator.hadChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
+        boolean hasChildren = childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(childrenDobs, LocalDate.now());
         //Then
         assertThat(hasChildren).isFalse();
     }
