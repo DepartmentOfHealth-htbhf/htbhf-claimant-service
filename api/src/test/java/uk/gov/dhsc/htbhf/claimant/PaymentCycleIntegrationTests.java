@@ -177,7 +177,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     @ParameterizedTest(name = "Is pregnant={0}")
     @MethodSource("provideArgumentsForChildTurnsFourInNextPaymentCycleTest")
-    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle(List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle, LocalDate pregnant) throws JsonProcessingException, NotificationClientException {
+    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle(List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle, LocalDate pregnant)
+            throws JsonProcessingException, NotificationClientException {
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
