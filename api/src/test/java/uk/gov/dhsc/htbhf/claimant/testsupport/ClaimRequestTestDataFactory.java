@@ -4,8 +4,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest.ClaimRequestBuilder;
 
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithChildrenDob;
 
 
 public class ClaimRequestTestDataFactory {
@@ -13,7 +14,7 @@ public class ClaimRequestTestDataFactory {
     public static final String WEB_UI_VERSION = "1.1.1";
 
     public static ClaimRequest aValidClaimRequest() {
-        return aClaimRequestBuilderForClaimant(aValidClaimant()).build();
+        return aClaimRequestBuilderForClaimant(aClaimantWithChildrenDob(MAGGIE_AND_LISA_DOBS)).build();
     }
 
     public static ClaimRequest aClaimRequestForClaimant(Claimant claimant) {

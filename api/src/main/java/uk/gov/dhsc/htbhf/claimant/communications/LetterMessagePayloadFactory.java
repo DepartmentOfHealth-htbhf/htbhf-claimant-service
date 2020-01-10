@@ -12,7 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import java.util.HashMap;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Builds the message payload required to send a letter message. The letter template has parameterised values
@@ -59,12 +64,12 @@ public class LetterMessagePayloadFactory {
     }
 
     private static Map<String, Object> createPaymentPersonalisationMap(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
+        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());
         return Map.of(
-                PAYMENT_AMOUNT.getTemplateKeyName(), voucherEntitlement.getTotalVoucherValueInPence(),
-                PREGNANCY_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,
-                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence,
-                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence
+                PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount,
+                PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement),
+                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement),
+                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement)
         );
     }
 

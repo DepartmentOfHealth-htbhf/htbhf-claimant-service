@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,12 +52,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
-import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MISMATCH;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
@@ -79,14 +78,13 @@ import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchFailedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedFullAddressNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedPostcodeNotMatchedResponse;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceTest {
+
+    private static final List<LocalDate> NULL_CHILDREN = null;
+    private static final List<LocalDate> NO_CHILDREN = emptyList();
 
     private static final String WEB_UI_VERSION = "1.1.1";
 
@@ -108,12 +106,17 @@ class ClaimServiceTest {
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
-    @Test
-    void shouldSaveNewEligibleClaimantAndSendMessages() {
+    @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
+    @MethodSource("provideAllChildrenRegisteredChildrenDobs")
+    void shouldSaveNewEligibleClaimantAndSendMessagesAllDeclaredChildrenPresentInEligibilityResponse(List<LocalDate> initiallyDeclaredChildren,
+                                                                                                     List<LocalDate> eligibilityResponseChildren) {
         //given
-        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
+                anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
-        ClaimRequest request = aValidClaimRequest();
+        Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -124,10 +127,79 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    @Test
+    void shouldSaveNewEligibleClaimantThatIsPregnantWithNoChildren() {
+        //given
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NO_CHILDREN);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
+        ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+
+        //then
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result);
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
+    @MethodSource("providePartialMatchChildrenDobs")
+    void shouldSaveNewEligibleClaimantAndSendMessagesWhenPartialChildrenMatch(List<LocalDate> initiallyDeclaredChildren,
+                                                                              List<LocalDate> eligibilityResponseChildren) {
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
+                anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any())).willReturn(decision);
+        Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
+        ClaimRequest request = aClaimRequestForClaimant(claimant);
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+
+        //then
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result);
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant);
+        verify(claimRepository).save(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
+        verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    private static Stream<Arguments> providePartialMatchChildrenDobs() {
+        //First param is initiallyDeclaredChildren, second param is those returned from the eligibility service.
+        return Stream.of(
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NULL_CHILDREN),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NO_CHILDREN),
+                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS)
+        );
+    }
+
+    private static Stream<Arguments> provideAllChildrenRegisteredChildrenDobs() {
+        //First param is initiallyDeclaredChildren, second param is those returned from the eligibility service.
+        return Stream.of(
+                Arguments.of(singletonList(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                Arguments.of(singletonList(LISA_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                Arguments.of(NULL_CHILDREN, singletonList(LISA_DATE_OF_BIRTH)),
+                Arguments.of(NO_CHILDREN, singletonList(LISA_DATE_OF_BIRTH))
+        );
     }
 
     @ParameterizedTest
@@ -165,13 +237,13 @@ class ClaimServiceTest {
     private static Stream<Arguments> emailOrPhoneMismatchArguments() {
         return Stream.of(
                 // email match, phone match, declared children dob, benefit agency dob, letter type
-                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), INSTANT_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, INSTANT_SUCCESS_CHILDREN_MATCH)
+                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH)
         );
     }
 
@@ -217,7 +289,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         verify(eventAuditor).auditNewClaim(result.getClaim());
-        verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+        verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         verifyNoMoreInteractions(claimMessageSender);
@@ -247,7 +319,7 @@ class ClaimServiceTest {
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant());
         if (eligibilityStatus == ELIGIBLE) {
-            verify(claimMessageSender).sendInstantSuccessEmailMessage(result.getClaim(), decision);
+            verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
             verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
             verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
         }

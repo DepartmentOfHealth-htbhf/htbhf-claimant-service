@@ -14,6 +14,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.formatRequiredPaymentAmount;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
@@ -31,10 +35,6 @@ public class EmailMessagePayloadFactory {
 
     private final Integer numberOfCalculationPeriods;
 
-    public static String formatPaymentAmountSummary(String summaryTemplate, int numberOfVouchers, int voucherAmountInPence) {
-        return formatOptionalPaymentAmount(summaryTemplate, numberOfVouchers, voucherAmountInPence);
-    }
-
     public static EmailMessagePayload buildEmailMessagePayloadWithFirstAndLastNameOnly(Claim claim, EmailType emailType) {
         Map<String, Object> emailPersonalisation = createEmailPersonalisationWithFirstAndLastNameOnly(claim.getClaimant());
 
@@ -49,18 +49,6 @@ public class EmailMessagePayloadFactory {
         return Map.of(
                 FIRST_NAME.getTemplateKeyName(), claimant.getFirstName(),
                 LAST_NAME.getTemplateKeyName(), claimant.getLastName());
-    }
-
-    private static String formatOptionalPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
-        if (numberOfVouchers == 0) {
-            return "";
-        }
-        return formatRequiredPaymentAmount(template, numberOfVouchers, voucherAmountInPence);
-    }
-
-    private static String formatRequiredPaymentAmount(String template, int numberOfVouchers, int voucherAmountInPence) {
-        int totalAmount = numberOfVouchers * voucherAmountInPence;
-        return String.format(template, convertPenceToPounds(totalAmount));
     }
 
     public EmailMessagePayloadFactory(@Value("${payment-cycle.number-of-calculation-periods}") Integer numberOfCalculationPeriods) {
@@ -125,27 +113,6 @@ public class EmailMessagePayloadFactory {
         String backdateAmount = convertPenceToPounds(voucherEntitlement.getBackdatedVouchersValueInPence());
         emailPersonalisation.put(BACKDATED_AMOUNT.getTemplateKeyName(), backdateAmount);
         return emailPersonalisation;
-    }
-
-    private static String buildPregnancyPaymentAmountSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return formatPaymentAmountSummary(
-                "\n* %s for a pregnancy",
-                voucherEntitlement.getVouchersForPregnancy(),
-                voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private static String buildUnder1PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return formatPaymentAmountSummary(
-                "\n* %s for children under 1",
-                voucherEntitlement.getVouchersForChildrenUnderOne(),
-                voucherEntitlement.getSingleVoucherValueInPence());
-    }
-
-    private static String buildUnder4PaymentSummary(PaymentCycleVoucherEntitlement voucherEntitlement) {
-        return formatPaymentAmountSummary(
-                "\n* %s for children between 1 and 4",
-                voucherEntitlement.getVouchersForChildrenBetweenOneAndFour(),
-                voucherEntitlement.getSingleVoucherValueInPence());
     }
 
     private String getRegularPaymentAmountForNextCycle(PaymentCycleVoucherEntitlement voucherEntitlement) {

@@ -3,7 +3,6 @@ package uk.gov.dhsc.htbhf.claimant.communications;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -16,7 +15,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressAndPaymentFields;
 import static uk.gov.dhsc.htbhf.claimant.communications.LetterMessagePayloadFactory.buildLetterPayloadWithAddressOnly;
 import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.INSTANT_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
@@ -50,19 +49,17 @@ class LetterMessagePayloadFactoryTest {
         Claim claim = aValidClaim();
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
 
-        LetterMessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, INSTANT_SUCCESS_CHILDREN_MATCH);
+        LetterMessagePayload payload = buildLetterPayloadWithAddressAndPaymentFields(claim, decision, APPLICATION_SUCCESS_CHILDREN_MATCH);
 
         assertThat(payload).isNotNull();
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
-        assertThat(payload.getLetterType()).isEqualTo(INSTANT_SUCCESS_CHILDREN_MATCH);
+        assertThat(payload.getLetterType()).isEqualTo(APPLICATION_SUCCESS_CHILDREN_MATCH);
         assertThat(payload.getPersonalisation()).contains(ADDRESS_ENTRIES);
-        PaymentCycleVoucherEntitlement voucherEntitlement = decision.getVoucherEntitlement();
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(payload.getPersonalisation()).contains(
-                entry("payment_amount", voucherEntitlement.getTotalVoucherValueInPence()),
-                entry("pregnancy_payment", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
-                entry("children_under_1_payment", voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence),
-                entry("children_under_4_payment", voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
+                entry("payment_amount", "£49.60"),
+                entry("pregnancy_payment", "\n* £12.40 for a pregnancy"),
+                entry("children_under_1_payment", "\n* £24.80 for children under 1"),
+                entry("children_under_4_payment", "\n* £12.40 for children between 1 and 4")
         );
     }
 }

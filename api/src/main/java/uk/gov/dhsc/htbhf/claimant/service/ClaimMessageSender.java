@@ -68,10 +68,10 @@ public class ClaimMessageSender {
         messageQueueClient.sendMessage(payload, REQUEST_NEW_CARD);
     }
 
-    public void sendInstantSuccessEmailMessage(Claim claim, EligibilityAndEntitlementDecision decision) {
+    public void sendInstantSuccessEmail(Claim claim, EligibilityAndEntitlementDecision decision, EmailType emailType) {
         LocalDate nextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(cycleDurationInDays);
         EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(
-                claim, decision.getVoucherEntitlement(), nextPaymentDate, EmailType.INSTANT_SUCCESS);
+                claim, decision.getVoucherEntitlement(), nextPaymentDate, emailType);
         messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
     }
 
