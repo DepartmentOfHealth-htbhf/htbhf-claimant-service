@@ -12,7 +12,12 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import java.util.HashMap;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
  * Builds the message payload required to send a letter message. The letter template has parameterised values
@@ -20,51 +25,51 @@ import static uk.gov.dhsc.htbhf.claimant.message.LetterTemplateKey.*;
  * though we always populate 5 lines of address.
  */
 @Component
-<span class="fc" id="L23">public class LetterMessagePayloadFactory {</span>
+<span class="fc" id="L28">public class LetterMessagePayloadFactory {</span>
 
     public static LetterMessagePayload buildLetterPayloadWithAddressOnly(Claim claim, LetterType letterType) {
-<span class="fc" id="L26">        Map&lt;String, Object&gt; personalisationMap = createAddressPersonalisationMap(claim.getClaimant());</span>
+<span class="fc" id="L31">        Map&lt;String, Object&gt; personalisationMap = createAddressPersonalisationMap(claim.getClaimant());</span>
 
-<span class="fc" id="L28">        return LetterMessagePayload.builder()</span>
-<span class="fc" id="L29">                .claimId(claim.getId())</span>
-<span class="fc" id="L30">                .letterType(letterType)</span>
-<span class="fc" id="L31">                .personalisation(personalisationMap)</span>
-<span class="fc" id="L32">                .build();</span>
+<span class="fc" id="L33">        return LetterMessagePayload.builder()</span>
+<span class="fc" id="L34">                .claimId(claim.getId())</span>
+<span class="fc" id="L35">                .letterType(letterType)</span>
+<span class="fc" id="L36">                .personalisation(personalisationMap)</span>
+<span class="fc" id="L37">                .build();</span>
     }
 
     public static LetterMessagePayload buildLetterPayloadWithAddressAndPaymentFields(Claim claim,
                                                                                      EligibilityAndEntitlementDecision decision,
                                                                                      LetterType letterType) {
-<span class="fc" id="L38">        Map&lt;String, Object&gt; personalisationMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L39">        personalisationMap.putAll(createAddressPersonalisationMap(claim.getClaimant()));</span>
-<span class="fc" id="L40">        personalisationMap.putAll(createPaymentPersonalisationMap(decision.getVoucherEntitlement()));</span>
+<span class="fc" id="L43">        Map&lt;String, Object&gt; personalisationMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L44">        personalisationMap.putAll(createAddressPersonalisationMap(claim.getClaimant()));</span>
+<span class="fc" id="L45">        personalisationMap.putAll(createPaymentPersonalisationMap(decision.getVoucherEntitlement()));</span>
 
-<span class="fc" id="L42">        return LetterMessagePayload.builder()</span>
-<span class="fc" id="L43">                .claimId(claim.getId())</span>
-<span class="fc" id="L44">                .letterType(letterType)</span>
-<span class="fc" id="L45">                .personalisation(personalisationMap)</span>
-<span class="fc" id="L46">                .build();</span>
+<span class="fc" id="L47">        return LetterMessagePayload.builder()</span>
+<span class="fc" id="L48">                .claimId(claim.getId())</span>
+<span class="fc" id="L49">                .letterType(letterType)</span>
+<span class="fc" id="L50">                .personalisation(personalisationMap)</span>
+<span class="fc" id="L51">                .build();</span>
     }
 
     private static Map&lt;String, Object&gt; createAddressPersonalisationMap(Claimant claimant) {
-<span class="fc" id="L50">        Address address = claimant.getAddress();</span>
-<span class="fc" id="L51">        Map&lt;String, Object&gt; personalisationMap = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L52">        personalisationMap.put(ADDRESS_LINE_1.getTemplateKeyName(), claimant.getFirstName() + &quot; &quot; + claimant.getLastName());</span>
-<span class="fc" id="L53">        personalisationMap.put(ADDRESS_LINE_2.getTemplateKeyName(), address.getAddressLine1());</span>
-<span class="fc" id="L54">        personalisationMap.put(ADDRESS_LINE_3.getTemplateKeyName(), address.getAddressLine2());</span>
-<span class="fc" id="L55">        personalisationMap.put(ADDRESS_LINE_4.getTemplateKeyName(), address.getTownOrCity());</span>
-<span class="fc" id="L56">        personalisationMap.put(ADDRESS_LINE_5.getTemplateKeyName(), address.getCounty());</span>
-<span class="fc" id="L57">        personalisationMap.put(POSTCODE.getTemplateKeyName(), address.getPostcode());</span>
-<span class="fc" id="L58">        return personalisationMap;</span>
+<span class="fc" id="L55">        Address address = claimant.getAddress();</span>
+<span class="fc" id="L56">        Map&lt;String, Object&gt; personalisationMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L57">        personalisationMap.put(ADDRESS_LINE_1.getTemplateKeyName(), claimant.getFirstName() + &quot; &quot; + claimant.getLastName());</span>
+<span class="fc" id="L58">        personalisationMap.put(ADDRESS_LINE_2.getTemplateKeyName(), address.getAddressLine1());</span>
+<span class="fc" id="L59">        personalisationMap.put(ADDRESS_LINE_3.getTemplateKeyName(), address.getAddressLine2());</span>
+<span class="fc" id="L60">        personalisationMap.put(ADDRESS_LINE_4.getTemplateKeyName(), address.getTownOrCity());</span>
+<span class="fc" id="L61">        personalisationMap.put(ADDRESS_LINE_5.getTemplateKeyName(), address.getCounty());</span>
+<span class="fc" id="L62">        personalisationMap.put(POSTCODE.getTemplateKeyName(), address.getPostcode());</span>
+<span class="fc" id="L63">        return personalisationMap;</span>
     }
 
     private static Map&lt;String, Object&gt; createPaymentPersonalisationMap(PaymentCycleVoucherEntitlement voucherEntitlement) {
-<span class="fc" id="L62">        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();</span>
-<span class="fc" id="L63">        return Map.of(</span>
-<span class="fc" id="L64">                PAYMENT_AMOUNT.getTemplateKeyName(), voucherEntitlement.getTotalVoucherValueInPence(),</span>
-<span class="fc" id="L65">                PREGNANCY_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence,</span>
-<span class="fc" id="L66">                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence,</span>
-<span class="fc" id="L67">                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence</span>
+<span class="fc" id="L67">        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L68">        return Map.of(</span>
+<span class="fc" id="L69">                PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount,</span>
+<span class="fc" id="L70">                PREGNANCY_PAYMENT.getTemplateKeyName(), buildPregnancyPaymentAmountSummary(voucherEntitlement),</span>
+<span class="fc" id="L71">                CHILDREN_UNDER_1_PAYMENT.getTemplateKeyName(), buildUnder1PaymentSummary(voucherEntitlement),</span>
+<span class="fc" id="L72">                CHILDREN_UNDER_4_PAYMENT.getTemplateKeyName(), buildUnder4PaymentSummary(voucherEntitlement)</span>
         );
     }
 
