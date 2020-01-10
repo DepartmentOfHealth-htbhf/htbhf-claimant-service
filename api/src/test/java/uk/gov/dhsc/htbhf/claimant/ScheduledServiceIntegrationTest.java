@@ -37,6 +37,9 @@ import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.formatVoucherAmount;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildPregnancyPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder1PaymentSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.buildUnder4PaymentSummary;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
 
@@ -218,12 +221,11 @@ abstract class ScheduledServiceIntegrationTest {
     protected void assertThatMapContainsAddressAndPaymentFields(Claim claim, PaymentCycle paymentCycle, Map personalisationMap) {
         assertThat(personalisationMap).contains(addressEntries(claim.getClaimant()));
         PaymentCycleVoucherEntitlement voucherEntitlement = paymentCycle.getVoucherEntitlement();
-        int singleVoucherValueInPence = voucherEntitlement.getSingleVoucherValueInPence();
         assertThat(personalisationMap).contains(
-                entry("payment_amount", voucherEntitlement.getTotalVoucherValueInPence()),
-                entry("pregnancy_payment", voucherEntitlement.getVouchersForPregnancy() * singleVoucherValueInPence),
-                entry("children_under_1_payment", voucherEntitlement.getVouchersForChildrenUnderOne() * singleVoucherValueInPence),
-                entry("children_under_4_payment", voucherEntitlement.getVouchersForChildrenBetweenOneAndFour() * singleVoucherValueInPence)
+                entry("payment_amount", formatVoucherAmount(voucherEntitlement.getTotalVoucherEntitlement())),
+                entry("pregnancy_payment", buildPregnancyPaymentAmountSummary(voucherEntitlement)),
+                entry("children_under_1_payment", buildUnder1PaymentSummary(voucherEntitlement)),
+                entry("children_under_4_payment", buildUnder4PaymentSummary(voucherEntitlement))
         );
     }
 

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory.formatPaymentAmountSummary;
+import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.formatPaymentAmountSummary;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
