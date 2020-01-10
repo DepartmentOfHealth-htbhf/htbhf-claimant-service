@@ -1,6 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant;
 
+import com.fasterxml.classmate.TypeResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +15,11 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static java.util.Collections.emptyList;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 /**
  * Definitions of SpringFox beans to generate Swagger documentation.
@@ -23,13 +29,19 @@ import static java.util.Collections.emptyList;
 @Slf4j
 public class ApiDocumentation {
 
-    @Value("${app.version:}") // use APP_VERSION env variable if available, otherwise give no version info
+    @Value("${app.version:1.0}") // use APP_VERSION env variable if available, otherwise give no version info
     private String appVersion;
+
+    @Autowired
+    private TypeResolver typeResolver;
 
     @Bean
     public Docket apiDocket() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .host("N/A")
+                .alternateTypeRules(
+                        newRule(typeResolver.resolve(List.class, LocalDate.class),
+                                typeResolver.resolve(List.class, String.class)))
+                .host("localhost:8090")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))
                 .paths(PathSelectors.any())
