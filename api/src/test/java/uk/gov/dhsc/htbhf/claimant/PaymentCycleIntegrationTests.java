@@ -175,16 +175,16 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Test
-    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
-        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD);
+    @ParameterizedTest(name = "Is pregnant={0}")
+    @MethodSource("provideArgumentsForChildTurnsFourInNextPaymentCycleTest")
+    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle(List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle, LocalDate pregnant) throws JsonProcessingException, NotificationClientException {
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
 
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, NOT_PREGNANT);
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, pregnant);
 
         invokeAllSchedulers();
 
@@ -222,31 +222,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         // confirm notify component invoked with correct email template & personalisation
         assertThatRegularPaymentEmailWasSent(currentCycle);
         assertThatPaymentStoppingEmailWasSent(currentCycle);
-        verifyNoMoreInteractions(notificationClient);
-    }
-
-    @Test
-    void shouldSendEmailWhenYoungestChildTurnsFourAndPregnantInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
-        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
-
-        wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
-        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
-        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
-        stubNotificationEmailResponse();
-
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
-
-        invokeAllSchedulers();
-
-        // confirm card service called to make payment
-        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        Payment payment = currentCycle.getPayments().iterator().next();
-        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
-        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
-
-        // confirm notify component invoked with correct email template & personalisation
-        assertThatRegularPaymentEmailWasSent(currentCycle);
-        assertThatChildTurnsFourEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 
@@ -535,6 +510,14 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm notify component not invoked as no emails sent
         verifyNoMoreInteractions(notificationClient);
+    }
+
+    //First argument is children's dobs in previous cycle, second is the expected delivery date.
+    private static Stream<Arguments> provideArgumentsForChildTurnsFourInNextPaymentCycleTest() {
+        return Stream.of(
+                Arguments.of(asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD), NOT_PREGNANT),
+                Arguments.of(singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE), EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
+        );
     }
 
     //First argument is the previous cycle, second is the expected delivery date.
