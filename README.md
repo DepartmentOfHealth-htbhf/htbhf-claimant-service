@@ -37,5 +37,15 @@ If you are  running the application in intellij, environment variables can be se
 
 You will also need a local Postgres server running on the default port (5432) - see [db/README.md](db/README.md) for instructions on setting up the database.
 
+#### Database problems when testing locally
+If you see this error when running tests locally:
+```
+Caused by: java.io.IOException: Cannot run program "...": error=2, No such file or directory
+```
+This might be caused by a mis-match between the version of Postgres you have installed and the version used by the embedded database 
+(see: [https://github.com/zonkyio/embedded-database-spring-test/issues/4](https://github.com/zonkyio/embedded-database-spring-test/issues/4)).
+It is possible to use a docker image for the embedded database instead by setting an environment variable `EMBEDDED_DATABASE_PROVIDER=docker` 
+(see [api/src/test/resources/application.yml](api/src/test/resources/application.yml) and [https://github.com/zonkyio/embedded-database-spring-test](https://github.com/zonkyio/embedded-database-spring-test) for details).
+
 ### Create claims for local testing
 There is a test utility for creating claims in a locally running persisted database. See the test-claimant-creator [README](api/src/test/java/uk/gov/dhsc/htbhf/claimant/creator/README.md) for details on how to run it. 
