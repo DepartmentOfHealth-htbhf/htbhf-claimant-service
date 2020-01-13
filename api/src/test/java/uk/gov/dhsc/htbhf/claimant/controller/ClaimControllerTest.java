@@ -20,6 +20,7 @@ import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.Optional;
 
@@ -34,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -61,7 +63,7 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        NewClaimDTO dto = aValidClaimDTO();
+        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome.CONFIRMED);
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
@@ -134,6 +136,7 @@ class ClaimControllerTest {
         assertThat(claimRequest.getClaimant()).isEqualTo(claimant);
         assertThat(claimRequest.getDeviceFingerprint()).isEqualTo(dto.getDeviceFingerprint());
         assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
+        assertThat(claimRequest.getEligibilityOverrideOutcome()).isEqualTo(dto.getEligibilityOverrideOutcome());
     }
 
 }
