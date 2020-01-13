@@ -41,7 +41,7 @@ public class EligibilityAndEntitlementService {
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
-     * @param claimant the claimant to check the eligibility for
+     * @param claimant                   the claimant to check the eligibility for
      * @param eligibilityOverrideOutcome to override the eligibility outcome
      * @return the eligibility and entitlement for the claimant
      */
@@ -64,9 +64,9 @@ public class EligibilityAndEntitlementService {
 
     private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant, EligibilityOutcome eligibilityOverrideOutcome) {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
-        if(eligibilityOverrideOutcome == null) {
+        if (eligibilityOverrideOutcome == null) {
             identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
-        }else{
+        } else {
             identityAndEligibilityResponse = CombinedIdentityAndEligibilityResponse.builder()
                     .identityStatus(IdentityOutcome.MATCHED)
                     .eligibilityStatus(eligibilityOverrideOutcome)

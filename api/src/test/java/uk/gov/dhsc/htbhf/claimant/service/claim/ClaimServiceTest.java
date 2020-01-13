@@ -113,7 +113,7 @@ class ClaimServiceTest {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
                 anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
@@ -137,7 +137,7 @@ class ClaimServiceTest {
         //given
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NO_CHILDREN);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
         ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
 
@@ -163,7 +163,7 @@ class ClaimServiceTest {
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
         ClaimRequest request = aClaimRequestWithEligibilityOverrideOutcome(pregnantOnlyClaimant, EligibilityOutcome.CONFIRMED);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -187,7 +187,7 @@ class ClaimServiceTest {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse =
                 anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(eligibilityResponseChildren);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         Claimant claimant = aClaimantWithChildrenDob(initiallyDeclaredChildren);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
@@ -236,7 +236,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(aClaimantWithChildrenDob(declaredChildrenDob));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, anIdMatchedEligibilityConfirmedUCResponseWithMatches(
                 phoneVerification, emailVerification, benefitAgencyChildrenDob));
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -281,7 +281,7 @@ class ClaimServiceTest {
     void shouldSaveNewIneligibleClaimant(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus) {
         //given
         EligibilityAndEntitlementDecision eligibility = aDecisionWithStatus(eligibilityStatus);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(eligibility);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(eligibility);
         ClaimRequest request = aValidClaimRequest();
 
         //when
@@ -299,7 +299,7 @@ class ClaimServiceTest {
         //given
         VoucherEntitlement firstVoucherEntitlement = aVoucherEntitlementWithEntitlementDate(LocalDate.now());
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(ELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aValidClaimRequest();
 
         //when
@@ -329,7 +329,7 @@ class ClaimServiceTest {
     void shouldSaveClaimantWithClaimStatus(EligibilityStatus eligibilityStatus) {
         //given
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(eligibilityStatus);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aValidClaimRequest();
 
         //when
@@ -355,7 +355,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
         UUID existingClaimId = UUID.randomUUID();
         EligibilityAndEntitlementDecision decision = buildDuplicateDecisionWithExistingClaimId(existingClaimId);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
         ClaimResult result = claimService.createClaim(request);
@@ -371,7 +371,7 @@ class ClaimServiceTest {
         //given
         // an INELIGIBLE response will cause a claim to be rejected
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aValidClaimRequest();
 
         //when
@@ -386,7 +386,7 @@ class ClaimServiceTest {
     void shouldHandleNullDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(aDecisionWithStatus(ELIGIBLE));
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(null)
                 .build();
@@ -405,7 +405,7 @@ class ClaimServiceTest {
     void shouldHandleEmptyDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(aDecisionWithStatus(ELIGIBLE));
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .deviceFingerprint(emptyMap())
                 .build();
@@ -424,7 +424,7 @@ class ClaimServiceTest {
     void shouldHandleNullWebUIVersion() {
         //given
         Claimant claimant = aValidClaimant();
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(aDecisionWithStatus(ELIGIBLE));
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(aDecisionWithStatus(ELIGIBLE));
         ClaimRequest claimRequest = aClaimRequestBuilderForClaimant(claimant)
                 .webUIVersion(null)
                 .build();
@@ -445,7 +445,7 @@ class ClaimServiceTest {
         Claimant newClaimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
         UUID existingClaimId = UUID.randomUUID();
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndExistingClaim(INELIGIBLE, existingClaimId);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
@@ -466,7 +466,7 @@ class ClaimServiceTest {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     void shouldSaveClaimantWhenEligibilityThrowsException() {
         //given
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willThrow(TEST_EXCEPTION);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willThrow(TEST_EXCEPTION);
         ClaimRequest request = aValidClaimRequest();
 
         //when
@@ -504,7 +504,7 @@ class ClaimServiceTest {
         //given
         Claimant claimant = aClaimantWithExpectedDeliveryDateAndChildrenDob(null, SINGLE_SIX_MONTH_OLD);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndChildren(ELIGIBLE, EligibilityOutcome.CONFIRMED, SINGLE_THREE_YEAR_OLD);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
@@ -529,7 +529,7 @@ class ClaimServiceTest {
     void shouldRejectClaimWhenAddressMismatch(CombinedIdentityAndEligibilityResponse response) {
         //given
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, response);
-        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), NO_ELIGIBILITY_OVERRIDE)).willReturn(decision);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
         ClaimRequest request = aValidClaimRequest();
 
         //when

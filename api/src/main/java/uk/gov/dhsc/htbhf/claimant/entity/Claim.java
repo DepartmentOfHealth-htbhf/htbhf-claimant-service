@@ -35,12 +35,12 @@ public class Claim extends VersionedEntity {
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime claimStatusTimestamp;
 
-    @NotNull
     @Column(name = "eligibility_override_outcome")
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private EligibilityOutcome eligibilityOverrideOutcome;
 
+    @NotNull
     @Column(name = "eligibility_status")
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
