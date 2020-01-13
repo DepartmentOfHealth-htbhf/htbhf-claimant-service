@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
@@ -50,13 +50,13 @@ public class ClaimController {
     @PostMapping
     @ApiOperation("Create a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") ClaimDTO claimDTO) {
+    public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO) {
         log.debug("Received claim");
-        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());
+        Claimant claimant = claimantConverter.convert(newClaimDTO.getClaimant());
         ClaimRequest claimRequest = ClaimRequest.builder()
                 .claimant(claimant)
-                .deviceFingerprint(claimDTO.getDeviceFingerprint())
-                .webUIVersion(claimDTO.getWebUIVersion())
+                .deviceFingerprint(newClaimDTO.getDeviceFingerprint())
+                .webUIVersion(newClaimDTO.getWebUIVersion())
                 .build();
         ClaimResult result = claimService.createClaim(claimRequest);
 

@@ -8,10 +8,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -31,7 +31,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT_STOPPING;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
@@ -39,9 +41,9 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTI
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_NEW_TO_ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
@@ -184,11 +186,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     @Test
     void shouldCorrectlyActivateANewClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(LocalDate.now()));
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         String cardAccountId = UUID.randomUUID().toString();
         stubExternalServicesForSuccessfulResponses(cardAccountId, NO_CHILDREN);
-        makeNewClaimRestRequest(claimDTO);
+        makeNewClaimRestRequest(newClaimDTO);
 
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.NEW);
@@ -342,28 +344,29 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
-        return applyForHealthyStart(claimDTO, NO_CHILDREN);
+        NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
+        return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
     private UUID applyForHealthyStartAsNonPregnantWomanWithChildren(List<LocalDate> datesOfBirthOfChildren)
             throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(null, datesOfBirthOfChildren));
-        return applyForHealthyStart(claimDTO, datesOfBirthOfChildren);
+        NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(null, datesOfBirthOfChildren));
+        return applyForHealthyStart(newClaimDTO, datesOfBirthOfChildren);
     }
 
-    private UUID applyForHealthyStart(ClaimDTO claimDTO, List<LocalDate> datesOfBirthOfChildren) throws JsonProcessingException, NotificationClientException {
+    private UUID applyForHealthyStart(NewClaimDTO newClaimDTO,
+                                      List<LocalDate> datesOfBirthOfChildren) throws JsonProcessingException, NotificationClientException {
         stubExternalServicesForSuccessfulResponses(UUID.randomUUID().toString(), datesOfBirthOfChildren);
-        makeNewClaimRestRequest(claimDTO);
+        makeNewClaimRestRequest(newClaimDTO);
         invokeAllSchedulers();
 
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
         return claim.getId();
     }
 
-    private void makeNewClaimRestRequest(ClaimDTO claimDTO) {
-        restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+    private void makeNewClaimRestRequest(NewClaimDTO newClaimDTO) {
+        restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
     }
 
     private void stubExternalServicesForSuccessfulResponses(String cardAccountId, List<LocalDate> datesOfBirthOfChildren)

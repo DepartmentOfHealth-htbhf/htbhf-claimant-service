@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
 
@@ -32,7 +32,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.REJECTED;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -64,7 +64,7 @@ public class ChildrenDateOfBirthMatchIntegrationTest {
     void shouldCreateNewClaimWhenPregnantOrChildDatesOfBirthMatch(LocalDate expectedDeliveryDate,
                               List<LocalDate> declaredChildrenDob,
                               List<LocalDate> childrenDobFromBenefitAgency) throws JsonProcessingException {
-        ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, declaredChildrenDob);
+        NewClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, declaredChildrenDob);
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDobFromBenefitAgency);
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
@@ -87,7 +87,7 @@ public class ChildrenDateOfBirthMatchIntegrationTest {
 
     @Test
     void shouldRejectClaimWhenNotPregnantAndNoChildrenDobMatch() throws JsonProcessingException {
-        ClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(null, SINGLE_THREE_YEAR_OLD);
+        NewClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(null, SINGLE_THREE_YEAR_OLD);
         wiremockManager.stubSuccessfulEligibilityResponse(SINGLE_SIX_MONTH_OLD);
 
         ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);

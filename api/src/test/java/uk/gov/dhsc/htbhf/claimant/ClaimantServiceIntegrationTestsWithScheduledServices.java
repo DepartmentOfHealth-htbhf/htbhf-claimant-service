@@ -33,8 +33,8 @@ import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertTha
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWitChildrenDob;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWitChildrenDob;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
@@ -49,8 +49,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
@@ -59,7 +59,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailResponse();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
@@ -87,13 +87,13 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubEligibilityResponse(anIdMatchedEligibilityConfirmedAddressNotMatchedResponse());
         stubNotificationEmailResponse();
         stubNotificationLetterResponse();
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         invokeAllSchedulers();
 
         assertThat(response.getStatusCode()).isEqualTo(OK);
-        Claim claim = repositoryMediator.getClaimForNino(claimDTO.getClaimant().getNino());
+        Claim claim = repositoryMediator.getClaimForNino(newClaimDTO.getClaimant().getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.REJECTED);
 
         assertThatEmailWithNameOnlyWasSent(claim, PENDING_DECISION);
@@ -113,13 +113,13 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         stubNotificationEmailResponse();
         stubNotificationLetterResponse();
-        ClaimDTO claimDTO = aValidClaimDTOWitChildrenDob(declaredChildrenDob);
+        NewClaimDTO newClaimDTO = aValidClaimDTOWitChildrenDob(declaredChildrenDob);
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         invokeAllSchedulers();
-        Claim claim = repositoryMediator.getClaimForNino(claimDTO.getClaimant().getNino());
+        Claim claim = repositoryMediator.getClaimForNino(newClaimDTO.getClaimant().getNino());
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         PaymentCycleVoucherEntitlement expectedEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
@@ -148,8 +148,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldUpdateSuccessfulClaimWithPostcodeData() throws JsonProcessingException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
         List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
@@ -157,7 +157,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -168,15 +168,15 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
 
     @Test
     void shouldUpdateSuccessfulClaimWhenPostcodesIOReturnsPostcodeNotFound() throws JsonProcessingException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
         List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
         wiremockManager.stubNotFoundPostcodesIOResponse(postcode);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -188,8 +188,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     @Test
     @SuppressWarnings("VariableDeclarationUsageDistance")
     void shouldRecoverFromErrorsToHandleSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
-        ClaimDTO claimDTO = aValidClaimDTOWithNoNullFields();
-        ClaimantDTO claimant = claimDTO.getClaimant();
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
         List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
 
@@ -202,7 +202,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailError();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(claimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
