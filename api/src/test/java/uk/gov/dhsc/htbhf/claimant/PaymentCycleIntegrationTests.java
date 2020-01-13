@@ -175,16 +175,17 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         verifyNoMoreInteractions(notificationClient);
     }
 
-    @Test
-    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
-        List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD);
+    @ParameterizedTest(name = "Is pregnant={0}")
+    @MethodSource("provideArgumentsForChildTurnsFourInNextPaymentCycleTest")
+    void shouldSendEmailsWhenChildTurnsFourInNextPaymentCycle(List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle, LocalDate pregnant)
+            throws JsonProcessingException, NotificationClientException {
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
 
-        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, NOT_PREGNANT);
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(childTurningFourInFirstWeekOfNextPaymentCycle, pregnant);
 
         invokeAllSchedulers();
 
@@ -201,7 +202,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @Test
-    void shouldSendEmailWhenYoungestChildTurnsFourInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
+    void shouldSendEmailWhenYoungestChildTurnsFourAndNotPregnantInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
         List<LocalDate> childTurningFourInFirstWeekOfNextPaymentCycle = singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
 
         wiremockManager.stubSuccessfulEligibilityResponse(childTurningFourInFirstWeekOfNextPaymentCycle);
@@ -510,6 +511,14 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm notify component not invoked as no emails sent
         verifyNoMoreInteractions(notificationClient);
+    }
+
+    //First argument is children's dobs in previous cycle, second is the expected delivery date.
+    private static Stream<Arguments> provideArgumentsForChildTurnsFourInNextPaymentCycleTest() {
+        return Stream.of(
+                Arguments.of(asList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE, THREE_YEAR_OLD), NOT_PREGNANT),
+                Arguments.of(singletonList(TURNS_FOUR_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE), EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
+        );
     }
 
     //First argument is the previous cycle, second is the expected delivery date.
