@@ -5,6 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.context.AdditionalPregnancyPaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.DetermineEntitlementMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 
 import java.util.Optional;
 
@@ -25,7 +26,16 @@ public class MessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .claim(claim)
                 .cardAccountId(claim.getCardAccountId())
-                .paymentRestarted(false)
+                .paymentType(PaymentType.REGULAR_PAYMENT)
+                .build();
+    }
+
+    public static MakePaymentMessageContext aValidMakeFirstPaymentMessageContext(PaymentCycle paymentCycle, Claim claim) {
+        return MakePaymentMessageContext.builder()
+                .paymentCycle(paymentCycle)
+                .claim(claim)
+                .cardAccountId(claim.getCardAccountId())
+                .paymentType(PaymentType.FIRST_PAYMENT)
                 .build();
     }
 
@@ -34,7 +44,7 @@ public class MessageContextTestDataFactory {
                 .paymentCycle(paymentCycle)
                 .claim(claim)
                 .cardAccountId(claim.getCardAccountId())
-                .paymentRestarted(true)
+                .paymentType(PaymentType.RESTARTED_PAYMENT)
                 .build();
     }
 

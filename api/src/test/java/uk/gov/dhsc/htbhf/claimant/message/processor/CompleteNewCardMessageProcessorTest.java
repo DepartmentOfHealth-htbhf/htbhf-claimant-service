@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.FIRST_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
@@ -75,12 +76,13 @@ class CompleteNewCardMessageProcessorTest {
 
     private void verifyMakeFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.MAKE_FIRST_PAYMENT));
+        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.MAKE_PAYMENT));
         assertThat(payloadCaptor.getValue()).isInstanceOf(MakePaymentMessagePayload.class);
         MakePaymentMessagePayload payload = (MakePaymentMessagePayload) payloadCaptor.getValue();
         assertThat(payload.getCardAccountId()).isEqualTo(claim.getCardAccountId());
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
+        assertThat(payload.getPaymentType()).isEqualTo(FIRST_PAYMENT);
     }
 
 }

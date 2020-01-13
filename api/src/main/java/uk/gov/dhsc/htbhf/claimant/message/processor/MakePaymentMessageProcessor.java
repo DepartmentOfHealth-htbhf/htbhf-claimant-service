@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.MakePaymentMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
@@ -36,13 +37,18 @@ public class MakePaymentMessageProcessor implements MessageTypeProcessor {
     public MessageStatus processMessage(Message message) {
         MakePaymentMessageContext messageContext = messageContextLoader.loadMakePaymentContext(message);
         PaymentCycle paymentCycle = messageContext.getPaymentCycle();
-        paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
-        sendNotificationEmail(messageContext, paymentCycle);
+        if (messageContext.getPaymentType() == PaymentType.FIRST_PAYMENT) {
+            paymentService.makeFirstPayment(paymentCycle, messageContext.getCardAccountId());
+        } else {
+            paymentService.makePaymentForCycle(paymentCycle, messageContext.getCardAccountId());
+            sendNotificationEmail(messageContext, paymentCycle);
+        }
+
         return COMPLETED;
     }
 
     private void sendNotificationEmail(MakePaymentMessageContext messageContext, PaymentCycle paymentCycle) {
-        if (messageContext.isPaymentRestarted()) {
+        if (messageContext.getPaymentType() == PaymentType.RESTARTED_PAYMENT) {
             paymentCycleNotificationHandler.sendNotificationEmailsForRestartedPayment(paymentCycle);
         } else {
             paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);

@@ -469,7 +469,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     private void invokeAllSchedulers() {
         messageProcessorScheduler.processRequestNewCardMessages();
         messageProcessorScheduler.processCompleteNewCardMessages();
-        messageProcessorScheduler.processFirstPaymentMessages();
         paymentCycleScheduler.createNewPaymentCycles();
         messageProcessorScheduler.processDetermineEntitlementMessages();
         messageProcessorScheduler.processPaymentMessages();

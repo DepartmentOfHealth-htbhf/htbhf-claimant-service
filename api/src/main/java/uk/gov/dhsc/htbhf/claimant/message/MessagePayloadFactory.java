@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
@@ -26,21 +27,12 @@ public class MessagePayloadFactory {
                 .build();
     }
 
-    public static MakePaymentMessagePayload buildMakePaymentMessagePayload(PaymentCycle paymentCycle) {
+    public static MakePaymentMessagePayload buildMakePaymentMessagePayload(PaymentCycle paymentCycle, PaymentType paymentType) {
         return MakePaymentMessagePayload.builder()
                 .claimId(paymentCycle.getClaim().getId())
                 .paymentCycleId(paymentCycle.getId())
                 .cardAccountId(paymentCycle.getClaim().getCardAccountId())
-                .paymentRestarted(false)
-                .build();
-    }
-
-    public static MakePaymentMessagePayload buildMakePaymentMessagePayloadForRestartedPayment(PaymentCycle paymentCycle) {
-        return MakePaymentMessagePayload.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .paymentCycleId(paymentCycle.getId())
-                .cardAccountId(paymentCycle.getClaim().getCardAccountId())
-                .paymentRestarted(true)
+                .paymentType(paymentType)
                 .build();
     }
 
