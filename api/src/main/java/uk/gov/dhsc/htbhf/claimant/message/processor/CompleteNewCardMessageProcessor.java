@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.CompleteNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimActivationService;
 
@@ -21,13 +22,13 @@ import javax.transaction.Transactional;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_NEW_CARD_PROCESS;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 
 /**
  * Responsible for processing {@link MessageType#COMPLETE_NEW_CARD_PROCESS} messages by:
  * Saving the card account id to the claim,
  * Creating a PaymentCycle for the claim,
- * Sending a {@link MessageType#MAKE_FIRST_PAYMENT} message.
+ * Sending a {@link MessageType#MAKE_PAYMENT} message.
  */
 @Component
 @AllArgsConstructor
@@ -56,7 +57,7 @@ public class CompleteNewCardMessageProcessor implements MessageTypeProcessor {
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
-        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);
-        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);
+        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle, PaymentType.FIRST_PAYMENT);
+        messageQueueClient.sendMessage(messagePayload, MAKE_PAYMENT);
     }
 }

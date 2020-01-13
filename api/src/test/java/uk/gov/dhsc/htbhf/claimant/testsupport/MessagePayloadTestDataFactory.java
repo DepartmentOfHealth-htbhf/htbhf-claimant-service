@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.message.payload.CompleteNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 
@@ -20,21 +21,12 @@ public class MessagePayloadTestDataFactory {
 
     public static final String NEW_CARD_PAYLOAD_JSON = "{ \"claimId\":\"" + CLAIM_ID.toString() + "\"}";
 
-    public static MakePaymentMessagePayload aMakePaymentPayload(UUID claimId, UUID paymentCycleId) {
+    public static MakePaymentMessagePayload aMakePaymentPayload(UUID claimId, UUID paymentCycleId, PaymentType paymentType) {
         return MakePaymentMessagePayload.builder()
                 .claimId(claimId)
                 .paymentCycleId(paymentCycleId)
                 .cardAccountId(CARD_ACCOUNT_ID)
-                .paymentRestarted(false)
-                .build();
-    }
-
-    public static MakePaymentMessagePayload aMakePaymentPayloadForRestartedPayment(UUID claimId, UUID paymentCycleId) {
-        return MakePaymentMessagePayload.builder()
-                .claimId(claimId)
-                .paymentCycleId(paymentCycleId)
-                .cardAccountId(CARD_ACCOUNT_ID)
-                .paymentRestarted(true)
+                .paymentType(paymentType)
                 .build();
     }
 
