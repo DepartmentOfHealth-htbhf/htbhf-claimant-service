@@ -5,23 +5,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.util.Map;
+import java.util.UUID;
 import javax.validation.Valid;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -36,6 +34,8 @@ public class ClaimController {
     private final ClaimService claimService;
     private final ClaimantDTOToClaimantConverter claimantConverter;
     private final VoucherEntitlementToDTOConverter voucherConverter;
+    private final ClaimRepository claimRepository;
+    private final ClaimToClaimDTOConverter claimToClaimDTOConverter;
 
     private final Map<ClaimStatus, HttpStatus> statusMap = Map.of(
             ClaimStatus.NEW, HttpStatus.CREATED,
@@ -61,6 +61,15 @@ public class ClaimController {
         ClaimResult result = claimService.createClaim(claimRequest);
 
         return createResponse(result);
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation("Retrieve a claim by id.")
+    public ClaimDTO retrieveClaimById(@PathVariable("id") UUID id) {
+        log.debug("Retrieve claim by id {}", id);
+
+        Claim claim = claimRepository.findClaim(id);
+        return claimToClaimDTOConverter.convert(claim);
     }
 
     private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {

@@ -40,10 +40,10 @@ import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
@@ -91,13 +91,33 @@ class ClaimantServiceIntegrationTests {
     }
 
     @Test
+    void shouldGetClaimById() {
+        // Given
+        Claim claim = aValidClaim();
+        claimRepository.save(claim);
+
+        // When
+        ResponseEntity<ClaimDTO> response = restTemplate.exchange(buildRetrieveClaimRequestEntity(claim.getId()), ClaimDTO.class);
+
+        // Then
+        ClaimDTO claimResponse = response.getBody();
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        assertThat(claimResponse).isEqualToComparingOnlyGivenFields(claim,
+                "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
+                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
+                "initialIdentityAndEligibilityResponse");
+        assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
+        assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
+    }
+
+    @Test
     void shouldAcceptAndCreateANewValidClaimWithNoNullFields() throws JsonProcessingException {
         //Given
         NewClaimDTO claim = aValidClaimDTOWithNoNullFields();
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
         //Then
         assertThatClaimResultHasNewClaim(response);
         assertClaimPersistedSuccessfully(claim, ELIGIBLE);
@@ -114,7 +134,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(json), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(json), ClaimResultDTO.class);
 
         //Then
         assertThatClaimResultHasNewClaim(response);
@@ -131,7 +151,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
         assertThatClaimResultHasNewClaim(response);
@@ -146,7 +166,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
 
         //Then
         assertRejectedResponse(response, ELIGIBLE);
@@ -168,7 +188,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubErrorEligibilityResponse();
 
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
 
         //Then
         assertInternalServerErrorResponse(response);
@@ -200,7 +220,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertRejectedResponse(response, DUPLICATE);
@@ -223,7 +243,7 @@ class ClaimantServiceIntegrationTests {
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertRejectedResponse(response, DUPLICATE);
@@ -240,7 +260,7 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         //When
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(dto), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class);
 
         //Then
         assertRejectedResponse(response, DUPLICATE);
@@ -252,7 +272,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
         NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
     }
@@ -264,7 +284,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.addressLine1", "must not be null");
     }
@@ -276,7 +296,7 @@ class ClaimantServiceIntegrationTests {
         ClaimantDTO claimant = aClaimantDTOWithAddress(addressDTO);
         NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant.address.postcode", "postcodes in the Channel Islands or Isle of Man are not acceptable");
     }
@@ -296,7 +316,7 @@ class ClaimantServiceIntegrationTests {
         String claimWithInvalidDate = modifyFieldOnClaimantInJson(aValidClaimDTO(), fieldName, dateString);
         //When
         ResponseEntity<ErrorResponse> response
-                = restTemplate.exchange(buildClaimRequestEntity(claimWithInvalidDate), ErrorResponse.class);
+                = restTemplate.exchange(buildCreateClaimRequestEntity(claimWithInvalidDate), ErrorResponse.class);
         //Then
         assertRequestCouldNotBeParsedErrorResponse(response, expectedField, expectedErrorMessage);
     }
@@ -306,7 +326,7 @@ class ClaimantServiceIntegrationTests {
         //Given
         String claim = "{}";
         //When
-        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildClaimRequestEntity(claim), ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
         //Then
         assertValidationErrorInResponse(response, "claimant", "must not be null");
     }
