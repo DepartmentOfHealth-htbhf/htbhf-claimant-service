@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.net.URI;
@@ -21,7 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 
 /**
  * This integration test is kept separate from the other Integration Tests as it mocks out the ClaimService
@@ -45,7 +45,7 @@ class ClaimantServiceIntegrationErrorTests {
 
     @Test
     void shouldReturnInternalServiceError() {
-        ClaimDTO claim = aValidClaimDTO();
+        NewClaimDTO claim = aValidClaimDTO();
 
         stubFor(post(urlEqualTo("/v2/eligibility")).willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR.value())));
         ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI_V3, claim, ErrorResponse.class);
