@@ -92,16 +92,6 @@ public class MessageProcessorScheduler {
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
-            name = "Process MAKE_FIRST_PAYMENT messages",
-            lockAtLeastForString = MIN_LOCK_TIME,
-            lockAtMostForString = MAX_LOCK_TIME)
-    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:MAKE_FIRST_PAYMENT")
-    public void processFirstPaymentMessages() {
-        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);
-    }
-
-    @Scheduled(cron = DEFAULT_SCHEDULE)
-    @SchedulerLock(
             name = "Process MAKE_PAYMENT messages",
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)

@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
@@ -28,7 +29,7 @@ class MessagePayloadFactoryTest {
     void shouldCreateNewCardMessagePayload() {
         Claim claim = aValidClaim();
         EligibilityAndEntitlementDecision eligibilityAndEntitlementDecision = anEligibleDecision();
-        RequestNewCardMessagePayload payload = MessagePayloadFactory.buildNewCardMessagePayload(claim, eligibilityAndEntitlementDecision);
+        RequestNewCardMessagePayload payload = buildNewCardMessagePayload(claim, eligibilityAndEntitlementDecision);
 
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getEligibilityAndEntitlementDecision()).isEqualTo(eligibilityAndEntitlementDecision);
@@ -38,24 +39,12 @@ class MessagePayloadFactoryTest {
     void shouldCreateMakePaymentMessagePayload() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
 
-        MakePaymentMessagePayload payload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
+        MakePaymentMessagePayload payload = buildMakePaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
-        assertThat(payload.isPaymentRestarted()).isFalse();
-    }
-
-    @Test
-    void shouldCreateMakePaymentMessagePayloadForRestartedPayment() {
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-
-        MakePaymentMessagePayload payload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(paymentCycle);
-
-        assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
-        assertThat(payload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
-        assertThat(payload.isPaymentRestarted()).isTrue();
+        assertThat(payload.getPaymentType()).isEqualTo(REGULAR_PAYMENT);
     }
 
     @Test
