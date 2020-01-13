@@ -77,9 +77,9 @@ public class ClaimantDTO {
     @ApiModelProperty(notes = "The claimant's email address. e.g. test@email.com")
     private String emailAddress;
 
-    @JsonProperty("childrenDob")
-    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if they have any)")
+    @JsonProperty("initiallyDeclaredChildrenDob")
+    @ApiModelProperty(notes = "The dates of birth of the claimant's declared children (if they have any)")
     @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
-    private List<LocalDate> childrenDob;
+    private List<LocalDate> initiallyDeclaredChildrenDob;
 
 }

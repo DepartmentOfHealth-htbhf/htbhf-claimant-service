@@ -19,7 +19,7 @@ public class ClaimantDTOTestDataFactory {
 
     public static ClaimantDTO aValidClaimantDTOWithNoNullFields() {
         return aValidClaimantBuilder()
-                .childrenDob(singletonList(MAGGIE_DATE_OF_BIRTH))
+                .initiallyDeclaredChildrenDob(singletonList(MAGGIE_DATE_OF_BIRTH))
                 .build();
     }
 
@@ -44,7 +44,7 @@ public class ClaimantDTOTestDataFactory {
     public static ClaimantDTO aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
         return aValidClaimantBuilder()
                 .expectedDeliveryDate(expectedDeliveryDate)
-                .childrenDob(childrenDob)
+                .initiallyDeclaredChildrenDob(childrenDob)
                 .build();
     }
 
@@ -80,7 +80,7 @@ public class ClaimantDTOTestDataFactory {
 
     public static ClaimantDTO aClaimantDTOWithChildrenDob(List<LocalDate> childrenDob) {
         return aValidClaimantBuilder()
-                .childrenDob(childrenDob)
+                .initiallyDeclaredChildrenDob(childrenDob)
                 .build();
     }
 

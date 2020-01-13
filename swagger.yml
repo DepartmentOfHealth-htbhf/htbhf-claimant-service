@@ -134,12 +134,6 @@ definitions:
       address:
         description: "The address of the claimant"
         $ref: "#/definitions/AddressDTO"
-      childrenDob:
-        type: "array"
-        description: "The dates of birth of the claimant's children (if they have\
-          \ any)"
-        items:
-          $ref: "#/definitions/LocalDate"
       dateOfBirth:
         type: "string"
         format: "date"
@@ -164,6 +158,12 @@ definitions:
         description: "First (given) name"
         minLength: 1
         maxLength: 500
+      initiallyDeclaredChildrenDob:
+        type: "array"
+        description: "The dates of birth of the claimant's declared children (if they\
+          \ have any)"
+        items:
+          $ref: "#/definitions/LocalDate"
       lastName:
         type: "string"
         example: "Bloggs"
