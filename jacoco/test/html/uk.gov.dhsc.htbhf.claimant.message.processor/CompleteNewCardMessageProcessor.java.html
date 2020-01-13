@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
 import uk.gov.dhsc.htbhf.claimant.message.context.CompleteNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimActivationService;
 
@@ -21,17 +22,17 @@ import javax.transaction.Transactional;
 import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildMakePaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_NEW_CARD_PROCESS;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_FIRST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 
 /**
  * Responsible for processing {@link MessageType#COMPLETE_NEW_CARD_PROCESS} messages by:
  * Saving the card account id to the claim,
  * Creating a PaymentCycle for the claim,
- * Sending a {@link MessageType#MAKE_FIRST_PAYMENT} message.
+ * Sending a {@link MessageType#MAKE_PAYMENT} message.
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L34">@Slf4j</span>
+<span class="fc" id="L35">@Slf4j</span>
 public class CompleteNewCardMessageProcessor implements MessageTypeProcessor {
 
     private MessageContextLoader messageContextLoader;
@@ -40,24 +41,24 @@ public class CompleteNewCardMessageProcessor implements MessageTypeProcessor {
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L43">        return COMPLETE_NEW_CARD_PROCESS;</span>
+<span class="fc" id="L44">        return COMPLETE_NEW_CARD_PROCESS;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-<span class="fc" id="L49">        CompleteNewCardMessageContext context = messageContextLoader.loadCompleteNewCardContext(message);</span>
-<span class="fc" id="L50">        Claim claim = context.getClaim();</span>
-<span class="fc" id="L51">        String cardAccountId = context.getCardAccountId();</span>
-<span class="fc" id="L52">        EligibilityAndEntitlementDecision decision = context.getEligibilityAndEntitlementDecision();</span>
-<span class="fc" id="L53">        PaymentCycle paymentCycle = claimActivationService.updateClaimAndCreatePaymentCycle(claim, cardAccountId, decision);</span>
-<span class="fc" id="L54">        sendMakeFirstPaymentMessage(paymentCycle);</span>
-<span class="fc" id="L55">        return COMPLETED;</span>
+<span class="fc" id="L50">        CompleteNewCardMessageContext context = messageContextLoader.loadCompleteNewCardContext(message);</span>
+<span class="fc" id="L51">        Claim claim = context.getClaim();</span>
+<span class="fc" id="L52">        String cardAccountId = context.getCardAccountId();</span>
+<span class="fc" id="L53">        EligibilityAndEntitlementDecision decision = context.getEligibilityAndEntitlementDecision();</span>
+<span class="fc" id="L54">        PaymentCycle paymentCycle = claimActivationService.updateClaimAndCreatePaymentCycle(claim, cardAccountId, decision);</span>
+<span class="fc" id="L55">        sendMakeFirstPaymentMessage(paymentCycle);</span>
+<span class="fc" id="L56">        return COMPLETED;</span>
     }
 
     private void sendMakeFirstPaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L59">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle);</span>
-<span class="fc" id="L60">        messageQueueClient.sendMessage(messagePayload, MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L60">        MakePaymentMessagePayload messagePayload = buildMakePaymentMessagePayload(paymentCycle, PaymentType.FIRST_PAYMENT);</span>
+<span class="fc" id="L61">        messageQueueClient.sendMessage(messagePayload, MAKE_PAYMENT);</span>
+<span class="fc" id="L62">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

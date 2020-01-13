@@ -92,23 +92,13 @@ public class MessageProcessorScheduler {
 
     @Scheduled(cron = DEFAULT_SCHEDULE)
     @SchedulerLock(
-            name = &quot;Process MAKE_FIRST_PAYMENT messages&quot;,
-            lockAtLeastForString = MIN_LOCK_TIME,
-            lockAtMostForString = MAX_LOCK_TIME)
-    @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_FIRST_PAYMENT&quot;)
-    public void processFirstPaymentMessages() {
-<span class="fc" id="L100">        messageProcessor.processMessagesOfType(MessageType.MAKE_FIRST_PAYMENT);</span>
-<span class="fc" id="L101">    }</span>
-
-    @Scheduled(cron = DEFAULT_SCHEDULE)
-    @SchedulerLock(
             name = &quot;Process MAKE_PAYMENT messages&quot;,
             lockAtLeastForString = MIN_LOCK_TIME,
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:MAKE_PAYMENT&quot;)
     public void processPaymentMessages() {
-<span class="fc" id="L110">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
-<span class="fc" id="L111">    }</span>
+<span class="fc" id="L100">        messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L101">    }</span>
 
     @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
@@ -117,8 +107,8 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_CLAIM&quot;)
     public void processReportClaimMessages() {
-<span class="fc" id="L120">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
-<span class="fc" id="L121">    }</span>
+<span class="fc" id="L110">        messageProcessor.processMessagesOfType(MessageType.REPORT_CLAIM);</span>
+<span class="fc" id="L111">    }</span>
 
     @Scheduled(cron = OFFSET_SCHEDULE)
     @SchedulerLock(
@@ -127,7 +117,7 @@ public class MessageProcessorScheduler {
             lockAtMostForString = MAX_LOCK_TIME)
     @NewRequestContextWithSessionId(sessionId = &quot;MessageProcessor:REPORT_PAYMENT&quot;)
     public void processReportPaymentMessages() {
-<span class="fc" id="L130">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
-<span class="fc" id="L131">    }</span>
+<span class="fc" id="L120">        messageProcessor.processMessagesOfType(MessageType.REPORT_PAYMENT);</span>
+<span class="fc" id="L121">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
