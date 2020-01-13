@@ -121,11 +121,10 @@ definitions:
       cardAccountId:
         type: "string"
         example: "8b66a86f-778e-47f9-b998-a042476ef2c0"
-        description: "card id return from the card provider"
+        description: "Card id returned from the card provider"
       cardStatus:
         type: "string"
-        example: "ACTIVE, PENDING_CANCELLATION, SCHEDULED_FOR_CANCELLATION, CANCELLED"
-        description: "the current card status"
+        description: "The current card status"
         enum:
         - "ACTIVE"
         - "PENDING_CANCELLATION"
@@ -138,7 +137,6 @@ definitions:
         description: "Time of when the card status was last updated"
       claimStatus:
         type: "string"
-        example: "ACTIVE, NEW, REJECTED, PENDING_EXPIRY, EXPIRED"
         description: "The claim's current status"
         enum:
         - "REJECTED"
@@ -162,10 +160,9 @@ definitions:
       dwpHouseholdIdentifier:
         type: "string"
         example: "dd77e887-49cf-43cd-b974-b17273602018"
-        description: "household identifier returned from DWP"
+        description: "Household identifier returned from DWP"
       eligibilityStatus:
         type: "string"
-        example: "ELIGIBLE, INELIGIBLE, PENDING, NO_MATCH, ERROR, DUPLICATE"
         description: "The claim's eligibility status"
         enum:
         - "ELIGIBLE"
@@ -182,12 +179,12 @@ definitions:
       hmrcHouseholdIdentifier:
         type: "string"
         example: "4c697b0a-5709-423b-8e31-b63796cdca7f"
-        description: "household identifier returned from HMRC"
+        description: "Household identifier returned from HMRC"
       id:
         type: "string"
         format: "uuid"
         example: "96c3f8c0-f6d9-4ad4-9ed9-72fcbd8d692d"
-        description: "The claim's id as stored in the database"
+        description: "The claim's unique id."
       initialIdentityAndEligibilityResponse:
         description: "The initial identity and eligibility response that was performed\
           \ when the claimant first applied."

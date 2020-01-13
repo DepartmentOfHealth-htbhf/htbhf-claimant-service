@@ -70,6 +70,7 @@ public class ClaimController {
         log.debug("Retrieve claim by id {}", id);
 
         Claim claim = claimRepository.findClaim(id);
+
         return claimToClaimDTOConverter.convert(claim);
     }
 

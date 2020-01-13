@@ -26,7 +26,7 @@ public class ClaimantServiceAssertionUtils {
 
     private static final ThreadLocal<DecimalFormat> CURRENCY_FORMAT = ThreadLocal.withInitial(() -> new DecimalFormat("£#,#0.00"));
 
-    public static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
+    private static final URI CLAIMANT_ENDPOINT_URI_V3 = URI.create("/v3/claims");
 
     public static void assertClaimantMatchesClaimantDTO(ClaimantDTO claimant, Claimant persistedClaim) {
         assertThat(persistedClaim.getNino()).isEqualTo(claimant.getNino());
