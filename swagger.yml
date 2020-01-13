@@ -2,6 +2,7 @@ swagger: "2.0"
 info:
   description: "Responsible for the persistence and retrieval of Claims (and Claimants)\
     \ for Help To Buy Healthy Food"
+  version: "1.0"
   title: "Claimant Service"
   contact:
     name: "Department Of Health"
@@ -10,7 +11,7 @@ info:
   license:
     name: "MIT"
     url: "https://opensource.org/licenses/MIT"
-host: "N/A"
+host: "localhost:8090"
 basePath: "/"
 tags:
 - name: "claim-controller"
@@ -163,7 +164,7 @@ definitions:
         description: "The dates of birth of the claimant's declared children (if they\
           \ have any)"
         items:
-          $ref: "#/definitions/LocalDate"
+          type: "string"
       lastName:
         type: "string"
         example: "Bloggs"
