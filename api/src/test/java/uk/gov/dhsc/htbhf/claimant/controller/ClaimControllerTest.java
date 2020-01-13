@@ -20,6 +20,7 @@ import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
@@ -61,7 +63,7 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        ClaimDTO dto = aValidClaimDTO();
+        ClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome.CONFIRMED);
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
@@ -134,6 +136,7 @@ class ClaimControllerTest {
         assertThat(claimRequest.getClaimant()).isEqualTo(claimant);
         assertThat(claimRequest.getDeviceFingerprint()).isEqualTo(dto.getDeviceFingerprint());
         assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
+        assertThat(claimRequest.getEligibilityOverrideOutcome()).isEqualTo(dto.getEligibilityOverrideOutcome());
     }
 
 }

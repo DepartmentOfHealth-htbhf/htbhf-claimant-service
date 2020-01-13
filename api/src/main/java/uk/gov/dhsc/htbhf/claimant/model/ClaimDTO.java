@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.Map;
 import javax.validation.Valid;
@@ -32,5 +33,9 @@ public class ClaimDTO {
     @ApiModelProperty(notes = "The version of the web-ui application used to create this request. "
             + "Identifies which version of the Terms and Conditions the applicant accepted.")
     private String webUIVersion;
+
+    @JsonProperty("eligibilityOverrideOutcome")
+    @ApiModelProperty(notes = "Overrides the eligibility outcome from DWP or HMRC")
+    private EligibilityOutcome eligibilityOverrideOutcome;
 
 }

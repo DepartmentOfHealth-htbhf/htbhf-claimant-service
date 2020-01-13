@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -47,6 +48,12 @@ public final class ClaimDTOTestDataFactory {
     public static ClaimDTO aValidClaimDTOWithNoNullFields() {
         return aClaimDTOBuilder()
                 .claimant(aValidClaimantDTOWithNoNullFields())
+                .build();
+    }
+
+    public static ClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome eligibilityOutcome) {
+        return aClaimDTOBuilder()
+                .eligibilityOverrideOutcome(eligibilityOutcome)
                 .build();
     }
 

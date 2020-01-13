@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.Map;
 
@@ -15,4 +16,5 @@ public class ClaimRequest {
     private Claimant claimant;
     private Map<String, Object> deviceFingerprint;
     private String webUIVersion;
+    private EligibilityOutcome eligibilityOverrideOutcome;
 }
