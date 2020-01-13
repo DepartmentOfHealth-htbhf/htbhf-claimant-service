@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApiDocumentation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant</a> &gt; <span class="el_source">ApiDocumentation.java</span></div><h1>ApiDocumentation.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant;
 
+import com.fasterxml.classmate.TypeResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,32 +15,42 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.time.LocalDate;
+import java.util.List;
+
 import static java.util.Collections.emptyList;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 /**
  * Definitions of SpringFox beans to generate Swagger documentation.
  */
 @Configuration
 @Import(BeanValidatorPluginsConfiguration.class) // enable documentation of JSR-305 constraints
-<span class="fc" id="L23">@Slf4j</span>
-<span class="fc" id="L24">public class ApiDocumentation {</span>
+<span class="fc" id="L29">@Slf4j</span>
+<span class="fc" id="L30">public class ApiDocumentation {</span>
 
-    @Value(&quot;${app.version:}&quot;) // use APP_VERSION env variable if available, otherwise give no version info
+    @Value(&quot;${app.version:1.0}&quot;) // use APP_VERSION env variable if available, otherwise default to 1.0
     private String appVersion;
+
+    @Autowired
+    private TypeResolver typeResolver;
 
     @Bean
     public Docket apiDocket() {
-<span class="fc" id="L31">        return new Docket(DocumentationType.SWAGGER_2)</span>
-<span class="fc" id="L32">                .host(&quot;N/A&quot;)</span>
-<span class="fc" id="L33">                .select()</span>
-<span class="fc" id="L34">                .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))</span>
-<span class="fc" id="L35">                .paths(PathSelectors.any())</span>
-<span class="fc" id="L36">                .build()</span>
-<span class="fc" id="L37">                .apiInfo(getApiInfo());</span>
+<span class="fc" id="L40">        return new Docket(DocumentationType.SWAGGER_2)</span>
+<span class="fc" id="L41">                .alternateTypeRules(</span>
+<span class="fc" id="L42">                        newRule(typeResolver.resolve(List.class, LocalDate.class),</span>
+<span class="fc" id="L43">                                typeResolver.resolve(List.class, String.class)))</span>
+<span class="fc" id="L44">                .host(&quot;localhost:8090&quot;)</span>
+<span class="fc" id="L45">                .select()</span>
+<span class="fc" id="L46">                .apis(RequestHandlerSelectors.basePackage(this.getClass().getPackageName()))</span>
+<span class="fc" id="L47">                .paths(PathSelectors.any())</span>
+<span class="fc" id="L48">                .build()</span>
+<span class="fc" id="L49">                .apiInfo(getApiInfo());</span>
     }
 
     private ApiInfo getApiInfo() {
-<span class="fc" id="L41">        return new ApiInfo(</span>
+<span class="fc" id="L53">        return new ApiInfo(</span>
                 &quot;Claimant Service&quot;,
                 &quot;Responsible for the persistence and retrieval of Claims (and Claimants) for Help To Buy Healthy Food&quot;,
                 appVersion,
@@ -46,7 +58,7 @@ import static java.util.Collections.emptyList;
                 new Contact(&quot;Department Of Health&quot;, &quot;https://github.com/DepartmentOfHealth-htbhf&quot;, &quot;dh-htbhf-team@equalexperts.com&quot;),
                 &quot;MIT&quot;,
                 &quot;https://opensource.org/licenses/MIT&quot;,
-<span class="fc" id="L49">                emptyList()</span>
+<span class="fc" id="L61">                emptyList()</span>
         );
 
     }
