@@ -29,7 +29,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.LISA_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.REJECTED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob;
@@ -67,7 +67,7 @@ public class ChildrenDateOfBirthMatchIntegrationTest {
         NewClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, declaredChildrenDob);
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDobFromBenefitAgency);
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(NEW);
@@ -90,7 +90,7 @@ public class ChildrenDateOfBirthMatchIntegrationTest {
         NewClaimDTO claim = aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(null, SINGLE_THREE_YEAR_OLD);
         wiremockManager.stubSuccessfulEligibilityResponse(SINGLE_SIX_MONTH_OLD);
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(claim), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(REJECTED);
