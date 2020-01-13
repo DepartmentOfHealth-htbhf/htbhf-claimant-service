@@ -57,6 +57,7 @@ public class ClaimController {
                 .claimant(claimant)
                 .deviceFingerprint(newClaimDTO.getDeviceFingerprint())
                 .webUIVersion(newClaimDTO.getWebUIVersion())
+                .eligibilityOverrideOutcome(newClaimDTO.getEligibilityOverrideOutcome())
                 .build();
         ClaimResult result = claimService.createClaim(claimRequest);
 
