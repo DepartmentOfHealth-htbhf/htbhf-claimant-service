@@ -24,8 +24,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContext;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidMakePaymentMessageContextForRestartedPayment;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -57,6 +56,22 @@ class MakePaymentMessageProcessorTest {
         verify(messageContextLoader).loadMakePaymentContext(message);
         verify(paymentService).makePaymentForCycle(paymentCycle, claim.getCardAccountId());
         verify(paymentCycleNotificationHandler).sendNotificationEmailsForRegularPayment(paymentCycle);
+    }
+
+    @Test
+    void shouldProcessMessageFirstPayment() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        Claim claim = paymentCycle.getClaim();
+        MakePaymentMessageContext messageContext = aValidMakeFirstPaymentMessageContext(paymentCycle, claim);
+        given(messageContextLoader.loadMakePaymentContext(any())).willReturn(messageContext);
+        Message message = aValidMessageWithType(MAKE_PAYMENT);
+
+        MessageStatus result = processor.processMessage(message);
+
+        assertThat(result).isEqualTo(MessageStatus.COMPLETED);
+        verify(messageContextLoader).loadMakePaymentContext(message);
+        verify(paymentService).makeFirstPayment(paymentCycle, claim.getCardAccountId());
+        verifyNoInteractions(paymentCycleNotificationHandler);
     }
 
     @Test
