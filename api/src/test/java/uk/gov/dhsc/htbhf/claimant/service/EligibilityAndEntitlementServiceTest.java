@@ -2,6 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,15 +14,22 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.dwp.model.DeathVerificationFlag;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.IdentityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -41,6 +51,7 @@ class EligibilityAndEntitlementServiceTest {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
+    private  static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
     private static final CombinedIdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
     private static final List<LocalDate> DATE_OF_BIRTH_OF_CHILDREN = IDENTITY_AND_ELIGIBILITY_RESPONSE.getDobOfChildrenUnder4();
     private static final PaymentCycleVoucherEntitlement VOUCHER_ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
@@ -64,19 +75,28 @@ class EligibilityAndEntitlementServiceTest {
     @Mock
     EligibilityAndEntitlementDecisionFactory eligibilityAndEntitlementDecisionFactory;
 
-    @Test
-    void shouldReturnDuplicateWhenLiveClaimAlreadyExists() {
+    @ParameterizedTest
+    @MethodSource("allEligibilityOutcomeValues")
+    void shouldReturnDuplicateWhenLiveClaimAlreadyExists(EligibilityOutcome eligibilityOverrideOutcome) {
         //Given
         UUID existingClaimId = UUID.randomUUID();
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.of(existingClaimId));
 
         //When
-        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, eligibilityOverrideOutcome);
 
         //Then
         assertThat(decision.getEligibilityStatus()).isEqualTo(EligibilityStatus.DUPLICATE);
         assertThat(decision.getExistingClaimId()).isEqualTo(existingClaimId);
         verifyNoInteractions(client);
+    }
+
+    private static Stream<EligibilityOutcome> allEligibilityOutcomeValues() {
+        return Stream.of(
+                null,
+                EligibilityOutcome.CONFIRMED,
+                EligibilityOutcome.NOT_CONFIRMED
+        );
     }
 
     @Test
@@ -87,7 +107,7 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus.DUPLICATE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, NO_ELIGIBILITY_OVERRIDE);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
@@ -103,12 +123,40 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, NO_ELIGIBILITY_OVERRIDE);
 
         //Then
         assertThat(result).isEqualTo(decisionResponse);
         verifyCommonMocks(NOT_DUPLICATE);
         verify(duplicateClaimChecker).liveClaimExistsForHousehold(IDENTITY_AND_ELIGIBILITY_RESPONSE);
+    }
+
+    @Test
+    void shouldReturnEligibilityOverride() {
+        //Given
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.empty());
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
+        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, EligibilityOutcome.CONFIRMED);
+
+        //Then
+        CombinedIdentityAndEligibilityResponse response = CombinedIdentityAndEligibilityResponse.builder()
+                .identityStatus(IdentityOutcome.MATCHED)
+                .eligibilityStatus(EligibilityOutcome.CONFIRMED)
+                .addressLine1Match(VerificationOutcome.NOT_SET)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .dobOfChildrenUnder4(Collections.emptyList())
+                .emailAddressMatch(VerificationOutcome.NOT_SET)
+                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
+                .postcodeMatch(VerificationOutcome.NOT_SET)
+                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
+                .build();
+
+        assertThat(result).isEqualTo(decisionResponse);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(eq(response), any(), eq(NOT_DUPLICATE));
     }
 
     @Test
