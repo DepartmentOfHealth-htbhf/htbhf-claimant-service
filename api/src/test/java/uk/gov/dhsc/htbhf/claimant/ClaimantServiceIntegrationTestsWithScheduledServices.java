@@ -51,7 +51,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     void shouldRequestNewCardAndSendEmailForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimant = newClaimDTO.getClaimant();
-        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
         wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
@@ -152,7 +152,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         ClaimantDTO claimant = newClaimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
         PostcodeData postcodeData = aPostcodeDataObjectForPostcode(postcode);
-        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
         wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
 
@@ -171,7 +171,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimant = newClaimDTO.getClaimant();
         String postcode = claimant.getAddress().getPostcode();
-        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
         wiremockManager.stubNotFoundPostcodesIOResponse(postcode);
 
@@ -190,7 +190,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
     void shouldRecoverFromErrorsToHandleSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
         ClaimantDTO claimant = newClaimDTO.getClaimant();
-        List<LocalDate> childrenDob = claimant.getChildrenDob();
+        List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
         String cardAccountId = UUID.randomUUID().toString();
 
         wiremockManager.stubSuccessfulEligibilityResponse(childrenDob);
