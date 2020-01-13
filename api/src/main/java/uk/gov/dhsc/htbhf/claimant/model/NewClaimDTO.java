@@ -17,7 +17,7 @@ import javax.validation.constraints.NotNull;
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 @ApiModel(description = "A claim (application) for help to buy healthy foods. Contains all details that need to be persisted as part of the application.")
-public class ClaimDTO {
+public class NewClaimDTO {
 
     @JsonProperty("claimant")
     @Valid
