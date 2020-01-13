@@ -4,6 +4,7 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -33,6 +34,11 @@ public class Claim extends VersionedEntity {
     @Column(name = &quot;claim_status_timestamp&quot;)
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime claimStatusTimestamp;
+
+    @Column(name = &quot;eligibility_override_outcome&quot;)
+    @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
+    private EligibilityOutcome eligibilityOverrideOutcome;
 
     @NotNull
     @Column(name = &quot;eligibility_status&quot;)
@@ -91,24 +97,24 @@ public class Claim extends VersionedEntity {
     private Claimant claimant;
 
     public void updateClaimStatus(ClaimStatus newStatus) {
-<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
-<span class="fc" id="L95">            claimStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
+<span class="fc" id="L101">            claimStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L97">        claimStatus = newStatus;</span>
-<span class="fc" id="L98">    }</span>
+<span class="fc" id="L103">        claimStatus = newStatus;</span>
+<span class="fc" id="L104">    }</span>
 
     public void updateEligibilityStatus(EligibilityStatus newStatus) {
-<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
-<span class="fc" id="L102">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
+<span class="fc" id="L108">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L104">        eligibilityStatus = newStatus;</span>
-<span class="fc" id="L105">    }</span>
+<span class="fc" id="L110">        eligibilityStatus = newStatus;</span>
+<span class="fc" id="L111">    }</span>
 
     public void updateCardStatus(CardStatus newStatus) {
-<span class="fc bfc" id="L108" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
-<span class="fc" id="L109">            cardStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
+<span class="fc" id="L115">            cardStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L111">        cardStatus = newStatus;</span>
-<span class="fc" id="L112">    }</span>
+<span class="fc" id="L117">        cardStatus = newStatus;</span>
+<span class="fc" id="L118">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
