@@ -186,6 +186,7 @@ public class ClaimService {
     private boolean registeredChildrenContainAllDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
         List<LocalDate> initiallyDeclaredChildrenDob = defaultIfNull(claim.getClaimant().getInitiallyDeclaredChildrenDob(), emptyList());
         List<LocalDate> identityAndEligibilityResponseChildren = defaultIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4(), emptyList());
-        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob);
+        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob)
+                && identityAndEligibilityResponseChildren.size() >= initiallyDeclaredChildrenDob.size();
     }
 }
