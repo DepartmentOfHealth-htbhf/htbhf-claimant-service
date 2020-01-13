@@ -97,6 +97,13 @@ definitions:
         type: "object"
         description: "The fingerprint of the device used to make the claim, as best\
           \ it can be identified. Probably a collection of header values."
+      eligibilityOverrideOutcome:
+        type: "string"
+        description: "Overrides the eligibility outcome from DWP or HMRC"
+        enum:
+        - "confirmed"
+        - "not_confirmed"
+        - "not_set"
       webUIVersion:
         type: "string"
         description: "The version of the web-ui application used to create this request.\
