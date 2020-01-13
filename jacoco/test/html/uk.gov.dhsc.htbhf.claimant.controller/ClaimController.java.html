@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
@@ -50,13 +50,13 @@ public class ClaimController {
     @PostMapping
     @ApiOperation(&quot;Create a claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
-    public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) ClaimDTO claimDTO) {
+    public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) NewClaimDTO newClaimDTO) {
 <span class="fc" id="L54">        log.debug(&quot;Received claim&quot;);</span>
-<span class="fc" id="L55">        Claimant claimant = claimantConverter.convert(claimDTO.getClaimant());</span>
+<span class="fc" id="L55">        Claimant claimant = claimantConverter.convert(newClaimDTO.getClaimant());</span>
 <span class="fc" id="L56">        ClaimRequest claimRequest = ClaimRequest.builder()</span>
 <span class="fc" id="L57">                .claimant(claimant)</span>
-<span class="fc" id="L58">                .deviceFingerprint(claimDTO.getDeviceFingerprint())</span>
-<span class="fc" id="L59">                .webUIVersion(claimDTO.getWebUIVersion())</span>
+<span class="fc" id="L58">                .deviceFingerprint(newClaimDTO.getDeviceFingerprint())</span>
+<span class="fc" id="L59">                .webUIVersion(newClaimDTO.getWebUIVersion())</span>
 <span class="fc" id="L60">                .build();</span>
 <span class="fc" id="L61">        ClaimResult result = claimService.createClaim(claimRequest);</span>
 
