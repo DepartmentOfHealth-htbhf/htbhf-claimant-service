@@ -51,7 +51,7 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome eligibilityOutcome) {
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome eligibilityOutcome) {
         return aClaimDTOBuilder()
                 .eligibilityOverrideOutcome(eligibilityOutcome)
                 .build();
