@@ -176,6 +176,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
         //Given
+        // TODO MGS: AFHS-428 Introduce new factory method once EligibilityOverride is complete
         Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverrideOutcome(EligibilityOutcome.CONFIRMED).build();
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();

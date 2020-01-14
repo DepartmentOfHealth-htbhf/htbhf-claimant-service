@@ -65,6 +65,35 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
+        NewClaimDTO dto = aValidClaimDTO();
+        Claimant claimant = aValidClaimant();
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
+        VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
+        given(claimService.createClaim(any())).willReturn(claimResult);
+
+        // When
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
+        verifyCreateClaimCalledCorrectly(claimant, dto);
+        verify(claimantConverter).convert(aValidClaimantDTO());
+        verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "NEW, CREATED",
+            "PENDING, OK",
+            "ACTIVE, OK",
+            "PENDING_EXPIRY, OK"
+    })
+    void shouldInvokeClaimServiceAndReturnCorrectStatusWithEligibilityOverride(ClaimStatus claimStatus, HttpStatus httpStatus) {
+        // Given
         NewClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));

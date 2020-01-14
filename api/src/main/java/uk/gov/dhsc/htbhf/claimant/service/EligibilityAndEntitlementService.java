@@ -70,7 +70,7 @@ public class EligibilityAndEntitlementService {
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
-     * @param claim       the claim for claimant to check the eligibility for
+     * @param claim          the claim to check eligibility for
      * @param cycleStartDate the start date of the payment cycle
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant

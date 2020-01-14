@@ -361,7 +361,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         for (int i = 0; i < numCycles; i++) {
             resetNotificationClient();
             repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
-            wiremockManager.stubIneligibleEligibilityResponse();
+            // not stubbing an eligibility response as we shouldn't call the service
             wiremockManager.stubGoogleAnalyticsCall();
             invokeAllSchedulers();
             assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, REGULAR_PAYMENT);

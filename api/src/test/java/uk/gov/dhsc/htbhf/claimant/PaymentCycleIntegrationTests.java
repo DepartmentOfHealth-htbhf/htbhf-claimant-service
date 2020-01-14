@@ -127,7 +127,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     @Test
     void shouldApplyOverrideForPregnantClaimantWithoutChildren() throws JsonProcessingException, NotificationClientException {
-        wiremockManager.stubIneligibleEligibilityResponse();
+        // not stubbing an eligibility response as we shouldn't call the service
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
@@ -662,7 +662,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterdayAndEligibilityOverride(List<LocalDate> childrensDateOfBirth,
-                                                             LocalDate expectedDeliveryDate, EligibilityOutcome eligibilityOverrideOutcome) {
+                                                                                   LocalDate expectedDeliveryDate,
+                                                                                   EligibilityOutcome eligibilityOverrideOutcome) {
         Claim claim = aValidClaimBuilder()
                 .claimant(aClaimantWithExpectedDeliveryDate(expectedDeliveryDate))
                 .cardAccountId(CARD_ACCOUNT_ID)
