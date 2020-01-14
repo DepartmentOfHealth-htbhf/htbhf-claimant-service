@@ -38,14 +38,12 @@ public class ClaimantServiceAssertionUtils {
     }
 
     public static RequestEntity buildCreateClaimRequestEntity(Object requestObject) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = headersWithJsonContentType();
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
     }
 
     public static RequestEntity buildRetrieveClaimRequestEntity(UUID claimId) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = headersWithJsonContentType();
         return new RequestEntity<ClaimDTO>(headers, HttpMethod.GET, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/" + claimId));
     }
 
@@ -61,6 +59,12 @@ public class ClaimantServiceAssertionUtils {
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
         assertThat(failedPayments).hasSize(expectedFailureCount);
+    }
+
+    private static HttpHeaders headersWithJsonContentType() {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
     }
 
     private static void assertAddressEqual(Address actual, AddressDTO expected) {
