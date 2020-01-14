@@ -156,7 +156,7 @@ class ClaimServiceTest {
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, EligibilityOutcome.CONFIRMED);
 
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, NO_ELIGIBILITY_OVERRIDE);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, EligibilityOutcome.CONFIRMED);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);

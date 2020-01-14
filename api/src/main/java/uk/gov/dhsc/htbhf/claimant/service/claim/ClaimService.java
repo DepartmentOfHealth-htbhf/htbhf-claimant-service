@@ -57,7 +57,7 @@ public class ClaimService {
 
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(), null);
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(), claimRequest.getEligibilityOverrideOutcome());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createDuplicateClaim(claimRequest, decision);
