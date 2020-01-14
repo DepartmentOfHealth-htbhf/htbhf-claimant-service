@@ -7,13 +7,13 @@ import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
+import uk.gov.dhsc.htbhf.database.exception.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityNotFoundException;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 
