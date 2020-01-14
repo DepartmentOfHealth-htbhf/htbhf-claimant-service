@@ -10,5 +10,5 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 public class CompletePaymentMessagePayload implements MessagePayload {
     private PaymentCycle paymentCycle;
     private Payment payment;
-    private String referenceId;
+    private String paymentReferenceId;
 }

@@ -25,7 +25,7 @@ public class CompletePaymentMessageProcessor implements MessageTypeProcessor {
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-
+        // TODO AFHS-405 add processing logic when implementing
         return COMPLETED;
     }
 
