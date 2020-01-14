@@ -48,7 +48,7 @@ public class ClaimDTO {
     @JsonProperty("hmrcHouseholdIdentifier")
     private String hmrcHouseholdIdentifier;
 
-    @ApiModelProperty(notes = "Card id return from the card provider", example = "8b66a86f-778e-47f9-b998-a042476ef2c0 \n")
+    @ApiModelProperty(notes = "Card id returned from the card provider", example = "8b66a86f-778e-47f9-b998-a042476ef2c0")
     @JsonProperty("cardAccountId")
     private String cardAccountId;
 

@@ -30,7 +30,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWitChildrenDob;
@@ -59,7 +59,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailResponse();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
@@ -89,7 +89,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationLetterResponse();
         NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         invokeAllSchedulers();
 
         assertThat(response.getStatusCode()).isEqualTo(OK);
@@ -115,7 +115,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationLetterResponse();
         NewClaimDTO newClaimDTO = aValidClaimDTOWitChildrenDob(declaredChildrenDob);
 
-        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         invokeAllSchedulers();
@@ -157,7 +157,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubSuccessfulPostcodesIoResponse(postcode, postcodeData);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -176,7 +176,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         wiremockManager.stubNotFoundPostcodesIOResponse(postcode);
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
         messageProcessorScheduler.processReportClaimMessages();
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
@@ -202,7 +202,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         stubNotificationEmailError();
 
         ResponseEntity<ClaimResultDTO> response
-                = restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+                = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);

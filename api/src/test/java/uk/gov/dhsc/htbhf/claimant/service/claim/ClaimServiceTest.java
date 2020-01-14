@@ -196,7 +196,9 @@ class ClaimServiceTest {
         return Stream.of(
                 Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NULL_CHILDREN),
                 Arguments.of(singletonList(LISA_DATE_OF_BIRTH), NO_CHILDREN),
-                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS)
+                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, LISA_DATE_OF_BIRTH, BART_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS),
+                //Test scenario where there are twins but only one is registered.
+                Arguments.of(List.of(MAGGIE_DATE_OF_BIRTH, MAGGIE_DATE_OF_BIRTH), singletonList(MAGGIE_DATE_OF_BIRTH))
         );
     }
 
