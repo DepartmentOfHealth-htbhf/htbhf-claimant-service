@@ -79,3 +79,15 @@ notify:
 google-analytics:
   tracking-id: tracking-id
   base-uri: http://localhost:8150
+
+zonky:
+  test:
+    database:
+      provider: ${EMBEDDED_DATABASE_PROVIDER:zonky}
+      postgres:
+        docker:
+          image: postgres:10.11-alpine # Docker image containing PostgreSQL database.
+          tmpfs:
+            enabled: false  # Whether to mount postgres data directory as tmpfs.
+            options: rw,noexec,nosuid # Mount options used to configure the tmpfs filesystem.
+
