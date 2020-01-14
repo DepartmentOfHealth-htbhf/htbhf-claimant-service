@@ -27,6 +27,7 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -108,6 +109,19 @@ class ClaimantServiceIntegrationTests {
                 "initialIdentityAndEligibilityResponse");
         assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenClaimWithGivenIdDoesNotExist() {
+        UUID claimId = UUID.randomUUID();
+
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildRetrieveClaimRequestEntity(claimId), ErrorResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
+        assertThat(response.getBody().getStatus()).isEqualTo(NOT_FOUND.value());
+        assertThat(response.getBody().getMessage()).isEqualTo("Unable to find claim with id " + claimId.toString());
+        assertThat(response.getBody().getTimestamp()).isNotNull();
+        assertThat(response.getBody().getRequestId()).isNotNull();
     }
 
     @Test
