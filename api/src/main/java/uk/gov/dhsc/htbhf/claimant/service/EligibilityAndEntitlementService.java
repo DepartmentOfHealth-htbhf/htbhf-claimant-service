@@ -52,7 +52,8 @@ public class EligibilityAndEntitlementService {
             return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
         }
 
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverrideOutcome);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = getCombinedIdentityAndEligibilityResponse(claimant,
+                eligibilityOverrideOutcome);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
