@@ -186,7 +186,8 @@ public class ClaimService {
     private boolean registeredChildrenContainAllDeclaredChildren(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, Claim claim) {
 <span class="fc" id="L187">        List&lt;LocalDate&gt; initiallyDeclaredChildrenDob = defaultIfNull(claim.getClaimant().getInitiallyDeclaredChildrenDob(), emptyList());</span>
 <span class="fc" id="L188">        List&lt;LocalDate&gt; identityAndEligibilityResponseChildren = defaultIfNull(identityAndEligibilityResponse.getDobOfChildrenUnder4(), emptyList());</span>
-<span class="fc" id="L189">        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob);</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        return identityAndEligibilityResponseChildren.containsAll(initiallyDeclaredChildrenDob)</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">                &amp;&amp; identityAndEligibilityResponseChildren.size() &gt;= initiallyDeclaredChildrenDob.size();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
