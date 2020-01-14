@@ -10,9 +10,14 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.dwp.model.DeathVerificationFlag;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.IdentityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,17 +41,19 @@ public class EligibilityAndEntitlementService {
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
-     * @param claimant the claimant to check the eligibility for
+     * @param claimant                   the claimant to check the eligibility for
+     * @param eligibilityOverrideOutcome to override the eligibility outcome
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant) {
+    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant, EligibilityOutcome eligibilityOverrideOutcome) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
         if (liveClaimsWithNino.isPresent()) {
             return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
         }
 
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = getCombinedIdentityAndEligibilityResponse(claimant,
+                eligibilityOverrideOutcome);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -80,4 +87,29 @@ public class EligibilityAndEntitlementService {
                 entitlement, false);
     }
 
+    private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
+                                                                                             EligibilityOutcome eligibilityOverrideOutcome) {
+        if (isOverride(eligibilityOverrideOutcome)) {
+            return buildOverrideResponse(eligibilityOverrideOutcome);
+        }
+        return client.checkIdentityAndEligibility(claimant);
+    }
+
+    private boolean isOverride(EligibilityOutcome eligibilityOverrideOutcome) {
+        return eligibilityOverrideOutcome != null;
+    }
+
+    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOutcome eligibilityOverrideOutcome) {
+        return CombinedIdentityAndEligibilityResponse.builder()
+                .identityStatus(IdentityOutcome.MATCHED)
+                .eligibilityStatus(eligibilityOverrideOutcome)
+                .addressLine1Match(VerificationOutcome.NOT_SET)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .dobOfChildrenUnder4(Collections.emptyList())
+                .emailAddressMatch(VerificationOutcome.NOT_SET)
+                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
+                .postcodeMatch(VerificationOutcome.NOT_SET)
+                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
+                .build();
+    }
 }
