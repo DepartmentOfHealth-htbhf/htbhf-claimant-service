@@ -1,11 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
+import org.springframework.http.*;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.math.BigDecimal;
@@ -13,6 +11,7 @@ import java.net.URI;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,10 +37,14 @@ public class ClaimantServiceAssertionUtils {
         assertAddressEqual(persistedClaim.getAddress(), claimant.getAddress());
     }
 
-    public static RequestEntity buildClaimRequestEntity(Object requestObject) {
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    public static RequestEntity buildCreateClaimRequestEntity(Object requestObject) {
+        HttpHeaders headers = headersWithJsonContentType();
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
+    }
+
+    public static RequestEntity buildRetrieveClaimRequestEntity(UUID claimId) {
+        HttpHeaders headers = headersWithJsonContentType();
+        return new RequestEntity<ClaimDTO>(headers, HttpMethod.GET, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/" + claimId));
     }
 
     public static String formatVoucherAmount(int voucherCount) {
@@ -56,6 +59,12 @@ public class ClaimantServiceAssertionUtils {
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
         assertThat(failedPayments).hasSize(expectedFailureCount);
+    }
+
+    private static HttpHeaders headersWithJsonContentType() {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
     }
 
     private static void assertAddressEqual(Address actual, AddressDTO expected) {

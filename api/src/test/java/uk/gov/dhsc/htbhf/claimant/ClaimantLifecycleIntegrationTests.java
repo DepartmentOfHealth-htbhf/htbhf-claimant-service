@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT_STOPPING;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
@@ -366,7 +366,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private void makeNewClaimRestRequest(NewClaimDTO newClaimDTO) {
-        restTemplate.exchange(buildClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+        restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
     }
 
     private void stubExternalServicesForSuccessfulResponses(String cardAccountId, List<LocalDate> datesOfBirthOfChildren)

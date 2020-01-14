@@ -127,6 +127,9 @@ pmdTest {
     ruleSetFiles = files("../config/pmd/test-rulesets.xml")
     ruleSets = [] // Remove built-in rule sets
 }
+spotbugsMain {
+    excludeFilter = file("../config/spotbugs/main-exclude.xml")
+}
 spotbugsTest {
     excludeFilter = file("../config/spotbugs/test-exclude.xml")
 }

@@ -52,6 +52,33 @@ paths:
         "404":
           description: "Not Found"
       deprecated: false
+  /v3/claims/{id}:
+    get:
+      tags:
+      - "claim-controller"
+      summary: "Retrieve a claim by id."
+      operationId: "retrieveClaimByIdUsingGET"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "id"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ClaimDTO"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not Found"
+      deprecated: false
 definitions:
   AddressDTO:
     type: "object"
@@ -88,6 +115,82 @@ definitions:
         maxLength: 500
     title: "AddressDTO"
     description: "Multi purpose address object"
+  ClaimDTO:
+    type: "object"
+    properties:
+      cardAccountId:
+        type: "string"
+        example: "8b66a86f-778e-47f9-b998-a042476ef2c0"
+        description: "Card id returned from the card provider"
+      cardStatus:
+        type: "string"
+        description: "The current card status"
+        enum:
+        - "ACTIVE"
+        - "PENDING_CANCELLATION"
+        - "SCHEDULED_FOR_CANCELLATION"
+        - "CANCELLED"
+      cardStatusTimestamp:
+        type: "string"
+        format: "date-time"
+        example: "2020/01/06T14:00:00.352"
+        description: "Time of when the card status was last updated"
+      claimStatus:
+        type: "string"
+        description: "The claim's current status"
+        enum:
+        - "REJECTED"
+        - "NEW"
+        - "PENDING"
+        - "ACTIVE"
+        - "PENDING_EXPIRY"
+        - "EXPIRED"
+        - "ERROR"
+      claimStatusTimestamp:
+        type: "string"
+        format: "date-time"
+        example: "2020/01/06T14:00:00.352"
+        description: "Timestamp of when the claim status was last updated"
+      claimant:
+        $ref: "#/definitions/ClaimantDTO"
+      currentIdentityAndEligibilityResponse:
+        description: "The current identity and eligibility response when processing\
+          \ the last payment cycle."
+        $ref: "#/definitions/CombinedIdentityAndEligibilityResponse"
+      dwpHouseholdIdentifier:
+        type: "string"
+        example: "dd77e887-49cf-43cd-b974-b17273602018"
+        description: "Household identifier returned from DWP"
+      eligibilityStatus:
+        type: "string"
+        description: "The claim's eligibility status"
+        enum:
+        - "ELIGIBLE"
+        - "INELIGIBLE"
+        - "PENDING"
+        - "NO_MATCH"
+        - "ERROR"
+        - "DUPLICATE"
+      eligibilityStatusTimestamp:
+        type: "string"
+        format: "date-time"
+        example: "2020/01/06T14:00:00.352"
+        description: "Timestamp of when the eligibility status was last updated"
+      hmrcHouseholdIdentifier:
+        type: "string"
+        example: "4c697b0a-5709-423b-8e31-b63796cdca7f"
+        description: "Household identifier returned from HMRC"
+      id:
+        type: "string"
+        format: "uuid"
+        example: "96c3f8c0-f6d9-4ad4-9ed9-72fcbd8d692d"
+        description: "The claim's unique id."
+      initialIdentityAndEligibilityResponse:
+        description: "The initial identity and eligibility response that was performed\
+          \ when the claimant first applied."
+        $ref: "#/definitions/CombinedIdentityAndEligibilityResponse"
+    title: "ClaimDTO"
+    description: "An existing claim for Apply for healthy start."
   ClaimResultDTO:
     type: "object"
     properties:
@@ -184,6 +287,92 @@ definitions:
         pattern: "^\\+44\\d{9,10}$"
     title: "ClaimantDTO"
     description: "A claimant for help to buy healthy foods."
+  CombinedIdentityAndEligibilityResponse:
+    type: "object"
+    properties:
+      addressLine1Match:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+        - "not_held"
+        - "not_supplied"
+        - "invalid_format"
+        - "not_set"
+      deathVerificationFlag:
+        type: "string"
+        enum:
+        - "n/a"
+        - "death_not_verified"
+        - "limited_supporting_documentation"
+        - "partial_supporting_documentation"
+        - "full_supporting_documentation"
+      dobOfChildrenUnder4:
+        type: "array"
+        items:
+          type: "string"
+      dwpHouseholdIdentifier:
+        type: "string"
+      eligibilityStatus:
+        type: "string"
+        enum:
+        - "confirmed"
+        - "not_confirmed"
+        - "not_set"
+      emailAddressMatch:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+        - "not_held"
+        - "not_supplied"
+        - "invalid_format"
+        - "not_set"
+      hmrcHouseholdIdentifier:
+        type: "string"
+      identityStatus:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+      mobilePhoneMatch:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+        - "not_held"
+        - "not_supplied"
+        - "invalid_format"
+        - "not_set"
+      postcodeMatch:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+        - "not_held"
+        - "not_supplied"
+        - "invalid_format"
+        - "not_set"
+      pregnantChildDOBMatch:
+        type: "string"
+        enum:
+        - "matched"
+        - "not_matched"
+        - "not_held"
+        - "not_supplied"
+        - "invalid_format"
+        - "not_set"
+      qualifyingBenefits:
+        type: "string"
+        enum:
+        - "universal_credit"
+        - "employment_and_support_allowance"
+        - "income_support"
+        - "jobseekers_allowance"
+        - "pension_credit"
+        - "child_tax_credit"
+        - "not_set"
+    title: "CombinedIdentityAndEligibilityResponse"
   ErrorResponse:
     type: "object"
     properties:
