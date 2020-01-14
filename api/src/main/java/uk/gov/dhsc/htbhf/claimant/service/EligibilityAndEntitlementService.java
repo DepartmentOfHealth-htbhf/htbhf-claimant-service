@@ -63,27 +63,6 @@ public class EligibilityAndEntitlementService {
                 entitlement, duplicateHouseholdIdentifierFound);
     }
 
-    private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
-                                                                                             EligibilityOutcome eligibilityOverrideOutcome) {
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
-        if (eligibilityOverrideOutcome == null) {
-            identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
-        } else {
-            identityAndEligibilityResponse = CombinedIdentityAndEligibilityResponse.builder()
-                    .identityStatus(IdentityOutcome.MATCHED)
-                    .eligibilityStatus(eligibilityOverrideOutcome)
-                    .addressLine1Match(VerificationOutcome.NOT_SET)
-                    .deathVerificationFlag(DeathVerificationFlag.N_A)
-                    .dobOfChildrenUnder4(Collections.emptyList())
-                    .emailAddressMatch(VerificationOutcome.NOT_SET)
-                    .mobilePhoneMatch(VerificationOutcome.NOT_SET)
-                    .postcodeMatch(VerificationOutcome.NOT_SET)
-                    .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
-                    .build();
-        }
-        return identityAndEligibilityResponse;
-    }
-
     /**
      * Determines the eligibility and entitlement for the given existing claimant using v3 of the service. No check is made on the NINO as they already exist
      * in the database. The eligibility status is checked by calling the external service.
@@ -108,4 +87,29 @@ public class EligibilityAndEntitlementService {
                 entitlement, false);
     }
 
+    private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
+                                                                                             EligibilityOutcome eligibilityOverrideOutcome) {
+        if (isOverride(eligibilityOverrideOutcome)) {
+            return buildOverrideResponse(eligibilityOverrideOutcome);
+        }
+        return client.checkIdentityAndEligibility(claimant);
+    }
+
+    private boolean isOverride(EligibilityOutcome eligibilityOverrideOutcome) {
+        return eligibilityOverrideOutcome != null;
+    }
+
+    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOutcome eligibilityOverrideOutcome) {
+        return CombinedIdentityAndEligibilityResponse.builder()
+                .identityStatus(IdentityOutcome.MATCHED)
+                .eligibilityStatus(eligibilityOverrideOutcome)
+                .addressLine1Match(VerificationOutcome.NOT_SET)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
+                .dobOfChildrenUnder4(Collections.emptyList())
+                .emailAddressMatch(VerificationOutcome.NOT_SET)
+                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
+                .postcodeMatch(VerificationOutcome.NOT_SET)
+                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
+                .build();
+    }
 }
