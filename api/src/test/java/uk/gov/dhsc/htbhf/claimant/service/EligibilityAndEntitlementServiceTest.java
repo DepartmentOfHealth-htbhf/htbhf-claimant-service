@@ -9,10 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
+import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -32,9 +34,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
@@ -143,6 +147,7 @@ class EligibilityAndEntitlementServiceTest {
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
 
         assertThat(result).isEqualTo(decisionResponse);
+        verifyNoInteractions(client);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(eq(response), any(), eq(NOT_DUPLICATE));
     }
 
@@ -154,18 +159,40 @@ class EligibilityAndEntitlementServiceTest {
         given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
         given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decision);
-        Claimant claimant = paymentCycle.getClaim().getClaimant();
+        Claim claim = paymentCycle.getClaim();
         LocalDate cycleStartDate = LocalDate.now();
 
         //When
-        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(claimant, cycleStartDate, paymentCycle);
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(claim, cycleStartDate, paymentCycle);
 
         //Then
         assertThat(result).isEqualTo(decision);
-        verify(client).checkIdentityAndEligibility(claimant);
+        verify(client).checkIdentityAndEligibility(claim.getClaimant());
         verify(paymentCycleEntitlementCalculator)
                 .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), MAGGIE_AND_LISA_DOBS, cycleStartDate, VOUCHER_ENTITLEMENT);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, false);
+    }
+
+    @Test
+    void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
+        //Given
+        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverrideOutcome(EligibilityOutcome.CONFIRMED).build();
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        EligibilityAndEntitlementDecision decision = anEligibleDecision();
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decision);
+        LocalDate cycleStartDate = LocalDate.now();
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(claim, cycleStartDate, paymentCycle);
+
+        //Then
+        assertThat(result).isEqualTo(decision);
+        verifyNoInteractions(client);
+        verify(paymentCycleEntitlementCalculator)
+                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), NO_CHILDREN, cycleStartDate, VOUCHER_ENTITLEMENT);
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
     }
 
     private EligibilityAndEntitlementDecision setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus status) {

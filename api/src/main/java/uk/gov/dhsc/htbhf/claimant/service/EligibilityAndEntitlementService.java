@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -52,8 +53,8 @@ public class EligibilityAndEntitlementService {
             return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
         }
 
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = getCombinedIdentityAndEligibilityResponse(claimant,
-                eligibilityOverrideOutcome);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverrideOutcome);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -69,17 +70,18 @@ public class EligibilityAndEntitlementService {
      * Claimants determined to be eligible by the external eligibility service must still either be pregnant or have children under 4,
      * otherwise they will be ineligible.
      *
-     * @param claimant       the claimant to check the eligibility for
+     * @param claim       the claim for claimant to check the eligibility for
      * @param cycleStartDate the start date of the payment cycle
      * @param previousCycle  the previous payment cycle
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claimant claimant,
+    public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claim claim,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
-        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverrideOutcome());
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
-                Optional.ofNullable(claimant.getExpectedDeliveryDate()),
+                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement());
