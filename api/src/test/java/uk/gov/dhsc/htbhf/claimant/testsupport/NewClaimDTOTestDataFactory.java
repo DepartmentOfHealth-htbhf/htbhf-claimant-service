@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
-import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.time.LocalDate;
@@ -11,7 +11,7 @@ import java.util.Map;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithCounty;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.*;
 
-public final class ClaimDTOTestDataFactory {
+public final class NewClaimDTOTestDataFactory {
 
     private static final String WEB_UI_VERSION = "1.0.0";
     public static final Map<String, Object> DEVICE_FINGERPRINT = Map.of(
@@ -22,68 +22,68 @@ public final class ClaimDTOTestDataFactory {
             "accept-language", "en-GB,en-US;q=0.9,en;q=0.8");
 
 
-    public static ClaimDTO aValidClaimDTO() {
+    public static NewClaimDTO aValidClaimDTO() {
         return aClaimDTOBuilder()
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
+    public static NewClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate))
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWitChildrenDob(List<LocalDate> childrenDob) {
+    public static NewClaimDTO aValidClaimDTOWitChildrenDob(List<LocalDate> childrenDob) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithChildrenDob(childrenDob))
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
+    public static NewClaimDTO aValidClaimDTOWithExpectedDeliveryDateAndChildrenDob(LocalDate expectedDeliveryDate, List<LocalDate> childrenDob) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, childrenDob))
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWithNoNullFields() {
+    public static NewClaimDTO aValidClaimDTOWithNoNullFields() {
         return aClaimDTOBuilder()
                 .claimant(aValidClaimantDTOWithNoNullFields())
                 .build();
     }
 
-    public static ClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome eligibilityOutcome) {
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome eligibilityOutcome) {
         return aClaimDTOBuilder()
                 .eligibilityOverrideOutcome(eligibilityOutcome)
                 .build();
     }
 
-    public static ClaimDTO aClaimDTOWithClaimant(ClaimantDTO claimant) {
+    public static NewClaimDTO aClaimDTOWithClaimant(ClaimantDTO claimant) {
         return aClaimDTOBuilder()
                 .claimant(claimant)
                 .build();
     }
 
-    public static ClaimDTO aClaimDTOWithDeviceFingerprint(Map<String, Object> fingerprint) {
+    public static NewClaimDTO aClaimDTOWithDeviceFingerprint(Map<String, Object> fingerprint) {
         return aClaimDTOBuilder()
                 .deviceFingerprint(fingerprint)
                 .build();
     }
 
-    public static ClaimDTO aClaimDTOWithWebUIVersion(String version) {
+    public static NewClaimDTO aClaimDTOWithWebUIVersion(String version) {
         return aClaimDTOBuilder()
                 .webUIVersion(version)
                 .build();
     }
 
-    public static ClaimDTO aClaimDTOWithCounty(String county) {
+    public static NewClaimDTO aClaimDTOWithCounty(String county) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithAddress(anAddressDTOWithCounty(county)))
                 .build();
     }
 
 
-    private static ClaimDTO.ClaimDTOBuilder aClaimDTOBuilder() {
-        return ClaimDTO.builder()
+    private static NewClaimDTO.NewClaimDTOBuilder aClaimDTOBuilder() {
+        return NewClaimDTO.builder()
                 .claimant(aValidClaimantDTO())
                 .deviceFingerprint(DEVICE_FINGERPRINT)
                 .webUIVersion(WEB_UI_VERSION);

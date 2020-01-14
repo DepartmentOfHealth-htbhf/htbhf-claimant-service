@@ -6,8 +6,8 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest.ClaimRequestBuilder;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithChildrenDob;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 
 
 public class ClaimRequestTestDataFactory {

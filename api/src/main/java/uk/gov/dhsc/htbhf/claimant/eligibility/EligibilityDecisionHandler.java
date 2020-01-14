@@ -21,11 +21,11 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.*;
 
 @Component
 @AllArgsConstructor
@@ -129,12 +129,12 @@ public class EligibilityDecisionHandler {
     }
 
     private void createMakeRegularPaymentMessage(PaymentCycle paymentCycle) {
-        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle);
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 
     private void createMakeRestartedPaymentMessage(PaymentCycle paymentCycle) {
-        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(paymentCycle);
+        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, RESTARTED_PAYMENT);
         messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
     }
 }

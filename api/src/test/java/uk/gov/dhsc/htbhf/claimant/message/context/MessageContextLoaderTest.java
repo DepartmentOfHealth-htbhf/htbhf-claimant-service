@@ -29,11 +29,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayloadForRestartedPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
@@ -70,7 +71,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayloadForRestartedPayment(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, RESTARTED_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -81,7 +82,7 @@ class MessageContextLoaderTest {
         assertThat(context).isNotNull();
         assertThat(context.getClaim()).isEqualTo(claim);
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
-        assertThat(context.isPaymentRestarted()).isTrue();
+        assertThat(context.getPaymentType()).isEqualTo(RESTARTED_PAYMENT);
         verify(claimRepository).findById(claimId);
         verify(paymentCycleRepository).findById(paymentCycleId);
         verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
@@ -96,7 +97,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
         given(claimRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -115,7 +116,7 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
         given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -280,7 +281,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -305,7 +306,7 @@ class MessageContextLoaderTest {
         UUID paymentCycleId = paymentCycle.getId();
         given(claimRepository.findById(any())).willReturn(Optional.empty());
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 
@@ -325,7 +326,7 @@ class MessageContextLoaderTest {
         UUID claimId = UUID.randomUUID();
         UUID paymentCycleId = UUID.randomUUID();
         given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId);
+        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
         given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
         Message message = aValidMessageWithType(MAKE_PAYMENT);
 

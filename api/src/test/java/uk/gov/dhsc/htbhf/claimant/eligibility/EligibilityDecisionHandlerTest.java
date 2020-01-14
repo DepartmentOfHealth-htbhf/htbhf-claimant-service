@@ -36,25 +36,14 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.TestConstants.ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_NEARLY_FOUR_YEAR_OLD;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
+import static org.mockito.Mockito.*;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatusAndCardStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDateAndChildrenDobs;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.RESTARTED_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.*;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
@@ -95,7 +84,7 @@ class EligibilityDecisionHandlerTest {
         handler.handleEligibleDecision(claim, currentPaymentCycle);
 
         // Then
-        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle);
+        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle, REGULAR_PAYMENT);
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
@@ -113,7 +102,7 @@ class EligibilityDecisionHandlerTest {
 
         // Then
         verifyClaimSavedWithStatus(ACTIVE, CardStatus.ACTIVE);
-        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayloadForRestartedPayment(currentPaymentCycle);
+        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle, RESTARTED_PAYMENT);
         verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
