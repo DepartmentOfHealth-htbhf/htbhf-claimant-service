@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -43,19 +41,19 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
  * Creates Claims and PaymentCycle records in the database.
  * Designed to be run directly from an IDE, and ignored by gradle
  * To use this you should change the jdbc uri in the test application.yml to point to your local postgres instance (and specify username/password):
- * spring:
- * datasource:
- * url: jdbc:postgresql://localhost/claimant
- * username: claimant_admin
- * password: claimant_admin
- * driver-class-name: org.postgresql.Driver
- * type: com.zaxxer.hikari.HikariDataSource
- * hikari:
- * connectionTimeout: 5000
+ *     spring:
+ *         datasource:
+ *         url: jdbc:postgresql://localhost/claimant
+ *         username: claimant_admin
+ *         password: claimant_admin
+ *         driver-class-name: org.postgresql.Driver
+ *         type: com.zaxxer.hikari.HikariDataSource
+ *         hikari:
+ *             connectionTimeout: 5000
+ * Then un-comment the @Test annotation on generateClaimsAndPaymentCycles() and run the test.
  */
-@SpringBootTest
 @Slf4j
-@Disabled
+@SpringBootTest
 public class DatabasePopulator {
 
     // See also DatabasePopulatorTestContextConfiguration at the bottom of this class
@@ -106,7 +104,7 @@ public class DatabasePopulator {
     @Autowired
     private ExecutorService fixedThreadPool;
 
-    @Test
+    //@Test
     void generateClaimsAndPaymentCycles() {
         final AtomicInteger countCreated = new AtomicInteger();
         List<Long> durations = new ArrayList<>();
