@@ -66,6 +66,7 @@ public class ClaimController {
 
     @GetMapping("/{id}")
     @ApiOperation("Retrieve a claim by id.")
+    @ApiResponses({@ApiResponse(code = 404, message = "Claim not found", response = ErrorResponse.class)})
     public ClaimDTO retrieveClaimById(@PathVariable("id") UUID id) {
         log.debug("Retrieve claim by id {}", id);
 
