@@ -88,30 +88,6 @@ definitions:
         maxLength: 500
     title: "AddressDTO"
     description: "Multi purpose address object"
-  ClaimDTO:
-    type: "object"
-    properties:
-      claimant:
-        description: "The person making the claim"
-        $ref: "#/definitions/ClaimantDTO"
-      deviceFingerprint:
-        type: "object"
-        description: "The fingerprint of the device used to make the claim, as best\
-          \ it can be identified. Probably a collection of header values."
-      eligibilityOverrideOutcome:
-        type: "string"
-        description: "Overrides the eligibility outcome from DWP or HMRC"
-        enum:
-        - "confirmed"
-        - "not_confirmed"
-        - "not_set"
-      webUIVersion:
-        type: "string"
-        description: "The version of the web-ui application used to create this request.\
-          \ Identifies which version of the Terms and Conditions the applicant accepted."
-    title: "ClaimDTO"
-    description: "A claim (application) for help to buy healthy foods. Contains all\
-      \ details that need to be persisted as part of the application."
   ClaimResultDTO:
     type: "object"
     properties:
