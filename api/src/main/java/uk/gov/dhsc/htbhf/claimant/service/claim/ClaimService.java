@@ -57,7 +57,8 @@ public class ClaimService {
 
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
-            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant());
+            EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(),
+                    claimRequest.getEligibilityOverrideOutcome());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createDuplicateClaim(claimRequest, decision);
@@ -171,6 +172,7 @@ public class ClaimService {
                 .webUIVersion(claimRequest.getWebUIVersion())
                 .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
                 .currentIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
+                .eligibilityOverrideOutcome(claimRequest.getEligibilityOverrideOutcome())
                 .build();
     }
 

@@ -35,7 +35,7 @@ public class NewClaimDTO {
     private String webUIVersion;
 
     @JsonProperty("eligibilityOverrideOutcome")
-    @ApiModelProperty(notes = "Overrides the eligibility outcome from DWP or HMRC")
+    @ApiModelProperty(notes = "Overrides the eligibility outcome from eligibility service")
     private EligibilityOutcome eligibilityOverrideOutcome;
 
 }
