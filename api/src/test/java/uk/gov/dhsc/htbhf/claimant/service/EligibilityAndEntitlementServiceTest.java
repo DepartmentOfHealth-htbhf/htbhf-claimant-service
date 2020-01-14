@@ -13,15 +13,11 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.dwp.model.DeathVerificationFlag;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.IdentityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,6 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponseWithOverride;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +47,7 @@ class EligibilityAndEntitlementServiceTest {
 
     private static final boolean NOT_DUPLICATE = false;
     private static final boolean DUPLICATE = true;
-    private  static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
+    private static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
     private static final CombinedIdentityAndEligibilityResponse IDENTITY_AND_ELIGIBILITY_RESPONSE = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
     private static final List<LocalDate> DATE_OF_BIRTH_OF_CHILDREN = IDENTITY_AND_ELIGIBILITY_RESPONSE.getDobOfChildrenUnder4();
     private static final PaymentCycleVoucherEntitlement VOUCHER_ENTITLEMENT = aPaymentCycleVoucherEntitlementWithVouchers();
@@ -94,7 +91,8 @@ class EligibilityAndEntitlementServiceTest {
         return Stream.of(
                 null,
                 EligibilityOutcome.CONFIRMED,
-                EligibilityOutcome.NOT_CONFIRMED
+                EligibilityOutcome.NOT_CONFIRMED,
+                EligibilityOutcome.NOT_SET
         );
     }
 
@@ -142,17 +140,7 @@ class EligibilityAndEntitlementServiceTest {
         EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, EligibilityOutcome.CONFIRMED);
 
         //Then
-        CombinedIdentityAndEligibilityResponse response = CombinedIdentityAndEligibilityResponse.builder()
-                .identityStatus(IdentityOutcome.MATCHED)
-                .eligibilityStatus(EligibilityOutcome.CONFIRMED)
-                .addressLine1Match(VerificationOutcome.NOT_SET)
-                .deathVerificationFlag(DeathVerificationFlag.N_A)
-                .dobOfChildrenUnder4(Collections.emptyList())
-                .emailAddressMatch(VerificationOutcome.NOT_SET)
-                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
-                .postcodeMatch(VerificationOutcome.NOT_SET)
-                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
-                .build();
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
 
         assertThat(result).isEqualTo(decisionResponse);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(eq(response), any(), eq(NOT_DUPLICATE));

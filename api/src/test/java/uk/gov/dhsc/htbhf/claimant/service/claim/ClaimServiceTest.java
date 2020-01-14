@@ -67,7 +67,7 @@ import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligib
 class ClaimServiceTest {
 
     private static final List<LocalDate> NULL_CHILDREN = null;
-    private  static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
+    private static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
     private static final List<LocalDate> NO_CHILDREN = emptyList();
 
     private static final String WEB_UI_VERSION = "1.1.1";
