@@ -63,7 +63,8 @@ public class EligibilityAndEntitlementService {
                 entitlement, duplicateHouseholdIdentifierFound);
     }
 
-    private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant, EligibilityOutcome eligibilityOverrideOutcome) {
+    private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
+                                                                                             EligibilityOutcome eligibilityOverrideOutcome) {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse;
         if (eligibilityOverrideOutcome == null) {
             identityAndEligibilityResponse = client.checkIdentityAndEligibility(claimant);
