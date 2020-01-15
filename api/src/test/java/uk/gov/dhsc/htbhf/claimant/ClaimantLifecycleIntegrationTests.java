@@ -357,14 +357,14 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     private LocalDate progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
-            throws NotificationClientException, JsonProcessingException {
+            throws NotificationClientException {
         for (int i = 0; i < numCycles; i++) {
             resetNotificationClient();
             repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
-            // not stubbing an eligibility response as we shouldn't call the service
             wiremockManager.stubGoogleAnalyticsCall();
             invokeAllSchedulers();
             assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, REGULAR_PAYMENT);
+            wiremockManager.assertThatNoEligibilityRequestMade();
         }
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
     }
