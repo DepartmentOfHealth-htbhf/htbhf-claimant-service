@@ -20,6 +20,7 @@ import uk.gov.dhsc.htbhf.requestcontext.aop.NewRequestContextWithSessionId;
 @Slf4j
 @RequiredArgsConstructor
 @Component
+@SuppressWarnings("PMD.TooManyMethods")
 public class MessageProcessorScheduler {
 
     private static final String DEFAULT_SCHEDULE = "${message-processor.default-schedule}";
@@ -98,6 +99,26 @@ public class MessageProcessorScheduler {
     @NewRequestContextWithSessionId(sessionId = "MessageProcessor:MAKE_PAYMENT")
     public void processPaymentMessages() {
         messageProcessor.processMessagesOfType(MessageType.MAKE_PAYMENT);
+    }
+
+    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @SchedulerLock(
+            name = "Process REQUEST_PAYMENT messages",
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:REQUEST_PAYMENT")
+    public void processRequestPaymentMessages() {
+        messageProcessor.processMessagesOfType(MessageType.REQUEST_PAYMENT);
+    }
+
+    @Scheduled(cron = DEFAULT_SCHEDULE)
+    @SchedulerLock(
+            name = "Process COMPLETE_PAYMENT messages",
+            lockAtLeastForString = MIN_LOCK_TIME,
+            lockAtMostForString = MAX_LOCK_TIME)
+    @NewRequestContextWithSessionId(sessionId = "MessageProcessor:COMPLETE_PAYMENT")
+    public void processCompletePaymentMessages() {
+        messageProcessor.processMessagesOfType(MessageType.COMPLETE_PAYMENT);
     }
 
     @Scheduled(cron = OFFSET_SCHEDULE)
