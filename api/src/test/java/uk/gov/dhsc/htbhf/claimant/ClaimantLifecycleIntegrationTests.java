@@ -8,7 +8,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
-import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
@@ -174,7 +173,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
             throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(expectedDeliveryDate);
-        assertFirstCyclePaidCorrectlyWithLetter(claimId, NO_CHILDREN);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
@@ -470,20 +469,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertPaymentHasCorrectAmount(claim, paymentCycle, datesOfBirthOfChildren);
         assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
-        verifyNoMoreInteractions(notificationClient);
-        // invoke scheduler to report payment
-        invokeAllSchedulers();
-        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(),
-                datesOfBirthOfChildren);
-    }
-
-    private void assertFirstCyclePaidCorrectlyWithLetter(UUID claimId, List<LocalDate> datesOfBirthOfChildren) throws NotificationClientException {
-        Claim claim = repositoryMediator.loadClaim(claimId);
-        PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
-        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
-        assertPaymentHasCorrectAmount(claim, paymentCycle, datesOfBirthOfChildren);
-        assertThatLetterWithAddressAndPaymentFieldsWasSent(claim, paymentCycle, LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH);
-        assertEmailSent(EmailType.PENDING_DECISION, paymentCycle);
         verifyNoMoreInteractions(notificationClient);
         // invoke scheduler to report payment
         invokeAllSchedulers();

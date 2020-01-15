@@ -102,16 +102,19 @@ public class EligibilityAndEntitlementService {
     }
 
     private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOutcome eligibilityOverrideOutcome) {
+        VerificationOutcome matchOutcome = eligibilityOverrideOutcome == EligibilityOutcome.CONFIRMED
+                ? VerificationOutcome.MATCHED
+                : VerificationOutcome.NOT_SET;
         return CombinedIdentityAndEligibilityResponse.builder()
                 .identityStatus(IdentityOutcome.MATCHED)
                 .eligibilityStatus(eligibilityOverrideOutcome)
-                .addressLine1Match(VerificationOutcome.NOT_SET)
-                .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .dobOfChildrenUnder4(Collections.emptyList())
-                .emailAddressMatch(VerificationOutcome.NOT_SET)
-                .mobilePhoneMatch(VerificationOutcome.NOT_SET)
-                .postcodeMatch(VerificationOutcome.NOT_SET)
-                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)
+                .pregnantChildDOBMatch(matchOutcome)
+                .addressLine1Match(matchOutcome)
+                .emailAddressMatch(matchOutcome)
+                .mobilePhoneMatch(matchOutcome)
+                .postcodeMatch(matchOutcome)
+                .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .build();
     }
 }
