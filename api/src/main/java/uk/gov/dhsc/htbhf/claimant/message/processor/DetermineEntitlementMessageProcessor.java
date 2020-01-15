@@ -74,7 +74,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
         PaymentCycle previousPaymentCycle = messageContext.getPreviousPaymentCycle();
 
         EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(
-                claim.getClaimant(),
+                claim,
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
