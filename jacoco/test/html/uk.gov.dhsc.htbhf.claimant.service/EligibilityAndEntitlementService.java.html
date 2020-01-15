@@ -102,17 +102,20 @@ public class EligibilityAndEntitlementService {
     }
 
     private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOutcome eligibilityOverrideOutcome) {
-<span class="fc" id="L105">        return CombinedIdentityAndEligibilityResponse.builder()</span>
-<span class="fc" id="L106">                .identityStatus(IdentityOutcome.MATCHED)</span>
-<span class="fc" id="L107">                .eligibilityStatus(eligibilityOverrideOutcome)</span>
-<span class="fc" id="L108">                .addressLine1Match(VerificationOutcome.NOT_SET)</span>
-<span class="fc" id="L109">                .deathVerificationFlag(DeathVerificationFlag.N_A)</span>
-<span class="fc" id="L110">                .dobOfChildrenUnder4(Collections.emptyList())</span>
-<span class="fc" id="L111">                .emailAddressMatch(VerificationOutcome.NOT_SET)</span>
-<span class="fc" id="L112">                .mobilePhoneMatch(VerificationOutcome.NOT_SET)</span>
-<span class="fc" id="L113">                .postcodeMatch(VerificationOutcome.NOT_SET)</span>
-<span class="fc" id="L114">                .pregnantChildDOBMatch(VerificationOutcome.MATCHED)</span>
-<span class="fc" id="L115">                .build();</span>
+<span class="fc bfc" id="L105" title="All 2 branches covered.">        VerificationOutcome matchOutcome = eligibilityOverrideOutcome == EligibilityOutcome.CONFIRMED</span>
+<span class="fc" id="L106">                ? VerificationOutcome.MATCHED</span>
+<span class="fc" id="L107">                : VerificationOutcome.NOT_SET;</span>
+<span class="fc" id="L108">        return CombinedIdentityAndEligibilityResponse.builder()</span>
+<span class="fc" id="L109">                .identityStatus(IdentityOutcome.MATCHED)</span>
+<span class="fc" id="L110">                .eligibilityStatus(eligibilityOverrideOutcome)</span>
+<span class="fc" id="L111">                .dobOfChildrenUnder4(Collections.emptyList())</span>
+<span class="fc" id="L112">                .pregnantChildDOBMatch(matchOutcome)</span>
+<span class="fc" id="L113">                .addressLine1Match(matchOutcome)</span>
+<span class="fc" id="L114">                .emailAddressMatch(matchOutcome)</span>
+<span class="fc" id="L115">                .mobilePhoneMatch(matchOutcome)</span>
+<span class="fc" id="L116">                .postcodeMatch(matchOutcome)</span>
+<span class="fc" id="L117">                .deathVerificationFlag(DeathVerificationFlag.N_A)</span>
+<span class="fc" id="L118">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
