@@ -264,7 +264,7 @@ public class WiremockManager {
     private StringValuePattern expectedDepositRequestBody(Payment payment) throws JsonProcessingException {
         DepositFundsRequest expectedRequest = DepositFundsRequest.builder()
                 .amountInPence(payment.getPaymentAmountInPence())
-                .reference(payment.getId().toString())
+                .reference(payment.getRequestReference())
                 .build();
         return equalToJson(objectMapper.writeValueAsString(expectedRequest));
     }

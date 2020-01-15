@@ -102,7 +102,7 @@ class PaymentServiceTest {
         assertSuccessfulPayment(paymentResult, paymentCycle, paymentCycle.getTotalEntitlementAmountInPence());
         assertThat(paymentRepository.existsById(paymentResult.getId())).isTrue();
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
-        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCycle.getTotalEntitlementAmountInPence(), paymentResult.getId().toString());
+        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCycle.getTotalEntitlementAmountInPence(), paymentResult.getRequestReference());
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE);
         verify(reportPaymentMessageSender).sendReportInitialPaymentMessage(paymentCycle.getClaim(), paymentCycle);
     }
@@ -144,7 +144,7 @@ class PaymentServiceTest {
         verify(cardClient).getBalance(CARD_ACCOUNT_ID);
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, balanceResponse.getAvailableBalanceInPence());
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
-        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCalculation.getPaymentAmount(), paymentResult.getId().toString());
+        verifyDepositFundsRequestCorrectWithSpecificReference(paymentCalculation.getPaymentAmount(), paymentResult.getRequestReference());
         verify(reportPaymentMessageSender).sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
     }
 
@@ -160,7 +160,7 @@ class PaymentServiceTest {
         assertSuccessfulPayment(paymentResult, paymentCycle, paymentAmountInPence);
         assertThat(paymentRepository.existsById(paymentResult.getId())).isTrue();
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
-        verifyDepositFundsRequestCorrectWithSpecificReference(paymentAmountInPence, paymentResult.getId().toString());
+        verifyDepositFundsRequestCorrectWithSpecificReference(paymentAmountInPence, paymentResult.getRequestReference());
         verifyNoMoreInteractions(cardClient);
     }
 
@@ -250,24 +250,6 @@ class PaymentServiceTest {
         verifyNoInteractions(reportPaymentMessageSender);
     }
 
-    @Test
-    void shouldSaveFailedPaymentWithNoReferenceOnEvent() {
-        PaymentCycle paymentCycle = createAndSavePaymentCycle();
-        MakePaymentEvent event = MakePaymentEvent.builder()
-                .claimId(paymentCycle.getClaim().getId())
-                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
-                .paymentAmountInPence(null)
-                .paymentId(null)
-                .reference(null)
-                .build();
-        FailureEvent failureEvent = aFailureEventWithEvent(event);
-
-        paymentService.saveFailedPayment(paymentCycle, CARD_ACCOUNT_ID, failureEvent);
-
-        verifyFailedPaymentSavedWithNoReference(paymentCycle, failureEvent);
-        verifyNoInteractions(reportPaymentMessageSender);
-    }
-
     private PaymentCycle createAndSavePaymentCycle() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
         claimRepository.save(paymentCycle.getClaim());
@@ -279,16 +261,10 @@ class PaymentServiceTest {
         assertThat(paymentRepository.findAll().iterator().hasNext()).isFalse();
     }
 
-    private void verifyFailedPaymentSavedWithNoReference(PaymentCycle paymentCycle, FailureEvent failureEvent) {
-        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle, failureEvent);
-        assertThat(actualPayment.getPaymentReference()).isNull();
-        assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
-    }
-
-    private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentReference, FailureEvent failureEvent) {
+    private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentRequestReference, FailureEvent failureEvent) {
         Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle, failureEvent);
         assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
-        assertThat(actualPayment.getPaymentReference()).isEqualTo(paymentReference);
+        assertThat(actualPayment.getRequestReference()).isEqualTo(paymentRequestReference);
         assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
@@ -326,7 +302,7 @@ class PaymentServiceTest {
         assertThat(result.getClaim()).isEqualTo(paymentCycle.getClaim());
         assertThat(result.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
         assertThat(result.getPaymentCycle()).isEqualTo(paymentCycle);
-        assertThat(result.getPaymentReference()).isEqualTo(CARD_PROVIDER_PAYMENT_REFERENCE);
+        assertThat(result.getResponseReference()).isEqualTo(CARD_PROVIDER_PAYMENT_REFERENCE);
         assertThat(result.getPaymentAmountInPence()).isEqualTo(paymentAmount);
         assertThat(result.getPaymentTimestamp()).isNotNull();
         assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);

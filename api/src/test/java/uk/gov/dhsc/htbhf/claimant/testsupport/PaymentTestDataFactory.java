@@ -46,7 +46,7 @@ public class PaymentTestDataFactory {
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .paymentAmountInPence(PAYMENT_AMOUNT_IN_PENCE)
                 .paymentTimestamp(PAYMENT_TIMESTAMP)
-                .paymentReference(PAYMENT_REFERENCE)
+                .requestReference(PAYMENT_REFERENCE)
                 .paymentStatus(PaymentStatus.SUCCESS);
     }
 }
