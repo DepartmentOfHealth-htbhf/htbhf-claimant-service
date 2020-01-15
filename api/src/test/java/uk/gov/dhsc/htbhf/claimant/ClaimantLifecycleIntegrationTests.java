@@ -12,6 +12,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
+import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYME
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
@@ -79,7 +81,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
         Claim claim = repositoryMediator.loadClaim(claimId);
         wiremockManager.verifyGoogleAnalyticsCalledForClaimEventWithNoChildren(claim, UPDATED_FROM_NEW_TO_ACTIVE);
-        assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // run through 4 cycles while pregnant (we pay vouchers for up to 12 weeks after due date
         // - their due date is during the 3rd cycle so the claim would expire during 6th if no birth reported)
@@ -143,11 +145,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * |.......................................................| email that the card will be cancelled in one week
      */
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     void shouldProcessClaimFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
-        assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
@@ -164,24 +165,31 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
 
         // should expire the claim
-        LocalDateTime now = LocalDateTime.now();
-        ageByOneCycle();
-        claim = repositoryMediator.loadClaim(claimId);
-        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
-        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
-        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
-        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+        progressClaimThroughExpiry(claimId);
+    }
+
+    @Test
+    void shouldProcessClaimWithEligibilityOverrideFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy()
+            throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(expectedDeliveryDate);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
+
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
+        // to contact their benefit agency about a new child.
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 8);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThatReportABirthReminderEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
 
-        // should schedule the card for cancellation after four cycles
-        ageByNumberOfCycles(4);
+        // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
+        progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
+        verifyNoMoreInteractions(notificationClient);
         claim = repositoryMediator.loadClaim(claimId);
-        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
-        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+        progressClaimThroughExpiry(claimId);
 
-        // invoke schedulers to process send email for card is about to be cancelled
-        invokeAllSchedulers();
-        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
     }
 
     @Test
@@ -225,7 +233,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     void shouldProcessClaimWhoBecomesIneligibleDueToNoQualifyingBenefit() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
-        assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // ineligible decision moves claim into pending expiry
         wiremockManager.stubIneligibleEligibilityResponse();
@@ -253,7 +261,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     void shouldProcessClaimWhichBecomesIneligibleThenEligible() throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         UUID claimId = applyForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
-        assertFirstCyclePaidCorrectly(claimId, NO_CHILDREN);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // ineligible decision moves claim into pending expiry
         wiremockManager.stubIneligibleEligibilityResponse();
@@ -279,7 +287,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         UUID claimId = applyForHealthyStartAsNonPregnantWomanWithChildren(SINGLE_SIX_MONTH_OLD);
         Claim claim = repositoryMediator.loadClaim(claimId);
         wiremockManager.verifyGoogleAnalyticsCalledForClaimEvent(claim, UPDATED_FROM_NEW_TO_ACTIVE, SINGLE_SIX_MONTH_OLD);
-        assertFirstCyclePaidCorrectly(claimId, SINGLE_SIX_MONTH_OLD);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, SINGLE_SIX_MONTH_OLD);
 
         // no children come back from eligibility service, making the claim expired.
         wiremockManager.stubSuccessfulEligibilityResponse(emptyList());
@@ -295,6 +303,30 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         LocalDateTime now = LocalDateTime.now();
         // 16 weeks pass
+        ageByNumberOfCycles(4);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // invoke schedulers to process send email for card is about to be cancelled
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+    }
+
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    private void progressClaimThroughExpiry(UUID claimId) throws NotificationClientException {
+        LocalDateTime now = LocalDateTime.now();
+        ageByOneCycle();
+        // should expire the claim
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
+
+        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+        verifyNoMoreInteractions(notificationClient);
+
+        // should schedule the card for cancellation after four cycles
         ageByNumberOfCycles(4);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
@@ -323,6 +355,19 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
     }
 
+    private LocalDate progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
+            throws NotificationClientException {
+        for (int i = 0; i < numCycles; i++) {
+            resetNotificationClient();
+            repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+            wiremockManager.stubGoogleAnalyticsCall();
+            invokeAllSchedulers();
+            assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, REGULAR_PAYMENT);
+            wiremockManager.assertThatNoEligibilityRequestMade();
+        }
+        return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
+    }
+
     private List<LocalDate> progressThroughCycleWithUpcomingBirthday(UUID claimId, List<LocalDate> childrenDob, EmailType emailType)
             throws NotificationClientException, JsonProcessingException {
         resetNotificationClient();
@@ -345,6 +390,12 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
+        return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
+    }
+
+    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
+            throws JsonProcessingException, NotificationClientException {
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideOutcome(expectedDeliveryDate, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
@@ -377,6 +428,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
         wiremockManager.stubGoogleAnalyticsCall();
         stubNotificationEmailResponse();
+        stubNotificationLetterResponse();
     }
 
     private List<LocalDate> ageByOneCycle(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
@@ -410,7 +462,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         }
     }
 
-    private void assertFirstCyclePaidCorrectly(UUID claimId, List<LocalDate> datesOfBirthOfChildren) throws NotificationClientException {
+    private void assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(UUID claimId, List<LocalDate> datesOfBirthOfChildren)
+            throws NotificationClientException {
         Claim claim = repositoryMediator.loadClaim(claimId);
         PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
@@ -476,6 +529,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         messageProcessorScheduler.processDetermineEntitlementMessages();
         messageProcessorScheduler.processPaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processSendLetterMessages();
         cardCancellationScheduler.handleCardsPendingCancellation();
         messageProcessorScheduler.processReportClaimMessages();
         messageProcessorScheduler.processReportPaymentMessages();
@@ -484,5 +538,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     private void resetNotificationClient() throws NotificationClientException {
         Mockito.reset(notificationClient);
         stubNotificationEmailResponse();
+        stubNotificationLetterResponse();
     }
 }

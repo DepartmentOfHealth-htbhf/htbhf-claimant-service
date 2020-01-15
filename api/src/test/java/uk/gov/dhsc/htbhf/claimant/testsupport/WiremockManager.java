@@ -161,6 +161,10 @@ public class WiremockManager {
         eligibilityServiceMock.verify(1, postRequestedFor(urlEqualTo(V2_ELIGIBILITY_URL)));
     }
 
+    public void assertThatNoEligibilityRequestMade() {
+        eligibilityServiceMock.verify(0, postRequestedFor(urlEqualTo(V2_ELIGIBILITY_URL)));
+    }
+
     public void assertThatGetBalanceRequestMadeForClaim(String cardAccountId) {
         cardServiceMock.verify(getRequestedFor(urlEqualTo("/v1/cards/" + cardAccountId + "/balance")));
     }

@@ -29,6 +29,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
@@ -36,6 +37,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -63,7 +65,7 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EligibilityOutcome.CONFIRMED);
+        NewClaimDTO dto = aValidClaimDTO();
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
@@ -80,6 +82,35 @@ class ClaimControllerTest {
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verifyCreateClaimCalledCorrectly(claimant, dto);
         verify(claimantConverter).convert(aValidClaimantDTO());
+        verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "NEW, CREATED",
+            "PENDING, OK",
+            "ACTIVE, OK",
+            "PENDING_EXPIRY, OK"
+    })
+    void shouldInvokeClaimServiceAndReturnCorrectStatusWithEligibilityOverride(ClaimStatus claimStatus, HttpStatus httpStatus) {
+        // Given
+        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        Claimant claimant = aValidClaimant();
+        ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
+        VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
+        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
+        given(claimService.createClaim(any())).willReturn(claimResult);
+
+        // When
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getStatusCode()).isEqualTo(httpStatus);
+        assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
+        verifyCreateClaimCalledCorrectly(claimant, dto);
+        verify(claimantConverter).convert(dto.getClaimant());
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 

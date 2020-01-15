@@ -126,6 +126,37 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     }
 
     @Test
+    void shouldApplyOverrideForPregnantClaimantWithoutChildren() throws JsonProcessingException, NotificationClientException {
+        // not stubbing an eligibility response as we shouldn't call the service
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        Claim claim = createClaimWithPaymentCycleEndingYesterdayAndEligibilityOverride(
+                NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, CONFIRMED);
+
+        invokeAllSchedulers();
+
+        // confirm new payment cycle created with a payment
+        PaymentCycle newCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
+                LocalDate.now(), NO_CHILDREN, claim.getClaimant().getExpectedDeliveryDate());
+        assertPaymentCycleIsFullyPaid(newCycle, NO_CHILDREN, expectedVoucherEntitlement);
+
+        assertClaimStatus(claim, ACTIVE);
+
+        // confirm card service called to make payment
+        Payment payment = newCycle.getPayments().iterator().next();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+        wiremockManager.assertThatNoEligibilityRequestMade();
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatPaymentEmailWasSent(newCycle, REGULAR_PAYMENT);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
     void shouldSendEmailsWhenChildTurnsOneInNextPaymentCycle() throws JsonProcessingException, NotificationClientException {
         List<LocalDate> childTurningOneInFirstWeekOfNextPaymentCycle = singletonList(TURNS_ONE_IN_FIRST_WEEK_OF_NEXT_PAYMENT_CYCLE);
 
@@ -628,6 +659,19 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
     private Claim createActiveClaimWithPaymentCycleEndingYesterday(List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {
         return createClaimWithPaymentCycleEndingYesterday(ACTIVE, LocalDateTime.now(), childrensDateOfBirth, expectedDeliveryDate);
+    }
+
+    private Claim createClaimWithPaymentCycleEndingYesterdayAndEligibilityOverride(List<LocalDate> childrensDateOfBirth,
+                                                                                   LocalDate expectedDeliveryDate,
+                                                                                   EligibilityOutcome eligibilityOverrideOutcome) {
+        Claim claim = aValidClaimBuilder()
+                .claimant(aClaimantWithExpectedDeliveryDate(expectedDeliveryDate))
+                .cardAccountId(CARD_ACCOUNT_ID)
+                .eligibilityOverrideOutcome(eligibilityOverrideOutcome)
+                .build();
+
+        repositoryMediator.createAndSavePaymentCycle(claim, LocalDate.now().minusDays(28), childrensDateOfBirth);
+        return claim;
     }
 
     private Claim createClaimWithPaymentCycleEndingYesterday(ClaimStatus claimStatus, List<LocalDate> childrensDateOfBirth, LocalDate expectedDeliveryDate) {

@@ -91,7 +91,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
@@ -151,7 +151,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
@@ -193,7 +193,7 @@ class DetermineEntitlementMessageProcessorTest {
         //Then
         assertThat(messageStatus).isEqualTo(COMPLETED);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
         verify(eligibilityDecisionHandler).expirePendingExpiryClaim(context.getClaim(), decision.getIdentityAndEligibilityResponse());
@@ -219,7 +219,7 @@ class DetermineEntitlementMessageProcessorTest {
         assertThat(messageStatus).isEqualTo(COMPLETED);
         assertThat(context.getClaim().getClaimStatus()).isEqualTo(PENDING_EXPIRY);
         verify(messageContextLoader).loadDetermineEntitlementContext(message);
-        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim().getClaimant(),
+        verify(eligibilityAndEntitlementService).evaluateClaimantForPaymentCycle(context.getClaim(),
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
         verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
