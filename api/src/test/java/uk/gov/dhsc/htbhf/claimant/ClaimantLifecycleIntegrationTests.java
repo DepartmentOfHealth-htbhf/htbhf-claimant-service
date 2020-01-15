@@ -173,7 +173,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     void shouldProcessClaimWithEligibilityOverrideFromPregnancyToComingOffTheSchemeWithNoChildrenFromPregnancy()
             throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
-        UUID claimId = overrideEligibilityForHealthyStartAsPregnantWomanWithNoChildren(expectedDeliveryDate);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(expectedDeliveryDate);
         assertFirstCyclePaidCorrectlyWithLetter(claimId, NO_CHILDREN);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
@@ -394,7 +394,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
-    private UUID overrideEligibilityForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
+    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideOutcome(expectedDeliveryDate, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
