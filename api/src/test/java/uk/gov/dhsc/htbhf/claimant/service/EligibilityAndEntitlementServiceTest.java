@@ -196,6 +196,28 @@ class EligibilityAndEntitlementServiceTest {
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
     }
 
+    @Test
+    void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverrideNotConfirmed() {
+        //Given
+        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverrideOutcome(EligibilityOutcome.NOT_CONFIRMED).build();
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(EligibilityStatus.INELIGIBLE);
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decision);
+        LocalDate cycleStartDate = LocalDate.now();
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(claim, cycleStartDate, paymentCycle);
+
+        //Then
+        assertThat(result).isEqualTo(decision);
+        verifyNoInteractions(client);
+        verify(paymentCycleEntitlementCalculator)
+                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), NO_CHILDREN, cycleStartDate, VOUCHER_ENTITLEMENT);
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.NOT_CONFIRMED);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
+    }
+
     private EligibilityAndEntitlementDecision setupEligibilityAndEntitlementDecisionFactory(EligibilityStatus status) {
         EligibilityAndEntitlementDecision decisionResponse = aDecisionWithStatus(status);
         given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decisionResponse);
