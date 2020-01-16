@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
@@ -53,11 +54,13 @@ public class ClaimController {
     public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO) {
         log.debug("Received claim");
         Claimant claimant = claimantConverter.convert(newClaimDTO.getClaimant());
+        EligibilityOverride eligibilityOverride = getEligibilityOverride(newClaimDTO.getEligibilityOverride());
+
         ClaimRequest claimRequest = ClaimRequest.builder()
                 .claimant(claimant)
                 .deviceFingerprint(newClaimDTO.getDeviceFingerprint())
                 .webUIVersion(newClaimDTO.getWebUIVersion())
-                .eligibilityOverrideOutcome(newClaimDTO.getEligibilityOverrideOutcome())
+                .eligibilityOverride(eligibilityOverride)
                 .build();
         ClaimResult result = claimService.createClaim(claimRequest);
 
@@ -73,6 +76,14 @@ public class ClaimController {
         Claim claim = claimRepository.findClaim(id);
 
         return claimToClaimDTOConverter.convert(claim);
+    }
+
+    private EligibilityOverride getEligibilityOverride(EligibilityOverrideDTO eligibilityOverrideDTO) {
+        return eligibilityOverrideDTO == null
+                ? null
+                : EligibilityOverride.builder()
+                                     .eligibilityOutcome(eligibilityOverrideDTO.getEligibilityOutcome())
+                                     .build();
     }
 
     private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {

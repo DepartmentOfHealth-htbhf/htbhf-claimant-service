@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -42,32 +43,51 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.*;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.*;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_ADDRESS;
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestWithEligibilityOverrideOutcome;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndExistingClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndResponse;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.eligibilityConfirmedWithNoChildrenForFiveYears;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResultWithPhoneAndEmail;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anIdMatchedEligibilityNotConfirmedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aVoucherEntitlementWithEntitlementDate;
-import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.*;
-import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.*;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.MATCHED;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
+import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceTest {
 
     private static final List<LocalDate> NULL_CHILDREN = null;
-    private static final EligibilityOutcome NO_ELIGIBILITY_OVERRIDE = null;
+    private static final EligibilityOverride NO_ELIGIBILITY_OVERRIDE = null;
     private static final List<LocalDate> NO_CHILDREN = emptyList();
 
     private static final String WEB_UI_VERSION = "1.1.1";
@@ -147,16 +167,17 @@ class ClaimServiceTest {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NO_CHILDREN);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
-        ClaimRequest request = aClaimRequestWithEligibilityOverrideOutcome(pregnantOnlyClaimant, EligibilityOutcome.CONFIRMED);
+        EligibilityOverride eligibilityOverride = eligibilityConfirmedWithNoChildrenForFiveYears();
+        ClaimRequest request = aClaimRequestWithEligibilityOverrideOutcome(pregnantOnlyClaimant, eligibilityOverride);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
         ClaimResult result = claimService.createClaim(request);
 
         //then
-        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, EligibilityOutcome.CONFIRMED);
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, eligibilityOverride);
 
-        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, EligibilityOutcome.CONFIRMED);
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, eligibilityOverride);
         verify(claimRepository).save(result.getClaim());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
@@ -546,21 +567,21 @@ class ClaimServiceTest {
     }
 
     private void assertEligibleClaimResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, ClaimResult result,
-                                           EligibilityOutcome eligibilityOverrideOutcome) {
+                                           EligibilityOverride eligibilityOverride) {
         VerificationResult expectedVerificationResult = anAllMatchedVerificationResult();
-        assertEligibleClaimResult(identityAndEligibilityResponse, result, expectedVerificationResult, eligibilityOverrideOutcome);
+        assertEligibleClaimResult(identityAndEligibilityResponse, result, expectedVerificationResult, eligibilityOverride);
     }
 
     private void assertEligibleClaimResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                            ClaimResult result,
                                            VerificationResult expectedVerificationResult,
-                                           EligibilityOutcome eligibilityOverrideOutcome) {
+                                           EligibilityOverride eligibilityOverride) {
         assertThat(result).isNotNull();
         Claim claim = result.getClaim();
         assertClaimPropertiesAreSet(claim, ClaimStatus.NEW, ELIGIBLE, identityAndEligibilityResponse);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.of(aVoucherEntitlementWithEntitlementDate(LocalDate.now())));
         assertThat(result.getVerificationResult()).isEqualTo(expectedVerificationResult);
-        assertThat(claim.getEligibilityOverrideOutcome()).isEqualTo(eligibilityOverrideOutcome);
+        assertThat(claim.getEligibilityOverride()).isEqualTo(eligibilityOverride);
     }
 
     private void assertIneligibleClaimResult(EligibilityStatus eligibilityStatus, ClaimStatus claimStatus,
@@ -570,7 +591,7 @@ class ClaimServiceTest {
         assertClaimPropertiesAreSet(actualClaim, claimStatus, eligibilityStatus, identityAndEligibilityResponse);
         assertThat(result.getVoucherEntitlement()).isEqualTo(Optional.empty());
         assertThat(result.getVerificationResult()).isEqualTo(anIdMatchedEligibilityNotConfirmedVerificationResult());
-        assertThat(actualClaim.getEligibilityOverrideOutcome()).isNull();
+        assertThat(actualClaim.getEligibilityOverride()).isNull();
     }
 
     private void assertClaimPropertiesAreSet(Claim claim, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus,

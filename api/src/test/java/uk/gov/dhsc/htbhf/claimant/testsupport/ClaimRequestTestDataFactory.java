@@ -1,9 +1,9 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest.ClaimRequestBuilder;
-import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithChildrenDob;
@@ -18,8 +18,8 @@ public class ClaimRequestTestDataFactory {
         return aClaimRequestBuilderForClaimant(aClaimantWithChildrenDob(MAGGIE_AND_LISA_DOBS)).build();
     }
 
-    public static ClaimRequest aClaimRequestWithEligibilityOverrideOutcome(Claimant claimant, EligibilityOutcome eligibilityOverrideOutcome) {
-        return aClaimRequestBuilderForClaimant(claimant).eligibilityOverrideOutcome(eligibilityOverrideOutcome).build();
+    public static ClaimRequest aClaimRequestWithEligibilityOverrideOutcome(Claimant claimant, EligibilityOverride eligibilityOverride) {
+        return aClaimRequestBuilderForClaimant(claimant).eligibilityOverride(eligibilityOverride).build();
     }
 
     public static ClaimRequest aClaimRequestForClaimant(Claimant claimant) {

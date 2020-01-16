@@ -4,7 +4,6 @@ import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
-import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
@@ -34,11 +33,6 @@ public class Claim extends VersionedEntity {
     @Column(name = "claim_status_timestamp")
     @Setter(AccessLevel.PRIVATE)
     private LocalDateTime claimStatusTimestamp;
-
-    @Column(name = "eligibility_override_outcome")
-    @Enumerated(EnumType.STRING)
-    @Setter(AccessLevel.PRIVATE)
-    private EligibilityOutcome eligibilityOverrideOutcome;
 
     @NotNull
     @Column(name = "eligibility_status")
@@ -95,6 +89,9 @@ public class Claim extends VersionedEntity {
     @ToString.Exclude
     @Valid
     private Claimant claimant;
+
+    @Embedded
+    private EligibilityOverride eligibilityOverride;
 
     public void updateClaimStatus(ClaimStatus newStatus) {
         if (claimStatus != newStatus) {

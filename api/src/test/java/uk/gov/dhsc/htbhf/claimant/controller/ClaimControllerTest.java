@@ -13,10 +13,8 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
-import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
+import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
@@ -36,7 +34,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
@@ -94,7 +92,7 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithEligibilityOverride(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverrideOutcome(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
         Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
@@ -167,7 +165,16 @@ class ClaimControllerTest {
         assertThat(claimRequest.getClaimant()).isEqualTo(claimant);
         assertThat(claimRequest.getDeviceFingerprint()).isEqualTo(dto.getDeviceFingerprint());
         assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
-        assertThat(claimRequest.getEligibilityOverrideOutcome()).isEqualTo(dto.getEligibilityOverrideOutcome());
+        assertEligibilityOverride(claimRequest.getEligibilityOverride(), dto.getEligibilityOverride());
+    }
+
+    private void assertEligibilityOverride(EligibilityOverride eligibilityOverride, EligibilityOverrideDTO dto) {
+        if (null == dto) {
+            assertThat(eligibilityOverride).isNull();
+        } else {
+            assertThat(eligibilityOverride).isNotNull();
+            assertThat(eligibilityOverride.getEligibilityOutcome()).isEqualTo(dto.getEligibilityOutcome());
+        }
     }
 
 }

@@ -375,6 +375,19 @@ definitions:
         - "child_tax_credit"
         - "not_set"
     title: "CombinedIdentityAndEligibilityResponse"
+  EligibilityOverrideDTO:
+    type: "object"
+    properties:
+      eligibilityOverrideOutcome:
+        type: "string"
+        description: "Overrides the eligibility outcome from eligibility service"
+        enum:
+        - "confirmed"
+        - "not_confirmed"
+        - "not_set"
+    title: "EligibilityOverrideDTO"
+    description: "Eligibility override decision based on eligibility outcome and until\
+      \ date "
   ErrorResponse:
     type: "object"
     properties:
@@ -411,13 +424,10 @@ definitions:
         type: "object"
         description: "The fingerprint of the device used to make the claim, as best\
           \ it can be identified. Probably a collection of header values."
-      eligibilityOverrideOutcome:
-        type: "string"
-        description: "Overrides the eligibility outcome from eligibility service"
-        enum:
-        - "confirmed"
-        - "not_confirmed"
-        - "not_set"
+      eligibilityOverride:
+        description: "Eligibility override decision based on eligibility outcome and\
+          \ until date"
+        $ref: "#/definitions/EligibilityOverrideDTO"
       webUIVersion:
         type: "string"
         description: "The version of the web-ui application used to create this request.\
