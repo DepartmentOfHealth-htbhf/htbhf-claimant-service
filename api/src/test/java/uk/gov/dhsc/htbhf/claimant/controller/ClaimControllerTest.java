@@ -78,6 +78,7 @@ class ClaimControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verify(claimRequestConverter).convert(dto);
+        verify(claimService).createClaim(claimRequest);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -106,6 +107,7 @@ class ClaimControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verify(claimRequestConverter).convert(dto);
+        verify(claimService).createClaim(claimRequest);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -131,6 +133,7 @@ class ClaimControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus));
         verify(claimRequestConverter).convert(dto);
+        verify(claimService).createClaim(claimRequest);
         verifyNoInteractions(entitlementConverter);
     }
 
@@ -149,6 +152,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.ERROR));
+        verify(claimService).createClaim(claimRequest);
         verify(claimRequestConverter).convert(dto);
     }
 

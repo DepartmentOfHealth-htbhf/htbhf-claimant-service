@@ -5,13 +5,13 @@ import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 public class EligibilityOverrideTestDataFactory {
 
-    public static EligibilityOverride eligibilityConfirmedWithNoChildrenForFiveYears() {
+    public static EligibilityOverride aConfirmedEligibilityOverrideWithNoChildren() {
         return EligibilityOverride.builder()
                 .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
                 .build();
     }
 
-    public static EligibilityOverride eligibilityNotConfirmed() {
+    public static EligibilityOverride aNotConfirmedEligibilityOverride() {
         return EligibilityOverride.builder()
                 .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
                 .build();

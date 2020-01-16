@@ -18,7 +18,7 @@ public class ClaimRequestTestDataFactory {
         return aClaimRequestBuilderForClaimant(aClaimantWithChildrenDob(MAGGIE_AND_LISA_DOBS)).build();
     }
 
-    public static ClaimRequest aClaimRequestWithEligibilityOverrideOutcome(Claimant claimant, EligibilityOverride eligibilityOverride) {
+    public static ClaimRequest aClaimRequestWithEligibilityOverride(Claimant claimant, EligibilityOverride eligibilityOverride) {
         return aClaimRequestBuilderForClaimant(claimant).eligibilityOverride(eligibilityOverride).build();
     }
 

@@ -2,8 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +22,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,8 +36,8 @@ import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.eligibilityConfirmedWithNoChildrenForFiveYears;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.eligibilityNotConfirmed;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -78,27 +75,26 @@ class EligibilityAndEntitlementServiceTest {
     @Mock
     EligibilityAndEntitlementDecisionFactory eligibilityAndEntitlementDecisionFactory;
 
-    @ParameterizedTest
-    @MethodSource("allEligibilityOutcomeValues")
-    void shouldReturnDuplicateWhenLiveClaimAlreadyExists(EligibilityOverride eligibilityOverride) {
+    @Test
+    void shouldReturnDuplicateWhenLiveClaimAlreadyExistsWithoutEligibilityOverride() {
+        shouldReturnDuplicateWhenLiveClaimAlreadyExists(null);
+    }
+
+    @Test
+    void shouldReturnDuplicateWhenLiveClaimAlreadyExistsWithEligibilityOverride() {
+        aConfirmedEligibilityOverrideWithNoChildren();
+    }
+
+    private void shouldReturnDuplicateWhenLiveClaimAlreadyExists(EligibilityOverride eligibilityOverride) {
         //Given
         UUID existingClaimId = UUID.randomUUID();
         given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.of(existingClaimId));
-
         //When
         EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, eligibilityOverride);
-
         //Then
         assertThat(decision.getEligibilityStatus()).isEqualTo(EligibilityStatus.DUPLICATE);
         assertThat(decision.getExistingClaimId()).isEqualTo(existingClaimId);
         verifyNoInteractions(client);
-    }
-
-    private static Stream<EligibilityOverride> allEligibilityOutcomeValues() {
-        return Stream.of(
-                null,
-                eligibilityConfirmedWithNoChildrenForFiveYears()
-        );
     }
 
     @Test
@@ -143,7 +139,7 @@ class EligibilityAndEntitlementServiceTest {
 
         //When
         EligibilityAndEntitlementDecision result
-                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, eligibilityConfirmedWithNoChildrenForFiveYears());
+                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityOverrideWithNoChildren());
 
         //Then
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
@@ -179,7 +175,7 @@ class EligibilityAndEntitlementServiceTest {
     void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
         //Given
         // TODO MGS: AFHS-428 Introduce new factory method once EligibilityOverride is complete
-        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(eligibilityConfirmedWithNoChildrenForFiveYears()).build();
+        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(aConfirmedEligibilityOverrideWithNoChildren()).build();
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
@@ -201,7 +197,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverrideNotConfirmed() {
         //Given
-        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(eligibilityNotConfirmed()).build();
+        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(aNotConfirmedEligibilityOverride()).build();
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatus(EligibilityStatus.INELIGIBLE);
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);

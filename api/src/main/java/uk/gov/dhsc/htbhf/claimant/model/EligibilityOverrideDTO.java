@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
-@ApiModel(description = "Eligibility override decision based on eligibility outcome and until date ")
+@ApiModel(description = "Used to override eligibility decision from eligibility service")
 public class EligibilityOverrideDTO {
 
     @NotNull

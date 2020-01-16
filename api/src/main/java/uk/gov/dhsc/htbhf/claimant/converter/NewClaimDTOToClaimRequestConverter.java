@@ -27,7 +27,10 @@ public class NewClaimDTOToClaimRequestConverter {
     }
 
     private EligibilityOverride convertToEligibilityOverride(EligibilityOverrideDTO dto) {
-        return dto == null ? null : EligibilityOverride.builder()
+        if (dto == null) {
+            return null;
+        }
+        return EligibilityOverride.builder()
                 .eligibilityOutcome(dto.getEligibilityOutcome())
                 .build();
     }

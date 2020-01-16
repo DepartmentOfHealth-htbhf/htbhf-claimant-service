@@ -39,7 +39,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.*;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.eligibilityConfirmedWithNoChildrenForFiveYears;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
@@ -134,7 +134,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         stubNotificationEmailResponse();
 
         Claim claim = createClaimWithPaymentCycleEndingYesterdayAndEligibilityOverride(
-                NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, eligibilityConfirmedWithNoChildrenForFiveYears());
+                NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, aConfirmedEligibilityOverrideWithNoChildren());
 
         invokeAllSchedulers();
 

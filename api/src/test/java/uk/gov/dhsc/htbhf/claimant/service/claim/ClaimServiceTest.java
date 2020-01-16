@@ -60,7 +60,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.LetterType.UPDATE_YOUR_
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestBuilderForClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestForClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestWithEligibilityOverrideOutcome;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aClaimRequestWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
@@ -68,7 +68,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTe
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndExistingClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatusAndResponse;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.eligibilityConfirmedWithNoChildrenForFiveYears;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
@@ -167,8 +167,8 @@ class ClaimServiceTest {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(NO_CHILDREN);
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
         Claimant pregnantOnlyClaimant = aClaimantWithChildrenDob(NULL_CHILDREN);
-        EligibilityOverride eligibilityOverride = eligibilityConfirmedWithNoChildrenForFiveYears();
-        ClaimRequest request = aClaimRequestWithEligibilityOverrideOutcome(pregnantOnlyClaimant, eligibilityOverride);
+        EligibilityOverride eligibilityOverride = aConfirmedEligibilityOverrideWithNoChildren();
+        ClaimRequest request = aClaimRequestWithEligibilityOverride(pregnantOnlyClaimant, eligibilityOverride);
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
