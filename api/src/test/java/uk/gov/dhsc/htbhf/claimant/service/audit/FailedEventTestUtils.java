@@ -39,7 +39,7 @@ public class FailedEventTestUtils {
                 entry(FAILED_EVENT_KEY, ClaimEventType.MAKE_PAYMENT),
                 entry(PAYMENT_AMOUNT.getKey(), paymentAmountInPence));
         assertThat(metadata.get(PAYMENT_ID.getKey())).isNotNull();
-        assertThat(metadata.get(PAYMENT_REFERENCE.getKey())).isNull();
+        assertThat(metadata.get(PAYMENT_REFERENCE.getKey())).isNotNull();
 
     }
 

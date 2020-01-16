@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
@@ -53,7 +54,7 @@ public class PaymentService {
                     .claim(paymentCycle.getClaim())
                     .paymentAmountInPence(amountToPayInPence)
                     .paymentCycle(paymentCycle)
-                    .paymentReference(paymentReference)
+                    .requestReference(paymentReference)
                     .paymentStatus(PaymentStatus.FAILURE)
                     .failureDetail(failureDetail)
                     .paymentTimestamp(failureEvent.getTimestamp())
@@ -115,7 +116,7 @@ public class PaymentService {
     @SuppressWarnings("PMD.NullAssignment")
     public Payment makePaymentForCycle(PaymentCycle paymentCycle, String cardAccountId) {
         Payment payment = null;
-        DepositFundsResponse depositFundsResponse = null;
+        String requestReference = UUID.randomUUID().toString();
         try {
             CardBalanceResponse balance = cardClient.getBalance(cardAccountId);
             PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),
@@ -126,8 +127,8 @@ public class PaymentService {
                 log.debug("No payment will be made as the existing balance on the card is too high for PaymentCycle {}", paymentCycle.getId());
                 return null;
             }
-            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount());
-            depositFundsResponse = depositFundsToCard(payment);
+            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount(), requestReference);
+            DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
             updatePayment(payment, depositFundsResponse.getReferenceId());
             eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
             reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
@@ -135,7 +136,7 @@ public class PaymentService {
             String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                     cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
             MakePaymentEvent failedEvent
-                    = buildFailedMakePaymentEvent(paymentCycle.getClaim(), paymentCycle.getTotalEntitlementAmountInPence(), payment, depositFundsResponse);
+                    = buildFailedMakePaymentEvent(paymentCycle.getClaim(), paymentCycle.getTotalEntitlementAmountInPence(), payment, requestReference);
             throw new EventFailedException(failedEvent, e, failureMessage);
         }
         return payment;
@@ -143,51 +144,52 @@ public class PaymentService {
 
     private Payment makePayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence, Integer entitlementAmountInPence) {
         Payment payment = null;
-        DepositFundsResponse depositFundsResponse = null;
+        String requestReference = UUID.randomUUID().toString();
         try {
-            payment = createPayment(paymentCycle, cardAccountId, amountInPence);
-            depositFundsResponse = depositFundsToCard(payment);
+            payment = createPayment(paymentCycle, cardAccountId, amountInPence, requestReference);
+            DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
             updatePayment(payment, depositFundsResponse.getReferenceId());
             eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
         } catch (RuntimeException e) {
             String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                     cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
-            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle.getClaim(), entitlementAmountInPence, payment, depositFundsResponse);
+            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle.getClaim(), entitlementAmountInPence, payment, requestReference);
             throw new EventFailedException(failedEvent, e, failureMessage);
         }
         return payment;
     }
 
     @SuppressWarnings("PMD.NullAssignment")
-    private MakePaymentEvent buildFailedMakePaymentEvent(Claim claim, Integer entitlementInPence, Payment payment, DepositFundsResponse depositFundsResponse) {
+    private MakePaymentEvent buildFailedMakePaymentEvent(Claim claim, Integer entitlementInPence, Payment payment, String requestReference) {
         return MakePaymentEvent.builder()
                 .claimId(claim.getId())
                 .entitlementAmountInPence(entitlementInPence)
                 .paymentAmountInPence((payment == null) ? null : payment.getPaymentAmountInPence())
                 .paymentId((payment == null) ? null : payment.getId())
-                .reference((depositFundsResponse == null) ? null : depositFundsResponse.getReferenceId())
+                .reference(requestReference)
                 .build();
     }
 
-    private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay) {
+    private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay, String requestReference) {
         return Payment.builder()
                 .cardAccountId(cardAccountId)
                 .claim(paymentCycle.getClaim())
                 .paymentAmountInPence(amountToPay)
                 .paymentCycle(paymentCycle)
+                .requestReference(requestReference)
                 .build();
     }
 
     private DepositFundsResponse depositFundsToCard(Payment payment) {
         DepositFundsRequest depositRequest = DepositFundsRequest.builder()
-                .reference(payment.getId().toString())
+                .reference(payment.getRequestReference())
                 .amountInPence(payment.getPaymentAmountInPence())
                 .build();
         return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);
     }
 
-    private void updatePayment(Payment payment, String referenceId) {
-        payment.setPaymentReference(referenceId);
+    private void updatePayment(Payment payment, String responseReference) {
+        payment.setResponseReference(responseReference);
         payment.setPaymentTimestamp(LocalDateTime.now());
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         paymentRepository.save(payment);
