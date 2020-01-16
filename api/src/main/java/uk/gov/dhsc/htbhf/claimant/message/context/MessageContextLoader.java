@@ -21,7 +21,7 @@ import java.util.UUID;
 @Component
 @AllArgsConstructor
 @Slf4j
-@SuppressWarnings("PMD.CouplingBetweenObjects")
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.TooManyMethods"})
 public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
@@ -31,7 +31,6 @@ public class MessageContextLoader {
     private PayloadMapper payloadMapper;
 
     public DetermineEntitlementMessageContext loadDetermineEntitlementContext(Message message) {
-
         DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);
 
         PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), "current payment cycle");
@@ -46,10 +45,9 @@ public class MessageContextLoader {
     }
 
     public MakePaymentMessageContext loadMakePaymentContext(Message message) {
-
         MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);
 
-        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), "payment cycle");
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());
         Claim claim = getAndCheckClaim(payload.getClaimId());
 
         return MakePaymentMessageContext.builder()
@@ -131,7 +129,7 @@ public class MessageContextLoader {
     public ReportPaymentMessageContext loadReportPaymentMessageContext(Message message) {
         ReportPaymentMessagePayload payload = payloadMapper.getPayload(message, ReportPaymentMessagePayload.class);
         Claim claim = getAndCheckClaim(payload.getClaimId());
-        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), "payment cycle");
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());
 
         return ReportPaymentMessageContext.builder()
                 .claim(claim)
@@ -146,12 +144,41 @@ public class MessageContextLoader {
                 .build();
     }
 
+    public RequestPaymentMessageContext loadRequestPaymentMessageContext(Message message) {
+        RequestPaymentMessagePayload payload = payloadMapper.getPayload(message, RequestPaymentMessagePayload.class);
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());
+
+        return RequestPaymentMessageContext.builder()
+                .claim(claim)
+                .paymentCycle(paymentCycle)
+                .paymentType(payload.getPaymentType())
+                .build();
+    }
+
+    public CompletePaymentMessageContext loadCompletePaymentMessageContext(Message message) {
+        CompletePaymentMessagePayload payload = payloadMapper.getPayload(message, CompletePaymentMessagePayload.class);
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());
+
+        return CompletePaymentMessageContext.builder()
+                .claim(claim)
+                .paymentCycle(paymentCycle)
+                .paymentCalculation(payload.getPaymentCalculation())
+                .paymentType(payload.getPaymentType())
+                .build();
+    }
+
     private Claim getAndCheckClaim(UUID claimId) {
         Optional<Claim> claim = claimRepository.findById(claimId);
         if (claim.isEmpty()) {
             logAndThrowException("claim", claimId);
         }
         return claim.get();
+    }
+
+    private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId) {
+        return getAndCheckPaymentCycle(paymentCycleId, "payment cycle");
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {

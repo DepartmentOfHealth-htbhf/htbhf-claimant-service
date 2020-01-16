@@ -10,6 +10,5 @@ import java.util.UUID;
 public class RequestPaymentMessagePayload implements MessagePayload {
     private UUID claimId;
     private UUID paymentCycleId;
-    private String cardAccountId;
     private PaymentType paymentType;
 }
