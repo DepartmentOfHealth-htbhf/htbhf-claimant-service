@@ -4,17 +4,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.NewClaimDTOToClaimRequestConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
-import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
-import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResultDTO;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
+import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
+import uk.gov.dhsc.htbhf.claimant.model.VoucherEntitlementDTO;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
@@ -28,11 +28,10 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimRequestTestDataFactory.aValidClaimRequest;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultDTOTestDataFactory.aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.aClaimResult;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aValidClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
@@ -46,10 +45,10 @@ class ClaimControllerTest {
     ClaimService claimService;
 
     @Mock
-    ClaimantDTOToClaimantConverter claimantConverter;
+    VoucherEntitlementToDTOConverter entitlementConverter;
 
     @Mock
-    VoucherEntitlementToDTOConverter entitlementConverter;
+    NewClaimDTOToClaimRequestConverter claimRequestConverter;
 
     @InjectMocks
     ClaimController controller;
@@ -64,10 +63,10 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         NewClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
+        ClaimRequest claimRequest = aValidClaimRequest();
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
-        given(claimantConverter.convert(any())).willReturn(claimant);
+        given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
         given(claimService.createClaim(any())).willReturn(claimResult);
 
@@ -78,8 +77,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
-        verifyCreateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(aValidClaimantDTO());
+        verify(claimRequestConverter).convert(dto);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -93,10 +91,10 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithEligibilityOverride(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
-        Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
-        given(claimantConverter.convert(any())).willReturn(claimant);
+        ClaimRequest claimRequest = aValidClaimRequest();
+        given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
         given(claimService.createClaim(any())).willReturn(claimResult);
 
@@ -107,8 +105,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
-        verifyCreateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(dto.getClaimant());
+        verify(claimRequestConverter).convert(dto);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -121,9 +118,9 @@ class ClaimControllerTest {
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithoutVoucherEntitlement(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
         NewClaimDTO dto = aValidClaimDTO();
-        Claimant claimant = aValidClaimant();
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
-        given(claimantConverter.convert(any())).willReturn(claimant);
+        ClaimRequest claimRequest = aValidClaimRequest();
+        given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         given(claimService.createClaim(any())).willReturn(claimResult);
 
         // When
@@ -133,8 +130,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus));
-        verifyCreateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(aValidClaimantDTO());
+        verify(claimRequestConverter).convert(dto);
         verifyNoInteractions(entitlementConverter);
     }
 
@@ -142,8 +138,8 @@ class ClaimControllerTest {
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsError() {
         // Given
         given(claimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
-        Claimant claimant = aValidClaimant();
-        given(claimantConverter.convert(any())).willReturn(claimant);
+        ClaimRequest claimRequest = aValidClaimRequest();
+        given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         NewClaimDTO dto = aValidClaimDTO();
 
         // When
@@ -153,28 +149,7 @@ class ClaimControllerTest {
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.ERROR));
-        verifyCreateClaimCalledCorrectly(claimant, dto);
-        verify(claimantConverter).convert(aValidClaimantDTO());
-    }
-
-    private void verifyCreateClaimCalledCorrectly(Claimant claimant, NewClaimDTO dto) {
-        ArgumentCaptor<ClaimRequest> captor = ArgumentCaptor.forClass(ClaimRequest.class);
-        verify(claimService).createClaim(captor.capture());
-        ClaimRequest claimRequest = captor.getValue();
-        assertThat(claimRequest).isNotNull();
-        assertThat(claimRequest.getClaimant()).isEqualTo(claimant);
-        assertThat(claimRequest.getDeviceFingerprint()).isEqualTo(dto.getDeviceFingerprint());
-        assertThat(claimRequest.getWebUIVersion()).isEqualTo(dto.getWebUIVersion());
-        assertEligibilityOverride(claimRequest.getEligibilityOverride(), dto.getEligibilityOverride());
-    }
-
-    private void assertEligibilityOverride(EligibilityOverride eligibilityOverride, EligibilityOverrideDTO dto) {
-        if (null == dto) {
-            assertThat(eligibilityOverride).isNull();
-        } else {
-            assertThat(eligibilityOverride).isNotNull();
-            assertThat(eligibilityOverride.getEligibilityOutcome()).isEqualTo(dto.getEligibilityOutcome());
-        }
+        verify(claimRequestConverter).convert(dto);
     }
 
 }

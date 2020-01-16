@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 public class EligibilityOverrideDTO {
 
     @NotNull
-    @JsonProperty("eligibilityOverrideOutcome")
+    @JsonProperty("eligibilityOutcome")
     @ApiModelProperty(notes = "Overrides the eligibility outcome from eligibility service")
     private EligibilityOutcome eligibilityOutcome;
 
