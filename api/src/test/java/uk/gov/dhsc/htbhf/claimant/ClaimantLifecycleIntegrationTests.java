@@ -48,6 +48,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 /**
  * Runs a claim through the entire lifecycle, preforming (limited) tests at each payment cycle to confirm the correct
@@ -388,14 +389,19 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return childrenDob;
     }
 
-    private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate) throws JsonProcessingException, NotificationClientException {
+    private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
+            throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
     private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
-        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverride(expectedDeliveryDate, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverride(
+                expectedDeliveryDate,
+                NO_CHILDREN,
+                EligibilityOutcome.CONFIRMED,
+                OVERRIDE_UNTIL_FIVE_YEARS);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 

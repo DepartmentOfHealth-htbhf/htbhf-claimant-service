@@ -19,6 +19,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 @ExtendWith(MockitoExtension.class)
 class NewClaimDTOToClaimRequestConverterTest {
@@ -48,7 +49,11 @@ class NewClaimDTOToClaimRequestConverterTest {
     void shouldConvertNewClaimDTOToClaimRequestWithEligibilityOverride() {
         Claimant claimant = aValidClaimant();
         given(claimantConverter.convert(any())).willReturn(claimant);
-        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
+                NO_CHILDREN,
+                EligibilityOutcome.CONFIRMED,
+                OVERRIDE_UNTIL_FIVE_YEARS);
 
         ClaimRequest claimRequest = claimRequestConverter.convert(dto);
 
@@ -59,6 +64,7 @@ class NewClaimDTOToClaimRequestConverterTest {
         EligibilityOverride eligibilityOverride = claimRequest.getEligibilityOverride();
         assertThat(eligibilityOverride).isNotNull();
         assertThat(eligibilityOverride.getEligibilityOutcome()).isEqualTo(EligibilityOutcome.CONFIRMED);
+        assertThat(eligibilityOverride.getOverrideUntil()).isEqualTo(OVERRIDE_UNTIL_FIVE_YEARS);
     }
 
 }

@@ -35,6 +35,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimResultTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -91,7 +92,11 @@ class ClaimControllerTest {
     })
     void shouldInvokeClaimServiceAndReturnCorrectStatusWithEligibilityOverride(ClaimStatus claimStatus, HttpStatus httpStatus) {
         // Given
-        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        NewClaimDTO dto = aValidClaimDTOWithEligibilityOverride(
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
+                NO_CHILDREN,
+                EligibilityOutcome.CONFIRMED,
+                OVERRIDE_UNTIL_FIVE_YEARS);
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.of(aValidVoucherEntitlement()));
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         ClaimRequest claimRequest = aValidClaimRequest();

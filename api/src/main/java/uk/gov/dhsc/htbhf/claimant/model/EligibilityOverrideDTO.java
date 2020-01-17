@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
+import java.time.LocalDate;
 import javax.validation.constraints.NotNull;
 
 @Data
@@ -22,4 +23,8 @@ public class EligibilityOverrideDTO {
     @ApiModelProperty(notes = "Overrides the eligibility outcome from eligibility service")
     private EligibilityOutcome eligibilityOutcome;
 
+    @NotNull
+    @JsonProperty("overrideUntil")
+    @ApiModelProperty(notes = "The date at which the override expires", example = "2025-05-17")
+    private LocalDate overrideUntil;
 }
