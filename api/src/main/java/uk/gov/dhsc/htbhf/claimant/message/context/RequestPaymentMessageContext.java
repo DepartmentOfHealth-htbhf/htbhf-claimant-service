@@ -11,6 +11,5 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 public class RequestPaymentMessageContext {
     private Claim claim;
     private PaymentCycle paymentCycle;
-    private String cardAccountId;
     private PaymentType paymentType;
 }

@@ -1,11 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
-import uk.gov.dhsc.htbhf.claimant.message.payload.CompleteNewCardMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
-import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
-import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.*;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentResult;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +26,26 @@ public class MessagePayloadTestDataFactory {
                 .paymentCycleId(paymentCycleId)
                 .cardAccountId(CARD_ACCOUNT_ID)
                 .paymentType(paymentType)
+                .build();
+    }
+
+    public static RequestPaymentMessagePayload aRequestPaymentPayload(UUID claimId, UUID paymentCycleId, PaymentType paymentType) {
+        return RequestPaymentMessagePayload.builder()
+                .claimId(claimId)
+                .paymentCycleId(paymentCycleId)
+                .paymentType(paymentType)
+                .build();
+    }
+
+    public static CompletePaymentMessagePayload aCompletePaymentPayload(UUID claimId,
+                                                                        UUID paymentCycleId,
+                                                                        PaymentCalculation paymentCalculation,
+                                                                        PaymentResult paymentResult) {
+        return CompletePaymentMessagePayload.builder()
+                .claimId(claimId)
+                .paymentCycleId(paymentCycleId)
+                .paymentCalculation(paymentCalculation)
+                .paymentResult(paymentResult)
                 .build();
     }
 

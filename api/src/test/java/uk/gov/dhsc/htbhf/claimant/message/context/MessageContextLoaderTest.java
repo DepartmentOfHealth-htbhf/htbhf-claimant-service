@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
 import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,7 +37,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValid
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestNewCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestPaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataFactory.aFullPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
@@ -523,6 +526,122 @@ class MessageContextLoaderTest {
         assertThat(context.getPaymentForChildrenBetweenOneAndFour()).isEqualTo(100);
         assertThat(context.getPaymentForBackdatedVouchers()).isEqualTo(100);
         verify(payloadMapper).getPayload(message, ReportPaymentMessagePayload.class);
+        verify(claimRepository).findById(claim.getId());
+        verify(paymentCycleRepository).findById(paymentCycle.getId());
+    }
+
+    @Test
+    void shouldFailToLoadRequestPaymentContextIfClaimNotFound() {
+        //Given
+        UUID claimId = UUID.randomUUID();
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        UUID paymentCycleId = paymentCycle.getId();
+        given(claimRepository.findById(any())).willReturn(Optional.empty());
+        RequestPaymentMessagePayload payload = aRequestPaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
+        given(payloadMapper.getPayload(any(), eq(RequestPaymentMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(REQUEST_PAYMENT);
+
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadRequestPaymentMessageContext(message), MessageProcessingException.class);
+
+        //Then
+        assertThat(thrown).hasMessage("Unable to process message, unable to load claim using id: " + claimId);
+        verify(claimRepository).findById(claimId);
+        verify(payloadMapper).getPayload(message, RequestPaymentMessagePayload.class);
+    }
+
+    @Test
+    void shouldFailToLoadRequestPaymentContextIfPaymentCycleNotFound() {
+        //Given
+        UUID paymentCycleId = UUID.randomUUID();
+        Claim claim = aValidClaim();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
+        RequestPaymentMessagePayload payload = aRequestPaymentPayload(claim.getId(), paymentCycleId, REGULAR_PAYMENT);
+        given(payloadMapper.getPayload(any(), eq(RequestPaymentMessagePayload.class))).willReturn(payload);
+        Message message = aValidMessageWithType(REQUEST_PAYMENT);
+
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadRequestPaymentMessageContext(message), MessageProcessingException.class);
+
+        //Then
+        assertThat(thrown).hasMessage("Unable to process message, unable to load payment cycle using id: " + paymentCycleId);
+        verify(paymentCycleRepository).findById(paymentCycleId);
+        verify(payloadMapper).getPayload(message, RequestPaymentMessagePayload.class);
+    }
+
+    @Test
+    void shouldFailToLoadRequestPaymentContextIfUnableToMapPayload() {
+        //Given
+        MessageProcessingException testException = new MessageProcessingException("Unable to load payload");
+        given(payloadMapper.getPayload(any(), eq(RequestPaymentMessagePayload.class))).willThrow(testException);
+        Message message = aValidMessageWithType(REQUEST_PAYMENT);
+
+        //When
+        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadRequestPaymentMessageContext(message), MessageProcessingException.class);
+
+        //Then
+        assertThat(thrown).isEqualTo(testException);
+        verifyNoInteractions(paymentCycleRepository, claimRepository);
+        verify(payloadMapper).getPayload(message, RequestPaymentMessagePayload.class);
+    }
+
+    @Test
+    void shouldSuccessfullyLoadRequestPaymentMessageContext() {
+        // Given
+        Claim claim = aValidClaim();
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        PaymentType paymentType = REGULAR_PAYMENT;
+        RequestPaymentMessagePayload payload = RequestPaymentMessagePayload.builder()
+                .claimId(claim.getId())
+                .paymentCycleId(paymentCycle.getId())
+                .paymentType(paymentType)
+                .build();
+        Message message = aValidMessageWithType(REQUEST_PAYMENT);
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
+        given(payloadMapper.getPayload(message, RequestPaymentMessagePayload.class)).willReturn(payload);
+
+        //When
+        RequestPaymentMessageContext context = loader.loadRequestPaymentMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
+        assertThat(context.getPaymentType()).isEqualTo(paymentType);
+        verify(payloadMapper).getPayload(message, RequestPaymentMessagePayload.class);
+        verify(claimRepository).findById(claim.getId());
+        verify(paymentCycleRepository).findById(paymentCycle.getId());
+    }
+
+    @Test
+    void shouldSuccessfullyCompleteRequestPaymentMessageContext() {
+        // Given
+        Claim claim = aValidClaim();
+        PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
+        PaymentCalculation paymentCalculation = aFullPaymentCalculation();
+        PaymentType paymentType = REGULAR_PAYMENT;
+        Message message = aValidMessageWithType(COMPLETE_PAYMENT);
+
+        CompletePaymentMessagePayload payload = CompletePaymentMessagePayload.builder()
+                .claimId(claim.getId())
+                .paymentCycleId(paymentCycle.getId())
+                .paymentCalculation(paymentCalculation)
+                .paymentType(paymentType)
+                .build();
+        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
+        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
+        given(payloadMapper.getPayload(message, CompletePaymentMessagePayload.class)).willReturn(payload);
+
+        //When
+        CompletePaymentMessageContext context = loader.loadCompletePaymentMessageContext(message);
+
+        //Then
+        assertThat(context.getClaim()).isEqualTo(claim);
+        assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
+        assertThat(context.getPaymentCalculation()).isEqualTo(paymentCalculation);
+        assertThat(context.getPaymentType()).isEqualTo(paymentType);
+        verify(payloadMapper).getPayload(message, CompletePaymentMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verify(paymentCycleRepository).findById(paymentCycle.getId());
     }
