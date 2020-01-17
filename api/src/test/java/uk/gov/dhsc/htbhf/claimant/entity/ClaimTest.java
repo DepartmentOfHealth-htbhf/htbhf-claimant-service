@@ -13,10 +13,7 @@ import java.util.UUID;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithEligibilityStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 
 class ClaimTest extends AbstractValidationTest {
@@ -61,6 +58,16 @@ class ClaimTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "claimant");
+    }
+
+    @Test
+    void shouldFailToValidateClaimWithInvalidEligibilityOverride() {
+        //Given
+        Claim claim = aClaimWithEligibilityOverride(EligibilityOverride.builder().build());
+        //When
+        Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("Must be either null or have all fields populated", "eligibilityOverride");
     }
 
     @Test
