@@ -62,7 +62,7 @@ class ReportPaymentMessageSenderTest {
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         LocalDateTime testStart = LocalDateTime.now();
 
-        reportPaymentMessageSender.sendReportInitialPaymentMessage(claim, paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(claim, paymentCycle, INITIAL_PAYMENT);
 
         verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, INITIAL_PAYMENT);
     }
@@ -73,7 +73,7 @@ class ReportPaymentMessageSenderTest {
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         LocalDateTime testStart = LocalDateTime.now();
 
-        reportPaymentMessageSender.sendReportScheduledPayment(claim, paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(claim, paymentCycle, SCHEDULED_PAYMENT);
 
         verifyNonTopUpPaymentMessageSent(claim, paymentCycle, testStart, SCHEDULED_PAYMENT);
     }
@@ -83,7 +83,7 @@ class ReportPaymentMessageSenderTest {
         PaymentCycle paymentCycle = aPaymentCycleWithBackdatedVouchersOnly();
         LocalDateTime testStart = LocalDateTime.now();
 
-        reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, SCHEDULED_PAYMENT);
 
         verifyNonTopUpPaymentMessageSent(paymentCycle.getClaim(), paymentCycle, testStart, SCHEDULED_PAYMENT);
     }

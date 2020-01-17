@@ -10,15 +10,13 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTI
 public class EligibilityOverrideTestDataFactory {
 
     public static EligibilityOverride aConfirmedEligibilityOverride() {
-        return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
+        return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
                 .build();
     }
 
     public static EligibilityOverride aConfirmedEligibilityWithUntilDate(LocalDate overrideUntil) {
-        return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
+        return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(overrideUntil)
                 .build();
     }
@@ -28,5 +26,10 @@ public class EligibilityOverrideTestDataFactory {
                 .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
                 .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
                 .build();
+    }
+
+    private static EligibilityOverride.EligibilityOverrideBuilder aConfirmedEligibilityOverrideBuilder() {
+        return EligibilityOverride.builder()
+                .eligibilityOutcome(EligibilityOutcome.CONFIRMED);
     }
 }
