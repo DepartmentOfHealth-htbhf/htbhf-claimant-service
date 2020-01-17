@@ -39,6 +39,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.FailedEventTestUtils.verifyFailedPaymentEventFailExceptionAndEventCorrect;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.CardBalanceResponseTestDataFactory.aValidCardBalanceResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.FailureEventTestDataFactory.aFailureEventWithEvent;
@@ -104,7 +106,7 @@ class PaymentServiceTest {
         verify(eventAuditor).auditMakePayment(paymentCycle, paymentResult, depositFundsResponse);
         verifyDepositFundsRequestCorrectWithSpecificReference(paymentCycle.getTotalEntitlementAmountInPence(), paymentResult.getRequestReference());
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE);
-        verify(reportPaymentMessageSender).sendReportInitialPaymentMessage(paymentCycle.getClaim(), paymentCycle);
+        verify(reportPaymentMessageSender).sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, INITIAL_PAYMENT);
     }
 
     @Test
@@ -145,7 +147,7 @@ class PaymentServiceTest {
         verify(paymentCycleService).updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, balanceResponse.getAvailableBalanceInPence());
         verify(paymentCalculator).calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), AVAILABLE_BALANCE_IN_PENCE);
         verifyDepositFundsRequestCorrectWithSpecificReference(paymentCalculation.getPaymentAmount(), paymentResult.getRequestReference());
-        verify(reportPaymentMessageSender).sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
+        verify(reportPaymentMessageSender).sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, SCHEDULED_PAYMENT);
     }
 
     @Test
