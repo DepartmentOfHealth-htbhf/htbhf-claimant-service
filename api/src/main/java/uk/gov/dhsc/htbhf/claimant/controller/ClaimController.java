@@ -7,10 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimDTOConverter;
-import uk.gov.dhsc.htbhf.claimant.converter.ClaimantDTOToClaimantConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.NewClaimDTOToClaimRequestConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.service.ClaimRequest;
@@ -32,10 +31,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ClaimController {
 
     private final ClaimService claimService;
-    private final ClaimantDTOToClaimantConverter claimantConverter;
     private final VoucherEntitlementToDTOConverter voucherConverter;
     private final ClaimRepository claimRepository;
     private final ClaimToClaimDTOConverter claimToClaimDTOConverter;
+    private final NewClaimDTOToClaimRequestConverter claimRequestConverter;
 
     private final Map<ClaimStatus, HttpStatus> statusMap = Map.of(
             ClaimStatus.NEW, HttpStatus.CREATED,
@@ -52,13 +51,8 @@ public class ClaimController {
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO) {
         log.debug("Received claim");
-        Claimant claimant = claimantConverter.convert(newClaimDTO.getClaimant());
-        ClaimRequest claimRequest = ClaimRequest.builder()
-                .claimant(claimant)
-                .deviceFingerprint(newClaimDTO.getDeviceFingerprint())
-                .webUIVersion(newClaimDTO.getWebUIVersion())
-                .eligibilityOverrideOutcome(newClaimDTO.getEligibilityOverrideOutcome())
-                .build();
+
+        ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);
         ClaimResult result = claimService.createClaim(claimRequest);
 
         return createResponse(result);

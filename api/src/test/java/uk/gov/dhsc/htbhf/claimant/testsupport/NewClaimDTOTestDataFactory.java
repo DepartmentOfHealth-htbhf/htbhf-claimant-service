@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
+import uk.gov.dhsc.htbhf.claimant.model.EligibilityOverrideDTO;
 import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
@@ -27,12 +28,6 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
     }
 
-    public static NewClaimDTO aValidClaimDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
-        return aClaimDTOBuilder()
-                .claimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate))
-                .build();
-    }
-
     public static NewClaimDTO aValidClaimDTOWitChildrenDob(List<LocalDate> childrenDob) {
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithChildrenDob(childrenDob))
@@ -51,12 +46,16 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
     }
 
-    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideOutcome(LocalDate expectedDeliveryDate,
-                                                                           List<LocalDate> childrenDob,
-                                                                           EligibilityOutcome eligibilityOutcome) {
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverride(LocalDate expectedDeliveryDate,
+                                                                    List<LocalDate> childrenDob,
+                                                                    EligibilityOutcome eligibilityOutcome) {
+        EligibilityOverrideDTO  eligibilityOverride = EligibilityOverrideDTO.builder()
+                .eligibilityOutcome(eligibilityOutcome)
+                .build();
+
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, childrenDob))
-                .eligibilityOverrideOutcome(eligibilityOutcome)
+                .eligibilityOverride(eligibilityOverride)
                 .build();
     }
 

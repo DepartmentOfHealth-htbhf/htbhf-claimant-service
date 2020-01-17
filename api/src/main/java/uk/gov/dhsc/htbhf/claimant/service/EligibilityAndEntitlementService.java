@@ -8,6 +8,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
@@ -43,10 +44,10 @@ public class EligibilityAndEntitlementService {
      * otherwise they will be ineligible.
      *
      * @param claimant                   the claimant to check the eligibility for
-     * @param eligibilityOverrideOutcome to override the eligibility outcome
+     * @param eligibilityOverride to override the eligibility outcome
      * @return the eligibility and entitlement for the claimant
      */
-    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant, EligibilityOutcome eligibilityOverrideOutcome) {
+    public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant, EligibilityOverride eligibilityOverride) {
         log.debug("Looking for live claims for the given NINO");
         Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
         if (liveClaimsWithNino.isPresent()) {
@@ -54,7 +55,7 @@ public class EligibilityAndEntitlementService {
         }
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverrideOutcome);
+                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverride);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -79,7 +80,7 @@ public class EligibilityAndEntitlementService {
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverrideOutcome());
+                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverride());
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -90,24 +91,24 @@ public class EligibilityAndEntitlementService {
     }
 
     private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
-                                                                                             EligibilityOutcome eligibilityOverrideOutcome) {
-        if (isOverride(eligibilityOverrideOutcome)) {
-            return buildOverrideResponse(eligibilityOverrideOutcome);
+                                                                                             EligibilityOverride eligibilityOverride) {
+        if (isOverride(eligibilityOverride)) {
+            return buildOverrideResponse(eligibilityOverride);
         }
         return client.checkIdentityAndEligibility(claimant);
     }
 
-    private boolean isOverride(EligibilityOutcome eligibilityOverrideOutcome) {
-        return eligibilityOverrideOutcome != null;
+    private boolean isOverride(EligibilityOverride eligibilityOverride) {
+        return eligibilityOverride != null && eligibilityOverride.getEligibilityOutcome() != null;
     }
 
-    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOutcome eligibilityOverrideOutcome) {
-        VerificationOutcome matchOutcome = eligibilityOverrideOutcome == EligibilityOutcome.CONFIRMED
+    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride) {
+        VerificationOutcome matchOutcome = eligibilityOverride.getEligibilityOutcome() == EligibilityOutcome.CONFIRMED
                 ? VerificationOutcome.MATCHED
                 : VerificationOutcome.NOT_SET;
         return CombinedIdentityAndEligibilityResponse.builder()
                 .identityStatus(IdentityOutcome.MATCHED)
-                .eligibilityStatus(eligibilityOverrideOutcome)
+                .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())
                 .dobOfChildrenUnder4(Collections.emptyList())
                 .pregnantChildDOBMatch(matchOutcome)
                 .addressLine1Match(matchOutcome)

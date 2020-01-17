@@ -45,7 +45,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYME
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideOutcome;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 
@@ -395,7 +395,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
     private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
-        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideOutcome(expectedDeliveryDate, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverride(expectedDeliveryDate, NO_CHILDREN, EligibilityOutcome.CONFIRMED);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
