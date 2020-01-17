@@ -92,15 +92,15 @@ public class EligibilityAndEntitlementService {
 
     private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
                                                                                              EligibilityOverride eligibilityOverride,
-                                                                                             LocalDate validDate) {
-        if (isOverride(eligibilityOverride, validDate)) {
+                                                                                             LocalDate eligibleAtDate) {
+        if (isOverride(eligibilityOverride, eligibleAtDate)) {
             return buildOverrideResponse(eligibilityOverride);
         }
         return client.checkIdentityAndEligibility(claimant);
     }
 
-    private boolean isOverride(EligibilityOverride eligibilityOverride, LocalDate validDate) {
-        return eligibilityOverride != null && validDate.isBefore(eligibilityOverride.getOverrideUntil());
+    private boolean isOverride(EligibilityOverride eligibilityOverride, LocalDate eligibleAtDate) {
+        return eligibilityOverride != null && eligibleAtDate.isBefore(eligibilityOverride.getOverrideUntil());
     }
 
     private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride) {

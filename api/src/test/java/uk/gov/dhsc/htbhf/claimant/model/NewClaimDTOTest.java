@@ -1,9 +1,11 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
+import org.apache.tomcat.jni.Local;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
+import java.time.LocalDate;
 import java.util.Set;
 import javax.validation.ConstraintViolation;
 
@@ -77,6 +79,22 @@ class NewClaimDTOTest extends AbstractValidationTest {
         assertThat(violations).hasTotalViolations(2);
         assertThat(violations).hasViolation("must not be null", "eligibilityOverride.eligibilityOutcome");
         assertThat(violations).hasViolation("must not be null", "eligibilityOverride.overrideUntil");
+
+    }
+
+    @Test
+    void shouldFailToValidateClaimWithPastUntilDateOnEligibilityOverride() {
+        //Given
+        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(
+                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
+                NO_CHILDREN,
+                EligibilityOutcome.CONFIRMED,
+                LocalDate.now());
+        //When
+        Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasTotalViolations(1);
+        assertThat(violations).hasViolation("must be a future date", "eligibilityOverride.overrideUntil");
 
     }
 
