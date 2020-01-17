@@ -11,8 +11,6 @@ import uk.gov.dhsc.htbhf.claimant.message.payload.ReportPaymentMessagePayload;
 import java.time.LocalDateTime;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REPORT_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.TOP_UP_PAYMENT;
 
 /**
@@ -43,13 +41,8 @@ public class ReportPaymentMessageSender {
         messageQueueClient.sendMessage(payload, REPORT_PAYMENT);
     }
 
-    public void sendReportInitialPaymentMessage(Claim claim, PaymentCycle paymentCycle) {
-        ReportPaymentMessagePayload payload = createPayloadWithPaymentAmountsDerivedFromPaymentCycle(claim, paymentCycle, INITIAL_PAYMENT);
-        messageQueueClient.sendMessage(payload, REPORT_PAYMENT);
-    }
-
-    public void sendReportScheduledPayment(Claim claim, PaymentCycle paymentCycle) {
-        ReportPaymentMessagePayload payload = createPayloadWithPaymentAmountsDerivedFromPaymentCycle(claim, paymentCycle, SCHEDULED_PAYMENT);
+    public void sendReportPaymentMessage(Claim claim, PaymentCycle paymentCycle, PaymentAction paymentAction) {
+        ReportPaymentMessagePayload payload = createPayloadWithPaymentAmountsDerivedFromPaymentCycle(claim, paymentCycle, paymentAction);
         messageQueueClient.sendMessage(payload, REPORT_PAYMENT);
     }
 
