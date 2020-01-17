@@ -36,7 +36,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -82,7 +82,7 @@ class EligibilityAndEntitlementServiceTest {
 
     @Test
     void shouldReturnDuplicateWhenLiveClaimAlreadyExistsWithEligibilityOverride() {
-        aConfirmedEligibilityOverrideWithNoChildren();
+        shouldReturnDuplicateWhenLiveClaimAlreadyExists(aConfirmedEligibilityOverride());
     }
 
     private void shouldReturnDuplicateWhenLiveClaimAlreadyExists(EligibilityOverride eligibilityOverride) {
@@ -139,7 +139,7 @@ class EligibilityAndEntitlementServiceTest {
 
         //When
         EligibilityAndEntitlementDecision result
-                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityOverrideWithNoChildren());
+                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityOverride());
 
         //Then
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
@@ -175,7 +175,7 @@ class EligibilityAndEntitlementServiceTest {
     void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
         //Given
         // TODO MGS: AFHS-428 Introduce new factory method once EligibilityOverride is complete
-        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(aConfirmedEligibilityOverrideWithNoChildren()).build();
+        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(aConfirmedEligibilityOverride()).build();
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);

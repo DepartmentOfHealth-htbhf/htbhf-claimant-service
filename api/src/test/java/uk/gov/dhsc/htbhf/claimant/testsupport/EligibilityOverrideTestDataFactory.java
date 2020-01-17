@@ -5,7 +5,7 @@ import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 public class EligibilityOverrideTestDataFactory {
 
-    public static EligibilityOverride aConfirmedEligibilityOverrideWithNoChildren() {
+    public static EligibilityOverride aConfirmedEligibilityOverride() {
         return EligibilityOverride.builder()
                 .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
                 .build();
