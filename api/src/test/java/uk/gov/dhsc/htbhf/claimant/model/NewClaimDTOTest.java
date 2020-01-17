@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
-import org.apache.tomcat.jni.Local;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
