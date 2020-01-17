@@ -32,6 +32,7 @@ public class NewClaimDTOToClaimRequestConverter {
         }
         return EligibilityOverride.builder()
                 .eligibilityOutcome(dto.getEligibilityOutcome())
+                .overrideUntil(dto.getOverrideUntil())
                 .build();
     }
 }
