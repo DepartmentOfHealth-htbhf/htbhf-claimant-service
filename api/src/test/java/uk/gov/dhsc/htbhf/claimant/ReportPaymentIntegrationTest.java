@@ -60,7 +60,7 @@ public class ReportPaymentIntegrationTest {
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        reportPaymentMessageSender.sendReportInitialPaymentMessage(claim, paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(claim, paymentCycle, INITIAL_PAYMENT);
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);
@@ -75,7 +75,7 @@ public class ReportPaymentIntegrationTest {
         String postcode = claim.getClaimant().getAddress().getPostcode();
         stubPostcodesIoAndGoogleAnalytics(postcode);
 
-        reportPaymentMessageSender.sendReportScheduledPayment(claim, paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(claim, paymentCycle, SCHEDULED_PAYMENT);
         messageProcessorScheduler.processReportPaymentMessages();
 
         wiremockManager.verifyPostcodesIoCalled(postcode);

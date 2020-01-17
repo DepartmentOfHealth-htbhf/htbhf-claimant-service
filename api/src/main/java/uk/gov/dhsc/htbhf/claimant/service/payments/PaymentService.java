@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
 import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
@@ -86,7 +88,7 @@ public class PaymentService {
                 paymentCycle.getTotalEntitlementAmountInPence()
         );
         paymentCycleService.updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);
-        reportPaymentMessageSender.sendReportInitialPaymentMessage(paymentCycle.getClaim(), paymentCycle);
+        reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, INITIAL_PAYMENT);
         return payment;
     }
 
@@ -131,7 +133,7 @@ public class PaymentService {
             DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);
             updatePayment(payment, depositFundsResponse.getReferenceId());
             eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
-            reportPaymentMessageSender.sendReportScheduledPayment(paymentCycle.getClaim(), paymentCycle);
+            reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, SCHEDULED_PAYMENT);
         } catch (RuntimeException e) {
             String failureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                     cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());
