@@ -21,7 +21,7 @@ import java.util.UUID;
 @Component
 @AllArgsConstructor
 <span class="fc" id="L23">@Slf4j</span>
-@SuppressWarnings(&quot;PMD.CouplingBetweenObjects&quot;)
+@SuppressWarnings({&quot;PMD.CouplingBetweenObjects&quot;, &quot;PMD.TooManyMethods&quot;})
 public class MessageContextLoader {
 
     private ClaimRepository claimRepository;
@@ -31,141 +31,168 @@ public class MessageContextLoader {
     private PayloadMapper payloadMapper;
 
     public DetermineEntitlementMessageContext loadDetermineEntitlementContext(Message message) {
+<span class="fc" id="L34">        DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);</span>
 
-<span class="fc" id="L35">        DetermineEntitlementMessagePayload payload = payloadMapper.getPayload(message, DetermineEntitlementMessagePayload.class);</span>
+<span class="fc" id="L36">        PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), &quot;current payment cycle&quot;);</span>
+<span class="fc" id="L37">        PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), &quot;previous payment cycle&quot;);</span>
+<span class="fc" id="L38">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
 
-<span class="fc" id="L37">        PaymentCycle currentPaymentCycle = getAndCheckPaymentCycle(payload.getCurrentPaymentCycleId(), &quot;current payment cycle&quot;);</span>
-<span class="fc" id="L38">        PaymentCycle previousPaymentCycle = getAndCheckPaymentCycle(payload.getPreviousPaymentCycleId(), &quot;previous payment cycle&quot;);</span>
-<span class="fc" id="L39">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-
-<span class="fc" id="L41">        return DetermineEntitlementMessageContext.builder()</span>
-<span class="fc" id="L42">                .currentPaymentCycle(currentPaymentCycle)</span>
-<span class="fc" id="L43">                .previousPaymentCycle(previousPaymentCycle)</span>
-<span class="fc" id="L44">                .claim(claim)</span>
-<span class="fc" id="L45">                .build();</span>
+<span class="fc" id="L40">        return DetermineEntitlementMessageContext.builder()</span>
+<span class="fc" id="L41">                .currentPaymentCycle(currentPaymentCycle)</span>
+<span class="fc" id="L42">                .previousPaymentCycle(previousPaymentCycle)</span>
+<span class="fc" id="L43">                .claim(claim)</span>
+<span class="fc" id="L44">                .build();</span>
     }
 
     public MakePaymentMessageContext loadMakePaymentContext(Message message) {
+<span class="fc" id="L48">        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);</span>
 
-<span class="fc" id="L50">        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);</span>
+<span class="fc" id="L50">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());</span>
+<span class="fc" id="L51">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
 
-<span class="fc" id="L52">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), &quot;payment cycle&quot;);</span>
-<span class="fc" id="L53">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-
-<span class="fc" id="L55">        return MakePaymentMessageContext.builder()</span>
-<span class="fc" id="L56">                .cardAccountId(payload.getCardAccountId())</span>
-<span class="fc" id="L57">                .claim(claim)</span>
-<span class="fc" id="L58">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L59">                .paymentType(payload.getPaymentType())</span>
-<span class="fc" id="L60">                .build();</span>
+<span class="fc" id="L53">        return MakePaymentMessageContext.builder()</span>
+<span class="fc" id="L54">                .cardAccountId(payload.getCardAccountId())</span>
+<span class="fc" id="L55">                .claim(claim)</span>
+<span class="fc" id="L56">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L57">                .paymentType(payload.getPaymentType())</span>
+<span class="fc" id="L58">                .build();</span>
     }
 
     public RequestNewCardMessageContext loadRequestNewCardContext(Message message) {
-<span class="fc" id="L64">        RequestNewCardMessagePayload payload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);</span>
+<span class="fc" id="L62">        RequestNewCardMessagePayload payload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);</span>
 
-<span class="fc" id="L66">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L67">        return RequestNewCardMessageContext.builder()</span>
-<span class="fc" id="L68">                .claim(claim)</span>
-<span class="fc" id="L69">                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())</span>
-<span class="fc" id="L70">                .build();</span>
+<span class="fc" id="L64">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L65">        return RequestNewCardMessageContext.builder()</span>
+<span class="fc" id="L66">                .claim(claim)</span>
+<span class="fc" id="L67">                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())</span>
+<span class="fc" id="L68">                .build();</span>
     }
 
     public CompleteNewCardMessageContext loadCompleteNewCardContext(Message message) {
-<span class="fc" id="L74">        CompleteNewCardMessagePayload payload = payloadMapper.getPayload(message, CompleteNewCardMessagePayload.class);</span>
+<span class="fc" id="L72">        CompleteNewCardMessagePayload payload = payloadMapper.getPayload(message, CompleteNewCardMessagePayload.class);</span>
 
-<span class="fc" id="L76">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L77">        return CompleteNewCardMessageContext.builder()</span>
-<span class="fc" id="L78">                .claim(claim)</span>
-<span class="fc" id="L79">                .cardAccountId(payload.getCardAccountId())</span>
-<span class="fc" id="L80">                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())</span>
-<span class="fc" id="L81">                .build();</span>
+<span class="fc" id="L74">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L75">        return CompleteNewCardMessageContext.builder()</span>
+<span class="fc" id="L76">                .claim(claim)</span>
+<span class="fc" id="L77">                .cardAccountId(payload.getCardAccountId())</span>
+<span class="fc" id="L78">                .eligibilityAndEntitlementDecision(payload.getEligibilityAndEntitlementDecision())</span>
+<span class="fc" id="L79">                .build();</span>
     }
 
     public EmailMessageContext loadEmailMessageContext(Message message) {
-<span class="fc" id="L85">        EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);</span>
+<span class="fc" id="L83">        EmailMessagePayload payload = payloadMapper.getPayload(message, EmailMessagePayload.class);</span>
 
-<span class="fc" id="L87">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L88">        return EmailMessageContext.builder()</span>
-<span class="fc" id="L89">                .claim(claim)</span>
-<span class="fc" id="L90">                .emailPersonalisation(payload.getEmailPersonalisation())</span>
-<span class="fc" id="L91">                .emailType(payload.getEmailType())</span>
-<span class="fc" id="L92">                .build();</span>
+<span class="fc" id="L85">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L86">        return EmailMessageContext.builder()</span>
+<span class="fc" id="L87">                .claim(claim)</span>
+<span class="fc" id="L88">                .emailPersonalisation(payload.getEmailPersonalisation())</span>
+<span class="fc" id="L89">                .emailType(payload.getEmailType())</span>
+<span class="fc" id="L90">                .build();</span>
     }
 
     public LetterMessageContext loadLetterMessageContext(Message message) {
-<span class="fc" id="L96">        LetterMessagePayload payload = payloadMapper.getPayload(message, LetterMessagePayload.class);</span>
+<span class="fc" id="L94">        LetterMessagePayload payload = payloadMapper.getPayload(message, LetterMessagePayload.class);</span>
 
-<span class="fc" id="L98">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L99">        return LetterMessageContext.builder()</span>
-<span class="fc" id="L100">                .claim(claim)</span>
-<span class="fc" id="L101">                .personalisation(payload.getPersonalisation())</span>
-<span class="fc" id="L102">                .letterType(payload.getLetterType())</span>
-<span class="fc" id="L103">                .build();</span>
+<span class="fc" id="L96">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L97">        return LetterMessageContext.builder()</span>
+<span class="fc" id="L98">                .claim(claim)</span>
+<span class="fc" id="L99">                .personalisation(payload.getPersonalisation())</span>
+<span class="fc" id="L100">                .letterType(payload.getLetterType())</span>
+<span class="fc" id="L101">                .build();</span>
     }
 
     public AdditionalPregnancyPaymentMessageContext loadAdditionalPregnancyPaymentMessageContext(Message message) {
-<span class="fc" id="L107">        AdditionalPregnancyPaymentMessagePayload payload = payloadMapper.getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);</span>
+<span class="fc" id="L105">        AdditionalPregnancyPaymentMessagePayload payload = payloadMapper.getPayload(message, AdditionalPregnancyPaymentMessagePayload.class);</span>
 
-<span class="fc" id="L109">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L110">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findCurrentCycleForClaim(claim);</span>
+<span class="fc" id="L107">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L108">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findCurrentCycleForClaim(claim);</span>
 
-<span class="fc" id="L112">        return AdditionalPregnancyPaymentMessageContext.builder()</span>
-<span class="fc" id="L113">                .claim(claim)</span>
-<span class="fc" id="L114">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L115">                .build();</span>
+<span class="fc" id="L110">        return AdditionalPregnancyPaymentMessageContext.builder()</span>
+<span class="fc" id="L111">                .claim(claim)</span>
+<span class="fc" id="L112">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L113">                .build();</span>
     }
 
     public ReportClaimMessageContext loadReportClaimMessageContext(Message message) {
-<span class="fc" id="L119">        ReportClaimMessagePayload payload = payloadMapper.getPayload(message, ReportClaimMessagePayload.class);</span>
-<span class="fc" id="L120">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L117">        ReportClaimMessagePayload payload = payloadMapper.getPayload(message, ReportClaimMessagePayload.class);</span>
+<span class="fc" id="L118">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
 
-<span class="fc" id="L122">        return ReportClaimMessageContext.builder()</span>
-<span class="fc" id="L123">                .claim(claim)</span>
-<span class="fc" id="L124">                .claimAction(payload.getClaimAction())</span>
-<span class="fc" id="L125">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L126">                .timestamp(payload.getTimestamp())</span>
-<span class="fc" id="L127">                .updatedClaimantFields(payload.getUpdatedClaimantFields())</span>
-<span class="fc" id="L128">                .build();</span>
+<span class="fc" id="L120">        return ReportClaimMessageContext.builder()</span>
+<span class="fc" id="L121">                .claim(claim)</span>
+<span class="fc" id="L122">                .claimAction(payload.getClaimAction())</span>
+<span class="fc" id="L123">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L124">                .timestamp(payload.getTimestamp())</span>
+<span class="fc" id="L125">                .updatedClaimantFields(payload.getUpdatedClaimantFields())</span>
+<span class="fc" id="L126">                .build();</span>
     }
 
     public ReportPaymentMessageContext loadReportPaymentMessageContext(Message message) {
-<span class="fc" id="L132">        ReportPaymentMessagePayload payload = payloadMapper.getPayload(message, ReportPaymentMessagePayload.class);</span>
-<span class="fc" id="L133">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
-<span class="fc" id="L134">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId(), &quot;payment cycle&quot;);</span>
+<span class="fc" id="L130">        ReportPaymentMessagePayload payload = payloadMapper.getPayload(message, ReportPaymentMessagePayload.class);</span>
+<span class="fc" id="L131">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L132">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());</span>
 
-<span class="fc" id="L136">        return ReportPaymentMessageContext.builder()</span>
-<span class="fc" id="L137">                .claim(claim)</span>
-<span class="fc" id="L138">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L139">                .paymentForPregnancy(payload.getPaymentForPregnancy())</span>
-<span class="fc" id="L140">                .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())</span>
-<span class="fc" id="L141">                .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())</span>
-<span class="fc" id="L142">                .paymentForBackdatedVouchers(payload.getPaymentForBackdatedVouchers())</span>
-<span class="fc" id="L143">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L144">                .paymentAction(payload.getPaymentAction())</span>
-<span class="fc" id="L145">                .timestamp(payload.getTimestamp())</span>
-<span class="fc" id="L146">                .build();</span>
+<span class="fc" id="L134">        return ReportPaymentMessageContext.builder()</span>
+<span class="fc" id="L135">                .claim(claim)</span>
+<span class="fc" id="L136">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L137">                .paymentForPregnancy(payload.getPaymentForPregnancy())</span>
+<span class="fc" id="L138">                .paymentForChildrenUnderOne(payload.getPaymentForChildrenUnderOne())</span>
+<span class="fc" id="L139">                .paymentForChildrenBetweenOneAndFour(payload.getPaymentForChildrenBetweenOneAndFour())</span>
+<span class="fc" id="L140">                .paymentForBackdatedVouchers(payload.getPaymentForBackdatedVouchers())</span>
+<span class="fc" id="L141">                .identityAndEligibilityResponse(payload.getIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L142">                .paymentAction(payload.getPaymentAction())</span>
+<span class="fc" id="L143">                .timestamp(payload.getTimestamp())</span>
+<span class="fc" id="L144">                .build();</span>
+    }
+
+    public RequestPaymentMessageContext loadRequestPaymentMessageContext(Message message) {
+<span class="fc" id="L148">        RequestPaymentMessagePayload payload = payloadMapper.getPayload(message, RequestPaymentMessagePayload.class);</span>
+<span class="fc" id="L149">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L150">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());</span>
+
+<span class="fc" id="L152">        return RequestPaymentMessageContext.builder()</span>
+<span class="fc" id="L153">                .claim(claim)</span>
+<span class="fc" id="L154">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L155">                .paymentType(payload.getPaymentType())</span>
+<span class="fc" id="L156">                .build();</span>
+    }
+
+    public CompletePaymentMessageContext loadCompletePaymentMessageContext(Message message) {
+<span class="fc" id="L160">        CompletePaymentMessagePayload payload = payloadMapper.getPayload(message, CompletePaymentMessagePayload.class);</span>
+<span class="fc" id="L161">        Claim claim = getAndCheckClaim(payload.getClaimId());</span>
+<span class="fc" id="L162">        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());</span>
+
+<span class="fc" id="L164">        return CompletePaymentMessageContext.builder()</span>
+<span class="fc" id="L165">                .claim(claim)</span>
+<span class="fc" id="L166">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L167">                .paymentCalculation(payload.getPaymentCalculation())</span>
+<span class="fc" id="L168">                .paymentType(payload.getPaymentType())</span>
+<span class="fc" id="L169">                .build();</span>
     }
 
     private Claim getAndCheckClaim(UUID claimId) {
-<span class="fc" id="L150">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
-<span class="nc" id="L152">            logAndThrowException(&quot;claim&quot;, claimId);</span>
+<span class="fc" id="L173">        Optional&lt;Claim&gt; claim = claimRepository.findById(claimId);</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">        if (claim.isEmpty()) {</span>
+<span class="nc" id="L175">            logAndThrowException(&quot;claim&quot;, claimId);</span>
         }
-<span class="fc" id="L154">        return claim.get();</span>
+<span class="fc" id="L177">        return claim.get();</span>
+    }
+
+    private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId) {
+<span class="fc" id="L181">        return getAndCheckPaymentCycle(paymentCycleId, &quot;payment cycle&quot;);</span>
     }
 
     private PaymentCycle getAndCheckPaymentCycle(UUID paymentCycleId, String cycleName) {
-<span class="fc" id="L158">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
-<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
-<span class="nc" id="L160">            logAndThrowException(cycleName, paymentCycleId);</span>
+<span class="fc" id="L185">        Optional&lt;PaymentCycle&gt; paymentCycle = paymentCycleRepository.findById(paymentCycleId);</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (paymentCycle.isEmpty()) {</span>
+<span class="nc" id="L187">            logAndThrowException(cycleName, paymentCycleId);</span>
         }
-<span class="fc" id="L162">        return paymentCycle.get();</span>
+<span class="fc" id="L189">        return paymentCycle.get();</span>
     }
 
     private void logAndThrowException(String fieldName, UUID uuid) {
-<span class="fc" id="L166">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
-<span class="fc" id="L167">        log.error(errorMessage);</span>
-<span class="fc" id="L168">        throw new MessageProcessingException(errorMessage);</span>
+<span class="fc" id="L193">        String errorMessage = String.format(&quot;Unable to process message, unable to load %s using id: %s&quot;, fieldName, uuid);</span>
+<span class="fc" id="L194">        log.error(errorMessage);</span>
+<span class="fc" id="L195">        throw new MessageProcessingException(errorMessage);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
