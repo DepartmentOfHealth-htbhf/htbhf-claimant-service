@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.TOP_UP_PAYMENT;
 
 @Slf4j
 @Component
@@ -62,7 +63,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
 
         int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle);
         if (paymentAmountInPence > 0) {
-            paymentService.makeInterimPayment(paymentCycle.get(), context.getClaim().getCardAccountId(), paymentAmountInPence);
+            paymentService.makePayment(paymentCycle.get(), paymentAmountInPence, TOP_UP_PAYMENT);
             reportPaymentMessageSender.sendReportPregnancyTopUpPaymentMessage(paymentCycle.get().getClaim(), paymentCycle.get(), paymentAmountInPence);
         }
 

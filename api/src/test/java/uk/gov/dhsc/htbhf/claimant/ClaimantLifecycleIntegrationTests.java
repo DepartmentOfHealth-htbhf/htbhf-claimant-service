@@ -527,7 +527,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         messageProcessorScheduler.processCompleteNewCardMessages();
         paymentCycleScheduler.createNewPaymentCycles();
         messageProcessorScheduler.processDetermineEntitlementMessages();
-        messageProcessorScheduler.processPaymentMessages();
+        messageProcessorScheduler.processRequestPaymentMessages();
+        messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
         messageProcessorScheduler.processSendLetterMessages();
         cardCancellationScheduler.handleCardsPendingCancellation();

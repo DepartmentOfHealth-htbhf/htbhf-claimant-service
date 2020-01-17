@@ -28,6 +28,7 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(lowBalance);
     }
 
     @Test
@@ -42,6 +43,7 @@ class PaymentCalculatorTest {
         int partialPayment = MAXIMUM_BALANCE - balance;
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(partialPayment);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(PARTIAL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
     }
 
     @Test
@@ -55,6 +57,7 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(highBalance);
     }
 
     @Test
@@ -68,6 +71,7 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
     }
 
     @Test
@@ -81,5 +85,6 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
     }
 }

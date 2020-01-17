@@ -98,16 +98,15 @@ public class PaymentCycleService {
     }
 
     /**
-     * Update and saves the payment cycle with the given calculation and card balance.
+     * Update and saves the payment cycle with the given card balance.
      *
      * @param paymentCycle       payment cycle to update
-     * @param paymentCycleStatus payment cycle status
      * @param cardBalanceInPence card balance in pence
      */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus, int cardBalanceInPence) {
+    public void updatePaymentCycleCardBalance(PaymentCycle paymentCycle, int cardBalanceInPence) {
         paymentCycle.setCardBalanceInPence(cardBalanceInPence);
         paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
-        updatePaymentCycle(paymentCycle, paymentCycleStatus);
+        paymentCycleRepository.save(paymentCycle);
     }
 
     /**
@@ -133,7 +132,7 @@ public class PaymentCycleService {
      * @param paymentCycle       payment cycle to update
      * @param paymentCycleStatus payment cycle status
      */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
+    public void updatePaymentCycleStatus(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
         paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
         paymentCycleRepository.save(paymentCycle);
     }

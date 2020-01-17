@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.javers.common.collections.Lists;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
@@ -72,13 +70,16 @@ public class EventAuditor {
         eventLogger.logEvent(newCardEvent);
     }
 
-    public void auditMakePayment(PaymentCycle paymentCycle, Payment payment, DepositFundsResponse depositFundsResponse) {
+    public void auditMakePayment(PaymentCycle paymentCycle,
+                                 int paymentAmountInPence,
+                                 String requestReference,
+                                 String responseReference) {
         MakePaymentEvent event = MakePaymentEvent.builder()
                 .claimId(paymentCycle.getClaim().getId())
+                .paymentAmountInPence(paymentAmountInPence)
+                .requestReference(requestReference)
+                .responseReference(responseReference)
                 .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
-                .paymentAmountInPence(payment.getPaymentAmountInPence())
-                .paymentId(payment.getId())
-                .reference(depositFundsResponse.getReferenceId())
                 .build();
         eventLogger.logEvent(event);
     }

@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
@@ -149,19 +148,17 @@ class PaymentCycleServiceTest {
     }
 
     @Test
-    void shouldUpdatePaymentCycleWithStatusAndCardBalance() {
+    void shouldUpdatePaymentCycleWithCardBalance() {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
-                .paymentCycleStatus(NEW)
                 .cardBalanceInPence(null)
                 .build();
         int newCardBalance = 200;
         LocalDateTime now = LocalDateTime.now();
 
-        paymentCycleService.updatePaymentCycle(paymentCycle, FULL_PAYMENT_MADE, newCardBalance);
+        paymentCycleService.updatePaymentCycleCardBalance(paymentCycle, newCardBalance);
 
         assertThat(paymentCycle.getCardBalanceTimestamp()).isAfterOrEqualTo(now);
         assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(newCardBalance);
-        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
         verifyNoInteractions(pregnancyEntitlementCalculator);
     }
 

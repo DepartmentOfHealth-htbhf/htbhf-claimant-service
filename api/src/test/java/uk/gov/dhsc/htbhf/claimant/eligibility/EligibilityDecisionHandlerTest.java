@@ -74,7 +74,7 @@ class EligibilityDecisionHandlerTest {
     private EligibilityDecisionHandler handler;
 
     @Test
-    void shouldMakePaymentAndSendPaymentEmailForClaim() {
+    void shouldRequestPaymentAndSendPaymentEmailForClaim() {
         // Given
         Claim claim = aValidClaim();
         PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
@@ -84,8 +84,8 @@ class EligibilityDecisionHandlerTest {
         handler.handleEligibleDecision(claim, currentPaymentCycle);
 
         // Then
-        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle, REGULAR_PAYMENT);
-        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
+        MessagePayload expectedPayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(currentPaymentCycle, REGULAR_PAYMENT);
+        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.REQUEST_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
 
@@ -102,8 +102,8 @@ class EligibilityDecisionHandlerTest {
 
         // Then
         verifyClaimSavedWithStatus(ACTIVE, CardStatus.ACTIVE);
-        MessagePayload expectedPayload = MessagePayloadFactory.buildMakePaymentMessagePayload(currentPaymentCycle, RESTARTED_PAYMENT);
-        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.MAKE_PAYMENT);
+        MessagePayload expectedPayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(currentPaymentCycle, RESTARTED_PAYMENT);
+        verify(messageQueueClient).sendMessage(expectedPayload, MessageType.REQUEST_PAYMENT);
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
 

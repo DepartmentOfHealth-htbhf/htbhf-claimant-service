@@ -14,8 +14,8 @@ import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.context.CompleteNewCardMessageContext;
 import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.MessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimActivationService;
 
@@ -76,10 +76,9 @@ class CompleteNewCardMessageProcessorTest {
 
     private void verifyMakeFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
-        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.MAKE_PAYMENT));
-        assertThat(payloadCaptor.getValue()).isInstanceOf(MakePaymentMessagePayload.class);
-        MakePaymentMessagePayload payload = (MakePaymentMessagePayload) payloadCaptor.getValue();
-        assertThat(payload.getCardAccountId()).isEqualTo(claim.getCardAccountId());
+        verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.REQUEST_PAYMENT));
+        assertThat(payloadCaptor.getValue()).isInstanceOf(RequestPaymentMessagePayload.class);
+        RequestPaymentMessagePayload payload = (RequestPaymentMessagePayload) payloadCaptor.getValue();
         assertThat(payload.getClaimId()).isEqualTo(claim.getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getPaymentType()).isEqualTo(FIRST_PAYMENT);

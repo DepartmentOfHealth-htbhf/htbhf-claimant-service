@@ -8,33 +8,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_ID;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.*;
 
 
 public class MakePaymentEvent extends Event {
 
     @Builder
-    public MakePaymentEvent(UUID claimId, UUID paymentId, String reference, Integer paymentAmountInPence, Integer entitlementAmountInPence) {
+    public MakePaymentEvent(UUID claimId, String requestReference, String responseReference, Integer paymentAmountInPence, Integer entitlementAmountInPence) {
         super(ClaimEventType.MAKE_PAYMENT,
                 LocalDateTime.now(),
-                constructMetaData(claimId, paymentId, reference, paymentAmountInPence, entitlementAmountInPence));
+                constructMetaData(claimId, requestReference, responseReference, paymentAmountInPence, entitlementAmountInPence));
     }
 
     private static Map<String, Object> constructMetaData(UUID claimId,
-                                                         UUID paymentId,
-                                                         String reference,
+                                                         String requestReference,
+                                                         String responseReference,
                                                          Integer paymentAmountInPence,
                                                          Integer entitlementAmountInPence) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put(CLAIM_ID.getKey(), claimId);
         metadata.put(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), entitlementAmountInPence);
         metadata.put(PAYMENT_AMOUNT.getKey(), paymentAmountInPence);
-        metadata.put(PAYMENT_ID.getKey(), paymentId);
-        metadata.put(PAYMENT_REFERENCE.getKey(), reference);
+        metadata.put(PAYMENT_REQUEST_REFERENCE.getKey(), requestReference);
+        metadata.put(PAYMENT_RESPONSE_REFERENCE.getKey(), responseReference);
         return metadata;
     }
 }

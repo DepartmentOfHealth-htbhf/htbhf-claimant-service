@@ -17,6 +17,7 @@ import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentResult;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,11 +32,9 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.*;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aCompleteNewCardMessagePayload;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aMakePaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestNewCardMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessagePayloadTestDataFactory.aRequestPaymentPayload;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -43,9 +42,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCalculationTestDataF
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentResultTestDataFactory.aValidPaymentResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonalisationMapTestDataFactory.buildEmailPersonalisation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PersonalisationMapTestDataFactory.buildLetterPersonalisation;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,92 +61,6 @@ class MessageContextLoaderTest {
 
     @InjectMocks
     private MessageContextLoader loader;
-
-    //These calls need to be lenient as Mockito sees mocking the same method call multiple times as a sign of an error
-    //and will fail the test without setting the mode to lenient.
-    @Test
-    void shouldSuccessfullyLoadPaymentContext() {
-        //Given
-        Claim claim = aValidClaim();
-        UUID claimId = claim.getId();
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        UUID paymentCycleId = paymentCycle.getId();
-        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, RESTARTED_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MakePaymentMessageContext context = loader.loadMakePaymentContext(message);
-
-        //Then
-        assertThat(context).isNotNull();
-        assertThat(context.getClaim()).isEqualTo(claim);
-        assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
-        assertThat(context.getPaymentType()).isEqualTo(RESTARTED_PAYMENT);
-        verify(claimRepository).findById(claimId);
-        verify(paymentCycleRepository).findById(paymentCycleId);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-        verifyNoMoreInteractions(paymentCycleRepository, claimRepository, payloadMapper);
-    }
-
-    @Test
-    void shouldFailToLoadPaymentContextIfClaimNotFound() {
-        //Given
-        UUID claimId = UUID.randomUUID();
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        UUID paymentCycleId = paymentCycle.getId();
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        given(claimRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadMakePaymentContext(message), MessageProcessingException.class);
-
-        //Then
-        assertThat(thrown).hasMessage("Unable to process message, unable to load claim using id: " + claimId);
-        verify(claimRepository).findById(claimId);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-    }
-
-    @Test
-    void shouldFailToLoadPaymentContextIfPaymentCycleNotFound() {
-        //Given
-        UUID claimId = UUID.randomUUID();
-        UUID paymentCycleId = UUID.randomUUID();
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadMakePaymentContext(message), MessageProcessingException.class);
-
-        //Then
-        assertThat(thrown).hasMessage("Unable to process message, unable to load payment cycle using id: " + paymentCycleId);
-        verify(paymentCycleRepository).findById(paymentCycleId);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-    }
-
-    @Test
-    void shouldFailToLoadPaymentContextIfUnableToMapPayload() {
-        //Given
-        MessageProcessingException testException = new MessageProcessingException("Unable to load payload");
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willThrow(testException);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadMakePaymentContext(message), MessageProcessingException.class);
-
-        //Then
-        assertThat(thrown).isEqualTo(testException);
-        verifyNoInteractions(paymentCycleRepository, claimRepository);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-    }
-
 
     //These calls need to be lenient as Mockito sees mocking the same method call multiple times as a sign of an error
     //and will fail the test without setting the mode to lenient.
@@ -273,73 +186,6 @@ class MessageContextLoaderTest {
         verify(paymentCycleRepository).findById(currentPaymentCycleId);
         verify(paymentCycleRepository).findById(previousPaymentCycleId);
         verify(payloadMapper).getPayload(message, DetermineEntitlementMessagePayload.class);
-    }
-
-    @Test
-    void shouldSuccessfullyLoadMakePaymentMessagePayload() {
-        //Given
-        Claim claim = aValidClaim();
-        UUID claimId = claim.getId();
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        UUID paymentCycleId = paymentCycle.getId();
-        given(claimRepository.findById(any())).willReturn(Optional.of(claim));
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MakePaymentMessageContext context = loader.loadMakePaymentContext(message);
-
-        //Then
-        assertThat(context).isNotNull();
-        assertThat(context.getClaim()).isEqualTo(claim);
-        assertThat(context.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
-        assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-        verify(claimRepository).findById(claimId);
-        verify(paymentCycleRepository).findById(paymentCycleId);
-    }
-
-    @Test
-    void shouldFailToMakePaymentContextIfClaimNotFound() {
-        //Given
-        UUID claimId = UUID.randomUUID();
-        PaymentCycle paymentCycle = aValidPaymentCycle();
-        UUID paymentCycleId = paymentCycle.getId();
-        given(claimRepository.findById(any())).willReturn(Optional.empty());
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadMakePaymentContext(message), MessageProcessingException.class);
-
-        //Then
-        assertThat(thrown).hasMessage("Unable to process message, unable to load claim using id: " + claimId);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-        verify(claimRepository).findById(claimId);
-        verify(paymentCycleRepository).findById(paymentCycleId);
-    }
-
-    @Test
-    void shouldFailToMakePaymentContextIfPaymentCycleNotFound() {
-        //Given
-        UUID claimId = UUID.randomUUID();
-        UUID paymentCycleId = UUID.randomUUID();
-        given(paymentCycleRepository.findById(any())).willReturn(Optional.empty());
-        MakePaymentMessagePayload payload = aMakePaymentPayload(claimId, paymentCycleId, REGULAR_PAYMENT);
-        given(payloadMapper.getPayload(any(), eq(MakePaymentMessagePayload.class))).willReturn(payload);
-        Message message = aValidMessageWithType(MAKE_PAYMENT);
-
-        //When
-        MessageProcessingException thrown = catchThrowableOfType(() -> loader.loadMakePaymentContext(message), MessageProcessingException.class);
-
-        //Then
-        assertThat(thrown).hasMessage("Unable to process message, unable to load payment cycle using id: " + paymentCycleId);
-        verify(payloadMapper).getPayload(message, MakePaymentMessagePayload.class);
-        verify(paymentCycleRepository).findById(paymentCycleId);
     }
 
     @Test
@@ -621,6 +467,7 @@ class MessageContextLoaderTest {
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         PaymentCalculation paymentCalculation = aFullPaymentCalculation();
         PaymentType paymentType = REGULAR_PAYMENT;
+        PaymentResult paymentResult = aValidPaymentResult();
         Message message = aValidMessageWithType(COMPLETE_PAYMENT);
 
         CompletePaymentMessagePayload payload = CompletePaymentMessagePayload.builder()
@@ -628,6 +475,7 @@ class MessageContextLoaderTest {
                 .paymentCycleId(paymentCycle.getId())
                 .paymentCalculation(paymentCalculation)
                 .paymentType(paymentType)
+                .paymentResult(paymentResult)
                 .build();
         given(claimRepository.findById(any())).willReturn(Optional.of(claim));
         given(paymentCycleRepository.findById(any())).willReturn(Optional.of(paymentCycle));
@@ -641,6 +489,7 @@ class MessageContextLoaderTest {
         assertThat(context.getPaymentCycle()).isEqualTo(paymentCycle);
         assertThat(context.getPaymentCalculation()).isEqualTo(paymentCalculation);
         assertThat(context.getPaymentType()).isEqualTo(paymentType);
+        assertThat(context.getPaymentResult()).isEqualTo(paymentResult);
         verify(payloadMapper).getPayload(message, CompletePaymentMessagePayload.class);
         verify(claimRepository).findById(claim.getId());
         verify(paymentCycleRepository).findById(paymentCycle.getId());

@@ -30,12 +30,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.ERROR;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.FAILED;
-import static uk.gov.dhsc.htbhf.claimant.message.MessageType.MAKE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_NEW_CARD;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aMessageWithMessageTimestamp;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessage;
@@ -148,14 +151,14 @@ class MessageProcessorTest {
     @Test
     void shouldThrowIllegalArgumentExceptionForMessageWithNoProcessor() {
         LocalDateTime originalTimestamp = LocalDateTime.now().minusHours(1);
-        Message cardMessage = aValidMessageWithTypeAndTimestamp(MAKE_PAYMENT, originalTimestamp);
-        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE)).thenReturn(singletonList(cardMessage));
+        Message cardMessage = aValidMessageWithTypeAndTimestamp(REQUEST_PAYMENT, originalTimestamp);
+        lenient().when(messageRepository.findAllMessagesOfTypeWithTimestampBeforeNow(REQUEST_PAYMENT, PAGEABLE)).thenReturn(singletonList(cardMessage));
         //When
-        IllegalArgumentException thrown = catchThrowableOfType(() -> messageProcessor.processMessagesOfType(MAKE_PAYMENT), IllegalArgumentException.class);
+        IllegalArgumentException thrown = catchThrowableOfType(() -> messageProcessor.processMessagesOfType(REQUEST_PAYMENT), IllegalArgumentException.class);
         //Then
         assertThat(thrown).hasMessage("No message type processor found in application context for message type: "
-                + "MAKE_PAYMENT, there are 1 message(s) due to be processed");
-        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(MAKE_PAYMENT, PAGEABLE);
+                + "REQUEST_PAYMENT, there are 1 message(s) due to be processed");
+        verify(messageRepository).findAllMessagesOfTypeWithTimestampBeforeNow(REQUEST_PAYMENT, PAGEABLE);
         verify(messageStatusProcessor).updateMessagesToErrorAndIncrementCount(singletonList(cardMessage));
         verifyNoMoreInteractions(messageRepository, messageStatusProcessor);
         verifyNoInteractions(eventAuditor);

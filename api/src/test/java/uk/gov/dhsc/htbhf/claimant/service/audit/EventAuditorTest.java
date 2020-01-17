@@ -7,11 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
-import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.EventLogger;
 import uk.gov.dhsc.htbhf.logging.event.Event;
@@ -29,11 +27,9 @@ import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.EXPECTED_D
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventType.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.DepositFundsTestDataFactory.aValidDepositFundsResponse;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.TOTAL_ENTITLEMENT_AMOUNT_IN_PENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aValidPayment;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 
 @ExtendWith(MockitoExtension.class)
@@ -145,11 +141,12 @@ class EventAuditorTest {
     void shouldLogEventForMakePayment() {
         //Given
         PaymentCycle paymentCycle = aValidPaymentCycle();
-        Payment payment = aValidPayment();
-        DepositFundsResponse depositFundsResponse = aValidDepositFundsResponse();
+        int paymentAmount = 100;
+        String requestReference = UUID.randomUUID().toString();
+        String responseReference = UUID.randomUUID().toString();
 
         //When
-        eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);
+        eventAuditor.auditMakePayment(paymentCycle, paymentAmount, requestReference, responseReference);
 
         //Then
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -163,9 +160,9 @@ class EventAuditorTest {
                 .containsExactly(
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
                         entry(ClaimEventMetadataKey.ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), paymentCycle.getTotalEntitlementAmountInPence()),
-                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), payment.getPaymentAmountInPence()),
-                        entry(ClaimEventMetadataKey.PAYMENT_ID.getKey(), payment.getId()),
-                        entry(ClaimEventMetadataKey.PAYMENT_REFERENCE.getKey(), depositFundsResponse.getReferenceId()));
+                        entry(ClaimEventMetadataKey.PAYMENT_AMOUNT.getKey(), paymentAmount),
+                        entry(ClaimEventMetadataKey.PAYMENT_REQUEST_REFERENCE.getKey(), requestReference),
+                        entry(ClaimEventMetadataKey.PAYMENT_RESPONSE_REFERENCE.getKey(), responseReference));
     }
 
     @Test
