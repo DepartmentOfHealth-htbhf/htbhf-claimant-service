@@ -225,7 +225,8 @@ public class DatabasePopulator {
                 .cardAccountId(claim.getCardAccountId())
                 .paymentAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())
                 .paymentTimestamp(LocalDateTime.of(cycleStart, LocalTime.now()))
-                .paymentReference(randomUUID().toString())
+                .requestReference(randomUUID().toString())
+                .responseReference(randomUUID().toString())
                 .paymentStatus(PaymentStatus.SUCCESS)
                 .build();
         paymentCycle.addPayment(payment);

@@ -37,9 +37,6 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_timestamp")
     private LocalDateTime paymentTimestamp;
 
-    @Column(name = "payment_reference")
-    private String paymentReference;
-
     @Column(name = "failure_detail")
     private String failureDetail;
 
@@ -47,4 +44,11 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_status")
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
+
+    @NotNull
+    @Column(name = "request_reference")
+    private String requestReference;
+
+    @Column(name = "response_reference")
+    private String responseReference;
 }
