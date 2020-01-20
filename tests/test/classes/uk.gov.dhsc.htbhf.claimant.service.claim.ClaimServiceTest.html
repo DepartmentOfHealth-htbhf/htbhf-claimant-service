@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.117s</div>
+<div class="counter">0.065s</div>
 <p>duration</p>
 </div>
 </td>
@@ -102,13 +102,13 @@
 <tr>
 <td class="success">[1] CombinedIdentityAndEligibilityResponse(identityStatus=MATCHED, eligibilityStatus=CONFIRMED, deathVerificationFlag=N_A, mobilePhoneMatch=MATCHED, emailAddressMatch=MATCHED, addressLine1Match=MATCHED, postcodeMatch=NOT_MATCHED, pregnantChildDOBMatch=NOT_SUPPLIED, qualifyingBenefits=UNIVERSAL_CREDIT, dwpHouseholdIdentifier=, hmrcHouseholdIdentifier=, dobOfChildrenUnder4=[2019-07-20, 2018-01-20])</td>
 <td class="success">shouldRejectClaimWhenAddressMismatch(CombinedIdentityAndEligibilityResponse)[1]</td>
-<td class="success">0.003s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">[2] CombinedIdentityAndEligibilityResponse(identityStatus=MATCHED, eligibilityStatus=CONFIRMED, deathVerificationFlag=N_A, mobilePhoneMatch=MATCHED, emailAddressMatch=MATCHED, addressLine1Match=NOT_MATCHED, postcodeMatch=MATCHED, pregnantChildDOBMatch=NOT_SUPPLIED, qualifyingBenefits=UNIVERSAL_CREDIT, dwpHouseholdIdentifier=, hmrcHouseholdIdentifier=, dobOfChildrenUnder4=[2019-07-20, 2018-01-20])</td>
 <td class="success">shouldRejectClaimWhenAddressMismatch(CombinedIdentityAndEligibilityResponse)[2]</td>
-<td class="success">0.026s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -144,13 +144,13 @@
 <tr>
 <td class="success">Should save claimant with non null claim status for eligibility status ELIGIBLE</td>
 <td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[1]</td>
-<td class="success">0.030s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Should save claimant with non null claim status for eligibility status INELIGIBLE</td>
 <td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[2]</td>
-<td class="success">0.003s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -168,25 +168,25 @@
 <tr>
 <td class="success">Should save claimant with non null claim status for eligibility status ERROR</td>
 <td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[5]</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Should save claimant with non null claim status for eligibility status DUPLICATE</td>
 <td class="success">shouldSaveClaimantWithClaimStatus(EligibilityStatus)[6]</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldSaveNewClaimForMatchingNinoWhenIneligible()</td>
+<td class="success">shouldSaveNewClaimForMatchingNinoWhenIneligible()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">shouldSaveNewClaimantWithEligibilityOverrideThatIsPregnantWithNoChildren()</td>
+<td class="success">shouldSaveNewClaimantWithEligibilityOverrideThatIsPregnantWithNoChildren()</td>
 <td class="success">0.002s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldSaveNewClaimForMatchingNinoWhenIneligible()</td>
-<td class="success">shouldSaveNewClaimForMatchingNinoWhenIneligible()</td>
-<td class="success">0.001s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">shouldSaveNewClaimantWithEligibilityOverrideThatIsPregnantWithNoChildren()</td>
-<td class="success">shouldSaveNewClaimantWithEligibilityOverrideThatIsPregnantWithNoChildren()</td>
-<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -198,7 +198,7 @@
 <tr>
 <td class="success">Initially declared children dobs: [2018-01-20], eligibility response children: [2019-07-20, 2018-01-20]</td>
 <td class="success">shouldSaveNewEligibleClaimantAndSendMessagesAllDeclaredChildrenPresentInEligibilityResponse(List, List)[2]</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -234,7 +234,7 @@
 <tr>
 <td class="success">Initially declared children dobs: [2019-07-20, 2019-07-20], eligibility response children: [2019-07-20]</td>
 <td class="success">shouldSaveNewEligibleClaimantAndSendMessagesWhenPartialChildrenMatch(List, List)[4]</td>
-<td class="success">0.002s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -264,7 +264,7 @@
 <tr>
 <td class="success">[5] NOT_MATCHED, NOT_MATCHED, [2019-07-20, 2018-01-20], [], APPLICATION_SUCCESS_CHILDREN_MISMATCH</td>
 <td class="success">shouldSaveNewEligibleClaimantAndSendWeWillLetYouKnowEmailAndInstantSuccessLetterWhenEmailOrPhoneMismatch(VerificationOutcome, VerificationOutcome, List, List, LetterType)[5]</td>
-<td class="success">0.002s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -282,13 +282,13 @@
 <tr>
 <td class="success">shouldSaveNewEligibleClaimantThatIsPregnantWithNoChildren()</td>
 <td class="success">shouldSaveNewEligibleClaimantThatIsPregnantWithNoChildren()</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Should save claimant with claim status set to PENDING when eligibility status is PENDING</td>
 <td class="success">shouldSaveNewIneligibleClaimant(EligibilityStatus, ClaimStatus)[1]</td>
-<td class="success">0.002s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -306,13 +306,13 @@
 <tr>
 <td class="success">Should save claimant with claim status set to REJECTED when eligibility status is INELIGIBLE</td>
 <td class="success">shouldSaveNewIneligibleClaimant(EligibilityStatus, ClaimStatus)[4]</td>
-<td class="success">0.001s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse()</td>
 <td class="success">shouldUpdateClaimWithCurrentIdentityAndEligibilityResponse()</td>
-<td class="success">0s</td>
+<td class="success">0.001s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -325,7 +325,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at Jan 20, 2020, 10:36:11 AM</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at Jan 20, 2020, 2:07:29 PM</p>
 </div>
 </div>
 </body>

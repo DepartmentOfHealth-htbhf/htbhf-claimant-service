@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EligibilityOverrideValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.entity.constraint</a> &gt; <span class="el_source">EligibilityOverrideValidator.java</span></div><h1>EligibilityOverrideValidator.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.entity.constraint;
+
+import org.apache.commons.lang3.ObjectUtils;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+/**
+ * An eligibility override can be null but if it is not null then all of the fields must be populated.
+ */
+<span class="fc" id="L12">public class EligibilityOverrideValidator implements ConstraintValidator&lt;ValidEligibilityOverride, EligibilityOverride&gt; {</span>
+    @Override
+    public void initialize(ValidEligibilityOverride constraintAnnotation) {
+        // No initialization required
+<span class="fc" id="L16">    }</span>
+
+    @Override
+    public boolean isValid(EligibilityOverride eligibilityOverride, ConstraintValidatorContext context) {
+<span class="fc bfc" id="L20" title="All 2 branches covered.">        if (eligibilityOverride == null) {</span>
+<span class="fc" id="L21">            return true;</span>
+        }
+
+        // none of the fields can be null in a valid EligibilityOverride
+<span class="fc" id="L25">        return ObjectUtils.allNotNull(</span>
+<span class="fc" id="L26">                eligibilityOverride.getEligibilityOutcome(),</span>
+<span class="fc" id="L27">                eligibilityOverride.getOverrideUntil()</span>
+        );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
