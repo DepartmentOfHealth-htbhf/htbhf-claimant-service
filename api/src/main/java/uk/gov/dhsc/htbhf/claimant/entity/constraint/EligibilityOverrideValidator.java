@@ -6,6 +6,9 @@ import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/**
+ * An eligibility override can be null but if it is not null then all of the fields must be populated.
+ */
 public class EligibilityOverrideValidator implements ConstraintValidator<ValidEligibilityOverride, EligibilityOverride> {
     @Override
     public void initialize(ValidEligibilityOverride constraintAnnotation) {
@@ -14,10 +17,11 @@ public class EligibilityOverrideValidator implements ConstraintValidator<ValidEl
 
     @Override
     public boolean isValid(EligibilityOverride eligibilityOverride, ConstraintValidatorContext context) {
-        if (null == eligibilityOverride) {
+        if (eligibilityOverride == null) {
             return true;
         }
 
+        //all the fields in eligibilityOverride can not be null
         return ObjectUtils.allNotNull(
                 eligibilityOverride.getEligibilityOutcome(),
                 eligibilityOverride.getOverrideUntil()

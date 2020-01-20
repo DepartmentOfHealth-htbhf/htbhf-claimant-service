@@ -8,24 +8,29 @@ import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.stream.Stream;
 
+import javax.validation.ConstraintValidatorContext;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 class EligibilityOverrideValidatorTest {
 
+    private static final ConstraintValidatorContext NULL_CONTEXT = null;
+
     EligibilityOverrideValidator eligibilityOverrideValidator = new EligibilityOverrideValidator();
 
     @Test
     void shouldValidateNullEligibilityOverride() {
-        boolean result = eligibilityOverrideValidator.isValid(null, null);
+        EligibilityOverride nullEligibilityOverride = null;
+        boolean result = eligibilityOverrideValidator.isValid(nullEligibilityOverride, NULL_CONTEXT);
 
         assertThat(result).isTrue();
     }
 
     @Test
     void shouldValidateValidEligibilityOverride() {
-        boolean result = eligibilityOverrideValidator.isValid(aConfirmedEligibilityOverride(), null);
+        boolean result = eligibilityOverrideValidator.isValid(aConfirmedEligibilityOverride(), NULL_CONTEXT);
 
         assertThat(result).isTrue();
     }
@@ -33,7 +38,7 @@ class EligibilityOverrideValidatorTest {
     @ParameterizedTest
     @MethodSource("eligibilityOverrideWithNullValues")
     void shouldFailToValidateEligibilityOverrideWithNullValues(EligibilityOverride eligibilityOverride) {
-        boolean result = eligibilityOverrideValidator.isValid(eligibilityOverride, null);
+        boolean result = eligibilityOverrideValidator.isValid(eligibilityOverride, NULL_CONTEXT);
 
         assertThat(result).isFalse();
     }
