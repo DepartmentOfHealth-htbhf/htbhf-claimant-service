@@ -43,7 +43,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTe
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithUntilDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithNoChildrenOverriddenUntil;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
@@ -213,7 +213,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithExpiredEligibilityOverride() {
         //Given
-        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityWithUntilDate(LocalDate.now()));
+        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate.now()));
         PaymentCycle paymentCycle = aPaymentCycleWithStartDateAndClaim(LocalDate.now(), claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);

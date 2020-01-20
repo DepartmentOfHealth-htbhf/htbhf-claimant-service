@@ -25,7 +25,7 @@ public class EligibilityOverrideTestDataFactory {
                 .build();
     }
 
-    public static EligibilityOverride aConfirmedEligibilityWithUntilDate(LocalDate overrideUntil) {
+    public static EligibilityOverride aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate overrideUntil) {
         return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(overrideUntil)
                 .childrenDob(NO_CHILDREN)
