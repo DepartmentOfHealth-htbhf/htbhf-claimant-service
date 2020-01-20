@@ -12,7 +12,7 @@ import javax.validation.ConstraintValidatorContext;
 public class EligibilityOverrideValidator implements ConstraintValidator<ValidEligibilityOverride, EligibilityOverride> {
     @Override
     public void initialize(ValidEligibilityOverride constraintAnnotation) {
-        //No initialization required
+        // No initialization required
     }
 
     @Override
@@ -21,7 +21,7 @@ public class EligibilityOverrideValidator implements ConstraintValidator<ValidEl
             return true;
         }
 
-        //all the fields in eligibilityOverride can not be null
+        // none of the fields can be null in a valid EligibilityOverride
         return ObjectUtils.allNotNull(
                 eligibilityOverride.getEligibilityOutcome(),
                 eligibilityOverride.getOverrideUntil()
