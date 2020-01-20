@@ -49,8 +49,7 @@ public final class NewClaimDTOTestDataFactory {
     public static NewClaimDTO aValidClaimDTOWithEligibilityOverride(LocalDate expectedDeliveryDate,
                                                                     List<LocalDate> childrenDob,
                                                                     EligibilityOutcome eligibilityOutcome,
-                                                                    LocalDate overrideUntil
-                                                                    ) {
+                                                                    LocalDate overrideUntil) {
         EligibilityOverrideDTO  eligibilityOverride = EligibilityOverrideDTO.builder()
                 .eligibilityOutcome(eligibilityOutcome)
                 .overrideUntil(overrideUntil)

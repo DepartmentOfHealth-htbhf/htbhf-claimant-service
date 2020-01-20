@@ -34,7 +34,7 @@ public class EligibilityOverrideDTO {
 
     @NotNull
     @JsonProperty("childrenDob")
-    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if they have any)")
+    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if none then an empty list must be passed)")
     @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
     private List<LocalDate> childrenDob;
 }

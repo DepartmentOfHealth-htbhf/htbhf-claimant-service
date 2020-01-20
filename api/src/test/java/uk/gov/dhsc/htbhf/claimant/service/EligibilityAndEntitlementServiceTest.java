@@ -41,8 +41,8 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaim
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithUntilDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
@@ -90,7 +90,7 @@ class EligibilityAndEntitlementServiceTest {
 
     @Test
     void shouldReturnDuplicateWhenLiveClaimAlreadyExistsWithEligibilityOverride() {
-        shouldReturnDuplicateWhenLiveClaimAlreadyExists(aConfirmedEligibilityOverride());
+        shouldReturnDuplicateWhenLiveClaimAlreadyExists(aConfirmedEligibilityOverrideWithNoChildren());
     }
 
     private void shouldReturnDuplicateWhenLiveClaimAlreadyExists(EligibilityOverride eligibilityOverride) {
@@ -147,7 +147,7 @@ class EligibilityAndEntitlementServiceTest {
 
         //When
         EligibilityAndEntitlementDecision result
-                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityOverride());
+                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityOverrideWithNoChildren());
 
         //Then
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED, NO_CHILDREN);

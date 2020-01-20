@@ -15,10 +15,10 @@ import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideDTOTestDataFactory.aConfirmedEligibilityOverrideDTOWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CHILD_BORN_IN_FUTURE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 class NewClaimDTOTest extends AbstractValidationTest {
 
@@ -89,11 +89,7 @@ class NewClaimDTOTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimWithInvalidEligibilityOverrideWithChildrenBornInFuture() {
         //Given
-        EligibilityOverrideDTO eligibilityOverrideDTO = EligibilityOverrideDTO.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
-                .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
-                .childrenDob(CHILD_BORN_IN_FUTURE)
-                .build();
+        EligibilityOverrideDTO eligibilityOverrideDTO = aConfirmedEligibilityOverrideDTOWithChildren(CHILD_BORN_IN_FUTURE);
         NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(eligibilityOverrideDTO);
 
         //When
@@ -130,11 +126,7 @@ class NewClaimDTOTest extends AbstractValidationTest {
     @Test
     void shouldSuccessfullyValidateClaimWithEligibilityOverride() {
         //Given
-        EligibilityOverrideDTO eligibilityOverrideDTO = EligibilityOverrideDTO.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
-                .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
-                .childrenDob(MAGGIE_AND_LISA_DOBS)
-                .build();
+        EligibilityOverrideDTO eligibilityOverrideDTO = aConfirmedEligibilityOverrideDTOWithChildren(MAGGIE_AND_LISA_DOBS);
         NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(eligibilityOverrideDTO);
 
         //When
