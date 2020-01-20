@@ -59,6 +59,7 @@ public class PaymentService {
     public void saveFailedPayment(PaymentCycle paymentCycle, FailureEvent failureEvent) {
         String cardAccountId = paymentCycle.getClaim().getCardAccountId();
         try {
+            // TODO DW AFHS-405 Create PaymentFactory to create payment objects.
             Map<String, Object> eventMetadata = failureEvent.getEventMetadata();
             Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());
             String paymentReference = (String) eventMetadata.get(PAYMENT_REQUEST_REFERENCE.getKey());
@@ -127,7 +128,7 @@ public class PaymentService {
                 .requestReference(paymentResult.getRequestReference())
                 .responseReference(paymentResult.getResponseReference())
                 .build();
-        paymentCycleService.updatePaymentCycleStatus(paymentCycle, paymentCalculation.getPaymentCycleStatus());
+        paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
         paymentRepository.save(payment);
     }
 

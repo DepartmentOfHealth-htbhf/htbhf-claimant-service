@@ -17,7 +17,6 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataF
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +26,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
+import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aBalanceTooHighPaymentCalculation;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -148,18 +148,19 @@ class PaymentCycleServiceTest {
     }
 
     @Test
-    void shouldUpdatePaymentCycleWithCardBalance() {
+    void shouldUpdatePaymentCycleFromPaymentCalculation() {
         PaymentCycle paymentCycle = aValidPaymentCycleBuilder()
                 .cardBalanceInPence(null)
                 .build();
         int newCardBalance = 200;
-        LocalDateTime now = LocalDateTime.now();
+        PaymentCalculation calculation = aBalanceTooHighPaymentCalculation(newCardBalance);
 
-        paymentCycleService.updatePaymentCycleCardBalance(paymentCycle, newCardBalance);
+        paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, calculation);
 
-        assertThat(paymentCycle.getCardBalanceTimestamp()).isAfterOrEqualTo(now);
         assertThat(paymentCycle.getCardBalanceInPence()).isEqualTo(newCardBalance);
-        verifyNoInteractions(pregnancyEntitlementCalculator);
+        assertThat(paymentCycle.getCardBalanceTimestamp()).isEqualTo(calculation.getBalanceTimestamp());
+        assertThat(paymentCycle.getPaymentCycleStatus()).isEqualTo(calculation.getPaymentCycleStatus());
+        verify(paymentCycleRepository).save(paymentCycle);
     }
 
     @Test

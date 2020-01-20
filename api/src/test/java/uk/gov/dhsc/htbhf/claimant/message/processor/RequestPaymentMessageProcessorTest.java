@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_PAYMENT;
@@ -75,8 +76,8 @@ class RequestPaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadRequestPaymentMessageContext(message);
         verify(paymentService).calculatePaymentAmount(paymentCycle);
-        verify(paymentCycleService).updatePaymentCycleCardBalance(paymentCycle, paymentCalculation.getAvailableBalanceInPence());
         verify(paymentService).makePayment(paymentCycle, paymentCalculation.getPaymentAmount(), SCHEDULED_PAYMENT);
+        verifyNoInteractions(paymentCycleService);
         assertCompletePayloadMessageSent(paymentCycle, paymentResult, paymentCalculation, PaymentType.REGULAR_PAYMENT);
     }
 
@@ -117,10 +118,10 @@ class RequestPaymentMessageProcessorTest {
         assertThat(result).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadRequestPaymentMessageContext(message);
         verify(paymentService).calculatePaymentAmount(paymentCycle);
-        verify(paymentCycleService).updatePaymentCycleCardBalance(paymentCycle, paymentCalculation.getAvailableBalanceInPence());
+        verify(paymentCycleService).updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
         verify(eventAuditor).auditBalanceTooHighForPayment(paymentCycle);
         verifyNoMoreInteractions(paymentService);
-        verify(paymentCycleService).updatePaymentCycleStatus(paymentCycle, paymentCalculation.getPaymentCycleStatus());
+        verify(paymentCycleService).updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
     }
 
     private void assertCompletePayloadMessageSent(PaymentCycle paymentCycle,
@@ -131,7 +132,8 @@ class RequestPaymentMessageProcessorTest {
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(COMPLETE_PAYMENT));
         CompletePaymentMessagePayload payload = argumentCaptor.getValue();
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
-        assertThat(payload.getPaymentCalculation()).isEqualTo(paymentCalculation);
+        assertThat(payload.getPaymentCalculation()).isEqualToIgnoringGivenFields(paymentCalculation, "balanceTimestamp");
+        assertThat(payload.getPaymentCalculation().getBalanceTimestamp()).isNotNull();
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
         assertThat(payload.getPaymentResult()).isEqualTo(paymentResult);
         assertThat(payload.getPaymentType()).isEqualTo(paymentType);

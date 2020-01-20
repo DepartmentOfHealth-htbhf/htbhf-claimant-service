@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
+import java.time.LocalDateTime;
+
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aBalanceTooHighPaymentCalculation;
@@ -40,12 +42,14 @@ public class PaymentCalculator {
                     .paymentAmount(paymentCycleTotalEntitlementInPence)
                     .paymentCycleStatus(FULL_PAYMENT_MADE)
                     .availableBalanceInPence(cardBalanceInPence)
+                    .balanceTimestamp(LocalDateTime.now())
                     .build();
         }
         return PaymentCalculation.builder()
                 .paymentAmount(maximumAllowedCardBalanceInPence - cardBalanceInPence)
                 .paymentCycleStatus(PARTIAL_PAYMENT_MADE)
                 .availableBalanceInPence(cardBalanceInPence)
+                .balanceTimestamp(LocalDateTime.now())
                 .build();
     }
 

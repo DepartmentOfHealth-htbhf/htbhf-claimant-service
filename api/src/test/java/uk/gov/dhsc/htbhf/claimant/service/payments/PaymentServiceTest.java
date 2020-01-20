@@ -146,7 +146,7 @@ class PaymentServiceTest {
 
         paymentService.completePayment(paymentCycle, paymentCalculation, paymentResult);
 
-        verify(paymentCycleService).updatePaymentCycleStatus(paymentCycle, paymentCalculation.getPaymentCycleStatus());
+        verify(paymentCycleService).updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
         assertThat(paymentRepository.count()).isEqualTo(1);
         Payment payment = paymentRepository.findAll().iterator().next();
         assertThat(payment.getClaim()).isEqualTo(paymentCycle.getClaim());

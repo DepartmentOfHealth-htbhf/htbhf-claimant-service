@@ -71,10 +71,10 @@ class CompleteNewCardMessageProcessorTest {
 
         verify(messageContextLoader).loadCompleteNewCardContext(message);
         verify(claimActivationService).updateClaimAndCreatePaymentCycle(claim, CARD_ACCOUNT_ID, decision);
-        verifyMakeFirstPaymentMessageSent(claim, paymentCycle);
+        verifyRequestFirstPaymentMessageSent(claim, paymentCycle);
     }
 
-    private void verifyMakeFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
+    private void verifyRequestFirstPaymentMessageSent(Claim claim, PaymentCycle paymentCycle) {
         ArgumentCaptor<MessagePayload> payloadCaptor = ArgumentCaptor.forClass(MessagePayload.class);
         verify(messageQueueClient).sendMessage(payloadCaptor.capture(), eq(MessageType.REQUEST_PAYMENT));
         assertThat(payloadCaptor.getValue()).isInstanceOf(RequestPaymentMessagePayload.class);

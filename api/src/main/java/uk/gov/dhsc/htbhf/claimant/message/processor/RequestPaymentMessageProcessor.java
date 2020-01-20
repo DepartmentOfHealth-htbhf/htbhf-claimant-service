@@ -29,7 +29,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.*;
+import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aFullPaymentCalculationWithZeroBalance;
 
 /**
  * Processes REQUEST_PAYMENT messages by calling the PaymentService.
@@ -52,14 +52,14 @@ public class RequestPaymentMessageProcessor implements MessageTypeProcessor {
         PaymentCycle paymentCycle = messageContext.getPaymentCycle();
         PaymentType paymentType = messageContext.getPaymentType();
 
+        // TODO AFHS-788 Handle payments with balance check overrides.
         if (paymentType == PaymentType.FIRST_PAYMENT) {
-            PaymentCalculation paymentCalculation = aFullPaymentCalculation(paymentCycle.getTotalEntitlementAmountInPence());
+            PaymentCalculation paymentCalculation = aFullPaymentCalculationWithZeroBalance(paymentCycle.getTotalEntitlementAmountInPence());
             makePayment(paymentCycle, INITIAL_PAYMENT, paymentCalculation, paymentType);
         } else {
             PaymentCalculation paymentCalculation = paymentService.calculatePaymentAmount(paymentCycle);
-            paymentCycleService.updatePaymentCycleCardBalance(paymentCycle, paymentCalculation.getAvailableBalanceInPence());
-            if (paymentCalculation.getPaymentAmount() == 0) {
-                paymentCycleService.updatePaymentCycleStatus(paymentCycle, BALANCE_TOO_HIGH_FOR_PAYMENT);
+            if (paymentCalculation.getPaymentCycleStatus() == BALANCE_TOO_HIGH_FOR_PAYMENT) {
+                paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
                 log.debug("No payment will be made as the existing balance on the card is too high for PaymentCycle {}", paymentCycle.getId());
                 eventAuditor.auditBalanceTooHighForPayment(paymentCycle);
                 return COMPLETED;

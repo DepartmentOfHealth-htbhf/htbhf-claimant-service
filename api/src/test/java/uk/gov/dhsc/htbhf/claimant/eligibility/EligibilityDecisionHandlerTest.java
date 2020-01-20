@@ -74,7 +74,7 @@ class EligibilityDecisionHandlerTest {
     private EligibilityDecisionHandler handler;
 
     @Test
-    void shouldRequestPaymentAndSendPaymentEmailForClaim() {
+    void shouldRequestPaymentForClaim() {
         // Given
         Claim claim = aValidClaim();
         PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);

@@ -3,6 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus;
 import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
 
+import java.time.LocalDateTime;
+
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
@@ -25,6 +27,7 @@ public class PaymentCalculationTestDataFactory {
         return PaymentCalculation.builder()
                 .paymentAmount(paymentAmount)
                 .paymentCycleStatus(paymentCycleStatus)
+                .balanceTimestamp(LocalDateTime.now())
                 .build();
     }
 }
