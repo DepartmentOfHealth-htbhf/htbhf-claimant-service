@@ -4,41 +4,94 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.context.RequestPaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.payload.CompletePaymentMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
+import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
+import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCycleService;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentResult;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import javax.transaction.Transactional;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageStatus.COMPLETED;
+import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.REQUEST_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aFullPaymentCalculationWithZeroBalance;
 
 /**
  * Processes REQUEST_PAYMENT messages by calling the PaymentService.
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L39">@Slf4j</span>
 public class RequestPaymentMessageProcessor implements MessageTypeProcessor {
+
+    private PaymentService paymentService;
+    private MessageContextLoader messageContextLoader;
+    private MessageQueueClient messageQueueClient;
+    private PaymentCycleService paymentCycleService;
+    private EventAuditor eventAuditor;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-        // TODO AFHS-405 add processing logic when implementing
-<span class="nc" id="L29">        return COMPLETED;</span>
+<span class="fc" id="L51">        RequestPaymentMessageContext messageContext = messageContextLoader.loadRequestPaymentMessageContext(message);</span>
+<span class="fc" id="L52">        PaymentCycle paymentCycle = messageContext.getPaymentCycle();</span>
+<span class="fc" id="L53">        PaymentType paymentType = messageContext.getPaymentType();</span>
+
+        // TODO AFHS-788 Handle payments with balance check overrides.
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (paymentType == PaymentType.FIRST_PAYMENT) {</span>
+<span class="fc" id="L57">            PaymentCalculation paymentCalculation = aFullPaymentCalculationWithZeroBalance(paymentCycle.getTotalEntitlementAmountInPence());</span>
+<span class="fc" id="L58">            makePayment(paymentCycle, INITIAL_PAYMENT, paymentCalculation, paymentType);</span>
+<span class="fc" id="L59">        } else {</span>
+<span class="fc" id="L60">            PaymentCalculation paymentCalculation = paymentService.calculatePaymentAmount(paymentCycle);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">            if (paymentCalculation.getPaymentCycleStatus() == BALANCE_TOO_HIGH_FOR_PAYMENT) {</span>
+<span class="fc" id="L62">                paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);</span>
+<span class="fc" id="L63">                log.debug(&quot;No payment will be made as the existing balance on the card is too high for PaymentCycle {}&quot;, paymentCycle.getId());</span>
+<span class="fc" id="L64">                eventAuditor.auditBalanceTooHighForPayment(paymentCycle);</span>
+<span class="fc" id="L65">                return COMPLETED;</span>
+            }
+<span class="fc" id="L67">            makePayment(paymentCycle, SCHEDULED_PAYMENT, paymentCalculation, paymentType);</span>
+        }
+
+<span class="fc" id="L70">        return COMPLETED;</span>
     }
+
+    private void makePayment(PaymentCycle paymentCycle, PaymentAction paymentAction, PaymentCalculation paymentCalculation, PaymentType paymentType) {
+<span class="fc" id="L74">        PaymentResult paymentResult = paymentService.makePayment(paymentCycle, paymentCalculation.getPaymentAmount(), paymentAction);</span>
+<span class="fc" id="L75">        CompletePaymentMessagePayload payload = CompletePaymentMessagePayload.builder()</span>
+<span class="fc" id="L76">                .paymentType(paymentType)</span>
+<span class="fc" id="L77">                .paymentResult(paymentResult)</span>
+<span class="fc" id="L78">                .paymentCalculation(paymentCalculation)</span>
+<span class="fc" id="L79">                .paymentCycleId(paymentCycle.getId())</span>
+<span class="fc" id="L80">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L81">                .build();</span>
+<span class="fc" id="L82">        messageQueueClient.sendMessage(payload, COMPLETE_PAYMENT);</span>
+<span class="fc" id="L83">    }</span>
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L34">        return REQUEST_PAYMENT;</span>
+<span class="fc" id="L87">        return REQUEST_PAYMENT;</span>
     }
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void processFailedMessage(Message message, FailureEvent failureEvent) {
-        // TODO AFHS-405 add failure when implementing
-<span class="nc" id="L41">    }</span>
-
+<span class="fc" id="L93">        RequestPaymentMessageContext messageContext = messageContextLoader.loadRequestPaymentMessageContext(message);</span>
+<span class="fc" id="L94">        paymentService.saveFailedPayment(messageContext.getPaymentCycle(), failureEvent);</span>
+<span class="fc" id="L95">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

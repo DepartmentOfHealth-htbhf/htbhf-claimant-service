@@ -2,10 +2,10 @@
 
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
@@ -27,26 +27,25 @@ import java.util.List;
 <span class="fc" id="L27">                .build();</span>
     }
 
-    public static MakePaymentMessagePayload buildMakePaymentMessagePayload(PaymentCycle paymentCycle, PaymentType paymentType) {
-<span class="fc" id="L31">        return MakePaymentMessagePayload.builder()</span>
-<span class="fc" id="L32">                .claimId(paymentCycle.getClaim().getId())</span>
-<span class="fc" id="L33">                .paymentCycleId(paymentCycle.getId())</span>
-<span class="fc" id="L34">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
-<span class="fc" id="L35">                .paymentType(paymentType)</span>
-<span class="fc" id="L36">                .build();</span>
+    public static RequestPaymentMessagePayload buildRequestPaymentMessagePayload(PaymentCycle paymentCycle, PaymentType paymentType) {
+<span class="fc" id="L31">        return RequestPaymentMessagePayload.builder()</span>
+<span class="fc" id="L32">                .paymentCycleId(paymentCycle.getId())</span>
+<span class="fc" id="L33">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L34">                .paymentType(paymentType)</span>
+<span class="fc" id="L35">                .build();</span>
     }
 
     public static ReportClaimMessagePayload buildReportClaimMessagePayload(Claim claim,
                                                                            CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                                                            ClaimAction claimAction,
                                                                            List&lt;UpdatableClaimantField&gt; updatedClaimantFields) {
-<span class="fc" id="L43">        return ReportClaimMessagePayload.builder()</span>
-<span class="fc" id="L44">                .claimId(claim.getId())</span>
-<span class="fc" id="L45">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
-<span class="fc" id="L46">                .claimAction(claimAction)</span>
-<span class="fc" id="L47">                .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L48">                .updatedClaimantFields(updatedClaimantFields)</span>
-<span class="fc" id="L49">                .build();</span>
+<span class="fc" id="L42">        return ReportClaimMessagePayload.builder()</span>
+<span class="fc" id="L43">                .claimId(claim.getId())</span>
+<span class="fc" id="L44">                .identityAndEligibilityResponse(identityAndEligibilityResponse)</span>
+<span class="fc" id="L45">                .claimAction(claimAction)</span>
+<span class="fc" id="L46">                .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L47">                .updatedClaimantFields(updatedClaimantFields)</span>
+<span class="fc" id="L48">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

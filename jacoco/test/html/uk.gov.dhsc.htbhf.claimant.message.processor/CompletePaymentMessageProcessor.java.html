@@ -3,11 +3,15 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.communications.PaymentCycleNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
 import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
-import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+import uk.gov.dhsc.htbhf.claimant.message.context.CompletePaymentMessageContext;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentService;
 
 import javax.transaction.Transactional;
 
@@ -19,26 +23,34 @@ import static uk.gov.dhsc.htbhf.claimant.message.MessageType.COMPLETE_PAYMENT;
  */
 @Component
 @AllArgsConstructor
-<span class="fc" id="L22">@Slf4j</span>
+<span class="fc" id="L26">@Slf4j</span>
 public class CompletePaymentMessageProcessor implements MessageTypeProcessor {
+
+    private PaymentCycleNotificationHandler paymentCycleNotificationHandler;
+    private PaymentService paymentService;
+    private MessageContextLoader messageContextLoader;
 
     @Override
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public MessageStatus processMessage(Message message) {
-        // TODO AFHS-405 add processing logic when implementing
-<span class="nc" id="L29">        return COMPLETED;</span>
+<span class="fc" id="L36">        CompletePaymentMessageContext messageContext = messageContextLoader.loadCompletePaymentMessageContext(message);</span>
+<span class="fc" id="L37">        paymentService.completePayment(messageContext.getPaymentCycle(), messageContext.getPaymentCalculation(), messageContext.getPaymentResult());</span>
+<span class="fc" id="L38">        sendNotificationEmail(messageContext);</span>
+<span class="fc" id="L39">        return COMPLETED;</span>
     }
 
     @Override
     public MessageType supportsMessageType() {
-<span class="fc" id="L34">        return COMPLETE_PAYMENT;</span>
+<span class="fc" id="L44">        return COMPLETE_PAYMENT;</span>
     }
 
-    @Override
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void processFailedMessage(Message message, FailureEvent failureEvent) {
-        // TODO AFHS-405 add failure when implementing
-<span class="nc" id="L41">    }</span>
+    private void sendNotificationEmail(CompletePaymentMessageContext messageContext) {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (messageContext.getPaymentType() == PaymentType.RESTARTED_PAYMENT) {</span>
+<span class="fc" id="L49">            paymentCycleNotificationHandler.sendNotificationEmailsForRestartedPayment(messageContext.getPaymentCycle());</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">        } else if (messageContext.getPaymentType() == PaymentType.REGULAR_PAYMENT) {</span>
+<span class="fc" id="L51">            paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(messageContext.getPaymentCycle());</span>
+        }
+<span class="fc" id="L53">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

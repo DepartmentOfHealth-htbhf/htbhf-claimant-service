@@ -4,23 +4,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
-import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
+import java.time.LocalDateTime;
+
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aBalanceTooHighPaymentCalculation;
 
 @Component
 public class PaymentCalculator {
 
-<span class="fc" id="L14">    private static final PaymentCalculation NO_PAYMENT_CALCULATION = PaymentCalculation.builder()</span>
-<span class="fc" id="L15">            .paymentAmount(0)</span>
-<span class="fc" id="L16">            .paymentCycleStatus(BALANCE_TOO_HIGH_FOR_PAYMENT)</span>
-<span class="fc" id="L17">            .build();</span>
-
     private final int maximumBalancePeriod;
 
-<span class="fc" id="L21">    public PaymentCalculator(@Value(&quot;${payment-cycle.maximum-balance-period}&quot;) int maximumBalancePeriod) {</span>
-<span class="fc" id="L22">        this.maximumBalancePeriod = maximumBalancePeriod;</span>
-<span class="fc" id="L23">    }</span>
+<span class="fc" id="L18">    public PaymentCalculator(@Value(&quot;${payment-cycle.maximum-balance-period}&quot;) int maximumBalancePeriod) {</span>
+<span class="fc" id="L19">        this.maximumBalancePeriod = maximumBalancePeriod;</span>
+<span class="fc" id="L20">    }</span>
 
     /**
      * Calculates the amount to apply to a new payment request.
@@ -33,33 +30,37 @@ public class PaymentCalculator {
      * @return the payment calculation which comprises the amount in pence to apply to the next payment request and the status of the PaymentCycle
      */
     public PaymentCalculation calculatePaymentCycleAmountInPence(PaymentCycleVoucherEntitlement entitlement, int cardBalanceInPence) {
-<span class="fc" id="L36">        int firstWeekEntitlementInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();</span>
-<span class="fc" id="L37">        int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;</span>
+<span class="fc" id="L33">        int firstWeekEntitlementInPence = entitlement.getFirstVoucherEntitlementForCycle().getTotalVoucherValueInPence();</span>
+<span class="fc" id="L34">        int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;</span>
 
-<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (isCardBalanceTooHigh(cardBalanceInPence, maximumAllowedCardBalanceInPence)) {</span>
-<span class="fc" id="L40">            return NO_PAYMENT_CALCULATION;</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (isCardBalanceTooHigh(cardBalanceInPence, maximumAllowedCardBalanceInPence)) {</span>
+<span class="fc" id="L37">            return aBalanceTooHighPaymentCalculation(cardBalanceInPence);</span>
         }
-<span class="fc" id="L42">        int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();</span>
-<span class="fc bfc" id="L43" title="All 2 branches covered.">        if (fullPaymentKeepsBalanceWithinThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {</span>
-<span class="fc" id="L44">            return PaymentCalculation.builder()</span>
-<span class="fc" id="L45">                    .paymentAmount(paymentCycleTotalEntitlementInPence)</span>
-<span class="fc" id="L46">                    .paymentCycleStatus(FULL_PAYMENT_MADE)</span>
-<span class="fc" id="L47">                    .build();</span>
+<span class="fc" id="L39">        int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (fullPaymentKeepsBalanceWithinThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {</span>
+<span class="fc" id="L41">            return PaymentCalculation.builder()</span>
+<span class="fc" id="L42">                    .paymentAmount(paymentCycleTotalEntitlementInPence)</span>
+<span class="fc" id="L43">                    .paymentCycleStatus(FULL_PAYMENT_MADE)</span>
+<span class="fc" id="L44">                    .availableBalanceInPence(cardBalanceInPence)</span>
+<span class="fc" id="L45">                    .balanceTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L46">                    .build();</span>
         }
-<span class="fc" id="L49">        return PaymentCalculation.builder()</span>
-<span class="fc" id="L50">                .paymentAmount(maximumAllowedCardBalanceInPence - cardBalanceInPence)</span>
-<span class="fc" id="L51">                .paymentCycleStatus(PARTIAL_PAYMENT_MADE)</span>
-<span class="fc" id="L52">                .build();</span>
+<span class="fc" id="L48">        return PaymentCalculation.builder()</span>
+<span class="fc" id="L49">                .paymentAmount(maximumAllowedCardBalanceInPence - cardBalanceInPence)</span>
+<span class="fc" id="L50">                .paymentCycleStatus(PARTIAL_PAYMENT_MADE)</span>
+<span class="fc" id="L51">                .availableBalanceInPence(cardBalanceInPence)</span>
+<span class="fc" id="L52">                .balanceTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L53">                .build();</span>
     }
 
     private boolean isCardBalanceTooHigh(int cardBalanceInPence, int maximumAllowedCardBalanceInPence) {
-<span class="fc bfc" id="L56" title="All 2 branches covered.">        return cardBalanceInPence &gt;= maximumAllowedCardBalanceInPence;</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        return cardBalanceInPence &gt;= maximumAllowedCardBalanceInPence;</span>
     }
 
     private boolean fullPaymentKeepsBalanceWithinThreshold(int cardBalanceInPence,
                                                            int maxAllowedCardBalanceInPence,
                                                            int paymentCycleTotalEntitlementInPence) {
-<span class="fc bfc" id="L62" title="All 2 branches covered.">        return cardBalanceInPence + paymentCycleTotalEntitlementInPence &lt;= maxAllowedCardBalanceInPence;</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        return cardBalanceInPence + paymentCycleTotalEntitlementInPence &lt;= maxAllowedCardBalanceInPence;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -129,13 +129,13 @@ public class EligibilityDecisionHandler {
 <span class="fc" id="L129">    }</span>
 
     private void createMakeRegularPaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L132">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);</span>
-<span class="fc" id="L133">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L132">        MessagePayload messagePayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);</span>
+<span class="fc" id="L133">        messageQueueClient.sendMessage(messagePayload, MessageType.REQUEST_PAYMENT);</span>
 <span class="fc" id="L134">    }</span>
 
     private void createMakeRestartedPaymentMessage(PaymentCycle paymentCycle) {
-<span class="fc" id="L137">        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, RESTARTED_PAYMENT);</span>
-<span class="fc" id="L138">        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);</span>
+<span class="fc" id="L137">        MessagePayload messagePayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(paymentCycle, RESTARTED_PAYMENT);</span>
+<span class="fc" id="L138">        messageQueueClient.sendMessage(messagePayload, MessageType.REQUEST_PAYMENT);</span>
 <span class="fc" id="L139">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

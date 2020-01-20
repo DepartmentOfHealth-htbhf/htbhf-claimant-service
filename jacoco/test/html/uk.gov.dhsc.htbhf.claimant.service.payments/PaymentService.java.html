@@ -3,11 +3,14 @@
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.dhsc.htbhf.claimant.entity.*;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsResponse;
+import uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction;
 import uk.gov.dhsc.htbhf.claimant.reporting.ReportPaymentMessageSender;
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentRepository;
 import uk.gov.dhsc.htbhf.claimant.service.CardClient;
@@ -19,15 +22,13 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.INITIAL_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REQUEST_REFERENCE;
 import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
 
 @Service
 @AllArgsConstructor
-<span class="fc" id="L30">@Slf4j</span>
+<span class="fc" id="L31">@Slf4j</span>
 public class PaymentService {
 
     private CardClient cardClient;
@@ -38,163 +39,114 @@ public class PaymentService {
     private ReportPaymentMessageSender reportPaymentMessageSender;
 
     /**
+     * Calculates the amount to pay, based on the total amount from the voucher entitlement, taking into account the balance currently on the card.
+     *
+     * @param paymentCycle  the current payment cycle, which should have a voucher entitlement.
+     * @return the amount that should be deposited on the card account.
+     */
+    public PaymentCalculation calculatePaymentAmount(PaymentCycle paymentCycle) {
+<span class="fc" id="L48">        CardBalanceResponse balance = cardClient.getBalance(paymentCycle.getClaim().getCardAccountId());</span>
+<span class="fc" id="L49">        return paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(), balance.getAvailableBalanceInPence());</span>
+    }
+
+    /**
      * Method used to store a failed payment to the database with the status of FAILURE. Will attempt to
      * retrieve the payment amount and reference from the failure event if available.
      *
      * @param paymentCycle  The payment cycle for the payment
-     * @param cardAccountId The card account id
      * @param failureEvent  The failure event.
      */
-    public void saveFailedPayment(PaymentCycle paymentCycle, String cardAccountId, FailureEvent failureEvent) {
+    public void saveFailedPayment(PaymentCycle paymentCycle, FailureEvent failureEvent) {
+<span class="fc" id="L60">        String cardAccountId = paymentCycle.getClaim().getCardAccountId();</span>
         try {
-<span class="fc" id="L50">            Map&lt;String, Object&gt; eventMetadata = failureEvent.getEventMetadata();</span>
-<span class="fc" id="L51">            Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());</span>
-<span class="fc" id="L52">            String paymentReference = (String) eventMetadata.get(PAYMENT_REFERENCE.getKey());</span>
-<span class="fc" id="L53">            String failureDetail = (String) eventMetadata.get(FailureEvent.EXCEPTION_DETAIL_KEY);</span>
-<span class="fc" id="L54">            Payment failedPayment = Payment.builder()</span>
-<span class="fc" id="L55">                    .cardAccountId(cardAccountId)</span>
-<span class="fc" id="L56">                    .claim(paymentCycle.getClaim())</span>
-<span class="fc" id="L57">                    .paymentAmountInPence(amountToPayInPence)</span>
-<span class="fc" id="L58">                    .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L59">                    .requestReference(paymentReference)</span>
-<span class="fc" id="L60">                    .paymentStatus(PaymentStatus.FAILURE)</span>
-<span class="fc" id="L61">                    .failureDetail(failureDetail)</span>
-<span class="fc" id="L62">                    .paymentTimestamp(failureEvent.getTimestamp())</span>
-<span class="fc" id="L63">                    .build();</span>
+            // TODO DW AFHS-405 Create PaymentFactory to create payment objects.
+<span class="fc" id="L63">            Map&lt;String, Object&gt; eventMetadata = failureEvent.getEventMetadata();</span>
+<span class="fc" id="L64">            Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());</span>
+<span class="fc" id="L65">            String paymentReference = (String) eventMetadata.get(PAYMENT_REQUEST_REFERENCE.getKey());</span>
+<span class="fc" id="L66">            String failureDetail = (String) eventMetadata.get(FailureEvent.EXCEPTION_DETAIL_KEY);</span>
+<span class="fc" id="L67">            Payment failedPayment = Payment.builder()</span>
+<span class="fc" id="L68">                    .cardAccountId(cardAccountId)</span>
+<span class="fc" id="L69">                    .claim(paymentCycle.getClaim())</span>
+<span class="fc" id="L70">                    .paymentAmountInPence(amountToPayInPence)</span>
+<span class="fc" id="L71">                    .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L72">                    .requestReference(paymentReference)</span>
+<span class="fc" id="L73">                    .paymentStatus(PaymentStatus.FAILURE)</span>
+<span class="fc" id="L74">                    .failureDetail(failureDetail)</span>
+<span class="fc" id="L75">                    .paymentTimestamp(failureEvent.getTimestamp())</span>
+<span class="fc" id="L76">                    .build();</span>
 
-<span class="fc" id="L65">            paymentRepository.save(failedPayment);</span>
-<span class="nc" id="L66">        } catch (Exception e) {</span>
-<span class="nc" id="L67">            log.error(&quot;Unexpected exception caught saving a failed payment for paymentCycle: {}, cardAccountId: {}, failureEvent: {}, exception detail: {}&quot;,</span>
-<span class="nc" id="L68">                    paymentCycle.getId(), cardAccountId, failureEvent, constructExceptionDetail(e), e);</span>
-<span class="fc" id="L69">        }</span>
-<span class="fc" id="L70">    }</span>
-
-    /**
-     * Make the first payment onto a new card as a part of a successful application process.
-     * &lt;p&gt;
-     * Note that the PMD warning is suppressed so that we can use the values of Payment and
-     * DepositFundsResponse in the construction of the failed payment event if they have been set.
-     * &lt;/p&gt;
-     *
-     * @param paymentCycle  The new {@link PaymentCycle} associated with the new claim
-     * @param cardAccountId The new card id to make to payment to
-     * @return The {@link Payment} entity relevant to this process.
-     */
-    public Payment makeFirstPayment(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L84">        Payment payment = makePayment(</span>
-                paymentCycle,
-                cardAccountId,
-<span class="fc" id="L87">                paymentCycle.getTotalEntitlementAmountInPence(),</span>
-<span class="fc" id="L88">                paymentCycle.getTotalEntitlementAmountInPence()</span>
-        );
-<span class="fc" id="L90">        paymentCycleService.updatePaymentCycle(paymentCycle, PaymentCycleStatus.FULL_PAYMENT_MADE);</span>
-<span class="fc" id="L91">        reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, INITIAL_PAYMENT);</span>
-<span class="fc" id="L92">        return payment;</span>
-    }
+<span class="fc" id="L78">            paymentRepository.save(failedPayment);</span>
+<span class="nc" id="L79">        } catch (Exception e) {</span>
+<span class="nc" id="L80">            log.error(&quot;Unexpected exception caught saving a failed payment for paymentCycle: {}, cardAccountId: {}, failureEvent: {}, exception detail: {}&quot;,</span>
+<span class="nc" id="L81">                    paymentCycle.getId(), cardAccountId, failureEvent, constructExceptionDetail(e), e);</span>
+<span class="fc" id="L82">        }</span>
+<span class="fc" id="L83">    }</span>
 
     /**
-     * Make a payment onto a card without doing a balance check. Used for interim payments.
+     * Make a payment of the given amount to the given card account (extracted from the given payment cycle).
      *
-     * @param paymentCycle  the current payment cycle
-     * @param cardAccountId the id of the card account
-     * @param amountInPence the amount to deposit to the card in pence
-     * @return The {@link Payment} entity relevant to this process.
+     * @param paymentCycle         the cycle the payment is for
+     * @param paymentAmountInPence the amount to pay, in pence.
+     * @param paymentAction        the payment action, used for reporting.
+     * @return PaymentResult       containing the request and response ids.
      */
-    public Payment makeInterimPayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence) {
-<span class="fc" id="L104">        return makePayment(paymentCycle, cardAccountId, amountInPence, null);</span>
+    public PaymentResult makePayment(PaymentCycle paymentCycle, int paymentAmountInPence, PaymentAction paymentAction) {
+<span class="fc" id="L94">        String requestReference = UUID.randomUUID().toString();</span>
+<span class="fc" id="L95">        String cardAccountId = paymentCycle.getClaim().getCardAccountId();</span>
+        try {
+<span class="fc" id="L97">            DepositFundsResponse depositFundsResponse = depositFundsToCard(cardAccountId, requestReference, paymentAmountInPence);</span>
+<span class="fc" id="L98">            eventAuditor.auditMakePayment(paymentCycle, paymentAmountInPence, requestReference, depositFundsResponse.getReferenceId());</span>
+<span class="fc" id="L99">            reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, paymentAction);</span>
+<span class="fc" id="L100">            return PaymentResult.builder()</span>
+<span class="fc" id="L101">                    .requestReference(requestReference)</span>
+<span class="fc" id="L102">                    .responseReference(depositFundsResponse.getReferenceId())</span>
+<span class="fc" id="L103">                    .paymentTimestamp(LocalDateTime.now())</span>
+<span class="fc" id="L104">                    .build();</span>
+<span class="fc" id="L105">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L106">            String failureMessage = String.format(&quot;Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s&quot;,</span>
+<span class="fc" id="L107">                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());</span>
+<span class="fc" id="L108">            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle, paymentAmountInPence, requestReference);</span>
+<span class="fc" id="L109">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
+        }
     }
 
     /**
-     * Calculate and (if appropriate) make the required payment for the given {@link PaymentCycle}.
-     * &lt;p&gt;
-     * Note that the PMD warning is suppressed so that we can use the values of Payment and
-     * DepositFundsResponse in the construction of the failed payment event if they have been set.
-     * &lt;/p&gt;
+     * Completes a payment by updating the payment cycle with a newly created a {@link Payment} entity.
      *
-     * @param paymentCycle  The {@link PaymentCycle} to make the payment for
-     * @param cardAccountId The card id to make the payment to.
-     * @return The {@link Payment} entity relevant to this process.
+     * @param paymentCycle the current payment cycle
+     * @param paymentCalculation the payment calculation that determined how much was paid
+     * @param paymentResult the result of the payment
      */
-    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
-    public Payment makePaymentForCycle(PaymentCycle paymentCycle, String cardAccountId) {
-<span class="fc" id="L120">        Payment payment = null;</span>
-<span class="fc" id="L121">        String requestReference = UUID.randomUUID().toString();</span>
-        try {
-<span class="fc" id="L123">            CardBalanceResponse balance = cardClient.getBalance(cardAccountId);</span>
-<span class="fc" id="L124">            PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(paymentCycle.getVoucherEntitlement(),</span>
-<span class="fc" id="L125">                    balance.getAvailableBalanceInPence());</span>
-<span class="fc" id="L126">            paymentCycleService.updatePaymentCycle(paymentCycle, paymentCalculation.getPaymentCycleStatus(), balance.getAvailableBalanceInPence());</span>
-<span class="fc bfc" id="L127" title="All 2 branches covered.">            if (paymentCalculation.getPaymentAmount() == 0) {</span>
-<span class="fc" id="L128">                eventAuditor.auditBalanceTooHighForPayment(paymentCycle);</span>
-<span class="fc" id="L129">                log.debug(&quot;No payment will be made as the existing balance on the card is too high for PaymentCycle {}&quot;, paymentCycle.getId());</span>
-<span class="fc" id="L130">                return null;</span>
-            }
-<span class="fc" id="L132">            payment = createPayment(paymentCycle, cardAccountId, paymentCalculation.getPaymentAmount(), requestReference);</span>
-<span class="fc" id="L133">            DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);</span>
-<span class="fc" id="L134">            updatePayment(payment, depositFundsResponse.getReferenceId());</span>
-<span class="fc" id="L135">            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
-<span class="fc" id="L136">            reportPaymentMessageSender.sendReportPaymentMessage(paymentCycle.getClaim(), paymentCycle, SCHEDULED_PAYMENT);</span>
-<span class="fc" id="L137">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L138">            String failureMessage = String.format(&quot;Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s&quot;,</span>
-<span class="fc" id="L139">                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());</span>
-<span class="fc" id="L140">            MakePaymentEvent failedEvent</span>
-<span class="fc" id="L141">                    = buildFailedMakePaymentEvent(paymentCycle.getClaim(), paymentCycle.getTotalEntitlementAmountInPence(), payment, requestReference);</span>
-<span class="fc" id="L142">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
-<span class="fc" id="L143">        }</span>
-<span class="fc" id="L144">        return payment;</span>
+    public void completePayment(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, PaymentResult paymentResult) {
+<span class="fc" id="L121">        Payment payment = Payment.builder()</span>
+<span class="fc" id="L122">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
+<span class="fc" id="L123">                .claim(paymentCycle.getClaim())</span>
+<span class="fc" id="L124">                .paymentAmountInPence(paymentCalculation.getPaymentAmount())</span>
+<span class="fc" id="L125">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L126">                .paymentStatus(PaymentStatus.SUCCESS)</span>
+<span class="fc" id="L127">                .paymentTimestamp(paymentResult.getPaymentTimestamp())</span>
+<span class="fc" id="L128">                .requestReference(paymentResult.getRequestReference())</span>
+<span class="fc" id="L129">                .responseReference(paymentResult.getResponseReference())</span>
+<span class="fc" id="L130">                .build();</span>
+<span class="fc" id="L131">        paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);</span>
+<span class="fc" id="L132">        paymentRepository.save(payment);</span>
+<span class="fc" id="L133">    }</span>
+
+    private MakePaymentEvent buildFailedMakePaymentEvent(PaymentCycle paymentCycle, int paymentAmountInPence, String requestReference) {
+<span class="fc" id="L136">        return MakePaymentEvent.builder()</span>
+<span class="fc" id="L137">                .claimId(paymentCycle.getClaim().getId())</span>
+<span class="fc" id="L138">                .paymentAmountInPence(paymentAmountInPence)</span>
+<span class="fc" id="L139">                .requestReference(requestReference)</span>
+<span class="fc" id="L140">                .entitlementAmountInPence(paymentCycle.getTotalEntitlementAmountInPence())</span>
+<span class="fc" id="L141">                .build();</span>
     }
 
-    private Payment makePayment(PaymentCycle paymentCycle, String cardAccountId, int amountInPence, Integer entitlementAmountInPence) {
-<span class="fc" id="L148">        Payment payment = null;</span>
-<span class="fc" id="L149">        String requestReference = UUID.randomUUID().toString();</span>
-        try {
-<span class="fc" id="L151">            payment = createPayment(paymentCycle, cardAccountId, amountInPence, requestReference);</span>
-<span class="fc" id="L152">            DepositFundsResponse depositFundsResponse = depositFundsToCard(payment);</span>
-<span class="fc" id="L153">            updatePayment(payment, depositFundsResponse.getReferenceId());</span>
-<span class="fc" id="L154">            eventAuditor.auditMakePayment(paymentCycle, payment, depositFundsResponse);</span>
-<span class="fc" id="L155">        } catch (RuntimeException e) {</span>
-<span class="fc" id="L156">            String failureMessage = String.format(&quot;Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s&quot;,</span>
-<span class="fc" id="L157">                    cardAccountId, paymentCycle.getClaim().getId(), paymentCycle.getId(), e.getMessage());</span>
-<span class="fc" id="L158">            MakePaymentEvent failedEvent = buildFailedMakePaymentEvent(paymentCycle.getClaim(), entitlementAmountInPence, payment, requestReference);</span>
-<span class="fc" id="L159">            throw new EventFailedException(failedEvent, e, failureMessage);</span>
-<span class="fc" id="L160">        }</span>
-<span class="fc" id="L161">        return payment;</span>
+    private DepositFundsResponse depositFundsToCard(String cardAccountId, String requestReference, int amountInPence) {
+<span class="fc" id="L145">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
+<span class="fc" id="L146">                .reference(requestReference)</span>
+<span class="fc" id="L147">                .amountInPence(amountInPence)</span>
+<span class="fc" id="L148">                .build();</span>
+<span class="fc" id="L149">        return cardClient.depositFundsToCard(cardAccountId, depositRequest);</span>
     }
-
-    @SuppressWarnings(&quot;PMD.NullAssignment&quot;)
-    private MakePaymentEvent buildFailedMakePaymentEvent(Claim claim, Integer entitlementInPence, Payment payment, String requestReference) {
-<span class="fc" id="L166">        return MakePaymentEvent.builder()</span>
-<span class="fc" id="L167">                .claimId(claim.getId())</span>
-<span class="fc" id="L168">                .entitlementAmountInPence(entitlementInPence)</span>
-<span class="fc bfc" id="L169" title="All 2 branches covered.">                .paymentAmountInPence((payment == null) ? null : payment.getPaymentAmountInPence())</span>
-<span class="fc bfc" id="L170" title="All 2 branches covered.">                .paymentId((payment == null) ? null : payment.getId())</span>
-<span class="fc" id="L171">                .reference(requestReference)</span>
-<span class="fc" id="L172">                .build();</span>
-    }
-
-    private Payment createPayment(PaymentCycle paymentCycle, String cardAccountId, Integer amountToPay, String requestReference) {
-<span class="fc" id="L176">        return Payment.builder()</span>
-<span class="fc" id="L177">                .cardAccountId(cardAccountId)</span>
-<span class="fc" id="L178">                .claim(paymentCycle.getClaim())</span>
-<span class="fc" id="L179">                .paymentAmountInPence(amountToPay)</span>
-<span class="fc" id="L180">                .paymentCycle(paymentCycle)</span>
-<span class="fc" id="L181">                .requestReference(requestReference)</span>
-<span class="fc" id="L182">                .build();</span>
-    }
-
-    private DepositFundsResponse depositFundsToCard(Payment payment) {
-<span class="fc" id="L186">        DepositFundsRequest depositRequest = DepositFundsRequest.builder()</span>
-<span class="fc" id="L187">                .reference(payment.getRequestReference())</span>
-<span class="fc" id="L188">                .amountInPence(payment.getPaymentAmountInPence())</span>
-<span class="fc" id="L189">                .build();</span>
-<span class="fc" id="L190">        return cardClient.depositFundsToCard(payment.getCardAccountId(), depositRequest);</span>
-    }
-
-    private void updatePayment(Payment payment, String responseReference) {
-<span class="fc" id="L194">        payment.setResponseReference(responseReference);</span>
-<span class="fc" id="L195">        payment.setPaymentTimestamp(LocalDateTime.now());</span>
-<span class="fc" id="L196">        payment.setPaymentStatus(PaymentStatus.SUCCESS);</span>
-<span class="fc" id="L197">        paymentRepository.save(payment);</span>
-<span class="fc" id="L198">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
