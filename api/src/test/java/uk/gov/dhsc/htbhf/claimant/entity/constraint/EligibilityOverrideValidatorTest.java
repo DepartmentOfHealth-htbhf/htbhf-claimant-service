@@ -7,14 +7,13 @@ import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.util.stream.Stream;
-
 import javax.validation.ConstraintValidatorContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
-class EligibilityOverrideValidatorTest {
+public class EligibilityOverrideValidatorTest {
 
     private static final ConstraintValidatorContext NULL_CONTEXT = null;
 
@@ -43,7 +42,7 @@ class EligibilityOverrideValidatorTest {
         assertThat(result).isFalse();
     }
 
-    private static Stream<EligibilityOverride> eligibilityOverrideWithNullValues() {
+    public static Stream<EligibilityOverride> eligibilityOverrideWithNullValues() {
         return Stream.of(
                 EligibilityOverride.builder()
                         .eligibilityOutcome(null)
