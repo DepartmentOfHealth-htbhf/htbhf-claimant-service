@@ -19,7 +19,6 @@ import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -110,7 +109,7 @@ public class EligibilityAndEntitlementService {
         return CombinedIdentityAndEligibilityResponse.builder()
                 .identityStatus(IdentityOutcome.MATCHED)
                 .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())
-                .dobOfChildrenUnder4(Collections.emptyList())
+                .dobOfChildrenUnder4(eligibilityOverride.getChildrenDob())
                 .pregnantChildDOBMatch(matchOutcome)
                 .addressLine1Match(matchOutcome)
                 .emailAddressMatch(matchOutcome)

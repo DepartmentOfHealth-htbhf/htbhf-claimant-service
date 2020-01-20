@@ -7,9 +7,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.time.LocalDate;
+import java.util.List;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.NotNull;
 
@@ -29,4 +31,10 @@ public class EligibilityOverrideDTO {
     @JsonProperty("overrideUntil")
     @ApiModelProperty(notes = "The date at which the override expires", example = "2025-05-17")
     private LocalDate overrideUntil;
+
+    @NotNull
+    @JsonProperty("childrenDob")
+    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if they have any)")
+    @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
+    private List<LocalDate> childrenDob;
 }

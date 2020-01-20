@@ -2,6 +2,9 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,6 +42,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithUntilDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
@@ -174,10 +179,12 @@ class EligibilityAndEntitlementServiceTest {
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, false);
     }
 
-    @Test
-    void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
+    @ParameterizedTest
+    @MethodSource("childrenDobs")
+    void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride(List<LocalDate> childrenDob) {
         //Given
-        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityOverride());
+        EligibilityOverride eligibilityOverride = aConfirmedEligibilityOverrideWithChildren(childrenDob);
+        Claim claim = aClaimWithEligibilityOverride(eligibilityOverride);
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
@@ -191,9 +198,16 @@ class EligibilityAndEntitlementServiceTest {
         assertThat(result).isEqualTo(decision);
         verifyNoInteractions(client);
         verify(paymentCycleEntitlementCalculator)
-                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), NO_CHILDREN, cycleStartDate, VOUCHER_ENTITLEMENT);
-        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED, NO_CHILDREN);
+                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), childrenDob, cycleStartDate, VOUCHER_ENTITLEMENT);
+        CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED, childrenDob);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
+    }
+
+    static Stream<Arguments> childrenDobs() {
+        return Stream.of(
+                Arguments.of(NO_CHILDREN),
+                Arguments.of(MAGGIE_AND_LISA_DOBS)
+        );
     }
 
     @Test
