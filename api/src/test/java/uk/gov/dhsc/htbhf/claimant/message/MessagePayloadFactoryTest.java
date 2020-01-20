@@ -3,9 +3,9 @@ package uk.gov.dhsc.htbhf.claimant.message;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.message.payload.MakePaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.ReportClaimMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.message.payload.RequestNewCardMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.RequestPaymentMessagePayload;
 import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction;
@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildNewCardMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildReportClaimMessagePayload;
+import static uk.gov.dhsc.htbhf.claimant.message.MessagePayloadFactory.buildRequestPaymentMessagePayload;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.PaymentType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -36,14 +38,13 @@ class MessagePayloadFactoryTest {
     }
 
     @Test
-    void shouldCreateMakePaymentMessagePayload() {
+    void shouldCreateRequestPaymentMessagePayload() {
         PaymentCycle paymentCycle = aValidPaymentCycle();
 
-        MakePaymentMessagePayload payload = buildMakePaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
+        RequestPaymentMessagePayload payload = buildRequestPaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
 
         assertThat(payload.getClaimId()).isEqualTo(paymentCycle.getClaim().getId());
         assertThat(payload.getPaymentCycleId()).isEqualTo(paymentCycle.getId());
-        assertThat(payload.getCardAccountId()).isEqualTo(paymentCycle.getClaim().getCardAccountId());
         assertThat(payload.getPaymentType()).isEqualTo(REGULAR_PAYMENT);
     }
 

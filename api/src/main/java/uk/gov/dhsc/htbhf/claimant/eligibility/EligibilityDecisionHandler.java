@@ -129,12 +129,12 @@ public class EligibilityDecisionHandler {
     }
 
     private void createMakeRegularPaymentMessage(PaymentCycle paymentCycle) {
-        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
-        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
+        MessagePayload messagePayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(paymentCycle, REGULAR_PAYMENT);
+        messageQueueClient.sendMessage(messagePayload, MessageType.REQUEST_PAYMENT);
     }
 
     private void createMakeRestartedPaymentMessage(PaymentCycle paymentCycle) {
-        MessagePayload messagePayload = MessagePayloadFactory.buildMakePaymentMessagePayload(paymentCycle, RESTARTED_PAYMENT);
-        messageQueueClient.sendMessage(messagePayload, MessageType.MAKE_PAYMENT);
+        MessagePayload messagePayload = MessagePayloadFactory.buildRequestPaymentMessagePayload(paymentCycle, RESTARTED_PAYMENT);
+        messageQueueClient.sendMessage(messagePayload, MessageType.REQUEST_PAYMENT);
     }
 }

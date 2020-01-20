@@ -10,7 +10,6 @@ import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDec
 import uk.gov.dhsc.htbhf.claimant.repository.PaymentCycleRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.NEW;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
@@ -98,20 +97,8 @@ public class PaymentCycleService {
     }
 
     /**
-     * Update and saves the payment cycle with the given calculation and card balance.
-     *
-     * @param paymentCycle       payment cycle to update
-     * @param paymentCycleStatus payment cycle status
-     * @param cardBalanceInPence card balance in pence
-     */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus, int cardBalanceInPence) {
-        paymentCycle.setCardBalanceInPence(cardBalanceInPence);
-        paymentCycle.setCardBalanceTimestamp(LocalDateTime.now());
-        updatePaymentCycle(paymentCycle, paymentCycleStatus);
-    }
-
-    /**
-     * Update and saves the payment cycle with the decision.
+     * Update and saves the payment cycle with values from the decision.
+     * TODO: MGS: Rename this method to updatePaymentCycleFromDecision
      *
      * @param paymentCycle payment cycle to update
      * @param decision     decision to update the payment cycle with
@@ -128,13 +115,15 @@ public class PaymentCycleService {
     }
 
     /**
-     * Update and saves the payment cycle with the given calculation.
+     * Update and saves the payment cycle with status and card balance from the given calculation.
      *
      * @param paymentCycle       payment cycle to update
-     * @param paymentCycleStatus payment cycle status
+     * @param paymentCalculation the calculation of how much of the entitlement should be paid this cycle
      */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, PaymentCycleStatus paymentCycleStatus) {
-        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);
+    public void updatePaymentCycleFromCalculation(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation) {
+        paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());
+        paymentCycle.setCardBalanceInPence(paymentCalculation.getAvailableBalanceInPence());
+        paymentCycle.setCardBalanceTimestamp(paymentCalculation.getBalanceTimestamp());
         paymentCycleRepository.save(paymentCycle);
     }
 

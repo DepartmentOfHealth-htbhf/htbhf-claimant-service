@@ -44,20 +44,6 @@ public class MessageContextLoader {
                 .build();
     }
 
-    public MakePaymentMessageContext loadMakePaymentContext(Message message) {
-        MakePaymentMessagePayload payload = payloadMapper.getPayload(message, MakePaymentMessagePayload.class);
-
-        PaymentCycle paymentCycle = getAndCheckPaymentCycle(payload.getPaymentCycleId());
-        Claim claim = getAndCheckClaim(payload.getClaimId());
-
-        return MakePaymentMessageContext.builder()
-                .cardAccountId(payload.getCardAccountId())
-                .claim(claim)
-                .paymentCycle(paymentCycle)
-                .paymentType(payload.getPaymentType())
-                .build();
-    }
-
     public RequestNewCardMessageContext loadRequestNewCardContext(Message message) {
         RequestNewCardMessagePayload payload = payloadMapper.getPayload(message, RequestNewCardMessagePayload.class);
 
@@ -166,6 +152,7 @@ public class MessageContextLoader {
                 .paymentCycle(paymentCycle)
                 .paymentCalculation(payload.getPaymentCalculation())
                 .paymentType(payload.getPaymentType())
+                .paymentResult(payload.getPaymentResult())
                 .build();
     }
 

@@ -24,6 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.ADDITIONAL_PREGNANCY_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.TOP_UP_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageContextTestDataFactory.aValidAdditionalPregnancyPaymentMessageContext;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.MessageTestDataFactory.aValidMessageWithType;
@@ -66,7 +67,7 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
         shouldCalculateAdditionalVouchers(numberOfVouchers, claim, paymentCycle);
 
         int paymentAmount = numberOfVouchers * VOUCHER_VALUE_IN_PENCE;
-        verify(paymentService).makeInterimPayment(paymentCycle, claim.getCardAccountId(), paymentAmount);
+        verify(paymentService).makePayment(paymentCycle, paymentAmount, TOP_UP_PAYMENT);
         verify(reportPaymentMessageSender).sendReportPregnancyTopUpPaymentMessage(claim, paymentCycle, paymentAmount);
     }
 

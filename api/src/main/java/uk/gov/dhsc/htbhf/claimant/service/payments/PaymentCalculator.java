@@ -4,17 +4,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
-import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
+import java.time.LocalDateTime;
+
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation.aBalanceTooHighPaymentCalculation;
 
 @Component
 public class PaymentCalculator {
-
-    private static final PaymentCalculation NO_PAYMENT_CALCULATION = PaymentCalculation.builder()
-            .paymentAmount(0)
-            .paymentCycleStatus(BALANCE_TOO_HIGH_FOR_PAYMENT)
-            .build();
 
     private final int maximumBalancePeriod;
 
@@ -37,18 +34,22 @@ public class PaymentCalculator {
         int maximumAllowedCardBalanceInPence = firstWeekEntitlementInPence * maximumBalancePeriod;
 
         if (isCardBalanceTooHigh(cardBalanceInPence, maximumAllowedCardBalanceInPence)) {
-            return NO_PAYMENT_CALCULATION;
+            return aBalanceTooHighPaymentCalculation(cardBalanceInPence);
         }
         int paymentCycleTotalEntitlementInPence = entitlement.getTotalVoucherValueInPence();
         if (fullPaymentKeepsBalanceWithinThreshold(cardBalanceInPence, maximumAllowedCardBalanceInPence, paymentCycleTotalEntitlementInPence)) {
             return PaymentCalculation.builder()
                     .paymentAmount(paymentCycleTotalEntitlementInPence)
                     .paymentCycleStatus(FULL_PAYMENT_MADE)
+                    .availableBalanceInPence(cardBalanceInPence)
+                    .balanceTimestamp(LocalDateTime.now())
                     .build();
         }
         return PaymentCalculation.builder()
                 .paymentAmount(maximumAllowedCardBalanceInPence - cardBalanceInPence)
                 .paymentCycleStatus(PARTIAL_PAYMENT_MADE)
+                .availableBalanceInPence(cardBalanceInPence)
+                .balanceTimestamp(LocalDateTime.now())
                 .build();
     }
 

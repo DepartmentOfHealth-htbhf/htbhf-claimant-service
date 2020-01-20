@@ -3,6 +3,8 @@ package uk.gov.dhsc.htbhf.claimant.service.payments;
 import org.junit.jupiter.api.Test;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.BALANCE_TOO_HIGH_FOR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
@@ -21,6 +23,7 @@ class PaymentCalculatorTest {
     void shouldReturnFullPaymentAmountForLowBalance() {
         // Given
         int lowBalance = 1;
+        LocalDateTime start = LocalDateTime.now();
 
         // When
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, lowBalance);
@@ -28,12 +31,15 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(lowBalance);
+        assertThat(paymentCalculation.getBalanceTimestamp()).isAfterOrEqualTo(start);
     }
 
     @Test
     void shouldReturnPartialPaymentAmountForBalanceBetweenFourAndEightWeeksEntitlement() {
         // Given
         int balance = 7500;
+        LocalDateTime start = LocalDateTime.now();
 
         // When
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
@@ -42,12 +48,15 @@ class PaymentCalculatorTest {
         int partialPayment = MAXIMUM_BALANCE - balance;
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(partialPayment);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(PARTIAL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
+        assertThat(paymentCalculation.getBalanceTimestamp()).isAfterOrEqualTo(start);
     }
 
     @Test
     void shouldReturnNoPaymentAmountForHighBalance() {
         // Given
         int highBalance = 100000;
+        LocalDateTime start = LocalDateTime.now();
 
         // When
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, highBalance);
@@ -55,12 +64,15 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(highBalance);
+        assertThat(paymentCalculation.getBalanceTimestamp()).isAfterOrEqualTo(start);
     }
 
     @Test
     void shouldReturnFullPaymentWhenBalancePlusFullPaymentIsEqualToMaximumCardBalanceThreshold() {
         // Given
         int balance = PAYMENT_CYCLE_ENTITLEMENT_AMOUNT;
+        LocalDateTime start = LocalDateTime.now();
 
         // When
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
@@ -68,12 +80,15 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(PAYMENT_CYCLE_ENTITLEMENT_AMOUNT);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
+        assertThat(paymentCalculation.getBalanceTimestamp()).isAfterOrEqualTo(start);
     }
 
     @Test
     void shouldReturnNoPaymentWhenCardBalanceIsEqualToMaximumCardBalanceThreshold() {
         // Given
         int balance = MAXIMUM_BALANCE;
+        LocalDateTime start = LocalDateTime.now();
 
         // When
         PaymentCalculation paymentCalculation = paymentCalculator.calculatePaymentCycleAmountInPence(ENTITLEMENT, balance);
@@ -81,5 +96,7 @@ class PaymentCalculatorTest {
         // Then
         assertThat(paymentCalculation.getPaymentAmount()).isEqualTo(0);
         assertThat(paymentCalculation.getPaymentCycleStatus()).isEqualTo(BALANCE_TOO_HIGH_FOR_PAYMENT);
+        assertThat(paymentCalculation.getAvailableBalanceInPence()).isEqualTo(balance);
+        assertThat(paymentCalculation.getBalanceTimestamp()).isAfterOrEqualTo(start);
     }
 }

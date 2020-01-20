@@ -20,15 +20,6 @@ public class MessagePayloadTestDataFactory {
 
     public static final String NEW_CARD_PAYLOAD_JSON = "{ \"claimId\":\"" + CLAIM_ID.toString() + "\"}";
 
-    public static MakePaymentMessagePayload aMakePaymentPayload(UUID claimId, UUID paymentCycleId, PaymentType paymentType) {
-        return MakePaymentMessagePayload.builder()
-                .claimId(claimId)
-                .paymentCycleId(paymentCycleId)
-                .cardAccountId(CARD_ACCOUNT_ID)
-                .paymentType(paymentType)
-                .build();
-    }
-
     public static RequestPaymentMessagePayload aRequestPaymentPayload(UUID claimId, UUID paymentCycleId, PaymentType paymentType) {
         return RequestPaymentMessagePayload.builder()
                 .claimId(claimId)
