@@ -243,7 +243,8 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         repositoryMediator.makeAllMessagesProcessable();
         messageProcessorScheduler.processRequestNewCardMessages();
         messageProcessorScheduler.processCompleteNewCardMessages();
-        messageProcessorScheduler.processPaymentMessages();
+        messageProcessorScheduler.processRequestPaymentMessages();
+        messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
         messageProcessorScheduler.processSendLetterMessages();
         messageProcessorScheduler.processReportClaimMessages();

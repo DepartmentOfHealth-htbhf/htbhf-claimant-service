@@ -25,7 +25,6 @@ public class FailedEventTestUtils {
     public static void verifyFailedPaymentEventFailExceptionAndEventCorrect(PaymentCycle paymentCycle,
                                                                             RuntimeException testException,
                                                                             EventFailedException exception,
-                                                                            Integer totalEntitlementAmountInPence,
                                                                             Integer paymentAmountInPence) {
         String expectedFailureMessage = String.format("Payment failed for cardAccountId %s, claim %s, paymentCycle %s, exception is: %s",
                 TestConstants.CARD_ACCOUNT_ID, paymentCycle.getClaim().getId(), paymentCycle.getId(), TEST_EXCEPTION_MESSAGE);
@@ -35,11 +34,10 @@ public class FailedEventTestUtils {
 
         assertThat(metadata).contains(
                 entry(CLAIM_ID.getKey(), paymentCycle.getClaim().getId()),
-                entry(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), totalEntitlementAmountInPence),
+                entry(ENTITLEMENT_AMOUNT_IN_PENCE.getKey(), paymentCycle.getTotalEntitlementAmountInPence()),
                 entry(FAILED_EVENT_KEY, ClaimEventType.MAKE_PAYMENT),
                 entry(PAYMENT_AMOUNT.getKey(), paymentAmountInPence));
-        assertThat(metadata.get(PAYMENT_ID.getKey())).isNotNull();
-        assertThat(metadata.get(PAYMENT_REFERENCE.getKey())).isNotNull();
+        assertThat(metadata.get(PAYMENT_REQUEST_REFERENCE.getKey())).isNotNull();
 
     }
 

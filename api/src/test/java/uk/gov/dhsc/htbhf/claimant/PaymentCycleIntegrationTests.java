@@ -288,7 +288,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         PaymentCycleVoucherEntitlement expectedVoucherEntitlement = aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(
                 LocalDate.now(), sixMonthOldAndThreeYearOld, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
         assertPaymentCycleIsFullyPaid(newCycle, sixMonthOldAndThreeYearOld, expectedVoucherEntitlement);
-        assertThatPaymentCycleHasFailedPayments(newCycle, 2);
+        assertThatPaymentCycleHasFailedPayments(newCycle, 1);
 
         Payment payment = getPaymentsWithStatus(newCycle, PaymentStatus.SUCCESS).iterator().next();
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(payment.getCardAccountId());
@@ -616,7 +616,8 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         repositoryMediator.makeAllMessagesProcessable();
         paymentCycleScheduler.createNewPaymentCycles();
         messageProcessorScheduler.processDetermineEntitlementMessages();
-        messageProcessorScheduler.processPaymentMessages();
+        messageProcessorScheduler.processRequestPaymentMessages();
+        messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
         messageProcessorScheduler.processReportPaymentMessages();
         messageProcessorScheduler.processReportClaimMessages();

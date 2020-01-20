@@ -57,8 +57,8 @@ class MessageRepositoryTest {
 
     @ParameterizedTest
     @CsvSource({
-            "REQUEST_NEW_CARD, MAKE_PAYMENT",
-            "MAKE_PAYMENT, SEND_EMAIL",
+            "REQUEST_NEW_CARD, REQUEST_PAYMENT",
+            "REQUEST_PAYMENT, SEND_EMAIL",
             "SEND_EMAIL, REQUEST_NEW_CARD"
     })
     void shouldRetrieveAllMessagesOfType(MessageType messageType, MessageType differentMessageType) {
