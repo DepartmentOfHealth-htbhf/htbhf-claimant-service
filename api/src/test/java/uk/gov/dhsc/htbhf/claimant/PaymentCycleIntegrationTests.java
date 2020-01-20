@@ -26,12 +26,15 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertThatPaymentCycleHasFailedPayments;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.getPaymentsWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.SCHEDULED_FOR_CANCELLATION;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_MADE;
+import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.RESTARTED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.*;
@@ -44,6 +47,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.*;
 
 class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
@@ -59,6 +63,10 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     private static final LocalDate CHILD_TURNED_FOUR_IN_LAST_CYCLE = LocalDate.now().minusYears(4).minusWeeks(2);
     private static final List<LocalDate> SINGLE_CHILD_TURNED_FOUR_IN_LAST_CYCLE = singletonList(CHILD_TURNED_FOUR_IN_LAST_CYCLE);
     private static final int CARD_BALANCE_IN_PENCE_BEFORE_DEPOSIT = 88;
+    // maximum card balance is 16 weeks of vouchers. A pregnant claimant with no children is entitlement to a single voucher.
+    private static final int MAX_CARD_BALANCE_IN_PENCE_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN = VOUCHER_VALUE_IN_PENCE * 16;
+    // maximum card balance to get a full payment is 12 weeks of vouchers. A pregnant claimant with no children is entitlement to a single voucher.
+    private static final int MAX_CARD_BALANCE_IN_PENCE_TO_GET_FULL_PAYMENT_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN = VOUCHER_VALUE_IN_PENCE * 12;
     private static final LocalDate NOT_PREGNANT = null;
     private static final String CARD_ACCOUNT_ID = UUID.randomUUID().toString();
 
@@ -123,6 +131,90 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         // confirm notify component invoked with correct email template & personalisation
         assertThatPaymentEmailWasSent(newCycle, emailType);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {
+            MAX_CARD_BALANCE_IN_PENCE_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN,
+            MAX_CARD_BALANCE_IN_PENCE_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN + 1
+    })
+    void shouldNotMakePaymentWhenClaimantsCardBalanceIsTooHigh(int cardBalance) throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, cardBalance);
+        stubNotificationEmailResponse();
+
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to get balance and no payment made
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertThat(currentCycle.getPayments()).isEmpty();
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(currentCycle.getClaim().getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestNotMadeForCard(currentCycle.getClaim().getCardAccountId());
+
+        // confirm no emails sent
+        verifyNoInteractions(notificationClient);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {
+            MAX_CARD_BALANCE_IN_PENCE_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN - 1,
+            MAX_CARD_BALANCE_IN_PENCE_TO_GET_FULL_PAYMENT_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN + 1
+    })
+    void shouldMakePartialPaymentWhenFullPaymentWouldTakeCardBalanceOverMaximumAllowedAmount(int cardBalance)
+            throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        // card balance is one pence below max allowed balance which should result in a 1 pence payment being made
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, cardBalance);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to get balance and no payment made
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        Payment payment = currentCycle.getPayments().iterator().next();
+        assertThat(currentCycle.getPaymentCycleStatus()).isEqualTo(PARTIAL_PAYMENT_MADE);
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(MAX_CARD_BALANCE_IN_PENCE_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN - cardBalance);
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(currentCycle.getClaim().getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatRegularPaymentEmailWasSent(currentCycle);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {
+            0,
+            MAX_CARD_BALANCE_IN_PENCE_TO_GET_FULL_PAYMENT_FOR_PREGNANT_CLAIMANT_WITH_NO_CHILDREN
+    })
+    void shouldMakeFullPaymentWhenFullPaymentWouldNotTakeCardBalanceOverMaximumAllowedAmount(int cardBalance)
+            throws JsonProcessingException, NotificationClientException {
+        wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
+        // card balance is one pence below max allowed balance which should result in a 1 pence payment being made
+        wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, cardBalance);
+        wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
+        stubNotificationEmailResponse();
+
+        Claim claim = createActiveClaimWithPaymentCycleEndingYesterday(NO_CHILDREN, EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS);
+
+        invokeAllSchedulers();
+
+        // confirm card service called to get balance and no payment made
+        PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        Payment payment = currentCycle.getPayments().iterator().next();
+        assertThat(currentCycle.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(currentCycle.getTotalEntitlementAmountInPence());
+        wiremockManager.assertThatGetBalanceRequestMadeForClaim(currentCycle.getClaim().getCardAccountId());
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+
+        // confirm notify component invoked with correct email template & personalisation
+        assertThatRegularPaymentEmailWasSent(currentCycle);
         verifyNoMoreInteractions(notificationClient);
     }
 

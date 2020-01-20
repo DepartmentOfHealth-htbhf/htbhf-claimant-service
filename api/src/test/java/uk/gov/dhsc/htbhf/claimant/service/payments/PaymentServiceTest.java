@@ -184,21 +184,16 @@ class PaymentServiceTest {
     }
 
     private void verifyFailedPaymentSavedWithAllData(PaymentCycle paymentCycle, int amountToPay, String paymentRequestReference, FailureEvent failureEvent) {
-        Payment actualPayment = verifyFailedPaymentSavedCorrectly(paymentCycle, failureEvent);
-        assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
-        assertThat(actualPayment.getRequestReference()).isEqualTo(paymentRequestReference);
-        assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
-    }
-
-    private Payment verifyFailedPaymentSavedCorrectly(PaymentCycle paymentCycle, FailureEvent failureEvent) {
+        assertThat(paymentRepository.count()).isEqualTo(1);
         Payment actualPayment = paymentRepository.findAll().iterator().next();
         assertThat(actualPayment.getCardAccountId()).isEqualTo(CARD_ACCOUNT_ID);
         assertThat(actualPayment.getClaim()).isEqualTo(paymentCycle.getClaim());
         assertThat(actualPayment.getPaymentCycle()).isEqualTo(paymentCycle);
         assertThat(actualPayment.getPaymentStatus()).isEqualTo(PaymentStatus.FAILURE);
         assertThat(actualPayment.getPaymentTimestamp()).isEqualTo(failureEvent.getTimestamp());
-        assertThat(actualPayment.getId()).isNotNull();
-        return actualPayment;
+        assertThat(actualPayment.getPaymentAmountInPence()).isEqualTo(amountToPay);
+        assertThat(actualPayment.getRequestReference()).isEqualTo(paymentRequestReference);
+        assertThat(actualPayment.getFailureDetail()).isEqualTo(failureEvent.getEventMetadata().get(FailureEvent.EXCEPTION_DETAIL_KEY));
     }
 
     private void verifyDepositFundsRequestCorrectWithSpecificReference(int expectedEntitlementAmount, String expectedPaymentReference) {
