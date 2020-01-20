@@ -2,21 +2,22 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
+import uk.gov.dhsc.htbhf.claimant.entity.constraint.EligibilityOverrideValidatorTest;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithEligibilityStatus;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithLastName;
 
 class ClaimTest extends AbstractValidationTest {
@@ -61,6 +62,21 @@ class ClaimTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "claimant");
+    }
+
+    @ParameterizedTest
+    @MethodSource("eligibilityOverrideWithNullValues")
+    void shouldFailToValidateClaimWithInvalidEligibilityOverride(EligibilityOverride eligibilityOverride) {
+        //Given
+        Claim claim = aClaimWithEligibilityOverride(eligibilityOverride);
+        //When
+        Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("Must be either null or have all fields populated", "eligibilityOverride");
+    }
+
+    private static Stream<EligibilityOverride> eligibilityOverrideWithNullValues() {
+        return EligibilityOverrideValidatorTest.eligibilityOverrideWithNullValues();
     }
 
     @Test
