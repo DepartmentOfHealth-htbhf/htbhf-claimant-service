@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.testsupport;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
@@ -106,6 +107,10 @@ public class ClaimTestDataFactory {
 
     public static Claim.ClaimBuilder aValidClaimBuilder() {
         return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE);
+    }
+
+    public static Claim aClaimWithEligibilityOverride(EligibilityOverride eligibilityOverride) {
+        return aValidClaimBuilder().eligibilityOverride(eligibilityOverride).build();
     }
 
     private static Claim.ClaimBuilder aValidClaimBuilderWithStatus(ClaimStatus claimStatus) {

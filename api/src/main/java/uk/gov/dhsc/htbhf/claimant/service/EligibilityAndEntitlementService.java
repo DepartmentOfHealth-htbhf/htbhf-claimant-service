@@ -55,7 +55,7 @@ public class EligibilityAndEntitlementService {
         }
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverride);
+                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverride, LocalDate.now());
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -80,7 +80,7 @@ public class EligibilityAndEntitlementService {
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
-                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverride());
+                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverride(), cycleStartDate);
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
@@ -91,15 +91,16 @@ public class EligibilityAndEntitlementService {
     }
 
     private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
-                                                                                             EligibilityOverride eligibilityOverride) {
-        if (isOverride(eligibilityOverride)) {
+                                                                                             EligibilityOverride eligibilityOverride,
+                                                                                             LocalDate eligibleAtDate) {
+        if (isOverride(eligibilityOverride, eligibleAtDate)) {
             return buildOverrideResponse(eligibilityOverride);
         }
         return client.checkIdentityAndEligibility(claimant);
     }
 
-    private boolean isOverride(EligibilityOverride eligibilityOverride) {
-        return eligibilityOverride != null && eligibilityOverride.getEligibilityOutcome() != null;
+    private boolean isOverride(EligibilityOverride eligibilityOverride, LocalDate eligibleAtDate) {
+        return eligibilityOverride != null && eligibleAtDate.isBefore(eligibilityOverride.getOverrideUntil());
     }
 
     private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride) {

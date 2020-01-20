@@ -33,12 +33,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithUntilDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
@@ -174,8 +177,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithEligibilityOverride() {
         //Given
-        // TODO MGS: AFHS-428 Introduce new factory method once EligibilityOverride is complete
-        Claim claim = ClaimTestDataFactory.aValidClaimBuilder().eligibilityOverride(aConfirmedEligibilityOverride()).build();
+        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityOverride());
         PaymentCycle paymentCycle = aPaymentCycleWithClaim(claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
@@ -192,6 +194,28 @@ class EligibilityAndEntitlementServiceTest {
                 .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), NO_CHILDREN, cycleStartDate, VOUCHER_ENTITLEMENT);
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
+    }
+
+    @Test
+    void shouldEvaluateClaimForGivenPaymentCycleWithExpiredEligibilityOverride() {
+        //Given
+        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityWithUntilDate(LocalDate.now()));
+        PaymentCycle paymentCycle = aPaymentCycleWithStartDateAndClaim(LocalDate.now(), claim);
+        EligibilityAndEntitlementDecision decision = anEligibleDecision();
+        given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        given(eligibilityAndEntitlementDecisionFactory.buildDecision(any(), any(), anyBoolean())).willReturn(decision);
+        LocalDate cycleStartDate = LocalDate.now();
+
+        //When
+        EligibilityAndEntitlementDecision result = eligibilityAndEntitlementService.evaluateClaimantForPaymentCycle(claim, cycleStartDate, paymentCycle);
+
+        //Then
+        assertThat(result).isEqualTo(decision);
+        verify(client).checkIdentityAndEligibility(claim.getClaimant());
+        verify(paymentCycleEntitlementCalculator)
+                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), MAGGIE_AND_LISA_DOBS, cycleStartDate, VOUCHER_ENTITLEMENT);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, false);
     }
 
     @Test
