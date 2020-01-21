@@ -98,12 +98,11 @@ public class PaymentCycleService {
 
     /**
      * Update and saves the payment cycle with values from the decision.
-     * TODO: MGS: Rename this method to updatePaymentCycleFromDecision
      *
      * @param paymentCycle payment cycle to update
      * @param decision     decision to update the payment cycle with
      */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+    public void updatePaymentCycleFromDecision(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
         paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());
         paymentCycle.setIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse());
         paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());
