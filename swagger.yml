@@ -247,6 +247,7 @@ definitions:
         description: "The date of birth, in the format YYYY-MM-DD"
       emailAddress:
         type: "string"
+        example: "test@email.com"
         description: "The claimant's email address. e.g. test@email.com"
         minLength: 0
         maxLength: 256
@@ -254,7 +255,7 @@ definitions:
       expectedDeliveryDate:
         type: "string"
         format: "date"
-        example: "2019-12-30"
+        example: "2020-06-28"
         description: "If the claimant is pregnant, this is the expected date of delivery\
           \ (due date) of their baby, in the format YYYY-MM-DD. The due date must\
           \ be between one month in the past and 8 months in the future."
@@ -266,6 +267,9 @@ definitions:
         maxLength: 500
       initiallyDeclaredChildrenDob:
         type: "array"
+        example:
+        - "2018-01-30"
+        - "2019-12-31"
         description: "The dates of birth of the claimant's declared children (if they\
           \ have any)"
         items:
@@ -284,6 +288,7 @@ definitions:
           d{6})[A-D]$"
       phoneNumber:
         type: "string"
+        example: "+447123456789"
         description: "The claimant's UK phone number. Must be in +44 format, e.g.\
           \ +447123456789"
         pattern: "^\\+44\\d{9,10}$"
@@ -380,12 +385,16 @@ definitions:
     properties:
       childrenDob:
         type: "array"
+        example:
+        - "2018-01-30"
+        - "2019-12-31"
         description: "The dates of birth of the claimant's children (if none then\
           \ an empty list must be passed)"
         items:
           type: "string"
       eligibilityOutcome:
         type: "string"
+        example: "confirmed"
         description: "Overrides the eligibility outcome from eligibility service"
         enum:
         - "confirmed"
@@ -440,6 +449,7 @@ definitions:
         $ref: "#/definitions/EligibilityOverrideDTO"
       webUIVersion:
         type: "string"
+        example: 1.0
         description: "The version of the web-ui application used to create this request.\
           \ Identifies which version of the Terms and Conditions the applicant accepted."
     title: "NewClaimDTO"

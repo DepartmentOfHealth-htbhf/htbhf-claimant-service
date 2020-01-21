@@ -49,3 +49,6 @@ It is possible to use a docker image for the embedded database instead by settin
 
 ### Create claims for local testing
 There is a test utility for creating claims in a locally running persisted database. See the test-claimant-creator [README](api/src/test/java/uk/gov/dhsc/htbhf/claimant/creator/README.md) for details on how to run it. 
+
+There is also a utility for artificially ageing claims by 28 days (the length of a single payment cycle) - so that you can manually run claims through one payment cycle at a time.
+Run the main method of the [DatabaseFastForwarder](api/src/test/java/uk/gov/dhsc/htbhf/claimant/creator/DatabaseFastForwarder.java).

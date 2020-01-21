@@ -30,7 +30,7 @@ public class NewClaimDTO {
 
     @JsonProperty("webUIVersion")
     @ApiModelProperty(notes = "The version of the web-ui application used to create this request. "
-            + "Identifies which version of the Terms and Conditions the applicant accepted.")
+            + "Identifies which version of the Terms and Conditions the applicant accepted.", example = "1.0")
     private String webUIVersion;
 
     @JsonProperty("eligibilityOverride")
