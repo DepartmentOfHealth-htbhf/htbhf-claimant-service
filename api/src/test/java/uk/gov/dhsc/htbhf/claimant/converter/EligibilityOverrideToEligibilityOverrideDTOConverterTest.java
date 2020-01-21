@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.converter;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.model.EligibilityOverrideDTO;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -14,7 +15,7 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
     @Test
     void shouldConvertEligibilityOverrideToEligibilityOverrideDTO() {
         //Given
-        var eligibilityOverride = aConfirmedEligibilityOverrideWithChildren(MAGGIE_AND_LISA_DOBS);
+        EligibilityOverride eligibilityOverride = aConfirmedEligibilityOverrideWithChildren(MAGGIE_AND_LISA_DOBS);
 
         //When
         EligibilityOverrideDTO result = converter.convert(eligibilityOverride);
