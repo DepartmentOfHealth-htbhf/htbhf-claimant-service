@@ -98,21 +98,20 @@ public class PaymentCycleService {
 
     /**
      * Update and saves the payment cycle with values from the decision.
-     * TODO: MGS: Rename this method to updatePaymentCycleFromDecision
      *
      * @param paymentCycle payment cycle to update
      * @param decision     decision to update the payment cycle with
      */
-    public void updatePaymentCycle(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
-<span class="fc" id="L107">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
-<span class="fc" id="L108">        paymentCycle.setIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse());</span>
-<span class="fc" id="L109">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
-<span class="fc" id="L110">        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());</span>
-<span class="fc" id="L111">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
-<span class="fc" id="L112">        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), paymentCycle.getCycleStartDate());</span>
-<span class="fc" id="L113">        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);</span>
-<span class="fc" id="L114">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L115">    }</span>
+    public void updatePaymentCycleFromDecision(PaymentCycle paymentCycle, EligibilityAndEntitlementDecision decision) {
+<span class="fc" id="L106">        paymentCycle.setEligibilityStatus(decision.getEligibilityStatus());</span>
+<span class="fc" id="L107">        paymentCycle.setIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse());</span>
+<span class="fc" id="L108">        paymentCycle.applyVoucherEntitlement(decision.getVoucherEntitlement());</span>
+<span class="fc" id="L109">        PaymentCycleStatus paymentCycleStatus = PaymentCycleStatus.getStatusForEligibilityDecision(decision.getEligibilityStatus());</span>
+<span class="fc" id="L110">        paymentCycle.setPaymentCycleStatus(paymentCycleStatus);</span>
+<span class="fc" id="L111">        LocalDate expectedDeliveryDate = getExpectedDeliveryDateIfRelevant(paymentCycle.getClaim(), paymentCycle.getCycleStartDate());</span>
+<span class="fc" id="L112">        paymentCycle.setExpectedDeliveryDate(expectedDeliveryDate);</span>
+<span class="fc" id="L113">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L114">    }</span>
 
     /**
      * Update and saves the payment cycle with status and card balance from the given calculation.
@@ -121,19 +120,19 @@ public class PaymentCycleService {
      * @param paymentCalculation the calculation of how much of the entitlement should be paid this cycle
      */
     public void updatePaymentCycleFromCalculation(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation) {
-<span class="fc" id="L124">        paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());</span>
-<span class="fc" id="L125">        paymentCycle.setCardBalanceInPence(paymentCalculation.getAvailableBalanceInPence());</span>
-<span class="fc" id="L126">        paymentCycle.setCardBalanceTimestamp(paymentCalculation.getBalanceTimestamp());</span>
-<span class="fc" id="L127">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L128">    }</span>
+<span class="fc" id="L123">        paymentCycle.setPaymentCycleStatus(paymentCalculation.getPaymentCycleStatus());</span>
+<span class="fc" id="L124">        paymentCycle.setCardBalanceInPence(paymentCalculation.getAvailableBalanceInPence());</span>
+<span class="fc" id="L125">        paymentCycle.setCardBalanceTimestamp(paymentCalculation.getBalanceTimestamp());</span>
+<span class="fc" id="L126">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L127">    }</span>
 
     /**
      * Sets the paymentCycle's end date to the start date plus the pending expiry cycle duration time.
      * @param paymentCycle payment cycle to update.
      */
     public void updateEndDateForClaimBecomingPendingExpiry(PaymentCycle paymentCycle) {
-<span class="fc" id="L135">        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(pendingExpiryCycleDurationInDays - 1));</span>
-<span class="fc" id="L136">        paymentCycleRepository.save(paymentCycle);</span>
-<span class="fc" id="L137">    }</span>
+<span class="fc" id="L134">        paymentCycle.setCycleEndDate(paymentCycle.getCycleStartDate().plusDays(pendingExpiryCycleDurationInDays - 1));</span>
+<span class="fc" id="L135">        paymentCycleRepository.save(paymentCycle);</span>
+<span class="fc" id="L136">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

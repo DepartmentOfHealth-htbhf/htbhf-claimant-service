@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.factory</a> &gt; <span class="el_source">PaymentFactory.java</span></div><h1>PaymentFactory.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.factory;
+
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Payment;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentCalculation;
+import uk.gov.dhsc.htbhf.claimant.service.payments.PaymentResult;
+import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+
+import java.util.Map;
+
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REQUEST_REFERENCE;
+
+<span class="nc" id="L16">public class PaymentFactory {</span>
+
+    /**
+     * Creates a failed {@link Payment} with a payment status of {@link PaymentStatus#FAILURE}. To be used when an error occurred whilst making a payment.
+     * @param paymentCycle Payment cycle linked to the payment
+     * @param failureEvent failure event containing payment amount, request reference and exception detail.
+     * @return new payment
+     */
+    public static Payment createFailedPayment(PaymentCycle paymentCycle, FailureEvent failureEvent) {
+<span class="fc" id="L25">        Map&lt;String, Object&gt; eventMetadata = failureEvent.getEventMetadata();</span>
+<span class="fc" id="L26">        Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());</span>
+<span class="fc" id="L27">        String paymentReference = (String) eventMetadata.get(PAYMENT_REQUEST_REFERENCE.getKey());</span>
+<span class="fc" id="L28">        String failureDetail = (String) eventMetadata.get(FailureEvent.EXCEPTION_DETAIL_KEY);</span>
+<span class="fc" id="L29">        Claim claim = paymentCycle.getClaim();</span>
+<span class="fc" id="L30">        return Payment.builder()</span>
+<span class="fc" id="L31">                .cardAccountId(claim.getCardAccountId())</span>
+<span class="fc" id="L32">                .claim(claim)</span>
+<span class="fc" id="L33">                .paymentAmountInPence(amountToPayInPence)</span>
+<span class="fc" id="L34">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L35">                .requestReference(paymentReference)</span>
+<span class="fc" id="L36">                .paymentStatus(PaymentStatus.FAILURE)</span>
+<span class="fc" id="L37">                .failureDetail(failureDetail)</span>
+<span class="fc" id="L38">                .paymentTimestamp(failureEvent.getTimestamp())</span>
+<span class="fc" id="L39">                .build();</span>
+    }
+
+    /**
+     * Creates a new payment with a status of {@link PaymentStatus#SUCCESS}. To be used when making a payment was successful.
+     * @param paymentCycle Payment cycle linked to the payment
+     * @param paymentCalculation payment calculation used when making the payment
+     * @param paymentResult the result of the payment
+     * @return new payment
+     */
+    public static Payment createSuccessfulPayment(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, PaymentResult paymentResult) {
+<span class="fc" id="L50">        return Payment.builder()</span>
+<span class="fc" id="L51">                .cardAccountId(paymentCycle.getClaim().getCardAccountId())</span>
+<span class="fc" id="L52">                .claim(paymentCycle.getClaim())</span>
+<span class="fc" id="L53">                .paymentAmountInPence(paymentCalculation.getPaymentAmount())</span>
+<span class="fc" id="L54">                .paymentCycle(paymentCycle)</span>
+<span class="fc" id="L55">                .paymentStatus(PaymentStatus.SUCCESS)</span>
+<span class="fc" id="L56">                .paymentTimestamp(paymentResult.getPaymentTimestamp())</span>
+<span class="fc" id="L57">                .requestReference(paymentResult.getRequestReference())</span>
+<span class="fc" id="L58">                .responseReference(paymentResult.getResponseReference())</span>
+<span class="fc" id="L59">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
