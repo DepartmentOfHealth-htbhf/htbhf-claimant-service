@@ -53,11 +53,18 @@ public final class NewClaimDTOTestDataFactory {
         EligibilityOverrideDTO  eligibilityOverride = EligibilityOverrideDTO.builder()
                 .eligibilityOutcome(eligibilityOutcome)
                 .overrideUntil(overrideUntil)
+                .childrenDob(childrenDob)
                 .build();
 
         return aClaimDTOBuilder()
                 .claimant(aClaimantDTOWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, childrenDob))
                 .eligibilityOverride(eligibilityOverride)
+                .build();
+    }
+
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverride(EligibilityOverrideDTO eligibilityOverrideDTO) {
+        return aClaimDTOBuilder()
+                .eligibilityOverride(eligibilityOverrideDTO)
                 .build();
     }
 

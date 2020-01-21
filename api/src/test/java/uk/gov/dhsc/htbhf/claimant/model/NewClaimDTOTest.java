@@ -11,12 +11,14 @@ import java.util.Set;
 import java.util.stream.Stream;
 import javax.validation.ConstraintViolation;
 
+import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideDTOTestDataFactory.aConfirmedEligibilityOverrideDTOWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CHILD_BORN_IN_FUTURE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 class NewClaimDTOTest extends AbstractValidationTest {
 
@@ -74,14 +76,27 @@ class NewClaimDTOTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimWithInvalidEligibilityOverride() {
         //Given
-        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(null, null, null, null);
+        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(EligibilityOverrideDTO.builder().build());
         //When
         Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
         //Then
-        assertThat(violations).hasTotalViolations(2);
+        assertThat(violations).hasTotalViolations(3);
         assertThat(violations).hasViolation("must not be null", "eligibilityOverride.eligibilityOutcome");
         assertThat(violations).hasViolation("must not be null", "eligibilityOverride.overrideUntil");
+        assertThat(violations).hasViolation("must not be null", "eligibilityOverride.childrenDob");
+    }
 
+    @Test
+    void shouldFailToValidateClaimWithInvalidEligibilityOverrideWithChildrenBornInFuture() {
+        //Given
+        EligibilityOverrideDTO eligibilityOverrideDTO = aConfirmedEligibilityOverrideDTOWithChildren(CHILD_BORN_IN_FUTURE);
+        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(eligibilityOverrideDTO);
+
+        //When
+        Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasTotalViolations(1);
+        assertThat(violations).hasViolation("dates of birth of children should be all in the past", "eligibilityOverride.childrenDob");
     }
 
     @ParameterizedTest
@@ -111,13 +126,12 @@ class NewClaimDTOTest extends AbstractValidationTest {
     @Test
     void shouldSuccessfullyValidateClaimWithEligibilityOverride() {
         //Given
-        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(
-                EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS,
-                NO_CHILDREN,
-                EligibilityOutcome.CONFIRMED,
-                OVERRIDE_UNTIL_FIVE_YEARS);
+        EligibilityOverrideDTO eligibilityOverrideDTO = aConfirmedEligibilityOverrideDTOWithChildren(MAGGIE_AND_LISA_DOBS);
+        NewClaimDTO claim = aValidClaimDTOWithEligibilityOverride(eligibilityOverrideDTO);
+
         //When
         Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
+
         //Then
         assertThat(violations).hasNoViolations();
     }
