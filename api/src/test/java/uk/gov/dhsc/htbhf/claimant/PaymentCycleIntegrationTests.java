@@ -37,18 +37,26 @@ import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.FULL_PAYMENT_
 import static uk.gov.dhsc.htbhf.claimant.entity.PaymentCycleStatus.PARTIAL_PAYMENT_MADE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REGULAR_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.RESTARTED_PAYMENT;
-import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.*;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.*;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.ACTIVE;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_EXPIRED;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY;
+import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED_FROM_PENDING_EXPIRY_TO_EXPIRED;
 import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYMENT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithPregnancyVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataResponseTestFactory.aPostcodeDataResponseObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
-import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.*;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.NOT_SET;
 
 class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
@@ -166,7 +174,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldMakePartialPaymentWhenFullPaymentWouldTakeCardBalanceOverMaximumAllowedAmount(int cardBalance)
             throws JsonProcessingException, NotificationClientException {
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
-        // card balance is one pence below max allowed balance which should result in a 1 pence payment being made
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, cardBalance);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
@@ -175,7 +182,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        // confirm card service called to get balance and no payment made
+        // confirm card service called to get balance and partial payment made
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
         assertThat(currentCycle.getPaymentCycleStatus()).isEqualTo(PARTIAL_PAYMENT_MADE);
@@ -183,9 +190,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(currentCycle.getClaim().getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
-        // confirm notify component invoked with correct email template & personalisation
-        assertThatRegularPaymentEmailWasSent(currentCycle);
-        verifyNoMoreInteractions(notificationClient);
+        assertThatRegularPaymentEmailWasSentOnly(currentCycle);
     }
 
     @ParameterizedTest
@@ -196,7 +201,6 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
     void shouldMakeFullPaymentWhenFullPaymentWouldNotTakeCardBalanceOverMaximumAllowedAmount(int cardBalance)
             throws JsonProcessingException, NotificationClientException {
         wiremockManager.stubSuccessfulEligibilityResponse(NO_CHILDREN);
-        // card balance is one pence below max allowed balance which should result in a 1 pence payment being made
         wiremockManager.stubSuccessfulCardBalanceResponse(CARD_ACCOUNT_ID, cardBalance);
         wiremockManager.stubSuccessfulDepositResponse(CARD_ACCOUNT_ID);
         stubNotificationEmailResponse();
@@ -205,7 +209,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
 
         invokeAllSchedulers();
 
-        // confirm card service called to get balance and no payment made
+        // confirm card service called to get balance and full payment made
         PaymentCycle currentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
         Payment payment = currentCycle.getPayments().iterator().next();
         assertThat(currentCycle.getPaymentCycleStatus()).isEqualTo(FULL_PAYMENT_MADE);
@@ -213,9 +217,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         wiremockManager.assertThatGetBalanceRequestMadeForClaim(currentCycle.getClaim().getCardAccountId());
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
 
-        // confirm notify component invoked with correct email template & personalisation
-        assertThatRegularPaymentEmailWasSent(currentCycle);
-        verifyNoMoreInteractions(notificationClient);
+        assertThatRegularPaymentEmailWasSentOnly(currentCycle);
     }
 
     @Test
