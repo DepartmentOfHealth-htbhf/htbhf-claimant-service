@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 public class ClaimToClaimDTOConverter {
 
     private final AddressToAddressDTOConverter addressToAddressDTOConverter;
+    private final EligibilityOverrideToEligibilityOverrideDTOConverter eligibilityOverrideDTOConverter;
 
     public ClaimDTO convert(Claim claim) {
         return ClaimDTO.builder()
@@ -29,6 +30,7 @@ public class ClaimToClaimDTOConverter {
                 .hmrcHouseholdIdentifier(claim.getHmrcHouseholdIdentifier())
                 .initialIdentityAndEligibilityResponse(claim.getInitialIdentityAndEligibilityResponse())
                 .claimant(convert(claim.getClaimant()))
+                .eligibilityOverride(eligibilityOverrideDTOConverter.convert(claim.getEligibilityOverride()))
                 .build();
     }
 

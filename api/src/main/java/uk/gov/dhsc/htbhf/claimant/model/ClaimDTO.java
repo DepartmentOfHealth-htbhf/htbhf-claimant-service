@@ -70,4 +70,8 @@ public class ClaimDTO {
 
     @JsonProperty("claimant")
     private ClaimantDTO claimant;
+
+    @ApiModelProperty(notes = "Eligibility override decision based on eligibility outcome and until date")
+    @JsonProperty("eligibilityOverride")
+    private EligibilityOverrideDTO eligibilityOverride;
 }
