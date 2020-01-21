@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.EMAIL_DATE_PATTERN;
@@ -122,6 +123,11 @@ abstract class ScheduledServiceIntegrationTest {
 
     void assertThatRegularPaymentEmailWasSent(PaymentCycle newCycle) throws NotificationClientException {
         assertThatPaymentEmailWasSent(newCycle, EmailType.REGULAR_PAYMENT);
+    }
+
+    void assertThatRegularPaymentEmailWasSentOnly(PaymentCycle paymentCycle) throws NotificationClientException {
+        assertThatRegularPaymentEmailWasSent(paymentCycle);
+        verifyNoMoreInteractions(notificationClient);
     }
 
     void assertThatPaymentEmailWasSent(PaymentCycle newCycle, EmailType emailType) throws NotificationClientException {
