@@ -19,7 +19,6 @@ import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,7 +27,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitle
 @Primary
 @Service
 @AllArgsConstructor
-<span class="fc" id="L31">@Slf4j</span>
+<span class="fc" id="L30">@Slf4j</span>
 public class EligibilityAndEntitlementService {
 
     private final EligibilityClient client;
@@ -48,20 +47,20 @@ public class EligibilityAndEntitlementService {
      * @return the eligibility and entitlement for the claimant
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant, EligibilityOverride eligibilityOverride) {
-<span class="fc" id="L51">        log.debug(&quot;Looking for live claims for the given NINO&quot;);</span>
-<span class="fc" id="L52">        Optional&lt;UUID&gt; liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">        if (liveClaimsWithNino.isPresent()) {</span>
-<span class="fc" id="L54">            return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());</span>
+<span class="fc" id="L50">        log.debug(&quot;Looking for live claims for the given NINO&quot;);</span>
+<span class="fc" id="L51">        Optional&lt;UUID&gt; liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        if (liveClaimsWithNino.isPresent()) {</span>
+<span class="fc" id="L53">            return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());</span>
         }
 
-<span class="fc" id="L57">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse</span>
-<span class="fc" id="L58">                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverride, LocalDate.now());</span>
-<span class="fc" id="L59">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L60">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
-<span class="fc" id="L61">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
-<span class="fc" id="L62">                LocalDate.now());</span>
-<span class="fc" id="L63">        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);</span>
-<span class="fc" id="L64">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
+<span class="fc" id="L56">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse</span>
+<span class="fc" id="L57">                = getCombinedIdentityAndEligibilityResponse(claimant, eligibilityOverride, LocalDate.now());</span>
+<span class="fc" id="L58">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L59">                Optional.ofNullable(claimant.getExpectedDeliveryDate()),</span>
+<span class="fc" id="L60">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
+<span class="fc" id="L61">                LocalDate.now());</span>
+<span class="fc" id="L62">        boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);</span>
+<span class="fc" id="L63">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
                 entitlement, duplicateHouseholdIdentifierFound);
     }
 
@@ -79,45 +78,45 @@ public class EligibilityAndEntitlementService {
     public EligibilityAndEntitlementDecision evaluateClaimantForPaymentCycle(Claim claim,
                                                                              LocalDate cycleStartDate,
                                                                              PaymentCycle previousCycle) {
-<span class="fc" id="L82">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse</span>
-<span class="fc" id="L83">                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverride(), cycleStartDate);</span>
-<span class="fc" id="L84">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
-<span class="fc" id="L85">                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),</span>
-<span class="fc" id="L86">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
+<span class="fc" id="L81">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse</span>
+<span class="fc" id="L82">                = getCombinedIdentityAndEligibilityResponse(claim.getClaimant(), claim.getEligibilityOverride(), cycleStartDate);</span>
+<span class="fc" id="L83">        PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(</span>
+<span class="fc" id="L84">                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),</span>
+<span class="fc" id="L85">                identityAndEligibilityResponse.getDobOfChildrenUnder4(),</span>
                 cycleStartDate,
-<span class="fc" id="L88">                previousCycle.getVoucherEntitlement());</span>
-<span class="fc" id="L89">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
+<span class="fc" id="L87">                previousCycle.getVoucherEntitlement());</span>
+<span class="fc" id="L88">        return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,</span>
                 entitlement, false);
     }
 
     private CombinedIdentityAndEligibilityResponse getCombinedIdentityAndEligibilityResponse(Claimant claimant,
                                                                                              EligibilityOverride eligibilityOverride,
                                                                                              LocalDate eligibleAtDate) {
-<span class="fc bfc" id="L96" title="All 2 branches covered.">        if (isOverride(eligibilityOverride, eligibleAtDate)) {</span>
-<span class="fc" id="L97">            return buildOverrideResponse(eligibilityOverride);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        if (isOverride(eligibilityOverride, eligibleAtDate)) {</span>
+<span class="fc" id="L96">            return buildOverrideResponse(eligibilityOverride);</span>
         }
-<span class="fc" id="L99">        return client.checkIdentityAndEligibility(claimant);</span>
+<span class="fc" id="L98">        return client.checkIdentityAndEligibility(claimant);</span>
     }
 
     private boolean isOverride(EligibilityOverride eligibilityOverride, LocalDate eligibleAtDate) {
-<span class="fc bfc" id="L103" title="All 4 branches covered.">        return eligibilityOverride != null &amp;&amp; eligibleAtDate.isBefore(eligibilityOverride.getOverrideUntil());</span>
+<span class="fc bfc" id="L102" title="All 4 branches covered.">        return eligibilityOverride != null &amp;&amp; eligibleAtDate.isBefore(eligibilityOverride.getOverrideUntil());</span>
     }
 
     private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride) {
-<span class="fc bfc" id="L107" title="All 2 branches covered.">        VerificationOutcome matchOutcome = eligibilityOverride.getEligibilityOutcome() == EligibilityOutcome.CONFIRMED</span>
-<span class="fc" id="L108">                ? VerificationOutcome.MATCHED</span>
-<span class="fc" id="L109">                : VerificationOutcome.NOT_SET;</span>
-<span class="fc" id="L110">        return CombinedIdentityAndEligibilityResponse.builder()</span>
-<span class="fc" id="L111">                .identityStatus(IdentityOutcome.MATCHED)</span>
-<span class="fc" id="L112">                .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())</span>
-<span class="fc" id="L113">                .dobOfChildrenUnder4(Collections.emptyList())</span>
-<span class="fc" id="L114">                .pregnantChildDOBMatch(matchOutcome)</span>
-<span class="fc" id="L115">                .addressLine1Match(matchOutcome)</span>
-<span class="fc" id="L116">                .emailAddressMatch(matchOutcome)</span>
-<span class="fc" id="L117">                .mobilePhoneMatch(matchOutcome)</span>
-<span class="fc" id="L118">                .postcodeMatch(matchOutcome)</span>
-<span class="fc" id="L119">                .deathVerificationFlag(DeathVerificationFlag.N_A)</span>
-<span class="fc" id="L120">                .build();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        VerificationOutcome matchOutcome = eligibilityOverride.getEligibilityOutcome() == EligibilityOutcome.CONFIRMED</span>
+<span class="fc" id="L107">                ? VerificationOutcome.MATCHED</span>
+<span class="fc" id="L108">                : VerificationOutcome.NOT_SET;</span>
+<span class="fc" id="L109">        return CombinedIdentityAndEligibilityResponse.builder()</span>
+<span class="fc" id="L110">                .identityStatus(IdentityOutcome.MATCHED)</span>
+<span class="fc" id="L111">                .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())</span>
+<span class="fc" id="L112">                .dobOfChildrenUnder4(eligibilityOverride.getChildrenDob())</span>
+<span class="fc" id="L113">                .pregnantChildDOBMatch(matchOutcome)</span>
+<span class="fc" id="L114">                .addressLine1Match(matchOutcome)</span>
+<span class="fc" id="L115">                .emailAddressMatch(matchOutcome)</span>
+<span class="fc" id="L116">                .mobilePhoneMatch(matchOutcome)</span>
+<span class="fc" id="L117">                .postcodeMatch(matchOutcome)</span>
+<span class="fc" id="L118">                .deathVerificationFlag(DeathVerificationFlag.N_A)</span>
+<span class="fc" id="L119">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
