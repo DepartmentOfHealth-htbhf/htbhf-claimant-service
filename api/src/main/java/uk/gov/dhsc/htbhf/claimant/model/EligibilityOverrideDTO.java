@@ -23,7 +23,7 @@ public class EligibilityOverrideDTO {
 
     @NotNull
     @JsonProperty("eligibilityOutcome")
-    @ApiModelProperty(notes = "Overrides the eligibility outcome from eligibility service")
+    @ApiModelProperty(notes = "Overrides the eligibility outcome from eligibility service", example = "confirmed")
     private EligibilityOutcome eligibilityOutcome;
 
     @NotNull
@@ -34,7 +34,8 @@ public class EligibilityOverrideDTO {
 
     @NotNull
     @JsonProperty("childrenDob")
-    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if none then an empty list must be passed)")
+    @ApiModelProperty(notes = "The dates of birth of the claimant's children (if none then an empty list must be passed)",
+            example = ClaimantDTO.EXAMPLE_CHILDRENS_DATES_OF_BIRTH)
     @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
     private List<LocalDate> childrenDob;
 }
