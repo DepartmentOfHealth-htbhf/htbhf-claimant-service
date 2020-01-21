@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.model.card.CardBalanceResponse;
 import uk.gov.dhsc.htbhf.claimant.model.card.DepositFundsRequest;
@@ -19,11 +18,10 @@ import uk.gov.dhsc.htbhf.claimant.service.audit.MakePaymentEvent;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_AMOUNT;
-import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.PAYMENT_REQUEST_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.factory.PaymentFactory.createFailedPayment;
+import static uk.gov.dhsc.htbhf.claimant.factory.PaymentFactory.createSuccessfulPayment;
 import static uk.gov.dhsc.htbhf.logging.ExceptionDetailGenerator.constructExceptionDetail;
 
 @Service
@@ -57,28 +55,12 @@ public class PaymentService {
      * @param failureEvent  The failure event.
      */
     public void saveFailedPayment(PaymentCycle paymentCycle, FailureEvent failureEvent) {
-        String cardAccountId = paymentCycle.getClaim().getCardAccountId();
         try {
-            // TODO DW AFHS-405 Create PaymentFactory to create payment objects.
-            Map<String, Object> eventMetadata = failureEvent.getEventMetadata();
-            Integer amountToPayInPence = (Integer) eventMetadata.get(PAYMENT_AMOUNT.getKey());
-            String paymentReference = (String) eventMetadata.get(PAYMENT_REQUEST_REFERENCE.getKey());
-            String failureDetail = (String) eventMetadata.get(FailureEvent.EXCEPTION_DETAIL_KEY);
-            Payment failedPayment = Payment.builder()
-                    .cardAccountId(cardAccountId)
-                    .claim(paymentCycle.getClaim())
-                    .paymentAmountInPence(amountToPayInPence)
-                    .paymentCycle(paymentCycle)
-                    .requestReference(paymentReference)
-                    .paymentStatus(PaymentStatus.FAILURE)
-                    .failureDetail(failureDetail)
-                    .paymentTimestamp(failureEvent.getTimestamp())
-                    .build();
-
+            Payment failedPayment = createFailedPayment(paymentCycle, failureEvent);
             paymentRepository.save(failedPayment);
         } catch (Exception e) {
             log.error("Unexpected exception caught saving a failed payment for paymentCycle: {}, cardAccountId: {}, failureEvent: {}, exception detail: {}",
-                    paymentCycle.getId(), cardAccountId, failureEvent, constructExceptionDetail(e), e);
+                    paymentCycle.getId(), paymentCycle.getClaim().getCardAccountId(), failureEvent, constructExceptionDetail(e), e);
         }
     }
 
@@ -118,16 +100,7 @@ public class PaymentService {
      * @param paymentResult the result of the payment
      */
     public void completePayment(PaymentCycle paymentCycle, PaymentCalculation paymentCalculation, PaymentResult paymentResult) {
-        Payment payment = Payment.builder()
-                .cardAccountId(paymentCycle.getClaim().getCardAccountId())
-                .claim(paymentCycle.getClaim())
-                .paymentAmountInPence(paymentCalculation.getPaymentAmount())
-                .paymentCycle(paymentCycle)
-                .paymentStatus(PaymentStatus.SUCCESS)
-                .paymentTimestamp(paymentResult.getPaymentTimestamp())
-                .requestReference(paymentResult.getRequestReference())
-                .responseReference(paymentResult.getResponseReference())
-                .build();
+        Payment payment = createSuccessfulPayment(paymentCycle, paymentCalculation, paymentResult);
         paymentCycleService.updatePaymentCycleFromCalculation(paymentCycle, paymentCalculation);
         paymentRepository.save(payment);
     }

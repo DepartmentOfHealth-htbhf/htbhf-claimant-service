@@ -95,7 +95,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
+        verify(paymentCycleService).updatePaymentCycleFromDecision(context.getCurrentPaymentCycle(), decision);
         verify(eligibilityDecisionHandler).handleEligibleDecision(context.getClaim(), context.getCurrentPaymentCycle());
         verify(claimService).updateCurrentIdentityAndEligibilityResponse(context.getClaim(), decision.getIdentityAndEligibilityResponse());
     }
@@ -155,7 +155,7 @@ class DetermineEntitlementMessageProcessorTest {
                 context.getCurrentPaymentCycle().getCycleStartDate(),
                 context.getPreviousPaymentCycle());
 
-        verify(paymentCycleService).updatePaymentCycle(context.getCurrentPaymentCycle(), decision);
+        verify(paymentCycleService).updatePaymentCycleFromDecision(context.getCurrentPaymentCycle(), decision);
         verify(eligibilityDecisionHandler)
                 .handleIneligibleDecisionForActiveClaim(context.getClaim(), context.getPreviousPaymentCycle(), context.getCurrentPaymentCycle(), decision);
         verify(paymentCycleService).updateEndDateForClaimBecomingPendingExpiry(context.getCurrentPaymentCycle());

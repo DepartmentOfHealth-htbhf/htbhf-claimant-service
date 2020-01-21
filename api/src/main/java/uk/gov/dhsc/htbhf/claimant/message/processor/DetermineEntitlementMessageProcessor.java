@@ -78,7 +78,7 @@ public class DetermineEntitlementMessageProcessor implements MessageTypeProcesso
                 currentPaymentCycle.getCycleStartDate(),
                 previousPaymentCycle);
 
-        paymentCycleService.updatePaymentCycle(currentPaymentCycle, decision);
+        paymentCycleService.updatePaymentCycleFromDecision(currentPaymentCycle, decision);
         claimService.updateCurrentIdentityAndEligibilityResponse(claim, decision.getIdentityAndEligibilityResponse());
         handleDecision(claim, previousPaymentCycle, currentPaymentCycle, decision, message.getCreatedTimestamp());
         if (claim.getClaimStatus() == PENDING_EXPIRY) {

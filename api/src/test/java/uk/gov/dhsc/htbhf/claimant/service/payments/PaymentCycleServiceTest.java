@@ -171,7 +171,7 @@ class PaymentCycleServiceTest {
         EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(voucherEntitlement);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
 
-        paymentCycleService.updatePaymentCycle(paymentCycle, decision);
+        paymentCycleService.updatePaymentCycleFromDecision(paymentCycle, decision);
 
         verifyPaymentCycleUpdatedCorrectly(NOT_PREGNANT, paymentCycle, decision);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST, paymentCycle.getCycleStartDate());
@@ -184,7 +184,7 @@ class PaymentCycleServiceTest {
         EligibilityAndEntitlementDecision decision = buildEligibilityAndEntitlementDecision(voucherEntitlement);
         given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
 
-        paymentCycleService.updatePaymentCycle(paymentCycle, decision);
+        paymentCycleService.updatePaymentCycleFromDecision(paymentCycle, decision);
 
         verifyPaymentCycleUpdatedCorrectly(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle, decision);
         verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle.getCycleStartDate());
