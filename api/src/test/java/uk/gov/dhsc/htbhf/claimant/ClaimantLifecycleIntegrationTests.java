@@ -29,8 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT_STOPPING;
@@ -48,6 +47,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 /**
@@ -220,6 +220,42 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(paymentCycle.get().getPaymentCycleStatus()).isEqualTo(PaymentCycleStatus.NEW);
     }
 
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    void shouldProcessClaimWithEligibilityOverrideUntilOverrideExpires() throws JsonProcessingException, NotificationClientException {
+        LocalDate overrideUntil = LocalDate.now().plusWeeks(5 * 4).plusDays(1); //eligible for today and next 5 cycles
+        List<LocalDate> childrenDob = SINGLE_THREE_YEAR_OLD;
+        UUID claimId = applyForHealthyStartOverridingEligibilityAsNonPregnantWomanWithChildren(childrenDob, overrideUntil);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, childrenDob);
+
+        // run through another 5 cycles until the override expires
+        progressThroughRegularPaymentCyclesWithEligibilityOverride(claimId, childrenDob, 5);
+
+        // once the override has expired the claimant will be ineligible
+        wiremockManager.stubIneligibleEligibilityResponse();
+
+        // ineligible decision moves claim into pending expiry
+        ageByOneCycle();
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(PENDING_EXPIRY);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.PENDING_CANCELLATION);
+        assertSingleEmailSent(EmailType.CLAIM_NO_LONGER_ELIGIBLE, repositoryMediator.getCurrentPaymentCycleForClaim(claim));
+
+        LocalDateTime now = LocalDateTime.now();
+        // 16 weeks pass
+        ageByNumberOfCycles(4);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(EXPIRED);
+        assertThat(claim.getClaimStatusTimestamp()).isAfterOrEqualTo(now);
+        assertThat(claim.getCardStatus()).isEqualTo(CardStatus.SCHEDULED_FOR_CANCELLATION);
+        assertThat(claim.getCardStatusTimestamp()).isAfterOrEqualTo(now);
+
+        // invoke schedulers to process send email for card is about to be cancelled
+        invokeAllSchedulers();
+        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+
+    }
+
     /**
      * Run through a lifecycle where an active claim becomes ineligible due to not being on a qualifying benefit.
      * The claim will go from active to pending expiry, after 16 weeks the claim will become expired and their card
@@ -389,6 +425,21 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return childrenDob;
     }
 
+    private List<LocalDate> progressThroughRegularPaymentCyclesWithEligibilityOverride(UUID claimId, List<LocalDate> childrenDob, int numCycles)
+            throws NotificationClientException, JsonProcessingException {
+        for (int i = 0; i < numCycles; i++) {
+            resetNotificationClient();
+            repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+            childrenDob = childrenDob.stream().map(localDate -> localDate.minusDays(CYCLE_DURATION)).collect(Collectors.toList());
+            wiremockManager.stubIneligibleEligibilityResponse();
+            wiremockManager.stubGoogleAnalyticsCall();
+            invokeAllSchedulers();
+            assertPaymentCyclePaidCorrectly(claimId, childrenDob, REGULAR_PAYMENT);
+            verifyNoMoreInteractions(notificationClient);
+        }
+        return childrenDob;
+    }
+
     private UUID applyForHealthyStartAsPregnantWomanWithNoChildren(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aClaimDTOWithClaimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate));
@@ -403,6 +454,16 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
                 EligibilityOutcome.CONFIRMED,
                 OVERRIDE_UNTIL_FIVE_YEARS);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
+    }
+
+    private UUID applyForHealthyStartOverridingEligibilityAsNonPregnantWomanWithChildren(List<LocalDate> datesOfBirthOfChildren, LocalDate overrideUntil)
+            throws JsonProcessingException, NotificationClientException {
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverride(
+                NOT_PREGNANT,
+                datesOfBirthOfChildren,
+                EligibilityOutcome.CONFIRMED,
+                overrideUntil);
+        return applyForHealthyStart(newClaimDTO, datesOfBirthOfChildren);
     }
 
     private UUID applyForHealthyStartAsNonPregnantWomanWithChildren(List<LocalDate> datesOfBirthOfChildren)

@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 import javax.validation.ConstraintValidatorContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverride;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 public class EligibilityOverrideValidatorTest {
@@ -29,7 +30,7 @@ public class EligibilityOverrideValidatorTest {
 
     @Test
     void shouldValidateValidEligibilityOverride() {
-        boolean result = eligibilityOverrideValidator.isValid(aConfirmedEligibilityOverride(), NULL_CONTEXT);
+        boolean result = eligibilityOverrideValidator.isValid(aConfirmedEligibilityOverrideWithNoChildren(), NULL_CONTEXT);
 
         assertThat(result).isTrue();
     }
@@ -47,14 +48,22 @@ public class EligibilityOverrideValidatorTest {
                 EligibilityOverride.builder()
                         .eligibilityOutcome(null)
                         .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
+                        .childrenDob(NO_CHILDREN)
                         .build(),
                 EligibilityOverride.builder()
                         .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
                         .overrideUntil(null)
+                        .childrenDob(NO_CHILDREN)
+                        .build(),
+                EligibilityOverride.builder()
+                        .eligibilityOutcome(EligibilityOutcome.CONFIRMED)
+                        .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
+                        .childrenDob(null)
                         .build(),
                 EligibilityOverride.builder()
                         .eligibilityOutcome(null)
                         .overrideUntil(null)
+                        .childrenDob(null)
                         .build()
         );
     }

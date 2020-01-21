@@ -24,7 +24,8 @@ public class EligibilityOverrideValidator implements ConstraintValidator<ValidEl
         // none of the fields can be null in a valid EligibilityOverride
         return ObjectUtils.allNotNull(
                 eligibilityOverride.getEligibilityOutcome(),
-                eligibilityOverride.getOverrideUntil()
+                eligibilityOverride.getOverrideUntil(),
+                eligibilityOverride.getChildrenDob()
         );
     }
 }
