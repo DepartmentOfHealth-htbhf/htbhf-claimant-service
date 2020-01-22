@@ -1,9 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
@@ -20,7 +17,7 @@ import static uk.gov.dhsc.htbhf.claimant.entity.BaseEntity.JSON_TYPE;
 @Builder
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Embeddable
 public class EligibilityOverride {
 

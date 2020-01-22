@@ -21,7 +21,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
 @Builder
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Embeddable
 public class Claimant {
 
