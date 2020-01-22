@@ -119,10 +119,11 @@ public abstract class ReportPropertiesFactory {
 
     protected Map<String, Object> createCommonCustomMetrics(ReportEventMessageContext context) {
         Map<String, Object> customMetrics = new TreeMap<>();
-        Claimant claimant = context.getClaim().getClaimant();
+        Claim claim = context.getClaim();
+        Claimant claimant = claim.getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
-        List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(context.getClaim(), context.getIdentityAndEligibilityResponse());
+        List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, context.getIdentityAndEligibilityResponse());
         long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, atDate);
         long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, atDate);
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
