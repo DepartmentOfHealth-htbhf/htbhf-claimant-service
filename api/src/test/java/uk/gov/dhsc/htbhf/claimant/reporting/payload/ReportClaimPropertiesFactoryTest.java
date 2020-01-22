@@ -32,6 +32,7 @@ import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithChildrenDobAndDueDateAndPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithDueDateAndPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
@@ -69,6 +70,25 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cd11", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant is recorded as both a metric and a dimension
         );
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
+    }
+
+    @Test
+    void shouldCreateReportPropertiesForClaimWithoutIdentityAndEligibilityResponse() {
+        int secondsSinceEvent = 1;
+        LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
+        ReportClaimMessageContext context = aReportClaimMessageContextWithoutDecision(timestamp, datesOfBirthOfChildren);
+        given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
+
+        Map<String, String> reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);
+
+        Claim claim = context.getClaim();
+        assertThat(reportProperties).contains(
+                entry("cd12", "NOT_SET"), // qualifying benefit
+                entry("cm1", "1"), // number of children under one
+                entry("cm2", "0") // number of children between one and four
+        );
         verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
     }
 
@@ -196,5 +216,15 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 .claim(claim)
                 .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirthOfChildren))
                 .timestamp(timestamp);
+    }
+
+    private ReportClaimMessageContext aReportClaimMessageContextWithoutDecision(LocalDateTime timestamp, List<LocalDate> datesOfBirthOfChildren) {
+        Claim claim = aClaimWithChildrenDobAndDueDateAndPostcodeData(NOT_PREGNANT, datesOfBirthOfChildren);
+        return ReportClaimMessageContext.builder()
+                .claimAction(NEW)
+                .claim(claim)
+                .identityAndEligibilityResponse(null)
+                .timestamp(timestamp)
+                .build();
     }
 }

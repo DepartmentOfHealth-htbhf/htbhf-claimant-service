@@ -16,6 +16,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
 import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
@@ -92,6 +93,14 @@ public class ClaimTestDataFactory {
 
     public static Claim aClaimWithDueDateAndPostcodeData(LocalDate expectedDeliveryDate) {
         Claimant claimant = aClaimantWithExpectedDeliveryDate(expectedDeliveryDate);
+        return aValidClaimBuilder()
+                .claimant(claimant)
+                .postcodeData(aPostcodeDataObjectForPostcode(SIMPSONS_POSTCODE))
+                .build();
+    }
+
+    public static Claim aClaimWithChildrenDobAndDueDateAndPostcodeData(LocalDate expectedDeliveryDate, List<LocalDate> datesOfBirthOfChildren) {
+        Claimant claimant = aClaimantWithExpectedDeliveryDateAndChildrenDob(expectedDeliveryDate, datesOfBirthOfChildren);
         return aValidClaimBuilder()
                 .claimant(claimant)
                 .postcodeData(aPostcodeDataObjectForPostcode(SIMPSONS_POSTCODE))
