@@ -85,10 +85,10 @@ public class Claim extends VersionedEntity {
     @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse currentIdentityAndEligibilityResponse;
 
-    @NotNull
-    @OneToOne(cascade = CascadeType.ALL)
-    @ToString.Exclude
     @Valid
+    @ToString.Exclude
+    @Embedded
+    @NotNull
     private Claimant claimant;
 
     @ValidEligibilityOverride(message = &quot;Must be either null or have all fields populated&quot;)
