@@ -1,16 +1,13 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.assertions.AbstractValidationTest;
 
 import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.util.Set;
-import java.util.UUID;
 import javax.validation.ConstraintViolation;
 
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_DATE_OF_BIRTH;
@@ -99,27 +96,6 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasTotalViolations(2)
                 .hasViolation("size must be between 1 and 500", "lastName")
                 .hasViolation("size must be between 1 and 500", "firstName");
-    }
-
-    @Test
-    void shouldAlwaysReturnAnIdFromGetId() {
-        //Given
-        Claimant claimant = Claimant.builder().build();
-        //When
-        UUID id = claimant.getId();
-        //Then
-        Assertions.assertThat(id).isNotNull();
-    }
-
-    @Test
-    void shouldReturnTheSameIdIfOneIsSet() {
-        //Given
-        UUID id = UUID.randomUUID();
-        //When
-        Claimant claimant = Claimant.builder().build();
-        ReflectionTestUtils.setField(claimant, "id", id);
-        //Then
-        Assertions.assertThat(id).isEqualTo(claimant.getId());
     }
 
     @Test
