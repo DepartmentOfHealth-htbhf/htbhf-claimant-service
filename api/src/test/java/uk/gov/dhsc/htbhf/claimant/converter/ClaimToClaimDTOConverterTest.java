@@ -51,7 +51,6 @@ class ClaimToClaimDTOConverterTest {
         assertThat(claimDTO.getEligibilityOverride()).isEqualTo(eligibilityOverrideDTO);
         verify(addressToAddressDTOConverter).convert(claim.getClaimant().getAddress());
         verify(eligibilityOverrideDTOConverter).convert(claim.getEligibilityOverride());
-
     }
 
     private static Stream<EligibilityOverrideDTO> eligibilityOverrideDTOValues() {

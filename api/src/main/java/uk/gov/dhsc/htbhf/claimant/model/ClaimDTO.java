@@ -71,7 +71,7 @@ public class ClaimDTO {
     @JsonProperty("claimant")
     private ClaimantDTO claimant;
 
-    @ApiModelProperty(notes = "Eligibility override decision based on eligibility outcome and until date")
+    @ApiModelProperty(notes = "An override of the DWP/HMRC eligibility decision")
     @JsonProperty("eligibilityOverride")
     private EligibilityOverrideDTO eligibilityOverride;
 }

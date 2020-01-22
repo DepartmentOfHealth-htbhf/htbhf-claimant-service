@@ -23,7 +23,7 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
         //Then
         assertThat(result).isNotNull();
         assertThat(result.getEligibilityOutcome()).isEqualTo(eligibilityOverride.getEligibilityOutcome());
-        assertThat(result.getChildrenDob()).isEqualTo(eligibilityOverride.getChildrenDob());
+        assertThat(result.getChildrenDob()).isEqualTo(MAGGIE_AND_LISA_DOBS);
         assertThat(result.getOverrideUntil()).isEqualTo(eligibilityOverride.getOverrideUntil());
     }
 
