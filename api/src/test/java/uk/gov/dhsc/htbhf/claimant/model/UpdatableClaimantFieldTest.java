@@ -44,7 +44,6 @@ class UpdatableClaimantFieldTest {
     void shouldReportNullFieldsDoNotHaveDifferentValues(UpdatableClaimantField field) {
         Claimant originalClaimant = Claimant.builder().build();
         Claimant newClaimant = Claimant.builder().build();
-        assertThat(newClaimant).isNotEqualTo(originalClaimant);
 
         assertThat(field.valueIsDifferent(originalClaimant, newClaimant)).isFalse();
     }

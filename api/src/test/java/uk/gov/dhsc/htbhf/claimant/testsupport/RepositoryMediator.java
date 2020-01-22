@@ -149,7 +149,6 @@ public class RepositoryMediator {
         paymentRepository.findAll().forEach(payment -> EntityAgeAccelerator.ageObject(payment, numberOfDays));
         claimRepository.findAll().forEach(claim -> {
             EntityAgeAccelerator.ageObject(claim, numberOfDays);
-            EntityAgeAccelerator.ageObject(claim.getClaimant(), numberOfDays);
         });
         paymentCycleRepository.findAll().forEach(paymentCycle -> EntityAgeAccelerator.ageObject(paymentCycle, numberOfDays));
         messageRepository.findAll().forEach(message -> EntityAgeAccelerator.ageObject(message, numberOfDays));

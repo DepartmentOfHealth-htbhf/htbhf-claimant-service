@@ -12,20 +12,18 @@ import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static uk.gov.dhsc.htbhf.claimant.entity.BaseEntity.JSON_TYPE;
 import static uk.gov.dhsc.htbhf.claimant.model.Constants.VALID_EMAIL_REGEX;
 
 /**
  * Domain object for a Claimant.
  */
-@Entity
+@Builder
 @Data
-@Builder(toBuilder = true)
-@Table(name = "claimant")
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-@ToString(callSuper = true)
-public class Claimant extends VersionedEntity {
+@NoArgsConstructor
+@Embeddable
+public class Claimant {
 
     @NotNull
     @Size(min = 1, max = 500)
