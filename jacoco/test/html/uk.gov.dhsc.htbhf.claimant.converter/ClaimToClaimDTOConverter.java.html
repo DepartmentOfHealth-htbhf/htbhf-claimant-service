@@ -13,38 +13,40 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 public class ClaimToClaimDTOConverter {
 
     private final AddressToAddressDTOConverter addressToAddressDTOConverter;
+    private final EligibilityOverrideToEligibilityOverrideDTOConverter eligibilityOverrideDTOConverter;
 
     public ClaimDTO convert(Claim claim) {
-<span class="fc" id="L18">        return ClaimDTO.builder()</span>
-<span class="fc" id="L19">                .id(claim.getId())</span>
-<span class="fc" id="L20">                .cardAccountId(claim.getCardAccountId())</span>
-<span class="fc" id="L21">                .cardStatus(claim.getCardStatus())</span>
-<span class="fc" id="L22">                .cardStatusTimestamp(claim.getCardStatusTimestamp())</span>
-<span class="fc" id="L23">                .claimStatus(claim.getClaimStatus())</span>
-<span class="fc" id="L24">                .claimStatusTimestamp(claim.getClaimStatusTimestamp())</span>
-<span class="fc" id="L25">                .currentIdentityAndEligibilityResponse(claim.getCurrentIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L26">                .dwpHouseholdIdentifier(claim.getDwpHouseholdIdentifier())</span>
-<span class="fc" id="L27">                .eligibilityStatus(claim.getEligibilityStatus())</span>
-<span class="fc" id="L28">                .eligibilityStatusTimestamp(claim.getEligibilityStatusTimestamp())</span>
-<span class="fc" id="L29">                .hmrcHouseholdIdentifier(claim.getHmrcHouseholdIdentifier())</span>
-<span class="fc" id="L30">                .initialIdentityAndEligibilityResponse(claim.getInitialIdentityAndEligibilityResponse())</span>
-<span class="fc" id="L31">                .claimant(convert(claim.getClaimant()))</span>
-<span class="fc" id="L32">                .build();</span>
+<span class="fc" id="L19">        return ClaimDTO.builder()</span>
+<span class="fc" id="L20">                .id(claim.getId())</span>
+<span class="fc" id="L21">                .cardAccountId(claim.getCardAccountId())</span>
+<span class="fc" id="L22">                .cardStatus(claim.getCardStatus())</span>
+<span class="fc" id="L23">                .cardStatusTimestamp(claim.getCardStatusTimestamp())</span>
+<span class="fc" id="L24">                .claimStatus(claim.getClaimStatus())</span>
+<span class="fc" id="L25">                .claimStatusTimestamp(claim.getClaimStatusTimestamp())</span>
+<span class="fc" id="L26">                .currentIdentityAndEligibilityResponse(claim.getCurrentIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L27">                .dwpHouseholdIdentifier(claim.getDwpHouseholdIdentifier())</span>
+<span class="fc" id="L28">                .eligibilityStatus(claim.getEligibilityStatus())</span>
+<span class="fc" id="L29">                .eligibilityStatusTimestamp(claim.getEligibilityStatusTimestamp())</span>
+<span class="fc" id="L30">                .hmrcHouseholdIdentifier(claim.getHmrcHouseholdIdentifier())</span>
+<span class="fc" id="L31">                .initialIdentityAndEligibilityResponse(claim.getInitialIdentityAndEligibilityResponse())</span>
+<span class="fc" id="L32">                .claimant(convert(claim.getClaimant()))</span>
+<span class="fc" id="L33">                .eligibilityOverride(eligibilityOverrideDTOConverter.convert(claim.getEligibilityOverride()))</span>
+<span class="fc" id="L34">                .build();</span>
     }
 
     private ClaimantDTO convert(Claimant claimant) {
-<span class="fc" id="L36">        AddressDTO addressDTO = addressToAddressDTOConverter.convert(claimant.getAddress());</span>
-<span class="fc" id="L37">        return ClaimantDTO.builder()</span>
-<span class="fc" id="L38">                .initiallyDeclaredChildrenDob(claimant.getInitiallyDeclaredChildrenDob())</span>
-<span class="fc" id="L39">                .dateOfBirth(claimant.getDateOfBirth())</span>
-<span class="fc" id="L40">                .expectedDeliveryDate(claimant.getExpectedDeliveryDate())</span>
-<span class="fc" id="L41">                .address(addressDTO)</span>
-<span class="fc" id="L42">                .emailAddress(claimant.getEmailAddress())</span>
-<span class="fc" id="L43">                .firstName(claimant.getFirstName())</span>
-<span class="fc" id="L44">                .lastName(claimant.getLastName())</span>
-<span class="fc" id="L45">                .nino(claimant.getNino())</span>
-<span class="fc" id="L46">                .phoneNumber(claimant.getPhoneNumber())</span>
-<span class="fc" id="L47">                .build();</span>
+<span class="fc" id="L38">        AddressDTO addressDTO = addressToAddressDTOConverter.convert(claimant.getAddress());</span>
+<span class="fc" id="L39">        return ClaimantDTO.builder()</span>
+<span class="fc" id="L40">                .initiallyDeclaredChildrenDob(claimant.getInitiallyDeclaredChildrenDob())</span>
+<span class="fc" id="L41">                .dateOfBirth(claimant.getDateOfBirth())</span>
+<span class="fc" id="L42">                .expectedDeliveryDate(claimant.getExpectedDeliveryDate())</span>
+<span class="fc" id="L43">                .address(addressDTO)</span>
+<span class="fc" id="L44">                .emailAddress(claimant.getEmailAddress())</span>
+<span class="fc" id="L45">                .firstName(claimant.getFirstName())</span>
+<span class="fc" id="L46">                .lastName(claimant.getLastName())</span>
+<span class="fc" id="L47">                .nino(claimant.getNino())</span>
+<span class="fc" id="L48">                .phoneNumber(claimant.getPhoneNumber())</span>
+<span class="fc" id="L49">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
