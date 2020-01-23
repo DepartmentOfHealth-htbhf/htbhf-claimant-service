@@ -29,11 +29,10 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -250,7 +249,7 @@ class ClaimantServiceIntegrationTests {
     }
 
     @Test
-    void shouldReturnDuplicateStatusWhenTwoEligibleClaimsForSameNino() throws JsonProcessingException, InterruptedException {
+    void shouldReturnDuplicateStatusWhenTwoSimultaneousClaimsForSameNino() throws JsonProcessingException, InterruptedException, ExecutionException {
         //Given
         NewClaimDTO dto = aValidClaimDTO();
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
@@ -259,21 +258,18 @@ class ClaimantServiceIntegrationTests {
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
         //When
-        List<Future<Object>> futures = executor.invokeAll(List.of(
-                () -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class),
-                () -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class)));
+        CompletableFuture<ResponseEntity<ClaimResultDTO>> future1
+                = CompletableFuture.supplyAsync(() -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class), executor);
+        CompletableFuture<ResponseEntity<ClaimResultDTO>> future2
+                = CompletableFuture.supplyAsync(() -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class), executor);
 
-        List<ResponseEntity<ClaimResultDTO>> results = futures.stream().map(objectFuture -> {
-            try {
-                return (ResponseEntity<ClaimResultDTO>) objectFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
+        CompletableFuture.allOf(future1, future2).get();
+
+        List<ResponseEntity<ClaimResultDTO>> results = List.of(future1.get(), future2.get());
 
         //Then
         //one transaction will succeed because it commits first.
-        assertThat(results.stream().anyMatch(r -> r.getBody().getClaimStatus() == ClaimStatus.NEW)).isTrue();
+        assertThat(results.stream().anyMatch(r -> r.getStatusCode() == HttpStatus.CREATED)).isTrue();
 
         //one transaction will fail causing error because there is already an active claim with same nino.
         assertThat(results.stream().anyMatch(r -> r.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR)).isTrue();
