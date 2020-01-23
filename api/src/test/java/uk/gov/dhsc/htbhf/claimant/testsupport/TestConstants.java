@@ -31,4 +31,7 @@ public class TestConstants {
     public static final LocalDate OVERRIDE_UNTIL_FIVE_YEARS = LocalDate.now().plusYears(5);
     public static final List<LocalDate> CHILD_BORN_IN_FUTURE = singletonList(LocalDate.now().plusDays(1));
 
+    //NINOs
+    public static final String NINO = "MC125456C";
+
 }

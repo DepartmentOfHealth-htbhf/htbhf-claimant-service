@@ -18,6 +18,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -58,6 +59,12 @@ public class ClaimTestDataFactory {
 
     public static Claim aClaimWithClaimStatus(ClaimStatus claimStatus) {
         return aValidClaimBuilderWithStatus(claimStatus)
+                .build();
+    }
+
+    public static Claim aClaimWithNinoAndClaimStatus(String nino, ClaimStatus claimStatus) {
+        return aValidClaimBuilderWithStatus(claimStatus)
+                .claimant(aValidClaimantWithNino(nino))
                 .build();
     }
 
@@ -111,6 +118,14 @@ public class ClaimTestDataFactory {
         return aValidClaimBuilder()
                 .cardStatus(cardStatus)
                 .cardStatusTimestamp(cardStatusTimestamp)
+                .build();
+    }
+
+    public static Claim aClaimWithNinoAndCardStatusAndCardStatusTimestamp(String nino, CardStatus cardStatus, LocalDateTime cardStatusTimestamp) {
+        return aValidClaimBuilder()
+                .cardStatus(cardStatus)
+                .cardStatusTimestamp(cardStatusTimestamp)
+                .claimant(aValidClaimantWithNino(nino))
                 .build();
     }
 

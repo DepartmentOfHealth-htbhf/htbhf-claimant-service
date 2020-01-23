@@ -20,12 +20,16 @@ import javax.validation.ConstraintViolationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.MARGE_NINO;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithNinoAndClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPaymentAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aPaymentWithClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NINO;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -147,9 +151,9 @@ class PaymentCycleRepositoryTest {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
         LocalDate tomorrow = today.plusDays(1);
-        createAndSavePaymentCycleEnding(today, createAndSaveClaim());
-        createAndSavePaymentCycleEnding(yesterday, createAndSaveClaim());
-        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaim());
+        createAndSavePaymentCycleEnding(today, createAndSaveClaimWithNino(MARGE_NINO));
+        createAndSavePaymentCycleEnding(yesterday, createAndSaveClaimWithNino(HOMER_NINO));
+        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NINO));
 
         List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
 
@@ -183,8 +187,8 @@ class PaymentCycleRepositoryTest {
 
     @Test
     void shouldFindLatestCycleForClaim() {
-        Claim claim = createAndSaveClaim();
-        Claim otherClaim = createAndSaveClaim();
+        Claim claim = createAndSaveClaimWithNino(HOMER_NINO);
+        Claim otherClaim = createAndSaveClaimWithNino(MARGE_NINO);
         createAndSavePaymentCycleEnding(LocalDate.now().minusDays(28), claim);
         createAndSavePaymentCycleEnding(LocalDate.now().plusDays(28), otherClaim);
         PaymentCycle expectedCycle = createAndSavePaymentCycleEnding(LocalDate.now(), claim);
@@ -208,6 +212,12 @@ class PaymentCycleRepositoryTest {
 
     private Claim createAndSaveClaim() {
         Claim claim = aValidClaim();
+        claimRepository.save(claim);
+        return claim;
+    }
+
+    private Claim createAndSaveClaimWithNino(String nino) {
+        Claim claim = aClaimWithNinoAndClaimStatus(nino, ClaimStatus.ACTIVE);
         claimRepository.save(claim);
         return claim;
     }
