@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportClaimMessageContext;
-import uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
 
 import java.time.LocalDate;
@@ -30,12 +29,11 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.NEW;
-import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithDueDateAndPostcodeData;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTestDataFactory.aReportClaimMessageContext;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTestDataFactory.aReportClaimMessageContextForAnUpdatedClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTestDataFactory.aReportClaimMessageContextWithoutDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
-import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
 class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
@@ -69,6 +67,26 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cd11", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant is recorded as both a metric and a dimension
         );
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
+    }
+
+    @Test
+    void shouldCreateReportPropertiesForClaimWithoutIdentityAndEligibilityResponse() {
+        int secondsSinceEvent = 1;
+        LocalDateTime timestamp = LocalDateTime.now().minusSeconds(secondsSinceEvent);
+        List<LocalDate> datesOfBirthOfChildren = singletonList(LocalDate.now().minusMonths(11));
+        ReportClaimMessageContext context = aReportClaimMessageContextWithoutDecision(timestamp,
+                datesOfBirthOfChildren);
+        given(claimantCategoryCalculator.determineClaimantCategory(any(), any(), any())).willReturn(CLAIMANT_CATEGORY);
+
+        Map<String, String> reportProperties = reportClaimPropertiesFactory.createReportPropertiesForClaimEvent(context);
+
+        Claim claim = context.getClaim();
+        assertThat(reportProperties).contains(
+                entry("cd12", "NOT_SET"), // qualifying benefit
+                entry("cm1", "1"), // number of children under one
+                entry("cm2", "0") // number of children between one and four
+        );
         verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate());
     }
 
@@ -169,32 +187,5 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
         assertThat(reportProperties).contains(entry("cm3", "0"));
         assertThat(reportProperties).doesNotContainKey("cm9");
         assertThat(reportProperties).doesNotContainKey("cd11");
-    }
-
-    private ReportClaimMessageContext aReportClaimMessageContextForAnUpdatedClaim(LocalDateTime timestamp,
-                                                                                  List<LocalDate> datesOfBirthOfChildren,
-                                                                                  LocalDate expectedDeliveryDate,
-                                                                                  List<UpdatableClaimantField> updatedClaimantFields) {
-        return aReportClaimMessageContextBuilder(timestamp, datesOfBirthOfChildren, expectedDeliveryDate)
-                .updatedClaimantFields(updatedClaimantFields)
-                .claimAction(UPDATED)
-                .build();
-    }
-
-    private ReportClaimMessageContext aReportClaimMessageContext(LocalDateTime timestamp,
-                                                                 List<LocalDate> datesOfBirthOfChildren,
-                                                                 LocalDate expectedDeliveryDate) {
-        return aReportClaimMessageContextBuilder(timestamp, datesOfBirthOfChildren, expectedDeliveryDate).build();
-    }
-
-    private ReportClaimMessageContext.ReportClaimMessageContextBuilder aReportClaimMessageContextBuilder(LocalDateTime timestamp,
-                                                                                                         List<LocalDate> datesOfBirthOfChildren,
-                                                                                                         LocalDate expectedDeliveryDate) {
-        Claim claim = aClaimWithDueDateAndPostcodeData(expectedDeliveryDate);
-        return ReportClaimMessageContext.builder()
-                .claimAction(NEW)
-                .claim(claim)
-                .identityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches(datesOfBirthOfChildren))
-                .timestamp(timestamp);
     }
 }

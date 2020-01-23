@@ -5,6 +5,8 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -82,7 +84,10 @@ public abstract class ReportPropertiesFactory {
         Map<String, Object> customDimensions = new TreeMap<>();
         customDimensions.put(USER_TYPE.getFieldName(), ONLINE.name());
         Claim claim = context.getClaim();
-        List<LocalDate> dobOfChildrenUnder4 = context.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = context.getIdentityAndEligibilityResponse();
+        List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, identityAndEligibilityResponse);
+
         ClaimantCategory claimantCategory = claimantCategoryCalculator
                 .determineClaimantCategory(claim.getClaimant(), dobOfChildrenUnder4, context.getTimestamp().toLocalDate());
 
@@ -95,17 +100,30 @@ public abstract class ReportPropertiesFactory {
         customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());
-        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), context.getIdentityAndEligibilityResponse().getQualifyingBenefits());
+        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), getQualifyingBenefits(identityAndEligibilityResponse));
 
         return customDimensions;
     }
 
+    private List<LocalDate> getDobOfChildrenUnder4(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+        return identityAndEligibilityResponse == null
+                ? claim.getClaimant().getInitiallyDeclaredChildrenDob()
+                : identityAndEligibilityResponse.getDobOfChildrenUnder4();
+    }
+
+    private QualifyingBenefits getQualifyingBenefits(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+        return identityAndEligibilityResponse == null
+                ? QualifyingBenefits.NOT_SET
+                : identityAndEligibilityResponse.getQualifyingBenefits();
+    }
+
     protected Map<String, Object> createCommonCustomMetrics(ReportEventMessageContext context) {
         Map<String, Object> customMetrics = new TreeMap<>();
-        Claimant claimant = context.getClaim().getClaimant();
+        Claim claim = context.getClaim();
+        Claimant claimant = claim.getClaimant();
         LocalDate atDate = context.getTimestamp().toLocalDate();
         customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());
-        List<LocalDate> dobOfChildrenUnder4 = context.getIdentityAndEligibilityResponse().getDobOfChildrenUnder4();
+        List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, context.getIdentityAndEligibilityResponse());
         long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, atDate);
         long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, atDate);
         customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);
