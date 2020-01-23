@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -28,6 +29,10 @@ import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -41,7 +46,9 @@ import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildRetrieveClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -239,6 +246,33 @@ class ClaimantServiceIntegrationTests {
         //Then
         assertRejectedResponse(response, DUPLICATE);
         wiremockManager.assertThatEligibilityRequestMade();
+    }
+
+    @Test
+    void shouldReturnDuplicateStatusWhenTwoSimultaneousClaimsForSameNino() throws JsonProcessingException, InterruptedException, ExecutionException {
+        //Given
+        NewClaimDTO dto = aValidClaimDTO();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithAllMatchesAndDwpHouseIdentifier(DWP_HOUSEHOLD_IDENTIFIER);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        //When
+        CompletableFuture<ResponseEntity<ClaimResultDTO>> future1
+                = CompletableFuture.supplyAsync(() -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class), executor);
+        CompletableFuture<ResponseEntity<ClaimResultDTO>> future2
+                = CompletableFuture.supplyAsync(() -> restTemplate.exchange(buildCreateClaimRequestEntity(dto), ClaimResultDTO.class), executor);
+
+        CompletableFuture.allOf(future1, future2).get();
+
+        List<ResponseEntity<ClaimResultDTO>> results = List.of(future1.get(), future2.get());
+
+        //Then
+        //one transaction will succeed because it commits first.
+        assertThat(results.stream().anyMatch(r -> r.getStatusCode() == HttpStatus.CREATED)).isTrue();
+
+        //one transaction will fail causing error because there is already an active claim with same nino.
+        assertThat(results.stream().anyMatch(r -> r.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR)).isTrue();
     }
 
     @Test

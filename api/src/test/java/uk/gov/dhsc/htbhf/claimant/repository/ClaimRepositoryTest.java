@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.exception.MultipleClaimsWithSameNinoException;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import java.time.LocalDateTime;
@@ -29,8 +28,9 @@ import javax.validation.ConstraintViolationException;
 import static com.google.common.collect.Iterables.size;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.MARGE_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.NED_NINO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
@@ -249,8 +249,8 @@ class ClaimRepositoryTest {
     @Transactional
     void shouldReturnNewClaimIds() {
         //Given
-        Claim newClaim = aClaimWithClaimStatus(ClaimStatus.NEW);
-        Claim pendingClaim = aClaimWithClaimStatus(PENDING);
+        Claim newClaim = aClaimWithNinoAndClaimStatus(HOMER_NINO, ClaimStatus.NEW);
+        Claim pendingClaim = aClaimWithNinoAndClaimStatus(MARGE_NINO, PENDING);
         claimRepository.saveAll(Arrays.asList(newClaim, pendingClaim));
 
         //When
@@ -330,9 +330,9 @@ class ClaimRepositoryTest {
     void shouldGetClaimsThatHaveBeenInPendingCancellationForMoreThanGivenPeriod() {
         int numberOfWeeks = 16;
         LocalDateTime now = LocalDateTime.now();
-        Claim activeClaim = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.ACTIVE, now.minusWeeks(17));
-        Claim pendingClaimOlderThan16Weeks = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.PENDING_CANCELLATION, now.minusWeeks(17));
-        Claim pendingClaimLessThan16Weeks = aClaimWithCardStatusAndCardStatusTimestamp(CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
+        Claim activeClaim = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(HOMER_NINO, CardStatus.ACTIVE, now.minusWeeks(17));
+        Claim pendingClaimOlderThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(MARGE_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(17));
+        Claim pendingClaimLessThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(NED_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
         claimRepository.saveAll(List.of(activeClaim, pendingClaimOlderThan16Weeks, pendingClaimLessThan16Weeks));
 
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(numberOfWeeks));
@@ -374,19 +374,5 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(claimIds).isEmpty();
-    }
-
-    @Test
-    void shouldThrowExceptionForMultipleMatchesForNino() {
-        //Given
-        claimRepository.save(aValidClaim());
-        claimRepository.save(aValidClaim());
-
-        //When
-        Throwable thrown = catchThrowableOfType(() -> claimRepository.findLiveClaimWithNino(HOMER_NINO), MultipleClaimsWithSameNinoException.class);
-
-        //Then
-        assertThat(thrown).isNotNull();
-
     }
 }

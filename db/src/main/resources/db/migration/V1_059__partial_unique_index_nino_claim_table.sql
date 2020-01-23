@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX unique_nino_for_active_claim ON claim (nino) WHERE claim_status in ('NEW', 'ACTIVE', 'PENDING', 'PENDING_EXPIRY');

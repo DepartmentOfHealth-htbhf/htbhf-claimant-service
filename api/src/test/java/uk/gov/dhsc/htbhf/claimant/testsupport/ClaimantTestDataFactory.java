@@ -21,6 +21,10 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().build();
     }
 
+    public static Claimant aValidClaimantWithNino(String nino) {
+        return aValidClaimantBuilder().nino(nino).build();
+    }
+
     public static Claimant aClaimantWithLastName(String lastName) {
         return aValidClaimantBuilder().lastName(lastName).build();
     }
