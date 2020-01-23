@@ -78,8 +78,8 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
 
     default Optional&lt;UUID&gt; findLiveClaimWithNino(String nino) {
 <span class="fc" id="L80">        List&lt;UUID&gt; liveClaimsWithNino = findLiveClaimsWithNino(nino);</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (liveClaimsWithNino.size() &gt; 1) {</span>
-<span class="fc" id="L82">            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (liveClaimsWithNino.size() &gt; 1) {</span>
+<span class="nc" id="L82">            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);</span>
         }
 <span class="fc bfc" id="L84" title="All 2 branches covered.">        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));</span>
     }
