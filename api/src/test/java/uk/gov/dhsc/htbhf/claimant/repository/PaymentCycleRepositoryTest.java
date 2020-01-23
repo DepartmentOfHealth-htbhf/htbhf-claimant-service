@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.TestConstants.MARGE_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.NED_NINO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithNinoAndClaimStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
@@ -29,7 +30,6 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPaymentAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aPaymentWithClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NINO;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -153,7 +153,7 @@ class PaymentCycleRepositoryTest {
         LocalDate tomorrow = today.plusDays(1);
         createAndSavePaymentCycleEnding(today, createAndSaveClaimWithNino(MARGE_NINO));
         createAndSavePaymentCycleEnding(yesterday, createAndSaveClaimWithNino(HOMER_NINO));
-        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NINO));
+        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NED_NINO));
 
         List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
 

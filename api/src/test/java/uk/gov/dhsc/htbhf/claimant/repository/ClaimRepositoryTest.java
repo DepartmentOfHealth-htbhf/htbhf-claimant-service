@@ -30,11 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.TestConstants.MARGE_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.NED_NINO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NINO;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -332,7 +332,7 @@ class ClaimRepositoryTest {
         LocalDateTime now = LocalDateTime.now();
         Claim activeClaim = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(HOMER_NINO, CardStatus.ACTIVE, now.minusWeeks(17));
         Claim pendingClaimOlderThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(MARGE_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(17));
-        Claim pendingClaimLessThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
+        Claim pendingClaimLessThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(NED_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
         claimRepository.saveAll(List.of(activeClaim, pendingClaimOlderThan16Weeks, pendingClaimLessThan16Weeks));
 
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(numberOfWeeks));
