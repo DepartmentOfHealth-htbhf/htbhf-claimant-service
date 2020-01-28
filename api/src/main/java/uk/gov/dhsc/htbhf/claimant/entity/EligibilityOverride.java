@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.validation.constraints.NotNull;
 
 import static uk.gov.dhsc.htbhf.claimant.entity.BaseEntity.JSON_TYPE;
 
@@ -21,13 +22,16 @@ import static uk.gov.dhsc.htbhf.claimant.entity.BaseEntity.JSON_TYPE;
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 public class EligibilityOverride {
 
+    @NotNull
     @JsonProperty("eligibilityOutcome")
     @Enumerated(EnumType.STRING)
     private EligibilityOutcome eligibilityOutcome;
 
+    @NotNull
     @JsonProperty("overrideUntil")
     private LocalDate overrideUntil;
 
+    @NotNull
     @JsonProperty("childrenDob")
     @Type(type = JSON_TYPE)
     @ListOfDatesInPast(message = "dates of birth of children should be all in the past")
