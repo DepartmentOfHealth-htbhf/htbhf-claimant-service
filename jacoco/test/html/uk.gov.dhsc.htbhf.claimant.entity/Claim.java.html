@@ -92,28 +92,29 @@ public class Claim extends VersionedEntity {
     private Claimant claimant;
 
     @ValidEligibilityOverride(message = &quot;Must be either null or have all fields populated&quot;)
-    @Embedded
+    @Column(name  = &quot;eligibility_override&quot;)
+    @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
 
     public void updateClaimStatus(ClaimStatus newStatus) {
-<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
-<span class="fc" id="L100">            claimStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
+<span class="fc" id="L101">            claimStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L102">        claimStatus = newStatus;</span>
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L103">        claimStatus = newStatus;</span>
+<span class="fc" id="L104">    }</span>
 
     public void updateEligibilityStatus(EligibilityStatus newStatus) {
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
-<span class="fc" id="L107">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
+<span class="fc" id="L108">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L109">        eligibilityStatus = newStatus;</span>
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L110">        eligibilityStatus = newStatus;</span>
+<span class="fc" id="L111">    }</span>
 
     public void updateCardStatus(CardStatus newStatus) {
-<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
-<span class="fc" id="L114">            cardStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
+<span class="fc" id="L115">            cardStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L116">        cardStatus = newStatus;</span>
-<span class="fc" id="L117">    }</span>
+<span class="fc" id="L117">        cardStatus = newStatus;</span>
+<span class="fc" id="L118">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
