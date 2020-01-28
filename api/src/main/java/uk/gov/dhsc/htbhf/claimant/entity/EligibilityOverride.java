@@ -21,7 +21,7 @@ import static uk.gov.dhsc.htbhf.claimant.entity.BaseEntity.JSON_TYPE;
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
 public class EligibilityOverride {
 
-    @JsonProperty("overrideOutcome")
+    @JsonProperty("eligibilityOutcome")
     @Enumerated(EnumType.STRING)
     private EligibilityOutcome eligibilityOutcome;
 
