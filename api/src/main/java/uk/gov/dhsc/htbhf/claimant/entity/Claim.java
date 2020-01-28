@@ -92,7 +92,8 @@ public class Claim extends VersionedEntity {
     private Claimant claimant;
 
     @ValidEligibilityOverride(message = "Must be either null or have all fields populated")
-    @Embedded
+    @Column(name  = "eligibility_override")
+    @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
 
     public void updateClaimStatus(ClaimStatus newStatus) {
