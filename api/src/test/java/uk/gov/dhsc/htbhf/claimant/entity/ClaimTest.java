@@ -81,6 +81,17 @@ class ClaimTest extends AbstractValidationTest {
     }
 
     @Test
+    void shouldValidateClaimWithNullEligibilityOverride() {
+        //Given
+        Claim claim = aClaimWithEligibilityOverride(null);
+
+        //When
+        Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
+
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
     void shouldFailToValidateClaimWithInvalidClaimant() {
         //Given
         Claimant invalidClaimant = aClaimantWithLastName(null);
