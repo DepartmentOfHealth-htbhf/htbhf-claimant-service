@@ -20,6 +20,7 @@ import uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
+import uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,15 +42,16 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaim
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityForPregnantTeenager;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityWithNoChildrenOverriddenUntil;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponseWithOverride;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -158,6 +160,27 @@ class EligibilityAndEntitlementServiceTest {
     }
 
     @Test
+    void shouldReturnEligibilityOverrideForUnder18PregnantWithoutChildren() {
+        //Given
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any())).willReturn(VOUCHER_ENTITLEMENT);
+        given(claimRepository.findLiveClaimWithNino(any())).willReturn(Optional.empty());
+        given(duplicateClaimChecker.liveClaimExistsForHousehold(any(CombinedIdentityAndEligibilityResponse.class))).willReturn(NOT_DUPLICATE);
+        EligibilityAndEntitlementDecision decisionResponse = setupEligibilityAndEntitlementDecisionFactory(ELIGIBLE);
+
+        //When
+        EligibilityAndEntitlementDecision result
+                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityForPregnantTeenager(OVERRIDE_UNTIL_FIVE_YEARS));
+
+        //Then
+        CombinedIdentityAndEligibilityResponse response =
+                CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponseWithOverrideUnder18AndNoChildren();
+
+        assertThat(result).isEqualTo(decisionResponse);
+        verifyNoInteractions(client);
+        verify(eligibilityAndEntitlementDecisionFactory).buildDecision(eq(response), any(), eq(NOT_DUPLICATE));
+    }
+
+    @Test
     void shouldEvaluateClaimForGivenPaymentCycle() {
         //Given
         PaymentCycle paymentCycle = aValidPaymentCycle();
@@ -213,7 +236,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithExpiredEligibilityOverride() {
         //Given
-        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate.now()));
+        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityForPregnantTeenager(LocalDate.now()));
         PaymentCycle paymentCycle = aPaymentCycleWithStartDateAndClaim(LocalDate.now(), claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);

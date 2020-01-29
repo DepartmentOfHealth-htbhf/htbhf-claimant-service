@@ -1,13 +1,15 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
-import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
 
 public class EligibilityOverrideTestDataFactory {
 
@@ -25,16 +27,17 @@ public class EligibilityOverrideTestDataFactory {
                 .build();
     }
 
-    public static EligibilityOverride aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate overrideUntil) {
+    public static EligibilityOverride aConfirmedEligibilityForPregnantTeenager(LocalDate overrideUntil) {
         return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(overrideUntil)
                 .childrenDob(NO_CHILDREN)
+                .qualifyingBenefits(UNDER_18)
                 .build();
     }
 
     public static EligibilityOverride aNotConfirmedEligibilityOverride() {
         return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
+                .eligibilityOutcome(NOT_CONFIRMED)
                 .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
                 .childrenDob(NO_CHILDREN)
                 .build();
@@ -42,6 +45,6 @@ public class EligibilityOverrideTestDataFactory {
 
     private static EligibilityOverride.EligibilityOverrideBuilder aConfirmedEligibilityOverrideBuilder() {
         return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED);
+                .eligibilityOutcome(CONFIRMED);
     }
 }

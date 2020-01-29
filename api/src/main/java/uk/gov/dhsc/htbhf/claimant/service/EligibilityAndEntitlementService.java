@@ -115,6 +115,7 @@ public class EligibilityAndEntitlementService {
                 .emailAddressMatch(matchOutcome)
                 .mobilePhoneMatch(matchOutcome)
                 .postcodeMatch(matchOutcome)
+                .qualifyingBenefits(eligibilityOverride.getQualifyingBenefits())
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .build();
     }

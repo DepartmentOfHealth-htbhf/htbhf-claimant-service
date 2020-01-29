@@ -2,12 +2,11 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +29,10 @@ public class EligibilityOverride {
     @NotNull
     @JsonProperty("overrideUntil")
     private LocalDate overrideUntil;
+
+    @JsonProperty("qualifyingBenefits")
+    @Enumerated(EnumType.STRING)
+    private QualifyingBenefits qualifyingBenefits;
 
     @NotNull
     @JsonProperty("childrenDob")
