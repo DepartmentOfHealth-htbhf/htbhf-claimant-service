@@ -2,7 +2,6 @@ package uk.gov.dhsc.htbhf.claimant.entity;
 
 import lombok.*;
 import org.hibernate.annotations.Type;
-import uk.gov.dhsc.htbhf.claimant.entity.constraint.ValidEligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
@@ -91,7 +90,7 @@ public class Claim extends VersionedEntity {
     @NotNull
     private Claimant claimant;
 
-    @ValidEligibilityOverride(message = "Must be either null or have all fields populated")
+    @Valid
     @Column(name  = "eligibility_override")
     @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
