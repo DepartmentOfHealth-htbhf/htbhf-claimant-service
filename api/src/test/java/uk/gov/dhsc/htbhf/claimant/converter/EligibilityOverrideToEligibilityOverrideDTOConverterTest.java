@@ -11,6 +11,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_TWENTY_NINE_WEEKS;
 import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
 
 class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
@@ -35,7 +36,7 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
     @Test
     void shouldConvertEligibilityOverrideForUnder18PregnantToEligibilityOverrideDTO() {
         //Given
-        EligibilityOverride eligibilityOverride = aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_FIVE_YEARS);
+        EligibilityOverride eligibilityOverride = aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
 
         //When
         EligibilityOverrideDTO result = converter.convert(eligibilityOverride);
@@ -44,7 +45,7 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
         assertThat(result).isNotNull();
         assertThat(result.getEligibilityOutcome()).isEqualTo(EligibilityOutcome.CONFIRMED);
         assertThat(result.getChildrenDob()).isEqualTo(NO_CHILDREN);
-        assertThat(result.getOverrideUntil()).isEqualTo(OVERRIDE_UNTIL_FIVE_YEARS);
+        assertThat(result.getOverrideUntil()).isEqualTo(OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
         assertThat(result.getQualifyingBenefits()).isEqualTo(UNDER_18);
     }
 

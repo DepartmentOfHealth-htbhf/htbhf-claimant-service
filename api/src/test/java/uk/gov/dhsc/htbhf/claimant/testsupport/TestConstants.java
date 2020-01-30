@@ -29,6 +29,7 @@ public class TestConstants {
     public static final String TEST_EXCEPTION_MESSAGE = "test exception";
     public static final RuntimeException TEST_EXCEPTION = new RuntimeException(TEST_EXCEPTION_MESSAGE);
     public static final LocalDate OVERRIDE_UNTIL_FIVE_YEARS = LocalDate.now().plusYears(5);
+    public static final LocalDate OVERRIDE_UNTIL_TWENTY_NINE_WEEKS = LocalDate.now().plusYears(29);
     public static final List<LocalDate> CHILD_BORN_IN_FUTURE = singletonList(LocalDate.now().plusDays(1));
 
 }

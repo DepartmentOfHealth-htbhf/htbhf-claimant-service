@@ -53,6 +53,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_TWENTY_NINE_WEEKS;
 
 /**
  * Runs a claim through the entire lifecycle, preforming (limited) tests at each payment cycle to confirm the correct
@@ -499,7 +500,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(
                 expectedDeliveryDate,
                 EligibilityOutcome.CONFIRMED,
-                OVERRIDE_UNTIL_FIVE_YEARS);
+                OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
 
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
