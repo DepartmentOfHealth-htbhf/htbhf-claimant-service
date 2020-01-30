@@ -70,7 +70,7 @@ class UpcomingBirthdayEmailHandlerTest {
         //This entitlement specifically has no vouchers for 1-4 year olds.
         List<LocalDate> childrensDob = List.of(UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
-        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = buildPaymentCycle(childrensDob);
         given(emailMessagePayloadFactory.createCommonEmailPersonalisationMap(any(), any())).willReturn(new HashMap<>(COMMON_EMAIL_MAP));
 
@@ -80,7 +80,8 @@ class UpcomingBirthdayEmailHandlerTest {
                 NOT_PREGNANT,
                 childrensDob,
                 START_OF_NEXT_CYCLE,
-                paymentCycle.getVoucherEntitlement()
+                paymentCycle.getVoucherEntitlement(),
+                null
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
@@ -110,7 +111,7 @@ class UpcomingBirthdayEmailHandlerTest {
         List<LocalDate> childrensDob = List.of(
                 UNDER_ONE_ALL_OF_NEXT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE, TURNS_FOUR_ON_DAY_ONE_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
-        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = buildPaymentCycle(childrensDob);
         given(emailMessagePayloadFactory.createCommonEmailPersonalisationMap(any(), any())).willReturn(new HashMap<>(COMMON_EMAIL_MAP));
 
@@ -120,7 +121,8 @@ class UpcomingBirthdayEmailHandlerTest {
                 NOT_PREGNANT,
                 childrensDob,
                 START_OF_NEXT_CYCLE,
-                paymentCycle.getVoucherEntitlement()
+                paymentCycle.getVoucherEntitlement(),
+                null
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
@@ -133,7 +135,7 @@ class UpcomingBirthdayEmailHandlerTest {
         NextPaymentCycleSummary nextPaymentCycleSummary = NextPaymentCycleSummary.builder().numberOfChildrenTurningOne(1).build();
         List<LocalDate> childrensDob = List.of(TURNS_ONE_ON_DAY_OF_NEXT_PAYMENT_CYCLE);
         PaymentCycleVoucherEntitlement nextEntitlement = aPaymentCycleVoucherEntitlementMatchingChildren(START_OF_NEXT_CYCLE, childrensDob);
-        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any())).willReturn(nextEntitlement);
+        given(paymentCycleEntitlementCalculator.calculateEntitlement(any(), any(), any(), any(), any())).willReturn(nextEntitlement);
         PaymentCycle paymentCycle = buildPaymentCycle(childrensDob);
         given(emailMessagePayloadFactory.createCommonEmailPersonalisationMap(any(), any())).willReturn(new HashMap<>(COMMON_EMAIL_MAP));
 
@@ -143,7 +145,8 @@ class UpcomingBirthdayEmailHandlerTest {
                 NOT_PREGNANT,
                 childrensDob,
                 START_OF_NEXT_CYCLE,
-                paymentCycle.getVoucherEntitlement()
+                paymentCycle.getVoucherEntitlement(),
+                null
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));

@@ -1,7 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,7 +206,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      * |.......................| email asking claimant to tell their benefit agency about new child
      * |...............................................| email that the card will be cancelled in one week
      */
-    @Disabled("AFHS-1838 disabled until different pregnancy grace period implemented for under 18")
     @Test
     void shouldProcessClaimWithEligibilityOverrideForUnder18Pregnant()
             throws JsonProcessingException, NotificationClientException {
@@ -217,7 +215,8 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // claimant's due date is in 25 weeks time. After 6 cycles (24 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
-        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 6);
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 5);
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThatReportABirthReminderEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);

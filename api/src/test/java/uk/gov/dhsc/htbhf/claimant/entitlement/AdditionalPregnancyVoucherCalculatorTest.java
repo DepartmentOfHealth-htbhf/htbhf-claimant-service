@@ -59,14 +59,14 @@ class AdditionalPregnancyVoucherCalculatorTest {
         LocalDate paymentCycleStartDate = LocalDate.now();
         LocalDate paymentCycleEndDate = paymentCycleStartDate.plusDays(NUMBER_OF_CALCULATION_PERIODS * ENTITLEMENT_CALCULATION_DURATION);
         LocalDate claimUpdatedDate = paymentCycleStartDate.plusDays(daysAfterStartOfCycle);
-        lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).thenReturn(true);
+        lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).thenReturn(true);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(paymentCycleStartDate, paymentCycleEndDate);
 
-        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate);
+        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate, null);
 
         assertThat(result).isEqualTo(expectedNumberOfVouchers);
         ArgumentCaptor<LocalDate> argumentCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        verify(pregnancyEntitlementCalculator, times(expectedNumberOfVouchers)).isEntitledToVoucher(eq(expectedDueDate), argumentCaptor.capture());
+        verify(pregnancyEntitlementCalculator, times(expectedNumberOfVouchers)).isEntitledToVoucher(eq(expectedDueDate), argumentCaptor.capture(), eq(null));
         List<LocalDate> entitlementDates = argumentCaptor.getAllValues();
         assertThat(entitlementDates).hasSize(expectedNumberOfVouchers / VOUCHERS_PER_PREGNANCY);
     }
@@ -83,7 +83,7 @@ class AdditionalPregnancyVoucherCalculatorTest {
                 .voucherEntitlement(null)
                 .build();
 
-        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate);
+        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate, null);
 
         assertThat(result).isEqualTo(0);
         verifyNoInteractions(pregnancyEntitlementCalculator);

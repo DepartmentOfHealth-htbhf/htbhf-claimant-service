@@ -61,7 +61,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
             return COMPLETED;
         }
 
-        int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle);
+        int paymentAmountInPence = calculatePaymentAmountInPence(message, context, paymentCycle.get());
         if (paymentAmountInPence > 0) {
             paymentService.makePayment(paymentCycle.get(), paymentAmountInPence, TOP_UP_PAYMENT);
             reportPaymentMessageSender.sendReportPregnancyTopUpPaymentMessage(paymentCycle.get().getClaim(), paymentCycle.get(), paymentAmountInPence);
@@ -74,10 +74,14 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         return paymentCycle.get().getVoucherEntitlement().getVouchersForPregnancy() > 0;
     }
 
-    private int calculatePaymentAmountInPence(Message message, AdditionalPregnancyPaymentMessageContext context, Optional<PaymentCycle> paymentCycle) {
+    private int calculatePaymentAmountInPence(Message message, AdditionalPregnancyPaymentMessageContext context, PaymentCycle paymentCycle) {
         LocalDate expectedDeliveryDate = context.getClaim().getClaimant().getExpectedDeliveryDate();
         LocalDate claimUpdatedDate = message.getCreatedTimestamp().toLocalDate();
-        int numberOfVouchers = additionalPregnancyVoucherCalculator.getAdditionalPregnancyVouchers(expectedDeliveryDate, paymentCycle.get(), claimUpdatedDate);
+        int numberOfVouchers = additionalPregnancyVoucherCalculator.getAdditionalPregnancyVouchers(
+                expectedDeliveryDate,
+                paymentCycle,
+                claimUpdatedDate,
+                paymentCycle.getClaim().getEligibilityOverride());
         return voucherValueInPence * numberOfVouchers;
     }
 

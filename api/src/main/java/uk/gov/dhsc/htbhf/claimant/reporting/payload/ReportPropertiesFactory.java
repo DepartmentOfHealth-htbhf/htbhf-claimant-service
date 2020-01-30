@@ -89,7 +89,7 @@ public abstract class ReportPropertiesFactory {
         List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, identityAndEligibilityResponse);
 
         ClaimantCategory claimantCategory = claimantCategoryCalculator
-                .determineClaimantCategory(claim.getClaimant(), dobOfChildrenUnder4, context.getTimestamp().toLocalDate());
+                .determineClaimantCategory(claim.getClaimant(), dobOfChildrenUnder4, context.getTimestamp().toLocalDate(), claim.getEligibilityOverride());
 
         customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
         PostcodeData postcodeData = claim.getPostcodeData();

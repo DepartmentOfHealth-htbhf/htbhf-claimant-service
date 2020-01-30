@@ -134,7 +134,8 @@ public class UpcomingBirthdayEmailHandler {
                 Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),
                 currentPaymentCycle.getChildrenDob(),
                 nextCycleStartDate,
-                currentPaymentCycle.getVoucherEntitlement());
+                currentPaymentCycle.getVoucherEntitlement(),
+                currentPaymentCycle.getClaim().getEligibilityOverride());
     }
 
 }

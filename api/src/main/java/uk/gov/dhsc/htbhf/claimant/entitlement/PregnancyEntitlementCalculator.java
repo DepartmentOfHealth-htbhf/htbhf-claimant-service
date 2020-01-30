@@ -2,9 +2,12 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 
 import java.time.LocalDate;
+
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
 
 /**
  * Responsible for deciding whether a claimant is entitled to a voucher for pregnancy,
@@ -16,21 +19,31 @@ public class PregnancyEntitlementCalculator {
 
     private final int pregnancyGracePeriodInWeeks;
     private final int paymentCycleDurationInDays;
+    private final int under18PregnancyGracePeriodInWeeks;
 
     public PregnancyEntitlementCalculator(@Value("${entitlement.pregnancy-grace-period-in-weeks}") int pregnancyGracePeriodInWeeks,
-                                          @Value("${payment-cycle.cycle-duration-in-days}") int paymentCycleDurationInDays) {
+                                          @Value("${payment-cycle.cycle-duration-in-days}") int paymentCycleDurationInDays,
+                                          @Value("${entitlement.under-eighteen-pregnancy-grace-period-in-weeks}") int under18PregnancyGracePeriodInWeeks) {
         this.pregnancyGracePeriodInWeeks = pregnancyGracePeriodInWeeks;
         this.paymentCycleDurationInDays = paymentCycleDurationInDays;
+        this.under18PregnancyGracePeriodInWeeks = under18PregnancyGracePeriodInWeeks;
     }
 
-    public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate) {
+    public boolean isEntitledToVoucher(LocalDate dueDate, LocalDate entitlementDate, EligibilityOverride eligibilityOverride) {
         if (entitlementDate == null) {
             throw new IllegalArgumentException("entitlementDate must not be null");
         }
         if (dueDate == null) {
             return false;
         }
-        LocalDate endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);
+
+        LocalDate endOfGracePeriod;
+        if (eligibilityOverride != null && eligibilityOverride.getQualifyingBenefits() == UNDER_18) {
+            endOfGracePeriod = dueDate.plusWeeks(under18PregnancyGracePeriodInWeeks);
+        } else {
+            endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);
+        }
+
         return !endOfGracePeriod.isBefore(entitlementDate);
     }
 
@@ -51,12 +64,12 @@ public class PregnancyEntitlementCalculator {
     public boolean currentCycleIsSecondToLastCycleWithPregnancyVouchers(PaymentCycle currentPaymentCycle) {
         LocalDate expectedDeliveryDate = currentPaymentCycle.getExpectedDeliveryDate();
         LocalDate cycleStartDate = currentPaymentCycle.getCycleStartDate();
-
-        boolean entitledToVouchersInCurrentCycle = isEntitledToVoucher(expectedDeliveryDate, cycleStartDate);
+        EligibilityOverride eligibilityOverride = currentPaymentCycle.getClaim().getEligibilityOverride();
+        boolean entitledToVouchersInCurrentCycle = isEntitledToVoucher(expectedDeliveryDate, cycleStartDate, eligibilityOverride);
         LocalDate nextCycleStartDate = cycleStartDate.plusDays(paymentCycleDurationInDays);
-        boolean entitledToVouchersInNextCycle = isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);
+        boolean entitledToVouchersInNextCycle = isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate, eligibilityOverride);
         LocalDate cycleAfterNextStartDate = nextCycleStartDate.plusDays(paymentCycleDurationInDays);
-        boolean entitledToVouchersInCycleAfterNext = isEntitledToVoucher(expectedDeliveryDate, cycleAfterNextStartDate);
+        boolean entitledToVouchersInCycleAfterNext = isEntitledToVoucher(expectedDeliveryDate, cycleAfterNextStartDate, eligibilityOverride);
 
         return entitledToVouchersInCurrentCycle && entitledToVouchersInNextCycle && !entitledToVouchersInCycleAfterNext;
     }
@@ -69,7 +82,7 @@ public class PregnancyEntitlementCalculator {
      * @return true if the claimant's due date is before or equal to the payment cycle start date plus the grace period duration.
      */
     public boolean claimantIsPregnantInCycle(PaymentCycle paymentCycle) {
-        return isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate());
+        return isEntitledToVoucher(paymentCycle.getExpectedDeliveryDate(), paymentCycle.getCycleStartDate(), paymentCycle.getClaim().getEligibilityOverride());
     }
     
     /**
@@ -82,7 +95,7 @@ public class PregnancyEntitlementCalculator {
     public boolean claimantIsPregnantAfterCycle(PaymentCycle paymentCycle) {
         LocalDate expectedDeliveryDate = paymentCycle.getExpectedDeliveryDate();
         LocalDate nextCycleStartDate = paymentCycle.getCycleEndDate().plusDays(1);
-        return isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate);
+        return isEntitledToVoucher(expectedDeliveryDate, nextCycleStartDate, paymentCycle.getClaim().getEligibilityOverride());
     }
 
 }

@@ -61,13 +61,13 @@ class ClaimantCategoryCalculatorTest {
                 .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
                 .dateOfBirth(LocalDate.now().minus(Period.parse(age)))
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).willReturn(true);
         LocalDate atDate = LocalDate.now();
 
-        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, NO_CHILDREN, atDate);
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, NO_CHILDREN, atDate, null);
 
         assertThat(claimantCategory).isEqualTo(expectedCategory);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, atDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, atDate, null);
     }
 
     @Test
@@ -78,13 +78,13 @@ class ClaimantCategoryCalculatorTest {
                 .expectedDeliveryDate(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS)
                 .dateOfBirth(TWENTY_YEAR_OLD)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(true);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).willReturn(true);
         given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
 
-        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, datesOfBirthOfChildren, atDate);
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, datesOfBirthOfChildren, atDate, null);
 
         assertThat(claimantCategory).isEqualTo(PREGNANT_WITH_CHILDREN);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, atDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, atDate, null);
         verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate);
     }
 
@@ -96,13 +96,13 @@ class ClaimantCategoryCalculatorTest {
                 .expectedDeliveryDate(NOT_PREGNANT)
                 .dateOfBirth(TWENTY_YEAR_OLD)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).willReturn(false);
         given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(true);
 
-        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, datesOfBirthOfChildren, atDate);
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, datesOfBirthOfChildren, atDate, null);
 
         assertThat(claimantCategory).isEqualTo(NOT_PREGNANT_WITH_CHILDREN);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, atDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, atDate, null);
         verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(datesOfBirthOfChildren, atDate);
     }
 
@@ -113,13 +113,13 @@ class ClaimantCategoryCalculatorTest {
                 .expectedDeliveryDate(NOT_PREGNANT)
                 .dateOfBirth(TWENTY_YEAR_OLD)
                 .build();
-        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any())).willReturn(false);
+        given(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).willReturn(false);
         given(childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(any(), any())).willReturn(false);
 
-        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, NO_CHILDREN, atDate);
+        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(claimant, NO_CHILDREN, atDate, null);
 
         assertThat(claimantCategory).isEqualTo(NOT_PREGNANT_WITH_NO_CHILDREN);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, atDate);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(NOT_PREGNANT, atDate, null);
         verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(NO_CHILDREN, atDate);
     }
 }

@@ -5,7 +5,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
+import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -15,18 +17,23 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDateAndClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 class PregnancyEntitlementCalculatorTest {
 
     private static final int PREGNANCY_GRACE_PERIOD_IN_WEEKS = 12;
     private static final int PAYMENT_CYCLE_DURATION_IN_DAYS = 28;
+    private static final int UNDER_EIGHTEEN_PREGNANCY_GRACE_PERIOD_IN_WEEKS = 4;
 
-    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(PREGNANCY_GRACE_PERIOD_IN_WEEKS, PAYMENT_CYCLE_DURATION_IN_DAYS);
+    private PregnancyEntitlementCalculator calculator = new PregnancyEntitlementCalculator(
+            PREGNANCY_GRACE_PERIOD_IN_WEEKS,
+            PAYMENT_CYCLE_DURATION_IN_DAYS,
+            UNDER_EIGHTEEN_PREGNANCY_GRACE_PERIOD_IN_WEEKS);
 
     @ParameterizedTest
     @MethodSource("isEntitledToVoucherArguments")
     void shouldReturnTrueWhenClaimantIsEntitledToVoucher(LocalDate entitlementDate, LocalDate dueDate) {
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, null);
 
         assertThat(result).isTrue();
     }
@@ -41,25 +48,45 @@ class PregnancyEntitlementCalculatorTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("isUnder18PregnantEntitledToVoucherArguments")
+    void shouldReturnTrueWhenUnder18PregnantClaimantIsEntitledToVoucher(LocalDate entitlementDate, LocalDate dueDate) {
+        EligibilityOverride eligibilityOverride = EligibilityOverrideTestDataFactory.aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_FIVE_YEARS);
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, eligibilityOverride);
+
+        assertThat(result).isTrue();
+    }
+
+    private static Stream<Arguments> isUnder18PregnantEntitledToVoucherArguments() {
+        LocalDate today = LocalDate.now();
+        return Stream.of(
+                Arguments.of(today, today.plusWeeks(1)),
+                Arguments.of(today, today),
+                Arguments.of(today, today.minusWeeks(1)),
+                Arguments.of(today, today.minusWeeks(UNDER_EIGHTEEN_PREGNANCY_GRACE_PERIOD_IN_WEEKS))
+        );
+    }
+
     @Test
     void shouldReturnFalseForDueDateMoreThanGracePeriodWeeksAgo() {
         LocalDate entitlementDate = LocalDate.now();
         LocalDate dueDate = entitlementDate.minusWeeks(PREGNANCY_GRACE_PERIOD_IN_WEEKS + 1);
 
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, null);
 
         assertThat(result).isFalse();
     }
 
     @Test
     void shouldReturnFalseForNullDueDate() {
-        boolean result = calculator.isEntitledToVoucher(null, LocalDate.now());
+        boolean result = calculator.isEntitledToVoucher(null, LocalDate.now(), null);
         assertThat(result).isFalse();
     }
 
     @Test
     void shouldThrowExceptionWhenEntitlementDateIsNull() {
-        IllegalArgumentException thrown = catchThrowableOfType(() -> calculator.isEntitledToVoucher(LocalDate.now(), null), IllegalArgumentException.class);
+        IllegalArgumentException thrown = catchThrowableOfType(() ->
+                calculator.isEntitledToVoucher(LocalDate.now(), null, null), IllegalArgumentException.class);
 
         assertThat(thrown.getMessage()).isEqualTo("entitlementDate must not be null");
     }
@@ -90,7 +117,7 @@ class PregnancyEntitlementCalculatorTest {
     @ParameterizedTest
     @MethodSource("isPregnantInPaymentCycle")
     void shouldReturnTrueWhenClaimantIsPregnantInPaymentCycle(LocalDate entitlementDate, LocalDate dueDate) {
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate);
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, null);
 
         assertThat(result).isTrue();
     }

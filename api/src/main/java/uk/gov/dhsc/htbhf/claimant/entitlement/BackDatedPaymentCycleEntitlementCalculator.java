@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -41,21 +42,28 @@ public class BackDatedPaymentCycleEntitlementCalculator {
      * @param expectedDueDate         expected due date
      * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
      * @param cycleStartDate          the start date of the payment cycle
+     * @param eligibilityOverride     overrides the reason that this applicant qualifies for Healthy Start
      * @return the number of back dated vouchers the claimant is entitled to
      */
-    public int calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths, LocalDate cycleStartDate) {
+    public int calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate,
+                                          List<LocalDate> newChildrenDateOfBirths,
+                                          LocalDate cycleStartDate,
+                                          EligibilityOverride eligibilityOverride) {
         List<LocalDate> backDatedEntitlementDates = getBackDatedEntitlementDates(newChildrenDateOfBirths, cycleStartDate);
-        int vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates);
-        int vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates);
+        int vouchersForChildren = calculateNumberOfVouchers(Optional.empty(), newChildrenDateOfBirths, backDatedEntitlementDates, eligibilityOverride);
+        int vouchersFromPregnancy = calculateNumberOfVouchers(expectedDueDate, emptyList(), backDatedEntitlementDates, eligibilityOverride);
 
         int backDatedVouchers = vouchersForChildren - vouchersFromPregnancy;
         // do not return negative vouchers
         return Math.max(backDatedVouchers, 0);
     }
 
-    private int calculateNumberOfVouchers(Optional<LocalDate> expectedDueDate, List<LocalDate> newChildrenDateOfBirths, List<LocalDate> entitlementDates) {
+    private int calculateNumberOfVouchers(Optional<LocalDate> expectedDueDate,
+                                          List<LocalDate> newChildrenDateOfBirths,
+                                          List<LocalDate> entitlementDates,
+                                          EligibilityOverride eligibilityOverride) {
         return entitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, newChildrenDateOfBirths, date))
+                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, newChildrenDateOfBirths, date, eligibilityOverride))
                 .mapToInt(VoucherEntitlement::getTotalVoucherEntitlement)
                 .sum();
     }
