@@ -42,10 +42,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaim
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTestDataFactory.anEligibleDecision;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityForPregnantTeenager;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aNotConfirmedEligibilityOverride;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartDateAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
@@ -169,7 +166,7 @@ class EligibilityAndEntitlementServiceTest {
 
         //When
         EligibilityAndEntitlementDecision result
-                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityForPregnantTeenager(OVERRIDE_UNTIL_FIVE_YEARS));
+                = eligibilityAndEntitlementService.evaluateNewClaimant(CLAIMANT, aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_FIVE_YEARS));
 
         //Then
         CombinedIdentityAndEligibilityResponse response =
@@ -236,7 +233,7 @@ class EligibilityAndEntitlementServiceTest {
     @Test
     void shouldEvaluateClaimForGivenPaymentCycleWithExpiredEligibilityOverride() {
         //Given
-        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityForPregnantTeenager(LocalDate.now()));
+        Claim claim = aClaimWithEligibilityOverride(aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate.now()));
         PaymentCycle paymentCycle = aPaymentCycleWithStartDateAndClaim(LocalDate.now(), claim);
         EligibilityAndEntitlementDecision decision = anEligibleDecision();
         given(client.checkIdentityAndEligibility(any())).willReturn(IDENTITY_AND_ELIGIBILITY_RESPONSE);

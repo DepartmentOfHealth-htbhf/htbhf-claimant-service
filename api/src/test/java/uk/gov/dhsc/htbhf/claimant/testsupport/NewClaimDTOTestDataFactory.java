@@ -67,9 +67,9 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
     }
 
-    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideForPregnantTeenager(LocalDate expectedDeliveryDate,
-                                                                                       EligibilityOutcome eligibilityOutcome,
-                                                                                       LocalDate overrideUntil) {
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(LocalDate expectedDeliveryDate,
+                                                                                      EligibilityOutcome eligibilityOutcome,
+                                                                                      LocalDate overrideUntil) {
         EligibilityOverrideDTO eligibilityOverride = getEligibilityOverrideDTOBuilder(NO_CHILDREN, eligibilityOutcome, overrideUntil)
                 .qualifyingBenefits(QualifyingBenefits.UNDER_18)
                 .build();

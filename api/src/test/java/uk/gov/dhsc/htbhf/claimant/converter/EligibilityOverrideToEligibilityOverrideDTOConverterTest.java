@@ -8,7 +8,7 @@ import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityForPregnantTeenager;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
@@ -33,9 +33,9 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
     }
 
     @Test
-    void shouldConvertEligibilityOverrideForPregnantTeenagerToEligibilityOverrideDTO() {
+    void shouldConvertEligibilityOverrideForUnder18PregnantToEligibilityOverrideDTO() {
         //Given
-        EligibilityOverride eligibilityOverride = aConfirmedEligibilityForPregnantTeenager(OVERRIDE_UNTIL_FIVE_YEARS);
+        EligibilityOverride eligibilityOverride = aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_FIVE_YEARS);
 
         //When
         EligibilityOverrideDTO result = converter.convert(eligibilityOverride);

@@ -48,7 +48,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideForPregnantTeenager;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
@@ -198,7 +198,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     /**
-     * Run through the lifecycle of a claim where a claimant (teenager) becomes pregnant but no children ever appear on the feed.
+     * Run through the lifecycle of a claim where a claimant (under 18) becomes pregnant but no children ever appear on the feed.
      * Under 18's are entitled to payments for only 4 weeks after the due date.
      * |...|...|...|...|...|...|...|...|...|...|...|...|...|
      * | claim starts (due date in 25 weeks)
@@ -208,10 +208,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
      */
     @Disabled("AFHS-1838 disabled until different pregnancy grace period implemented for under 18")
     @Test
-    void shouldProcessClaimWithEligibilityOverrideForPregnantTeenager()
+    void shouldProcessClaimWithEligibilityOverrideForUnder18Pregnant()
             throws JsonProcessingException, NotificationClientException {
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
-        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantTeenager(expectedDeliveryDate);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForUnder18Pregnant(expectedDeliveryDate);
         assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
 
         // claimant's due date is in 25 weeks time. After 6 cycles (24 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
@@ -494,9 +494,9 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
-    private UUID applyForHealthyStartOverridingEligibilityForAPregnantTeenager(LocalDate expectedDeliveryDate)
+    private UUID applyForHealthyStartOverridingEligibilityForUnder18Pregnant(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
-        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideForPregnantTeenager(
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(
                 expectedDeliveryDate,
                 EligibilityOutcome.CONFIRMED,
                 OVERRIDE_UNTIL_FIVE_YEARS);

@@ -14,9 +14,7 @@ import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
 public class EligibilityOverrideTestDataFactory {
 
     public static EligibilityOverride aConfirmedEligibilityOverrideWithNoChildren() {
-        return aConfirmedEligibilityOverrideBuilder()
-                .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
-                .childrenDob(NO_CHILDREN)
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(OVERRIDE_UNTIL_FIVE_YEARS)
                 .build();
     }
 
@@ -27,10 +25,19 @@ public class EligibilityOverrideTestDataFactory {
                 .build();
     }
 
-    public static EligibilityOverride aConfirmedEligibilityForPregnantTeenager(LocalDate overrideUntil) {
+    public static EligibilityOverride aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate overrideUntil) {
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(overrideUntil)
+                .build();
+    }
+
+    private static EligibilityOverride.EligibilityOverrideBuilder aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(LocalDate overrideUntil) {
         return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(overrideUntil)
-                .childrenDob(NO_CHILDREN)
+                .childrenDob(NO_CHILDREN);
+    }
+
+    public static EligibilityOverride aConfirmedEligibilityForUnder18Pregnant(LocalDate overrideUntil) {
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(overrideUntil)
                 .qualifyingBenefits(UNDER_18)
                 .build();
     }
