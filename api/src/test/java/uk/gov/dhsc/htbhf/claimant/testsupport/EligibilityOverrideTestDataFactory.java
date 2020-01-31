@@ -1,20 +1,20 @@
 package uk.gov.dhsc.htbhf.claimant.testsupport;
 
 import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
-import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.NOT_CONFIRMED;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNDER_18;
 
 public class EligibilityOverrideTestDataFactory {
 
     public static EligibilityOverride aConfirmedEligibilityOverrideWithNoChildren() {
-        return aConfirmedEligibilityOverrideBuilder()
-                .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
-                .childrenDob(NO_CHILDREN)
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(OVERRIDE_UNTIL_FIVE_YEARS)
                 .build();
     }
 
@@ -26,15 +26,25 @@ public class EligibilityOverrideTestDataFactory {
     }
 
     public static EligibilityOverride aConfirmedEligibilityWithNoChildrenOverriddenUntil(LocalDate overrideUntil) {
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(overrideUntil)
+                .build();
+    }
+
+    private static EligibilityOverride.EligibilityOverrideBuilder aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(LocalDate overrideUntil) {
         return aConfirmedEligibilityOverrideBuilder()
                 .overrideUntil(overrideUntil)
-                .childrenDob(NO_CHILDREN)
+                .childrenDob(NO_CHILDREN);
+    }
+
+    public static EligibilityOverride aConfirmedEligibilityForUnder18Pregnant(LocalDate overrideUntil) {
+        return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(overrideUntil)
+                .qualifyingReason(UNDER_18)
                 .build();
     }
 
     public static EligibilityOverride aNotConfirmedEligibilityOverride() {
         return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.NOT_CONFIRMED)
+                .eligibilityOutcome(NOT_CONFIRMED)
                 .overrideUntil(OVERRIDE_UNTIL_FIVE_YEARS)
                 .childrenDob(NO_CHILDREN)
                 .build();
@@ -42,6 +52,6 @@ public class EligibilityOverrideTestDataFactory {
 
     private static EligibilityOverride.EligibilityOverrideBuilder aConfirmedEligibilityOverrideBuilder() {
         return EligibilityOverride.builder()
-                .eligibilityOutcome(EligibilityOutcome.CONFIRMED);
+                .eligibilityOutcome(CONFIRMED);
     }
 }

@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static uk.gov.dhsc.htbhf.TestConstants.*;
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
+import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
+import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
 import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.CHILD_TURNS_ONE;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PAYMENT_STOPPING;
@@ -45,10 +48,12 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_TWENTY_NINE_WEEKS;
 
 /**
  * Runs a claim through the entire lifecycle, preforming (limited) tests at each payment cycle to confirm the correct
@@ -189,6 +194,40 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+        progressClaimThroughExpiry(claimId);
+
+    }
+
+    /**
+     * Run through the lifecycle of a claim where a claimant (under 18) becomes pregnant but no children ever appear on the feed.
+     * Under 18's are entitled to payments for only 4 weeks after the due date.
+     * |...|...|...|...|...|...|...|...|...|...|...|...|...|
+     * | claim starts (due date in 25 weeks)
+     * |........................| Due date
+     * |.......................| email asking claimant to tell their benefit agency about new child
+     * |...............................................| email that the card will be cancelled in one week
+     */
+    @Disabled("AFHS-1838 disabled until different pregnancy grace period implemented for under 18")
+    @Test
+    void shouldProcessClaimWithEligibilityOverrideForUnder18Pregnant()
+            throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForUnder18Pregnant(expectedDeliveryDate);
+        assertFirstCyclePaidCorrectlyWithInstantSuccessEmail(claimId, NO_CHILDREN);
+
+        // claimant's due date is in 25 weeks time. After 6 cycles (24 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
+        // to contact their benefit agency about a new child.
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 6);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThatReportABirthReminderEmailWasSent(claim);
+        verifyNoMoreInteractions(notificationClient);
+
+        // claim should be active for 28 weeks now as seven cycles have passed. This is the final cycle that they are eligible for vouchers
+        progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
+        verifyNoMoreInteractions(notificationClient);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(28));
         progressClaimThroughExpiry(claimId);
 
     }
@@ -455,6 +494,17 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
                 OVERRIDE_UNTIL_FIVE_YEARS);
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
+
+    private UUID applyForHealthyStartOverridingEligibilityForUnder18Pregnant(LocalDate expectedDeliveryDate)
+            throws JsonProcessingException, NotificationClientException {
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(
+                expectedDeliveryDate,
+                EligibilityOutcome.CONFIRMED,
+                OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
+
+        return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
+    }
+
 
     private UUID applyForHealthyStartOverridingEligibilityAsNonPregnantWomanWithChildren(List<LocalDate> datesOfBirthOfChildren, LocalDate overrideUntil)
             throws JsonProcessingException, NotificationClientException {

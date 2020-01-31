@@ -8,6 +8,7 @@ import lombok.Data;
 import org.hibernate.annotations.Type;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +31,10 @@ public class EligibilityOverride {
     @NotNull
     @JsonProperty("overrideUntil")
     private LocalDate overrideUntil;
+
+    @JsonProperty("qualifyingReason")
+    @Enumerated(EnumType.STRING)
+    private QualifyingReason qualifyingReason;
 
     @NotNull
     @JsonProperty("childrenDob")

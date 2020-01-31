@@ -4,11 +4,13 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.EligibilityOverrideDTO;
 import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithCounty;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.*;
 
@@ -50,10 +52,7 @@ public final class NewClaimDTOTestDataFactory {
                                                                     List<LocalDate> childrenDob,
                                                                     EligibilityOutcome eligibilityOutcome,
                                                                     LocalDate overrideUntil) {
-        EligibilityOverrideDTO  eligibilityOverride = EligibilityOverrideDTO.builder()
-                .eligibilityOutcome(eligibilityOutcome)
-                .overrideUntil(overrideUntil)
-                .childrenDob(childrenDob)
+        EligibilityOverrideDTO eligibilityOverride = getEligibilityOverrideDTOBuilder(childrenDob, eligibilityOutcome, overrideUntil)
                 .build();
 
         return aClaimDTOBuilder()
@@ -66,6 +65,28 @@ public final class NewClaimDTOTestDataFactory {
         return aClaimDTOBuilder()
                 .eligibilityOverride(eligibilityOverrideDTO)
                 .build();
+    }
+
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(LocalDate expectedDeliveryDate,
+                                                                                      EligibilityOutcome eligibilityOutcome,
+                                                                                      LocalDate overrideUntil) {
+        EligibilityOverrideDTO eligibilityOverride = getEligibilityOverrideDTOBuilder(NO_CHILDREN, eligibilityOutcome, overrideUntil)
+                .qualifyingReason(QualifyingReason.UNDER_18)
+                .build();
+
+        return aClaimDTOBuilder()
+                .claimant(aValidClaimantDTO())
+                .eligibilityOverride(eligibilityOverride)
+                .build();
+    }
+
+    private static EligibilityOverrideDTO.EligibilityOverrideDTOBuilder getEligibilityOverrideDTOBuilder(List<LocalDate> childrenDob,
+                                                                                                         EligibilityOutcome eligibilityOutcome,
+                                                                                                         LocalDate overrideUntil) {
+        return EligibilityOverrideDTO.builder()
+                .eligibilityOutcome(eligibilityOutcome)
+                .overrideUntil(overrideUntil)
+                .childrenDob(childrenDob);
     }
 
     public static NewClaimDTO aClaimDTOWithClaimant(ClaimantDTO claimant) {
