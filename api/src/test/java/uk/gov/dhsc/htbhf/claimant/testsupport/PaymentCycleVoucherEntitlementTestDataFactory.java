@@ -44,6 +44,16 @@ public class PaymentCycleVoucherEntitlementTestDataFactory {
         );
     }
 
+    public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementMatchingUnder18Pregnancy(
+            LocalDate startDate, LocalDate dueDate) {
+        return buildPaymentCycleVoucherEntitlement(
+                aVoucherEntitlementMatchingUnder18Pregnancy(startDate, dueDate),
+                aVoucherEntitlementMatchingUnder18Pregnancy(startDate.plusWeeks(1), dueDate),
+                aVoucherEntitlementMatchingUnder18Pregnancy(startDate.plusWeeks(2), dueDate),
+                aVoucherEntitlementMatchingUnder18Pregnancy(startDate.plusWeeks(3), dueDate)
+        );
+    }
+
     public static PaymentCycleVoucherEntitlement aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild(
             LocalDate startDate, List<LocalDate> childrensDob) {
         LocalDate birthdate = getDateOfBirthOfYoungestChild(childrensDob);

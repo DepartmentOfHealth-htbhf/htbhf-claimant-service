@@ -49,6 +49,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingUnder18Pregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithBackdatedVouchersForYoungestChild;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
@@ -215,14 +216,13 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // claimant's due date is in 25 weeks time. After 6 cycles (24 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
-        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 5);
-        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
+        expectedDeliveryDate = progressThroughPaymentCyclesForUnder18PregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 6);
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThatReportABirthReminderEmailWasSent(claim);
         verifyNoMoreInteractions(notificationClient);
 
         // claim should be active for 28 weeks now as seven cycles have passed. This is the final cycle that they are eligible for vouchers
-        progressThroughPaymentCyclesForPregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
+        progressThroughPaymentCyclesForUnder18PregnancyWithEligibilityOverride(expectedDeliveryDate, claimId, 1);
         verifyNoMoreInteractions(notificationClient);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
@@ -443,6 +443,19 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
     }
 
+    private LocalDate progressThroughPaymentCyclesForUnder18PregnancyWithEligibilityOverride(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
+            throws NotificationClientException {
+        for (int i = 0; i < numCycles; i++) {
+            resetNotificationClient();
+            repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+            wiremockManager.stubGoogleAnalyticsCall();
+            invokeAllSchedulers();
+            assertPaymentCyclePaidCorrectlyForUnder18Pregnant(claimId, REGULAR_PAYMENT);
+            wiremockManager.assertThatNoEligibilityRequestMade();
+        }
+        return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
+    }
+
     private List<LocalDate> progressThroughCycleWithUpcomingBirthday(UUID claimId, List<LocalDate> childrenDob, EmailType emailType)
             throws NotificationClientException, JsonProcessingException {
         resetNotificationClient();
@@ -592,6 +605,15 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
                 datesOfBirthOfChildren);
     }
 
+    private void assertPaymentCyclePaidCorrectlyForUnder18Pregnant(UUID claimId, EmailType emailType) throws NotificationClientException {
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        PaymentCycle paymentCycle = getAndAssertPaymentCycle(claim);
+        assertPaymentHasCorrectAmountForUnder18Pregnant(claim, paymentCycle);
+        assertThatPaymentEmailWasSent(paymentCycle, emailType);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(), NO_CHILDREN);
+    }
+
     private PaymentCycle assertPaymentCyclePaidCorrectly(UUID claimId, List<LocalDate> childrenDob, EmailType emailType) throws NotificationClientException {
         Claim claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
@@ -628,6 +650,16 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Claimant claimant = claim.getClaimant();
         PaymentCycleVoucherEntitlement expectedEntitlement =
                 aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(paymentCycle.getCycleStartDate(), childrenDob, claimant.getExpectedDeliveryDate());
+        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        Payment payment = paymentCycle.getPayments().iterator().next();
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
+    }
+
+    private void assertPaymentHasCorrectAmountForUnder18Pregnant(Claim claim, PaymentCycle paymentCycle) {
+        Claimant claimant = claim.getClaimant();
+        PaymentCycleVoucherEntitlement expectedEntitlement =
+                aPaymentCycleVoucherEntitlementMatchingUnder18Pregnancy(paymentCycle.getCycleStartDate(), claimant.getExpectedDeliveryDate());
         assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         Payment payment = paymentCycle.getPayments().iterator().next();

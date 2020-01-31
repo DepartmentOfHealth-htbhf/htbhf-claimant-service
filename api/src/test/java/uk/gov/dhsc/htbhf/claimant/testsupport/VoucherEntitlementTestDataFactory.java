@@ -71,6 +71,18 @@ public class VoucherEntitlementTestDataFactory {
                 .build();
     }
 
+    public static VoucherEntitlement aVoucherEntitlementMatchingUnder18Pregnancy(
+            LocalDate entitlementDate, LocalDate dueDate) {
+        int pregnancy = dueDate == null || dueDate.plusWeeks(4).isBefore(entitlementDate) ? 0 : 1;
+        return VoucherEntitlement.builder()
+                .singleVoucherValueInPence(VOUCHER_VALUE_IN_PENCE)
+                .vouchersForChildrenUnderOne(0)
+                .vouchersForChildrenBetweenOneAndFour(0)
+                .vouchersForPregnancy(pregnancy)
+                .entitlementDate(entitlementDate)
+                .build();
+    }
+
     public static VoucherEntitlement aVoucherEntitlementWithNoPregnancyVouchers(LocalDate entitlementDate) {
         return aVoucherEntitlementBuilder()
                 .vouchersForPregnancy(0)
