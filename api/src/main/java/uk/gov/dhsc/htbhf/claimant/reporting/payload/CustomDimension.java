@@ -21,7 +21,7 @@ public enum CustomDimension {
     CLINICAL_COMMISSIONING_GROUP(9),
     CLINICAL_COMMISSIONING_GROUP_CODE(10),
     NUMBER_OF_WEEKS_PREGNANT(11),
-    QUALIFYING_BENEFIT(12);
+    QUALIFYING_REASON(12);
 
     private final String fieldName;
 
