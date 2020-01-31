@@ -12,7 +12,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestData
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_TWENTY_NINE_WEEKS;
-import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNDER_18;
 
 class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
 
@@ -46,7 +46,7 @@ class EligibilityOverrideToEligibilityOverrideDTOConverterTest {
         assertThat(result.getEligibilityOutcome()).isEqualTo(EligibilityOutcome.CONFIRMED);
         assertThat(result.getChildrenDob()).isEqualTo(NO_CHILDREN);
         assertThat(result.getOverrideUntil()).isEqualTo(OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
-        assertThat(result.getQualifyingBenefits()).isEqualTo(UNDER_18);
+        assertThat(result.getQualifyingReason()).isEqualTo(UNDER_18);
     }
 
     @Test

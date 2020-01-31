@@ -9,7 +9,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.CONFIRMED;
 import static uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome.NOT_CONFIRMED;
-import static uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits.UNDER_18;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNDER_18;
 
 public class EligibilityOverrideTestDataFactory {
 
@@ -38,7 +38,7 @@ public class EligibilityOverrideTestDataFactory {
 
     public static EligibilityOverride aConfirmedEligibilityForUnder18Pregnant(LocalDate overrideUntil) {
         return aConfirmedEligibilityOverrideWithNoChildrenOverrideUntilBuilder(overrideUntil)
-                .qualifyingBenefits(UNDER_18)
+                .qualifyingReason(UNDER_18)
                 .build();
     }
 
