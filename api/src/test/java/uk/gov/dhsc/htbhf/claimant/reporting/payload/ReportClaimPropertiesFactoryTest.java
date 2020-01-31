@@ -83,7 +83,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
 
         Claim claim = context.getClaim();
         assertThat(reportProperties).contains(
-                entry("cd12", "NOT_SET"), // qualifying benefit
+                entry("cd12", "NOT_SET"), // qualifying reason
                 entry("cm1", "1"), // number of children under one
                 entry("cm2", "0") // number of children between one and four
         );

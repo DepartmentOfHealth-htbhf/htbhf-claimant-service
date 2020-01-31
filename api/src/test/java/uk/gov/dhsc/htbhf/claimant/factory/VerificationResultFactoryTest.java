@@ -39,7 +39,7 @@ class VerificationResultFactoryTest {
         assertThat(result.getMobilePhoneMatch()).isEqualTo(identityAndEligibilityResponse.getMobilePhoneMatch());
         assertThat(result.getPostcodeMatch()).isEqualTo(identityAndEligibilityResponse.getPostcodeMatch());
         assertThat(result.getPregnantChildDOBMatch()).isEqualTo(identityAndEligibilityResponse.getPregnantChildDOBMatch());
-        assertThat(result.getQualifyingBenefits()).isEqualTo(identityAndEligibilityResponse.getQualifyingBenefits());
+        assertThat(result.getQualifyingReason()).isEqualTo(identityAndEligibilityResponse.getQualifyingReason());
     }
 
     @ParameterizedTest
