@@ -77,7 +77,7 @@ public class EligibilityDecisionHandler {
 <span class="fc bfc" id="L77" title="All 2 branches covered.">        if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {</span>
 <span class="fc" id="L78">            expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);</span>
 <span class="fc bfc" id="L79" title="All 2 branches covered.">        } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {</span>
-<span class="fc" id="L80">            handleLossOfQualifyingBenefitStatus(claim, decision.getIdentityAndEligibilityResponse());</span>
+<span class="fc" id="L80">            handleLossOfQualifyingReasonStatus(claim, decision.getIdentityAndEligibilityResponse());</span>
         } else {
 <span class="fc" id="L82">            expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);</span>
 <span class="fc" id="L83">            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);</span>
@@ -109,7 +109,7 @@ public class EligibilityDecisionHandler {
 <span class="fc bfc" id="L109" title="All 2 branches covered.">                &amp;&amp; !childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());</span>
     }
 
-    private void handleLossOfQualifyingBenefitStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private void handleLossOfQualifyingReasonStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
 <span class="fc" id="L113">        updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);</span>
 <span class="fc" id="L114">        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);</span>
 <span class="fc" id="L115">        claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);</span>

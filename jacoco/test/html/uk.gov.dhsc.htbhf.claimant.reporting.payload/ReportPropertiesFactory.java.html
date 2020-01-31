@@ -5,7 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
-import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.Duration;
@@ -100,7 +100,7 @@ public abstract class ReportPropertiesFactory {
 <span class="fc" id="L100">        customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());</span>
 <span class="fc" id="L101">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());</span>
 <span class="fc" id="L102">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());</span>
-<span class="fc" id="L103">        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), getQualifyingBenefits(identityAndEligibilityResponse));</span>
+<span class="fc" id="L103">        customDimensions.put(QUALIFYING_REASON.getFieldName(), getQualifyingReason(identityAndEligibilityResponse));</span>
 
 <span class="fc" id="L105">        return customDimensions;</span>
     }
@@ -111,10 +111,10 @@ public abstract class ReportPropertiesFactory {
 <span class="fc" id="L111">                : identityAndEligibilityResponse.getDobOfChildrenUnder4();</span>
     }
 
-    private QualifyingBenefits getQualifyingBenefits(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private QualifyingReason getQualifyingReason(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
 <span class="fc bfc" id="L115" title="All 2 branches covered.">        return identityAndEligibilityResponse == null</span>
-<span class="fc" id="L116">                ? QualifyingBenefits.NOT_SET</span>
-<span class="fc" id="L117">                : identityAndEligibilityResponse.getQualifyingBenefits();</span>
+<span class="fc" id="L116">                ? QualifyingReason.NOT_SET</span>
+<span class="fc" id="L117">                : identityAndEligibilityResponse.getQualifyingReason();</span>
     }
 
     protected Map&lt;String, Object&gt; createCommonCustomMetrics(ReportEventMessageContext context) {

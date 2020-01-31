@@ -30,7 +30,7 @@ public class VerificationResult {
 
     private final VerificationOutcome pregnantChildDOBMatch;
 
-    private final QualifyingBenefits qualifyingBenefits;
+    private final QualifyingReason qualifyingReason;
 
     private final Boolean isPregnantOrAtLeast1ChildMatched;
 
