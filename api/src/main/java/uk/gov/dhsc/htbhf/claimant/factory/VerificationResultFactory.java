@@ -27,7 +27,7 @@ public class VerificationResultFactory {
                 .mobilePhoneMatch(identityAndEligibilityResponse.getMobilePhoneMatch())
                 .postcodeMatch(identityAndEligibilityResponse.getPostcodeMatch())
                 .pregnantChildDOBMatch(identityAndEligibilityResponse.getPregnantChildDOBMatch())
-                .qualifyingBenefits(identityAndEligibilityResponse.getQualifyingBenefits())
+                .qualifyingReason(identityAndEligibilityResponse.getQualifyingReason())
                 .isPregnantOrAtLeast1ChildMatched(isPregnantOrAtLeastOneChildMatches(claimant, identityAndEligibilityResponse.getDobOfChildrenUnder4()))
                 .build();
     }

@@ -77,7 +77,7 @@ public class EligibilityDecisionHandler {
         if (shouldExpireActiveClaim(decision, previousPaymentCycle, currentPaymentCycle)) {
             expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
         } else if (decision.getIdentityAndEligibilityResponse().isNotEligible()) {
-            handleLossOfQualifyingBenefitStatus(claim, decision.getIdentityAndEligibilityResponse());
+            handleLossOfQualifyingReasonStatus(claim, decision.getIdentityAndEligibilityResponse());
         } else {
             expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
             determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
@@ -109,7 +109,7 @@ public class EligibilityDecisionHandler {
                 && !childDateOfBirthCalculator.hasChildrenUnderFourAtGivenDate(previousPaymentCycle.getChildrenDob(), currentPaymentCycle.getCycleStartDate());
     }
 
-    private void handleLossOfQualifyingBenefitStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private void handleLossOfQualifyingReasonStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
         determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
