@@ -126,7 +126,7 @@ class EligibilityDecisionHandlerTest {
     //Test for HTBHF-2182 has the following context:
     // Previous cycle: children exist and are under 4 but will be 4 in the next cycle, not pregnant
     // Current cycle: no children and not pregnant
-    @ParameterizedTest(name = "Qualifying benefit status={0}")
+    @ParameterizedTest(name = "Eligibility outcome ={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
     void shouldExpireClaimWhenIneligibleWithNoChildrenAndNotPregnant(EligibilityOutcome eligibilityOutcome) {
         //Given
@@ -259,7 +259,7 @@ class EligibilityDecisionHandlerTest {
         verifyNoMoreInteractions(childDateOfBirthCalculator, eventAuditor);
     }
 
-    @ParameterizedTest(name = "Qualifying benefit status={0}")
+    @ParameterizedTest(name = "Eligibility outcome ={0}")
     @ValueSource(strings = {"CONFIRMED", "NOT_CONFIRMED"})
     void shouldExpireClaimWhenClaimantWasPregnantWithNoChildrenButNoLongerPregnant(EligibilityOutcome eligibilityOutcome) {
         //Given

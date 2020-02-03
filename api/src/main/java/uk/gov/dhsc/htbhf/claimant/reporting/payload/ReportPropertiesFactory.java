@@ -5,7 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.context.ReportEventMessageContext;
 import uk.gov.dhsc.htbhf.claimant.model.PostcodeData;
 import uk.gov.dhsc.htbhf.claimant.reporting.ClaimantCategoryCalculator;
-import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.Duration;
@@ -100,7 +100,7 @@ public abstract class ReportPropertiesFactory {
         customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());
         customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());
-        customDimensions.put(QUALIFYING_BENEFIT.getFieldName(), getQualifyingBenefits(identityAndEligibilityResponse));
+        customDimensions.put(QUALIFYING_REASON.getFieldName(), getQualifyingReason(identityAndEligibilityResponse));
 
         return customDimensions;
     }
@@ -111,10 +111,10 @@ public abstract class ReportPropertiesFactory {
                 : identityAndEligibilityResponse.getDobOfChildrenUnder4();
     }
 
-    private QualifyingBenefits getQualifyingBenefits(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
+    private QualifyingReason getQualifyingReason(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         return identityAndEligibilityResponse == null
-                ? QualifyingBenefits.NOT_SET
-                : identityAndEligibilityResponse.getQualifyingBenefits();
+                ? QualifyingReason.NOT_SET
+                : identityAndEligibilityResponse.getQualifyingReason();
     }
 
     protected Map<String, Object> createCommonCustomMetrics(ReportEventMessageContext context) {

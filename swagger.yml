@@ -381,6 +381,16 @@ definitions:
         - "jobseekers_allowance"
         - "pension_credit"
         - "child_tax_credit"
+        - "not_set"
+      qualifyingReason:
+        type: "string"
+        enum:
+        - "universal_credit"
+        - "employment_and_support_allowance"
+        - "income_support"
+        - "jobseekers_allowance"
+        - "pension_credit"
+        - "child_tax_credit"
         - "under_18"
         - "not_set"
     title: "CombinedIdentityAndEligibilityResponse"
@@ -409,7 +419,7 @@ definitions:
         format: "date"
         example: "2025-05-17"
         description: "The date at which the override expires"
-      qualifyingBenefits:
+      qualifyingReason:
         type: "string"
         example: "under_18"
         description: "Overrides the reason that this applicant qualifies for Healthy\
@@ -542,7 +552,7 @@ definitions:
         - "not_supplied"
         - "invalid_format"
         - "not_set"
-      qualifyingBenefits:
+      qualifyingReason:
         type: "string"
         enum:
         - "universal_credit"

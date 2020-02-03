@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import uk.gov.dhsc.htbhf.claimant.model.constraint.ListOfDatesInPast;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,9 +33,9 @@ public class EligibilityOverrideDTO {
     @ApiModelProperty(notes = "The date at which the override expires", example = "2025-05-17")
     private LocalDate overrideUntil;
 
-    @JsonProperty("qualifyingBenefits")
+    @JsonProperty("qualifyingReason")
     @ApiModelProperty(notes = "Overrides the reason that this applicant qualifies for Healthy Start", example = "under_18")
-    private QualifyingBenefits qualifyingBenefits;
+    private QualifyingReason qualifyingReason;
 
     @NotNull
     @JsonProperty("childrenDob")

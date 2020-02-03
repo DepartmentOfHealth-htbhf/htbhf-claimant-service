@@ -4,7 +4,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.EligibilityOverrideDTO;
 import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.QualifyingBenefits;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -71,7 +71,7 @@ public final class NewClaimDTOTestDataFactory {
                                                                                       EligibilityOutcome eligibilityOutcome,
                                                                                       LocalDate overrideUntil) {
         EligibilityOverrideDTO eligibilityOverride = getEligibilityOverrideDTOBuilder(NO_CHILDREN, eligibilityOutcome, overrideUntil)
-                .qualifyingBenefits(QualifyingBenefits.UNDER_18)
+                .qualifyingReason(QualifyingReason.UNDER_18)
                 .build();
 
         return aClaimDTOBuilder()

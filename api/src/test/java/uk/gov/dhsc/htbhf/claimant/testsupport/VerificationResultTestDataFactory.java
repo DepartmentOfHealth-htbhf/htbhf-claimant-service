@@ -13,7 +13,7 @@ public class VerificationResultTestDataFactory {
                 .emailAddressMatch(VerificationOutcome.MATCHED)
                 .addressLine1Match(VerificationOutcome.MATCHED)
                 .postcodeMatch(VerificationOutcome.MATCHED)
-                .qualifyingBenefits(QualifyingBenefits.UNIVERSAL_CREDIT)
+                .qualifyingReason(QualifyingReason.UNIVERSAL_CREDIT)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .isPregnantOrAtLeast1ChildMatched(true)
@@ -28,7 +28,7 @@ public class VerificationResultTestDataFactory {
                 .emailAddressMatch(emailMatched)
                 .addressLine1Match(VerificationOutcome.MATCHED)
                 .postcodeMatch(VerificationOutcome.MATCHED)
-                .qualifyingBenefits(QualifyingBenefits.UNIVERSAL_CREDIT)
+                .qualifyingReason(QualifyingReason.UNIVERSAL_CREDIT)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .isPregnantOrAtLeast1ChildMatched(true)
@@ -44,7 +44,7 @@ public class VerificationResultTestDataFactory {
                 .addressLine1Match(VerificationOutcome.NOT_SET)
                 .postcodeMatch(VerificationOutcome.NOT_SET)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SET)
-                .qualifyingBenefits(QualifyingBenefits.NOT_SET)
+                .qualifyingReason(QualifyingReason.NOT_SET)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .isPregnantOrAtLeast1ChildMatched(false)
                 .build();
@@ -59,7 +59,7 @@ public class VerificationResultTestDataFactory {
                 .addressLine1Match(VerificationOutcome.NOT_SET)
                 .postcodeMatch(VerificationOutcome.NOT_SET)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SET)
-                .qualifyingBenefits(QualifyingBenefits.NOT_SET)
+                .qualifyingReason(QualifyingReason.NOT_SET)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .isPregnantOrAtLeast1ChildMatched(true)
                 .build();
@@ -95,7 +95,7 @@ public class VerificationResultTestDataFactory {
                 .addressLine1Match(VerificationOutcome.NOT_SET)
                 .postcodeMatch(VerificationOutcome.NOT_SET)
                 .pregnantChildDOBMatch(VerificationOutcome.NOT_SUPPLIED)
-                .qualifyingBenefits(QualifyingBenefits.NOT_SET)
+                .qualifyingReason(QualifyingReason.NOT_SET)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .isPregnantOrAtLeast1ChildMatched(false);
     }

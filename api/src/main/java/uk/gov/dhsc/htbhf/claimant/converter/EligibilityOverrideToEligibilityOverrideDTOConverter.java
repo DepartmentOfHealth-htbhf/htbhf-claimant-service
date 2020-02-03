@@ -18,7 +18,7 @@ public class EligibilityOverrideToEligibilityOverrideDTOConverter {
         return EligibilityOverrideDTO.builder()
                 .overrideUntil(eligibilityOverride.getOverrideUntil())
                 .eligibilityOutcome(eligibilityOverride.getEligibilityOutcome())
-                .qualifyingBenefits(eligibilityOverride.getQualifyingBenefits())
+                .qualifyingReason(eligibilityOverride.getQualifyingReason())
                 .childrenDob(eligibilityOverride.getChildrenDob())
                 .build();
     }
