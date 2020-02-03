@@ -34,7 +34,7 @@ public class NewClaimDTOToClaimRequestConverter {
                 .eligibilityOutcome(dto.getEligibilityOutcome())
                 .overrideUntil(dto.getOverrideUntil())
                 .childrenDob(dto.getChildrenDob())
-                .qualifyingBenefits(dto.getQualifyingBenefits())
+                .qualifyingReason(dto.getQualifyingReason())
                 .build();
     }
 }

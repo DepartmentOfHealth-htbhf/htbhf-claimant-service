@@ -26,6 +26,7 @@ import static uk.gov.dhsc.htbhf.claimant.reporting.PaymentAction.SCHEDULED_PAYME
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithDueDateAndPostcodeData;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,7 +69,7 @@ class ReportPaymentPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cm6", "100"), // payment for pregnancy (pregnant for the entire payment cycle = 4 vouchers)
                 entry("cm8", "2") // number of children turning 1 or 4 in the next cycle.
         );
-        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), null);
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), UNIVERSAL_CREDIT);
         verify(childDateOfBirthCalculator).getNextPaymentCycleSummary(context.getPaymentCycle());
     }
 

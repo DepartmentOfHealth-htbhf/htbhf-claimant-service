@@ -38,6 +38,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -106,7 +107,7 @@ class PaymentCycleServiceTest {
         assertThat(result.getExpectedDeliveryDate()).isEqualTo(dueDate);
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate, result.getCycleStartDate(), null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(dueDate, result.getCycleStartDate(), UNIVERSAL_CREDIT);
     }
 
     @Test
@@ -134,7 +135,7 @@ class PaymentCycleServiceTest {
         assertThat(result.getExpectedDeliveryDate()).isNull();
         assertThat(result.getTotalEntitlementAmountInPence()).isEqualTo(entitlement.getTotalVoucherValueInPence());
         assertThat(result.getTotalVouchers()).isEqualTo(entitlement.getTotalVoucherEntitlement());
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(expectedDeliveryDate, result.getCycleStartDate(), null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(expectedDeliveryDate, result.getCycleStartDate(), UNIVERSAL_CREDIT);
     }
 
     @Test
@@ -174,7 +175,7 @@ class PaymentCycleServiceTest {
         paymentCycleService.updatePaymentCycleFromDecision(paymentCycle, decision);
 
         verifyPaymentCycleUpdatedCorrectly(NOT_PREGNANT, paymentCycle, decision);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST, paymentCycle.getCycleStartDate(), null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_TOO_FAR_IN_PAST, paymentCycle.getCycleStartDate(), UNIVERSAL_CREDIT);
     }
 
     @Test
@@ -187,7 +188,7 @@ class PaymentCycleServiceTest {
         paymentCycleService.updatePaymentCycleFromDecision(paymentCycle, decision);
 
         verifyPaymentCycleUpdatedCorrectly(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle, decision);
-        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle.getCycleStartDate(), null);
+        verify(pregnancyEntitlementCalculator).isEntitledToVoucher(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS, paymentCycle.getCycleStartDate(), UNIVERSAL_CREDIT);
     }
 
     @Test

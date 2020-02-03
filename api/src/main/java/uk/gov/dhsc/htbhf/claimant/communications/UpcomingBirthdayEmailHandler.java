@@ -135,7 +135,7 @@ public class UpcomingBirthdayEmailHandler {
                 currentPaymentCycle.getChildrenDob(),
                 nextCycleStartDate,
                 currentPaymentCycle.getVoucherEntitlement(),
-                currentPaymentCycle.getClaim().getEligibilityOverride());
+                currentPaymentCycle.getClaim().getCurrentIdentityAndEligibilityResponse().getQualifyingReason());
     }
 
 }

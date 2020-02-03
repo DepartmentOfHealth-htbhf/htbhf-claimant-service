@@ -80,8 +80,7 @@ public class AdditionalPregnancyPaymentMessageProcessor implements MessageTypePr
         int numberOfVouchers = additionalPregnancyVoucherCalculator.getAdditionalPregnancyVouchers(
                 expectedDeliveryDate,
                 paymentCycle,
-                claimUpdatedDate,
-                paymentCycle.getClaim().getEligibilityOverride());
+                claimUpdatedDate);
         return voucherValueInPence * numberOfVouchers;
     }
 

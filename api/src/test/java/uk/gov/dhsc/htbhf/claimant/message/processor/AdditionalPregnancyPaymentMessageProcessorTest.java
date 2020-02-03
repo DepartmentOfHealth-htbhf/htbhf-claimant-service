@@ -87,14 +87,16 @@ class AdditionalPregnancyPaymentMessageProcessorTest {
         Message message = aValidMessageWithType(ADDITIONAL_PREGNANCY_PAYMENT);
         AdditionalPregnancyPaymentMessageContext context = aValidAdditionalPregnancyPaymentMessageContext(claim, Optional.of(paymentCycle));
         given(messageContextLoader.loadAdditionalPregnancyPaymentMessageContext(any())).willReturn(context);
-        given(voucherCalculator.getAdditionalPregnancyVouchers(any(), any(), any(), any())).willReturn(numberOfVouchers);
+        given(voucherCalculator.getAdditionalPregnancyVouchers(any(), any(), any())).willReturn(numberOfVouchers);
 
         MessageStatus messageStatus = messageProcessor.processMessage(message);
 
         assertThat(messageStatus).isEqualTo(MessageStatus.COMPLETED);
         verify(messageContextLoader).loadAdditionalPregnancyPaymentMessageContext(message);
-        verify(voucherCalculator)
-                .getAdditionalPregnancyVouchers(claim.getClaimant().getExpectedDeliveryDate(), paymentCycle, message.getProcessAfter().toLocalDate(), null);
+        verify(voucherCalculator).getAdditionalPregnancyVouchers(
+                claim.getClaimant().getExpectedDeliveryDate(),
+                paymentCycle,
+                message.getProcessAfter().toLocalDate());
     }
 
     @Test

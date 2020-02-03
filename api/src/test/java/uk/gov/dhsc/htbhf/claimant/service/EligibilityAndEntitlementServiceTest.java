@@ -49,6 +49,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementWithVouchers;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.aCombinedIdentityAndEligibilityResponseWithOverride;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
@@ -194,8 +195,12 @@ class EligibilityAndEntitlementServiceTest {
         //Then
         assertThat(result).isEqualTo(decision);
         verify(client).checkIdentityAndEligibility(claim.getClaimant());
-        verify(paymentCycleEntitlementCalculator)
-                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), MAGGIE_AND_LISA_DOBS, cycleStartDate, VOUCHER_ENTITLEMENT, null);
+        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
+                Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                MAGGIE_AND_LISA_DOBS,
+                cycleStartDate,
+                VOUCHER_ENTITLEMENT,
+                UNIVERSAL_CREDIT);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, false);
     }
 
@@ -217,8 +222,12 @@ class EligibilityAndEntitlementServiceTest {
         //Then
         assertThat(result).isEqualTo(decision);
         verifyNoInteractions(client);
-        verify(paymentCycleEntitlementCalculator)
-                .calculateEntitlement(Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS), childrenDob, cycleStartDate, VOUCHER_ENTITLEMENT, eligibilityOverride);
+        verify(paymentCycleEntitlementCalculator).calculateEntitlement(
+                        Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
+                        childrenDob,
+                        cycleStartDate,
+                        VOUCHER_ENTITLEMENT,
+                        null);
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.CONFIRMED, childrenDob);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
     }
@@ -253,7 +262,7 @@ class EligibilityAndEntitlementServiceTest {
                         MAGGIE_AND_LISA_DOBS,
                         cycleStartDate,
                         VOUCHER_ENTITLEMENT,
-                        claim.getEligibilityOverride());
+                        UNIVERSAL_CREDIT);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, false);
     }
 
@@ -279,7 +288,7 @@ class EligibilityAndEntitlementServiceTest {
                         NO_CHILDREN,
                         cycleStartDate,
                         VOUCHER_ENTITLEMENT,
-                        aNotConfirmedEligibilityOverride());
+                        null);
         CombinedIdentityAndEligibilityResponse response = aCombinedIdentityAndEligibilityResponseWithOverride(EligibilityOutcome.NOT_CONFIRMED, NO_CHILDREN);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(response, VOUCHER_ENTITLEMENT, false);
     }
@@ -302,7 +311,7 @@ class EligibilityAndEntitlementServiceTest {
         verify(paymentCycleEntitlementCalculator).calculateEntitlement(
                 Optional.of(EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS),
                 DATE_OF_BIRTH_OF_CHILDREN,
-                LocalDate.now(), null);
+                LocalDate.now(), UNIVERSAL_CREDIT);
         verify(eligibilityAndEntitlementDecisionFactory).buildDecision(IDENTITY_AND_ELIGIBILITY_RESPONSE, VOUCHER_ENTITLEMENT, duplicate);
     }
 

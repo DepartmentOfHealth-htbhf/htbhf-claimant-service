@@ -34,6 +34,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTe
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ReportClaimMessageContextTestDataFactory.aReportClaimMessageContextWithoutDecision;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 
 @ExtendWith(MockitoExtension.class)
 class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
@@ -67,7 +68,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cd11", getNumberOfWeeksPregnant(claim, timestamp)) // weeks pregnant is recorded as both a metric and a dimension
         );
         assertThat(reportProperties).doesNotContainKeys("cm4", "cm5", "cm6", "cm8"); // payment-only custom metrics
-        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), null);
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), UNIVERSAL_CREDIT);
     }
 
     @Test
@@ -87,7 +88,7 @@ class ReportClaimPropertiesFactoryTest extends ReportPropertiesFactoryTest {
                 entry("cm1", "1"), // number of children under one
                 entry("cm2", "0") // number of children between one and four
         );
-        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), null);
+        verify(claimantCategoryCalculator).determineClaimantCategory(claim.getClaimant(), datesOfBirthOfChildren, timestamp.toLocalDate(), UNIVERSAL_CREDIT);
     }
 
     @Test

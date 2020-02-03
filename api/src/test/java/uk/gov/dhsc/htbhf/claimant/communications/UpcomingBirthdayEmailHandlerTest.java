@@ -26,12 +26,16 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_FORENAME;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.FIRST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaimAndChildrenDobs;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildren;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 
 @ExtendWith(MockitoExtension.class)
 class UpcomingBirthdayEmailHandlerTest {
@@ -81,7 +85,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 childrensDob,
                 START_OF_NEXT_CYCLE,
                 paymentCycle.getVoucherEntitlement(),
-                null
+                UNIVERSAL_CREDIT
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
@@ -122,7 +126,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 childrensDob,
                 START_OF_NEXT_CYCLE,
                 paymentCycle.getVoucherEntitlement(),
-                null
+                UNIVERSAL_CREDIT
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));
@@ -146,7 +150,7 @@ class UpcomingBirthdayEmailHandlerTest {
                 childrensDob,
                 START_OF_NEXT_CYCLE,
                 paymentCycle.getVoucherEntitlement(),
-                null
+                UNIVERSAL_CREDIT
         );
         ArgumentCaptor<EmailMessagePayload> payloadCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessageWithDelay(payloadCaptor.capture(), eq(MessageType.SEND_EMAIL), eq(CHANGE_IN_PAYMENT_MESSAGE_DELAY));

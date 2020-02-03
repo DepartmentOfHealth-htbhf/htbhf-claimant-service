@@ -59,7 +59,7 @@ public class EligibilityAndEntitlementService {
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 LocalDate.now(),
-                eligibilityOverride);
+                identityAndEligibilityResponse.getQualifyingReason());
         boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
                 entitlement, duplicateHouseholdIdentifierFound);
@@ -86,7 +86,7 @@ public class EligibilityAndEntitlementService {
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 cycleStartDate,
                 previousCycle.getVoucherEntitlement(),
-                claim.getEligibilityOverride());
+                identityAndEligibilityResponse.getQualifyingReason());
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
                 entitlement, false);
     }

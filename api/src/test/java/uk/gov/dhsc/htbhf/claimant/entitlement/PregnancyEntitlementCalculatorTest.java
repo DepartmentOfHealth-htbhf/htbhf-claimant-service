@@ -5,9 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
-import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
-import uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.stream.Stream;
@@ -17,7 +16,6 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aClaimWithExpectedDeliveryDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDateAndClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 
 class PregnancyEntitlementCalculatorTest {
 
@@ -51,9 +49,7 @@ class PregnancyEntitlementCalculatorTest {
     @ParameterizedTest
     @MethodSource("isUnder18PregnantEntitledToVoucherArguments")
     void shouldReturnTrueWhenUnder18PregnantClaimantIsEntitledToVoucher(LocalDate entitlementDate, LocalDate dueDate) {
-        EligibilityOverride eligibilityOverride = EligibilityOverrideTestDataFactory.aConfirmedEligibilityForUnder18Pregnant(OVERRIDE_UNTIL_FIVE_YEARS);
-        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, eligibilityOverride);
-
+        boolean result = calculator.isEntitledToVoucher(dueDate, entitlementDate, QualifyingReason.UNDER_18);
         assertThat(result).isTrue();
     }
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithStartAndEndDate;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
+import static uk.gov.dhsc.htbhf.dwp.model.QualifyingReason.UNIVERSAL_CREDIT;
 
 @ExtendWith(MockitoExtension.class)
 class AdditionalPregnancyVoucherCalculatorTest {
@@ -62,11 +63,12 @@ class AdditionalPregnancyVoucherCalculatorTest {
         lenient().when(pregnancyEntitlementCalculator.isEntitledToVoucher(any(), any(), any())).thenReturn(true);
         PaymentCycle paymentCycle = aPaymentCycleWithStartAndEndDate(paymentCycleStartDate, paymentCycleEndDate);
 
-        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate, null);
+        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate);
 
         assertThat(result).isEqualTo(expectedNumberOfVouchers);
         ArgumentCaptor<LocalDate> argumentCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        verify(pregnancyEntitlementCalculator, times(expectedNumberOfVouchers)).isEntitledToVoucher(eq(expectedDueDate), argumentCaptor.capture(), eq(null));
+        verify(pregnancyEntitlementCalculator, times(expectedNumberOfVouchers))
+                .isEntitledToVoucher(eq(expectedDueDate), argumentCaptor.capture(), eq(UNIVERSAL_CREDIT));
         List<LocalDate> entitlementDates = argumentCaptor.getAllValues();
         assertThat(entitlementDates).hasSize(expectedNumberOfVouchers / VOUCHERS_PER_PREGNANCY);
     }
@@ -83,7 +85,7 @@ class AdditionalPregnancyVoucherCalculatorTest {
                 .voucherEntitlement(null)
                 .build();
 
-        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate, null);
+        int result = calculator.getAdditionalPregnancyVouchers(expectedDueDate, paymentCycle, claimUpdatedDate);
 
         assertThat(result).isEqualTo(0);
         verifyNoInteractions(pregnancyEntitlementCalculator);

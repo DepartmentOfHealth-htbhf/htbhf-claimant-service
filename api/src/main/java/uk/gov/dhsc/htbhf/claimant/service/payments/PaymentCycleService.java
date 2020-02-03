@@ -81,7 +81,10 @@ public class PaymentCycleService {
     }
 
     private LocalDate getExpectedDeliveryDateIfRelevant(Claim claim, LocalDate cycleStartDate) {
-        if (pregnancyEntitlementCalculator.isEntitledToVoucher(claim.getClaimant().getExpectedDeliveryDate(), cycleStartDate, claim.getEligibilityOverride())) {
+        if (pregnancyEntitlementCalculator.isEntitledToVoucher(
+                claim.getClaimant().getExpectedDeliveryDate(),
+                cycleStartDate,
+                claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason())) {
             return claim.getClaimant().getExpectedDeliveryDate();
         }
         return null;

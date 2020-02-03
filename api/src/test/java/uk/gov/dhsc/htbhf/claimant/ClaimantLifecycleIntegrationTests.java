@@ -168,7 +168,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         verifyNoMoreInteractions(notificationClient);
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
-        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(28));
 
         // should expire the claim
         progressClaimThroughExpiry(claimId);
@@ -227,6 +227,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(28));
+        wiremockManager.stubIneligibleEligibilityResponse();
         progressClaimThroughExpiry(claimId);
 
     }
@@ -513,6 +514,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
                 expectedDeliveryDate,
                 EligibilityOutcome.CONFIRMED,
                 OVERRIDE_UNTIL_TWENTY_NINE_WEEKS);
+
 
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
