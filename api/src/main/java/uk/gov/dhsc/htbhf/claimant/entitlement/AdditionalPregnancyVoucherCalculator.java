@@ -52,7 +52,7 @@ public class AdditionalPregnancyVoucherCalculator {
             if (pregnancyEntitlementCalculator.isEntitledToVoucher(
                     expectedDueDate,
                     entitlementDate,
-                    paymentCycle.getIdentityAndEligibilityResponse().getQualifyingReason())
+                    paymentCycle.getClaim().getCurrentIdentityAndEligibilityResponse().getQualifyingReason())
             ) {
                 totalVouchers += vouchersPerPregnancy;
             }
