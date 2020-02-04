@@ -1,4 +1,4 @@
-alter table claim ADD COLUMN eligibility_override json;
+alter table claim ADD COLUMN IF NOT EXISTS eligibility_override json;
 
 UPDATE claim AS c1
 SET eligibility_override = (
