@@ -50,7 +50,7 @@ public class EntitlementCalculator {
      * @param expectedDueDate       the expected due date of the claimant. Use Empty.optional() if the claimant is not pregnant
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param entitlementDate       the date to check entitlement for
-     * @param qualifyingReason  overrides the reason that this applicant qualifies for Healthy Start
+     * @param qualifyingReason      overrides the reason that this applicant qualifies for Healthy Start
      * @return the voucher entitlement calculated for the claimant
      */
     public VoucherEntitlement calculateVoucherEntitlement(Optional<LocalDate> expectedDueDate,

@@ -42,7 +42,7 @@ public class BackDatedPaymentCycleEntitlementCalculator {
      * @param expectedDueDate         expected due date
      * @param newChildrenDateOfBirths the dates of births of the children resulting from the pregnancy
      * @param cycleStartDate          the start date of the payment cycle
-     * @param qualifyingReason     overrides the reason that this applicant qualifies for Healthy Start
+     * @param qualifyingReason        overrides the reason that this applicant qualifies for Healthy Start
      * @return the number of back dated vouchers the claimant is entitled to
      */
     public int calculateBackDatedVouchers(Optional<LocalDate> expectedDueDate,

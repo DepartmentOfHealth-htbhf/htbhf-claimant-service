@@ -38,7 +38,7 @@ public class PregnancyEntitlementCalculator {
         }
 
         LocalDate endOfGracePeriod;
-        if (qualifyingReason != null && qualifyingReason == UNDER_18) {
+        if (qualifyingReason == UNDER_18) {
             endOfGracePeriod = dueDate.plusWeeks(under18PregnancyGracePeriodInWeeks);
         } else {
             endOfGracePeriod = dueDate.plusWeeks(pregnancyGracePeriodInWeeks);

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.MessageType;
@@ -19,7 +20,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.dhsc.htbhf.claimant.communications.MessagePayloadUtils.formatPaymentAmountSummary;
-import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.*;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_1_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.CHILDREN_UNDER_4_PAYMENT;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.MULTIPLE_CHILDREN;
+import static uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey.PAYMENT_AMOUNT;
 import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
 
 /**
@@ -130,12 +134,13 @@ public class UpcomingBirthdayEmailHandler {
 
     private PaymentCycleVoucherEntitlement determineEntitlementForNextCycle(PaymentCycle currentPaymentCycle) {
         LocalDate nextCycleStartDate = currentPaymentCycle.getCycleEndDate().plusDays(1);
+        Claim claim = currentPaymentCycle.getClaim();
         return paymentCycleEntitlementCalculator.calculateEntitlement(
-                Optional.ofNullable(currentPaymentCycle.getClaim().getClaimant().getExpectedDeliveryDate()),
+                Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 currentPaymentCycle.getChildrenDob(),
                 nextCycleStartDate,
                 currentPaymentCycle.getVoucherEntitlement(),
-                currentPaymentCycle.getClaim().getCurrentIdentityAndEligibilityResponse().getQualifyingReason());
+                claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason());
     }
 
 }

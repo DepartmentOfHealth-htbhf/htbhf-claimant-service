@@ -52,7 +52,7 @@ public class PaymentCycleEntitlementCalculator {
      * @param expectedDueDate       expected due date
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param cycleStartDate        the start date of the payment cycle
-     * @param qualifyingReason   overrides the reason that this applicant qualifies for Healthy Start
+     * @param qualifyingReason      overrides the reason that this applicant qualifies for Healthy Start
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
@@ -71,7 +71,7 @@ public class PaymentCycleEntitlementCalculator {
      * @param dateOfBirthOfChildren      the date of birth of the claimant's children
      * @param cycleStartDate             the start date of the payment cycle
      * @param previousVoucherEntitlement voucher entitlement from last payment cycle
-     * @param qualifyingReason        overrides the reason that this applicant qualifies for Healthy Start
+     * @param qualifyingReason           overrides the reason that this applicant qualifies for Healthy Start
      *
      * @return the payment cycle voucher entitlement calculated for the claimant
      */

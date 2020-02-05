@@ -30,7 +30,7 @@ public class ClaimantCategoryCalculator {
      * @param claimant               the claimant to determine the category of
      * @param datesOfBirthOfChildren the dates of birth of the claimant's children
      * @param atDate                 the date to use when checking a claimant/child's age or pregnancy
-     * @param qualifyingReason    overrides the reason that this applicant qualifies for Healthy Start
+     * @param qualifyingReason       overrides the reason that this applicant qualifies for Healthy Start
      * @return claimant's determined category
      */
     public ClaimantCategory determineClaimantCategory(Claimant claimant,
