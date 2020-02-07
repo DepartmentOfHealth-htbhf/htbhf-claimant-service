@@ -49,7 +49,11 @@ public class AdditionalPregnancyVoucherCalculator {
         List<LocalDate> entitlementDates = getEntitlementDates(paymentCycle, claimUpdatedDate);
         int totalVouchers = 0;
         for (LocalDate entitlementDate : entitlementDates) {
-            if (pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDueDate, entitlementDate)) {
+            if (pregnancyEntitlementCalculator.isEntitledToVoucher(
+                    expectedDueDate,
+                    entitlementDate,
+                    paymentCycle.getClaim().getCurrentIdentityAndEligibilityResponse().getQualifyingReason())
+            ) {
                 totalVouchers += vouchersPerPregnancy;
             }
         }

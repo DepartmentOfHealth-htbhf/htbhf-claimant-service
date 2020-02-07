@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -49,11 +50,13 @@ public class EntitlementCalculator {
      * @param expectedDueDate       the expected due date of the claimant. Use Empty.optional() if the claimant is not pregnant
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param entitlementDate       the date to check entitlement for
+     * @param qualifyingReason      overrides the reason that this applicant qualifies for Healthy Start
      * @return the voucher entitlement calculated for the claimant
      */
     public VoucherEntitlement calculateVoucherEntitlement(Optional<LocalDate> expectedDueDate,
                                                           List<LocalDate> dateOfBirthOfChildren,
-                                                          LocalDate entitlementDate) {
+                                                          LocalDate entitlementDate,
+                                                          QualifyingReason qualifyingReason) {
         int numberOfChildrenUnderFour = getNumberOfChildrenUnderFour(dateOfBirthOfChildren, entitlementDate);
         int numberOfChildrenUnderOne = getNumberOfChildrenUnderOne(dateOfBirthOfChildren, entitlementDate);
 
@@ -65,7 +68,7 @@ public class EntitlementCalculator {
 
         // call pregnancyEntitlementCalculator if the expectedDueDate exists
         boolean isEntitledToPregnancyVoucher = expectedDueDate
-                .map(dueDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate)).orElse(false);
+                .map(dueDate -> pregnancyEntitlementCalculator.isEntitledToVoucher(dueDate, entitlementDate, qualifyingReason)).orElse(false);
 
         return createVoucherEntitlement(isEntitledToPregnancyVoucher, numberOfChildrenUnderFour, numberOfChildrenUnderOne, entitlementDate);
     }

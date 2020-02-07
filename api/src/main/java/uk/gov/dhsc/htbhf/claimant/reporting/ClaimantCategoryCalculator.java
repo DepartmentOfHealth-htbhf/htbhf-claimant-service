@@ -6,6 +6,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.message.processor.ChildDateOfBirthCalculator;
 import uk.gov.dhsc.htbhf.claimant.reporting.payload.ClaimantCategory;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -29,10 +30,14 @@ public class ClaimantCategoryCalculator {
      * @param claimant               the claimant to determine the category of
      * @param datesOfBirthOfChildren the dates of birth of the claimant's children
      * @param atDate                 the date to use when checking a claimant/child's age or pregnancy
+     * @param qualifyingReason       overrides the reason that this applicant qualifies for Healthy Start
      * @return claimant's determined category
      */
-    public ClaimantCategory determineClaimantCategory(Claimant claimant, List<LocalDate> datesOfBirthOfChildren, LocalDate atDate) {
-        if (isClaimantPregnant(claimant, atDate)) {
+    public ClaimantCategory determineClaimantCategory(Claimant claimant,
+                                                      List<LocalDate> datesOfBirthOfChildren,
+                                                      LocalDate atDate,
+                                                      QualifyingReason qualifyingReason) {
+        if (isClaimantPregnant(claimant, atDate, qualifyingReason)) {
             int claimantAgeInYears = getClaimantAgeInYears(claimant, atDate);
             if (claimantAgeInYears < SIXTEEN) {
                 return PREGNANT_AND_UNDER_16;
@@ -56,7 +61,7 @@ public class ClaimantCategoryCalculator {
         return Period.between(claimant.getDateOfBirth(), atDate).getYears();
     }
 
-    private boolean isClaimantPregnant(Claimant claimant, LocalDate atDate) {
-        return pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), atDate);
+    private boolean isClaimantPregnant(Claimant claimant, LocalDate atDate, QualifyingReason qualifyingReason) {
+        return pregnancyEntitlementCalculator.isEntitledToVoucher(claimant.getExpectedDeliveryDate(), atDate, qualifyingReason);
     }
 }

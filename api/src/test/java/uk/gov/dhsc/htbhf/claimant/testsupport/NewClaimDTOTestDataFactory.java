@@ -75,7 +75,7 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
 
         return aClaimDTOBuilder()
-                .claimant(aValidClaimantDTO())
+                .claimant(aClaimantDTOWithExpectedDeliveryDate(expectedDeliveryDate))
                 .eligibilityOverride(eligibilityOverride)
                 .build();
     }

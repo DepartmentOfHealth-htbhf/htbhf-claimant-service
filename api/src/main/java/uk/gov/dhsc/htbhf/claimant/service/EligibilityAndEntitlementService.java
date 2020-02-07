@@ -58,7 +58,8 @@ public class EligibilityAndEntitlementService {
         PaymentCycleVoucherEntitlement entitlement = paymentCycleEntitlementCalculator.calculateEntitlement(
                 Optional.ofNullable(claimant.getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
-                LocalDate.now());
+                LocalDate.now(),
+                identityAndEligibilityResponse.getQualifyingReason());
         boolean duplicateHouseholdIdentifierFound = duplicateClaimChecker.liveClaimExistsForHousehold(identityAndEligibilityResponse);
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
                 entitlement, duplicateHouseholdIdentifierFound);
@@ -84,7 +85,8 @@ public class EligibilityAndEntitlementService {
                 Optional.ofNullable(claim.getClaimant().getExpectedDeliveryDate()),
                 identityAndEligibilityResponse.getDobOfChildrenUnder4(),
                 cycleStartDate,
-                previousCycle.getVoucherEntitlement());
+                previousCycle.getVoucherEntitlement(),
+                identityAndEligibilityResponse.getQualifyingReason());
         return eligibilityAndEntitlementDecisionFactory.buildDecision(identityAndEligibilityResponse,
                 entitlement, false);
     }

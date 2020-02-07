@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.entitlement;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.dwp.model.QualifyingReason;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -51,13 +52,15 @@ public class PaymentCycleEntitlementCalculator {
      * @param expectedDueDate       expected due date
      * @param dateOfBirthOfChildren the date of birth of the claimant's children
      * @param cycleStartDate        the start date of the payment cycle
+     * @param qualifyingReason      overrides the reason that this applicant qualifies for Healthy Start
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
                                                                List<LocalDate> dateOfBirthOfChildren,
-                                                               LocalDate cycleStartDate) {
+                                                               LocalDate cycleStartDate,
+                                                               QualifyingReason qualifyingReason) {
         log.debug("Calculating entitlement");
-        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);
+        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(expectedDueDate, dateOfBirthOfChildren, cycleStartDate, qualifyingReason);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements);
     }
 
@@ -68,30 +71,35 @@ public class PaymentCycleEntitlementCalculator {
      * @param dateOfBirthOfChildren      the date of birth of the claimant's children
      * @param cycleStartDate             the start date of the payment cycle
      * @param previousVoucherEntitlement voucher entitlement from last payment cycle
+     * @param qualifyingReason           overrides the reason that this applicant qualifies for Healthy Start
+     *
      * @return the payment cycle voucher entitlement calculated for the claimant
      */
     public PaymentCycleVoucherEntitlement calculateEntitlement(Optional<LocalDate> expectedDueDate,
                                                                List<LocalDate> dateOfBirthOfChildren,
                                                                LocalDate cycleStartDate,
-                                                               PaymentCycleVoucherEntitlement previousVoucherEntitlement) {
+                                                               PaymentCycleVoucherEntitlement previousVoucherEntitlement,
+                                                               QualifyingReason qualifyingReason) {
         log.debug("Calculating entitlement using the previous voucher entitlement");
         List<LocalDate> newChildren = newChildrenMatchedToExpectedDeliveryDate(expectedDueDate, dateOfBirthOfChildren, previousVoucherEntitlement);
         if (newChildren.isEmpty()) {
-            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren, cycleStartDate);
+            return calculateEntitlement(expectedDueDate, dateOfBirthOfChildren, cycleStartDate, qualifyingReason);
         }
 
         // ignore expected due date as we've determined that the pregnancy has happened
-        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren, cycleStartDate);
-        int backdateVouchers = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate);
+        List<VoucherEntitlement> voucherEntitlements = calculateCycleEntitlements(Optional.empty(), dateOfBirthOfChildren, cycleStartDate, qualifyingReason);
+        int backdateVouchers
+                = backDatedPaymentCycleEntitlementCalculator.calculateBackDatedVouchers(expectedDueDate, newChildren, cycleStartDate, qualifyingReason);
         return new PaymentCycleVoucherEntitlement(voucherEntitlements, backdateVouchers);
     }
 
     private List<VoucherEntitlement> calculateCycleEntitlements(Optional<LocalDate> expectedDueDate,
                                                                 List<LocalDate> dateOfBirthOfChildren,
-                                                                LocalDate cycleStartDate) {
+                                                                LocalDate cycleStartDate,
+                                                                QualifyingReason qualifyingReason) {
         List<LocalDate> entitlementDates = getVoucherEntitlementDatesFromStartDate(cycleStartDate);
         return entitlementDates.stream()
-                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date))
+                .map(date -> entitlementCalculator.calculateVoucherEntitlement(expectedDueDate, dateOfBirthOfChildren, date, qualifyingReason))
                 .collect(Collectors.toList());
     }
 
