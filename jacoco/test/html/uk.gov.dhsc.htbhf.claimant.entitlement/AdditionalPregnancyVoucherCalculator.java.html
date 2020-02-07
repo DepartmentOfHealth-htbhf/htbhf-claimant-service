@@ -49,31 +49,35 @@ public class AdditionalPregnancyVoucherCalculator {
 <span class="fc" id="L49">        List&lt;LocalDate&gt; entitlementDates = getEntitlementDates(paymentCycle, claimUpdatedDate);</span>
 <span class="fc" id="L50">        int totalVouchers = 0;</span>
 <span class="fc bfc" id="L51" title="All 2 branches covered.">        for (LocalDate entitlementDate : entitlementDates) {</span>
-<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (pregnancyEntitlementCalculator.isEntitledToVoucher(expectedDueDate, entitlementDate)) {</span>
-<span class="fc" id="L53">                totalVouchers += vouchersPerPregnancy;</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (pregnancyEntitlementCalculator.isEntitledToVoucher(</span>
+                    expectedDueDate,
+                    entitlementDate,
+<span class="fc" id="L55">                    paymentCycle.getClaim().getCurrentIdentityAndEligibilityResponse().getQualifyingReason())</span>
+            ) {
+<span class="fc" id="L57">                totalVouchers += vouchersPerPregnancy;</span>
             }
-<span class="fc" id="L55">        }</span>
-<span class="fc" id="L56">        return totalVouchers;</span>
+<span class="fc" id="L59">        }</span>
+<span class="fc" id="L60">        return totalVouchers;</span>
     }
 
     private List&lt;LocalDate&gt; getEntitlementDates(PaymentCycle paymentCycle, LocalDate claimUpdatedDate) {
-<span class="fc" id="L60">        LocalDate rollingEntitlementDate = getFirstEntitlementDateOnOrAfterClaimUpdatedDate(paymentCycle.getCycleStartDate(), claimUpdatedDate);</span>
+<span class="fc" id="L64">        LocalDate rollingEntitlementDate = getFirstEntitlementDateOnOrAfterClaimUpdatedDate(paymentCycle.getCycleStartDate(), claimUpdatedDate);</span>
 
-<span class="fc" id="L62">        List&lt;LocalDate&gt; entitlementDates = new ArrayList&lt;&gt;();</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">        while (rollingEntitlementDate.isBefore(paymentCycle.getCycleEndDate())) {</span>
-<span class="fc" id="L64">            entitlementDates.add(rollingEntitlementDate);</span>
-<span class="fc" id="L65">            rollingEntitlementDate = rollingEntitlementDate.plusDays(entitlementCalculationDurationInDays);</span>
+<span class="fc" id="L66">        List&lt;LocalDate&gt; entitlementDates = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        while (rollingEntitlementDate.isBefore(paymentCycle.getCycleEndDate())) {</span>
+<span class="fc" id="L68">            entitlementDates.add(rollingEntitlementDate);</span>
+<span class="fc" id="L69">            rollingEntitlementDate = rollingEntitlementDate.plusDays(entitlementCalculationDurationInDays);</span>
         }
 
-<span class="fc" id="L68">        return entitlementDates;</span>
+<span class="fc" id="L72">        return entitlementDates;</span>
     }
 
     private LocalDate getFirstEntitlementDateOnOrAfterClaimUpdatedDate(LocalDate paymentCycleStartDate, LocalDate claimUpdatedDate) {
-<span class="fc" id="L72">        LocalDate firstEntitlementDate = paymentCycleStartDate;</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        while (firstEntitlementDate.isBefore(claimUpdatedDate)) {</span>
-<span class="fc" id="L74">            firstEntitlementDate = firstEntitlementDate.plusDays(entitlementCalculationDurationInDays);</span>
+<span class="fc" id="L76">        LocalDate firstEntitlementDate = paymentCycleStartDate;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        while (firstEntitlementDate.isBefore(claimUpdatedDate)) {</span>
+<span class="fc" id="L78">            firstEntitlementDate = firstEntitlementDate.plusDays(entitlementCalculationDurationInDays);</span>
         }
-<span class="fc" id="L76">        return firstEntitlementDate;</span>
+<span class="fc" id="L80">        return firstEntitlementDate;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
