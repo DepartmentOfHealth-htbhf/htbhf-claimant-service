@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleEntitlementCalculator;
@@ -12,17 +13,17 @@ import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
 import uk.gov.dhsc.htbhf.claimant.repository.ClaimRepository;
-import uk.gov.dhsc.htbhf.dwp.model.DeathVerificationFlag;
-import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.IdentityOutcome;
-import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
+import uk.gov.dhsc.htbhf.dwp.model.*;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
 import static uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision.buildDuplicateDecisionWithExistingClaimId;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_SUPPLIED;
 
 @Primary
 @Service
@@ -48,9 +49,11 @@ public class EligibilityAndEntitlementService {
      */
     public EligibilityAndEntitlementDecision evaluateNewClaimant(Claimant claimant, EligibilityOverride eligibilityOverride) {
         log.debug("Looking for live claims for the given NINO");
-        Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
-        if (liveClaimsWithNino.isPresent()) {
-            return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
+        if (StringUtils.isNotEmpty(claimant.getNino())) {
+            Optional<UUID> liveClaimsWithNino = claimRepository.findLiveClaimWithNino(claimant.getNino());
+            if (liveClaimsWithNino.isPresent()) {
+                return buildDuplicateDecisionWithExistingClaimId(liveClaimsWithNino.get());
+            }
         }
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
@@ -95,8 +98,14 @@ public class EligibilityAndEntitlementService {
                                                                                              EligibilityOverride eligibilityOverride,
                                                                                              LocalDate eligibleAtDate) {
         if (isOverride(eligibilityOverride, eligibleAtDate)) {
-            return buildOverrideResponse(eligibilityOverride);
+            VerificationOutcome verificationOutcome = getVerificationOutcome(eligibilityOverride);
+            return buildOverrideResponse(eligibilityOverride, claimant, verificationOutcome, IdentityOutcome.MATCHED);
         }
+
+        if (StringUtils.isEmpty(claimant.getNino())) {
+            return buildOverrideResponse(null, claimant, NOT_MATCHED, IdentityOutcome.NOT_MATCHED);
+        }
+
         return client.checkIdentityAndEligibility(claimant);
     }
 
@@ -104,21 +113,42 @@ public class EligibilityAndEntitlementService {
         return eligibilityOverride != null && eligibleAtDate.isBefore(eligibilityOverride.getOverrideUntil());
     }
 
-    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride) {
-        VerificationOutcome matchOutcome = eligibilityOverride.getEligibilityOutcome() == EligibilityOutcome.CONFIRMED
-                ? VerificationOutcome.MATCHED
-                : VerificationOutcome.NOT_SET;
-        return CombinedIdentityAndEligibilityResponse.builder()
-                .identityStatus(IdentityOutcome.MATCHED)
-                .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())
-                .dobOfChildrenUnder4(eligibilityOverride.getChildrenDob())
-                .pregnantChildDOBMatch(matchOutcome)
-                .addressLine1Match(matchOutcome)
-                .emailAddressMatch(matchOutcome)
-                .mobilePhoneMatch(matchOutcome)
-                .postcodeMatch(matchOutcome)
-                .qualifyingReason(eligibilityOverride.getQualifyingReason())
+    private CombinedIdentityAndEligibilityResponse buildOverrideResponse(EligibilityOverride eligibilityOverride,
+                                                                         Claimant claimant,
+                                                                         VerificationOutcome verificationOutcome,
+                                                                         IdentityOutcome identityOutcome) {
+
+        return getCombinedIdentityAndEligibilityResponseBuilder(eligibilityOverride)
+                .identityStatus(identityOutcome)
+                .pregnantChildDOBMatch(verificationOutcome)
+                .addressLine1Match(verificationOutcome)
+                .emailAddressMatch(claimant.getEmailAddress() == null ? NOT_SUPPLIED : verificationOutcome)
+                .mobilePhoneMatch(claimant.getPhoneNumber() == null ? NOT_SUPPLIED : verificationOutcome)
+                .postcodeMatch(verificationOutcome)
                 .deathVerificationFlag(DeathVerificationFlag.N_A)
                 .build();
     }
+
+    private CombinedIdentityAndEligibilityResponse.CombinedIdentityAndEligibilityResponseBuilder getCombinedIdentityAndEligibilityResponseBuilder(
+            EligibilityOverride eligibilityOverride) {
+
+        if (eligibilityOverride == null) {
+            return CombinedIdentityAndEligibilityResponse.builder()
+                    .eligibilityStatus(EligibilityOutcome.NOT_CONFIRMED)
+                    .dobOfChildrenUnder4(Collections.emptyList())
+                    .qualifyingReason(QualifyingReason.NOT_SET);
+        }
+
+        return CombinedIdentityAndEligibilityResponse.builder()
+                .eligibilityStatus(eligibilityOverride.getEligibilityOutcome())
+                .dobOfChildrenUnder4(eligibilityOverride.getChildrenDob())
+                .qualifyingReason(eligibilityOverride.getQualifyingReason());
+    }
+
+    private VerificationOutcome getVerificationOutcome(EligibilityOverride eligibilityOverride) {
+        return eligibilityOverride.getEligibilityOutcome() == EligibilityOutcome.CONFIRMED
+                ? VerificationOutcome.MATCHED
+                : VerificationOutcome.NOT_SET;
+    }
+
 }

@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -45,9 +46,11 @@ public class PaymentCycleNotificationHandler {
     }
 
     private void sendNotificationEmail(PaymentCycle paymentCycle, EmailType emailType) {
-        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
-        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
-        handleUpcomingBirthdayEmails(paymentCycle);
+        if (StringUtils.isNotEmpty(paymentCycle.getClaim().getClaimant().getEmailAddress())) {
+            EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
+            messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+            handleUpcomingBirthdayEmails(paymentCycle);
+        }
     }
 
     private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {

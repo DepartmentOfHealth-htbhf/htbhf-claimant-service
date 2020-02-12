@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.SCHEDULED_FOR_CANCELLATION;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectWithFirstAndLastName;
@@ -41,6 +42,16 @@ class HandleCardPendingCancellationJobTest {
         job.handleCardPendingCancellation(claim);
 
         assertEmailSent(claim);
+        assertClaimCardStatusUpdated();
+    }
+
+    @Test
+    public void shouldNotSendCardToBeCancelledEmailAndSetCardStatusForMissingEmail() {
+        Claim claim = aClaimWithCardStatusAndCardStatusTimestamp(PENDING_CANCELLATION, LocalDateTime.now().minusWeeks(16));
+        claim.getClaimant().setEmailAddress(null);
+        job.handleCardPendingCancellation(claim);
+
+        verifyNoInteractions(messageQueueClient);
         assertClaimCardStatusUpdated();
     }
 

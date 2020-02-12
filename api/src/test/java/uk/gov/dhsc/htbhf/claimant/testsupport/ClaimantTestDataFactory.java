@@ -37,6 +37,16 @@ public final class ClaimantTestDataFactory {
         return aValidClaimantBuilder().initiallyDeclaredChildrenDob(childrenDatesOfBirth).build();
     }
 
+    public static Claimant aClaimantWithChildrenDobAndEmailAddressAndPhoneNumber(List<LocalDate> childrenDatesOfBirth,
+                                                                                 String emailAddress,
+                                                                                 String phoneNumber) {
+        return aValidClaimantBuilder()
+                .initiallyDeclaredChildrenDob(childrenDatesOfBirth)
+                .emailAddress(emailAddress)
+                .phoneNumber(phoneNumber)
+                .build();
+    }
+
     public static Claimant aClaimantWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aValidClaimantBuilder().expectedDeliveryDate(expectedDeliveryDate).build();
     }

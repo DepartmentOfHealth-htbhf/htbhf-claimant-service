@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -20,13 +21,17 @@ public class DetermineEntitlementNotificationHandler {
     private final MessageQueueClient messageQueueClient;
 
     public void sendClaimNoLongerEligibleEmail(Claim claim) {
-        MessagePayload messagePayload = buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);
-        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
+            MessagePayload messagePayload = buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);
+            messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+        }
     }
 
     public void sendNoChildrenOnFeedClaimNoLongerEligibleEmail(Claim claim) {
-        MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);
-        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
+            MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);
+            messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+        }
     }
 
     private EmailMessagePayload buildClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {

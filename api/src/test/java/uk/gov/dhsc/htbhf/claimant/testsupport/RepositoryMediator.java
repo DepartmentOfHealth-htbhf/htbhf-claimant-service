@@ -68,6 +68,21 @@ public class RepositoryMediator {
                 .filter(claim -> claim.getClaimant().getNino().equals(nino))
                 .map(Claim::getId)
                 .collect(Collectors.toList());
+        return getClaim(claimIds);
+    }
+
+    @Transactional
+    public Claim getClaimForLastNameAndDobAndPostCode(String lastName, LocalDate dateOfBirth, String postCode) {
+        List<UUID> claimIds = StreamSupport.stream(claimRepository.findAll().spliterator(), false)
+                .filter(claim -> claim.getClaimant().getLastName().equalsIgnoreCase(lastName))
+                .filter(claim -> claim.getClaimant().getDateOfBirth().compareTo(dateOfBirth) == 0)
+                .filter(claim -> claim.getClaimant().getAddress().getPostcode().equalsIgnoreCase(postCode))
+                .map(Claim::getId)
+                .collect(Collectors.toList());
+        return getClaim(claimIds);
+    }
+
+    private Claim getClaim(List<UUID> claimIds) {
         assertThat(claimIds).isNotEmpty();
         Optional<Claim> optional = claimRepository.findById(claimIds.get(0));
         assertThat(optional.isPresent()).isTrue();

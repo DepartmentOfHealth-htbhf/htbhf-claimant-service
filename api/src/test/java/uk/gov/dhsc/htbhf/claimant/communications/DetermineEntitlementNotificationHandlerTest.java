@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.dhsc.htbhf.claimant.message.EmailPayloadAssertions.assertEmailPayloadCorrectWithFirstAndLastName;
 import static uk.gov.dhsc.htbhf.claimant.message.MessageType.SEND_EMAIL;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE;
@@ -47,6 +48,14 @@ class DetermineEntitlementNotificationHandlerTest {
     }
 
     @Test
+    public void shouldNotPutClaimNoLongerEligibleMessageOnQueueForMissingEmail() {
+        Claim claim = aValidClaim();
+        claim.getClaimant().setEmailAddress(null);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        verifyNoInteractions(messageQueueClient);
+    }
+
+    @Test
     public void shouldPutNoChildrenOnFeedClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
 
@@ -56,5 +65,14 @@ class DetermineEntitlementNotificationHandlerTest {
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
         EmailMessagePayload payload = argumentCaptor.getValue();
         assertEmailPayloadCorrectWithFirstAndLastName(payload, claim, NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);
+    }
+
+    @Test
+    public void shouldNotPutNoChildrenOnFeedClaimNoLongerEligibleMessageOnQueue() {
+        Claim claim = aValidClaim();
+        claim.getClaimant().setEmailAddress(null);
+        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+        verifyNoInteractions(messageQueueClient);
+
     }
 }

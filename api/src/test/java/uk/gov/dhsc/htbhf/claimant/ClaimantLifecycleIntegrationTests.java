@@ -47,6 +47,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithExpectedDeliveryDateAndChildrenDob;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aClaimDTOWithClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideAndNinoAndEmailAndPhone;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingUnder18Pregnancy;
@@ -171,7 +172,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(28));
 
         // should expire the claim
-        progressClaimThroughExpiry(claimId);
+        progressClaimThroughExpiry(claimId, true);
     }
 
     @Test
@@ -194,7 +195,34 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         claim = repositoryMediator.loadClaim(claimId);
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
-        progressClaimThroughExpiry(claimId);
+        progressClaimThroughExpiry(claimId, true);
+
+    }
+
+    @Test
+    void shouldProcessClaimWithEligibilityOverrideWithoutNinoAndEmailAddressAndPhoneNumber()
+            throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        String nino = null;
+        String emailAdress = null;
+        String phoneNumber = null;
+        UUID claimId
+                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, phoneNumber);
+
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
+        // to contact their benefit agency about a new child.
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 8);
+
+        verifyNoMoreInteractions(notificationClient);
+
+        // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
+        progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 1);
+        verifyNoMoreInteractions(notificationClient);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+        progressClaimThroughExpiry(claimId, false);
 
     }
 
@@ -228,7 +256,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(28));
         wiremockManager.stubIneligibleEligibilityResponse();
-        progressClaimThroughExpiry(claimId);
+        progressClaimThroughExpiry(claimId, true);
 
     }
 
@@ -390,7 +418,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
     }
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    private void progressClaimThroughExpiry(UUID claimId) throws NotificationClientException {
+    private void progressClaimThroughExpiry(UUID claimId, boolean isEmailAddressProvided) throws NotificationClientException {
         LocalDateTime now = LocalDateTime.now();
         ageByOneCycle();
         // should expire the claim
@@ -410,7 +438,9 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
 
         // invoke schedulers to process send email for card is about to be cancelled
         invokeAllSchedulers();
-        assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+        if (isEmailAddressProvided) {
+            assertThatCardIsAboutToBeCancelledEmailWasSent(claim);
+        }
     }
 
     private void assertSingleEmailSent(EmailType emailType, PaymentCycle currentPaymentCycleForClaim) throws NotificationClientException {
@@ -439,6 +469,19 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
             wiremockManager.stubGoogleAnalyticsCall();
             invokeAllSchedulers();
             assertPaymentCyclePaidCorrectly(claimId, NO_CHILDREN, REGULAR_PAYMENT);
+            wiremockManager.assertThatNoEligibilityRequestMade();
+        }
+        return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
+    }
+
+    private LocalDate progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(LocalDate expectedDeliveryDate, UUID claimId, int numCycles)
+            throws NotificationClientException {
+        for (int i = 0; i < numCycles; i++) {
+            resetNotificationClient();
+            repositoryMediator.ageDatabaseEntities(CYCLE_DURATION);
+            wiremockManager.stubGoogleAnalyticsCall();
+            invokeAllSchedulers();
+            assertPaymentCyclePaidCorrectlyForMissingNinoAndEmailAndPhone(claimId, NO_CHILDREN);
             wiremockManager.assertThatNoEligibilityRequestMade();
         }
         return expectedDeliveryDate.minusDays((long) CYCLE_DURATION * numCycles);
@@ -508,6 +551,22 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
+    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
+                                                                                                       String nino,
+                                                                                                       String emailAddress,
+                                                                                                       String phoneNumber)
+            throws JsonProcessingException, NotificationClientException {
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideAndNinoAndEmailAndPhone(
+                expectedDeliveryDate,
+                NO_CHILDREN,
+                EligibilityOutcome.CONFIRMED,
+                OVERRIDE_UNTIL_FIVE_YEARS,
+                nino,
+                emailAddress,
+                phoneNumber);
+        return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
+    }
+
     private UUID applyForHealthyStartOverridingEligibilityForUnder18Pregnant(LocalDate expectedDeliveryDate)
             throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(
@@ -543,7 +602,14 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         invokeAllSchedulers();
 
         ClaimantDTO claimant = newClaimDTO.getClaimant();
-        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        Claim claim;
+        if (claimant.getNino() == null) {
+            claim = repositoryMediator.getClaimForLastNameAndDobAndPostCode(claimant.getLastName(),
+                    claimant.getDateOfBirth(),
+                    claimant.getAddress().getPostcode());
+        } else {
+            claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        }
         return claim.getId();
     }
 
@@ -622,6 +688,16 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         PaymentCycle paymentCycle = getAndAssertPaymentCycle(claim);
         assertPaymentHasCorrectAmount(claim, paymentCycle, childrenDob);
         assertThatPaymentEmailWasSent(paymentCycle, emailType);
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(), childrenDob);
+        return paymentCycle;
+    }
+
+    private PaymentCycle assertPaymentCyclePaidCorrectlyForMissingNinoAndEmailAndPhone(UUID claimId,
+                                                                                       List<LocalDate> childrenDob) throws NotificationClientException {
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        PaymentCycle paymentCycle = getAndAssertPaymentCycle(claim);
+        assertPaymentHasCorrectAmount(claim, paymentCycle, childrenDob);
         wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, SCHEDULED_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(), childrenDob);
         return paymentCycle;
     }

@@ -35,7 +35,6 @@ public class Claimant {
     @Column(name = "last_name")
     private String lastName;
 
-    @NotNull
     @Pattern(regexp = "[a-zA-Z]{2}\\d{6}[a-dA-D]")
     @Column(name = "nino")
     private String nino;
@@ -53,12 +52,10 @@ public class Claimant {
     @OneToOne(cascade = CascadeType.ALL)
     private Address address;
 
-    @NotNull
     @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +447123456789 format")
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @NotNull
     @Pattern(regexp = VALID_EMAIL_REGEX, message = "invalid email address")
     @Size(max = 256)
     @Column(name = "email_address")

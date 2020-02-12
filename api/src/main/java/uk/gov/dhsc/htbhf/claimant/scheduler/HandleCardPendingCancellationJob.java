@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.scheduler;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -30,7 +31,11 @@ public class HandleCardPendingCancellationJob {
     @Transactional
     public void handleCardPendingCancellation(Claim claim) {
         MessagePayload messagePayload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, CARD_IS_ABOUT_TO_BE_CANCELLED);
-        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+
+        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
+            messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
+        }
+
         claim.updateCardStatus(SCHEDULED_FOR_CANCELLATION);
         claimRepository.save(claim);
     }

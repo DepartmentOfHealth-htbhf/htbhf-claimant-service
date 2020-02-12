@@ -35,6 +35,27 @@ public class ClaimantDTOTestDataFactory {
                 .build();
     }
 
+    public static ClaimantDTO aClaimantDTOWithEmailAddressAndPhoneNumber(String emailAddress, String phoneNumber) {
+        return aValidClaimantBuilder()
+                .emailAddress(emailAddress)
+                .phoneNumber(phoneNumber)
+                .build();
+    }
+
+    public static ClaimantDTO aClaimantDTOWithExpectedDeliveryDateAndEmailAddressAndPhoneNumber(LocalDate expectedDeliveryDate,
+                                                                                                List<LocalDate> childrenDob,
+                                                                                                String nino,
+                                                                                                String emailAddress,
+                                                                                                String phoneNumber) {
+        return aValidClaimantBuilder()
+                .nino(nino)
+                .expectedDeliveryDate(expectedDeliveryDate)
+                .initiallyDeclaredChildrenDob(childrenDob)
+                .emailAddress(emailAddress)
+                .phoneNumber(phoneNumber)
+                .build();
+    }
+
     public static ClaimantDTO aClaimantDTOWithExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
         return aValidClaimantBuilder()
                 .expectedDeliveryDate(expectedDeliveryDate)

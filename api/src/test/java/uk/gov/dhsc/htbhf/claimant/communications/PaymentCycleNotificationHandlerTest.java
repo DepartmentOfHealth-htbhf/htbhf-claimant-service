@@ -173,6 +173,18 @@ class PaymentCycleNotificationHandlerTest {
         verifyNoMoreInteractions(upcomingBirthdayEmailHandler);
     }
 
+    @Test
+    public void shouldNotSendAnyNotificationForMissingEmail() {
+        PaymentCycle paymentCycle = aValidPaymentCycle();
+        paymentCycle.getClaim().getClaimant().setEmailAddress(null);
+        paymentCycleNotificationHandler.sendNotificationEmailsForRegularPayment(paymentCycle);
+        verifyNoInteractions(messageQueueClient);
+        verifyNoInteractions(emailMessagePayloadFactory);
+        verifyNoInteractions(pregnancyEntitlementCalculator);
+        verifyNoInteractions(childDateOfBirthCalculator);
+        verifyNoInteractions(upcomingBirthdayEmailHandler);
+    }
+
     private void verifyPaymentEmailNotificationSent(PaymentCycle paymentCycle, EmailMessagePayload emailMessagePayload, EmailType emailType) {
         verify(messageQueueClient).sendMessage(emailMessagePayload, MessageType.SEND_EMAIL);
         verify(emailMessagePayloadFactory).buildEmailMessagePayload(paymentCycle, emailType);

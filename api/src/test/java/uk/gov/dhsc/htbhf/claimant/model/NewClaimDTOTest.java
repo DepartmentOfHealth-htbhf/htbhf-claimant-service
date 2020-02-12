@@ -14,7 +14,8 @@ import javax.validation.ConstraintViolation;
 import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.assertions.ConstraintViolationAssert.assertThat;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddressAndPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideDTOTestDataFactory.aConfirmedEligibilityOverrideDTOWithChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CHILD_BORN_IN_FUTURE;
@@ -55,12 +56,23 @@ class NewClaimDTOTest extends AbstractValidationTest {
     @Test
     void shouldFailToValidateClaimWithInvalidClaimant() {
         //Given
-        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
+        ClaimantDTO claimant = aClaimantDTOWithLastName(null);
         NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
         //Then
-        assertThat(violations).hasSingleConstraintViolation("must not be null", "claimant.phoneNumber");
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "claimant.lastName");
+    }
+
+    @Test
+    void shouldValidateClaimWithoutEmailAdderssAndPhoneNumber() {
+        //Given
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddressAndPhoneNumber(null, null);
+        NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
+        //When
+        Set<ConstraintViolation<NewClaimDTO>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasNoViolations();
     }
 
     @Test

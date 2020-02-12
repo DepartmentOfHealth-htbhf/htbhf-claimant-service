@@ -43,7 +43,6 @@ public class ClaimantDTO {
     @ApiModelProperty(notes = "Last (surname or family) name", example = "Bloggs")
     private String lastName;
 
-    @NotNull
     @Pattern(regexp = "^(?!BG|GB|NK|KN|TN|NT|ZZ)[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z](\\d{6})[A-D]$")
     @JsonProperty("nino")
     @ApiModelProperty(notes = "National Insurance number", example = "QQ123456C")
@@ -69,13 +68,11 @@ public class ClaimantDTO {
     @ApiModelProperty(notes = "The address of the claimant")
     private AddressDTO address;
 
-    @NotNull
     @Pattern(regexp = "^\\+44\\d{9,10}$", message = "invalid UK phone number, must be in +44 format, e.g. +447123456789")
     @JsonProperty("phoneNumber")
     @ApiModelProperty(notes = "The claimant's UK phone number. Must be in +44 format, e.g. +447123456789", example = "+447123456789")
     private String phoneNumber;
 
-    @NotNull
     @Pattern(regexp = VALID_EMAIL_REGEX_V3, message = "invalid email address")
     @Size(max = 256)
     @JsonProperty("emailAddress")

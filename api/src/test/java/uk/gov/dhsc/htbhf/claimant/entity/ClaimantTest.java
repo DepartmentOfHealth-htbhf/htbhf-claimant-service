@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.entity;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -98,6 +99,7 @@ class ClaimantTest extends AbstractValidationTest {
                 .hasViolation("size must be between 1 and 500", "firstName");
     }
 
+    @Disabled("nino is optional for private beta  and unique key is yet to be decided")
     @Test
     void shouldFailToValidateClaimantWithNoNino() {
         //Given
@@ -107,6 +109,28 @@ class ClaimantTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "nino");
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutNino() {
+        //Given
+        String nino = null;
+        Claimant claimant = aClaimantWithNino(nino);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutEmail() {
+        //Given
+        String emailAddress = null;
+        Claimant claimant = aClaimantWithEmailAddress(emailAddress);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
     }
 
     @ParameterizedTest
@@ -182,6 +206,7 @@ class ClaimantTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("must not be null", "address");
     }
 
+    @Disabled("phone number is optional for private beta  and unique key is yet to be decided")
     @Test
     void shouldFailToValidateClaimantWithoutPhoneNumber() {
         //Given
@@ -190,6 +215,16 @@ class ClaimantTest extends AbstractValidationTest {
         Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "phoneNumber");
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutPhoneNumber() {
+        //Given
+        Claimant claimant = aClaimantWithPhoneNumber(null);
+        //When
+        Set<ConstraintViolation<Claimant>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
     }
 
     @ParameterizedTest

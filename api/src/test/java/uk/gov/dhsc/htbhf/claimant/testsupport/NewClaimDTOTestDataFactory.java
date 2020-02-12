@@ -67,6 +67,22 @@ public final class NewClaimDTOTestDataFactory {
                 .build();
     }
 
+    public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideAndNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
+                                                                    List<LocalDate> childrenDob,
+                                                                    EligibilityOutcome eligibilityOutcome,
+                                                                    LocalDate overrideUntil,
+                                                                    String nino,
+                                                                    String emailAddress,
+                                                                    String phoneNumber) {
+        EligibilityOverrideDTO eligibilityOverride = getEligibilityOverrideDTOBuilder(childrenDob, eligibilityOutcome, overrideUntil)
+                .build();
+
+        return aClaimDTOBuilder()
+                .claimant(aClaimantDTOWithExpectedDeliveryDateAndEmailAddressAndPhoneNumber(expectedDeliveryDate, childrenDob, nino, emailAddress, phoneNumber))
+                .eligibilityOverride(eligibilityOverride)
+                .build();
+    }
+
     public static NewClaimDTO aValidClaimDTOWithEligibilityOverrideForUnder18Pregnant(LocalDate expectedDeliveryDate,
                                                                                       EligibilityOutcome eligibilityOutcome,
                                                                                       LocalDate overrideUntil) {
