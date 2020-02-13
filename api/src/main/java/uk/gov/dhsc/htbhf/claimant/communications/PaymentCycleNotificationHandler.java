@@ -32,7 +32,7 @@ public class PaymentCycleNotificationHandler {
         EmailType emailType = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
                 ? EmailType.NEW_CHILD_FROM_PREGNANCY
                 : EmailType.REGULAR_PAYMENT;
-        sendNotificationEmail(paymentCycle, emailType);
+        sendNotificationEmailIfPresent(paymentCycle, emailType);
     }
 
     /**
@@ -42,10 +42,10 @@ public class PaymentCycleNotificationHandler {
      * @param paymentCycle the current payment cycle
      */
     public void sendNotificationEmailsForRestartedPayment(PaymentCycle paymentCycle) {
-        sendNotificationEmail(paymentCycle, EmailType.RESTARTED_PAYMENT);
+        sendNotificationEmailIfPresent(paymentCycle, EmailType.RESTARTED_PAYMENT);
     }
 
-    private void sendNotificationEmail(PaymentCycle paymentCycle, EmailType emailType) {
+    private void sendNotificationEmailIfPresent(PaymentCycle paymentCycle, EmailType emailType) {
         if (StringUtils.isNotEmpty(paymentCycle.getClaim().getClaimant().getEmailAddress())) {
             EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
             messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);

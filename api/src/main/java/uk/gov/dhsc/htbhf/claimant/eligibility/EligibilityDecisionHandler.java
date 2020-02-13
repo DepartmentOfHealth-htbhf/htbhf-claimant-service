@@ -82,7 +82,7 @@ public class EligibilityDecisionHandler {
             handleLossOfQualifyingReasonStatus(claim, decision.getIdentityAndEligibilityResponse());
         } else {
             expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
-            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claim);
         }
     }
 
@@ -113,7 +113,7 @@ public class EligibilityDecisionHandler {
 
     private void handleLossOfQualifyingReasonStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
-        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmailIfPresent(claim);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 

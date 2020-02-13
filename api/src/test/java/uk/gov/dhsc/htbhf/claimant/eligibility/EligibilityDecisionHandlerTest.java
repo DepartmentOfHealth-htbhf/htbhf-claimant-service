@@ -200,7 +200,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
@@ -237,7 +237,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         LocalDate currentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
@@ -267,7 +267,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle,
                 decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);

@@ -91,8 +91,6 @@ class ClaimServiceTest {
     private static final List<LocalDate> NULL_CHILDREN = null;
     private static final EligibilityOverride NO_ELIGIBILITY_OVERRIDE = null;
     private static final List<LocalDate> NO_CHILDREN = emptyList();
-    private static final String EMAIL_ADDRESS = "test@email.com";
-    private static final String PHONE_NUMBER = "+447123456789";
 
     private static final String WEB_UI_VERSION = "1.1.1";
 
@@ -278,19 +276,19 @@ class ClaimServiceTest {
     private static Stream<Arguments> emailOrPhoneMismatchArguments() {
         return Stream.of(
                 // email match, phone match, declared children dob, benefit agency dob, letter type
-                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, EMAIL_ADDRESS, PHONE_NUMBER),
+                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
                 Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
-                        EMAIL_ADDRESS, PHONE_NUMBER),
+                        HOMER_EMAIL, HOMER_MOBILE),
                 // commented below line, currently only email matched check is added to send email and below test case won't send pending decision email in
                 // case of children mismatch however it does send only letter with partial children match
                 // Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
                 Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
-                        EMAIL_ADDRESS, PHONE_NUMBER),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH, EMAIL_ADDRESS, PHONE_NUMBER),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, EMAIL_ADDRESS, PHONE_NUMBER),
+                        HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH, HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
                 Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH,
-                        EMAIL_ADDRESS, PHONE_NUMBER),
-                Arguments.of(NOT_SUPPLIED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, PHONE_NUMBER),
+                        HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_SUPPLIED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, HOMER_MOBILE),
                 Arguments.of(NOT_SUPPLIED, NOT_SUPPLIED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, null)
         );
     }

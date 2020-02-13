@@ -34,7 +34,7 @@ class DetermineEntitlementNotificationHandlerTest {
     public void shouldPutClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
 
-        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmailIfPresent(claim);
 
         ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
@@ -51,7 +51,7 @@ class DetermineEntitlementNotificationHandlerTest {
     public void shouldNotPutClaimNoLongerEligibleMessageOnQueueForMissingEmail() {
         Claim claim = aValidClaim();
         claim.getClaimant().setEmailAddress(null);
-        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmailIfPresent(claim);
         verifyNoInteractions(messageQueueClient);
     }
 
@@ -59,7 +59,7 @@ class DetermineEntitlementNotificationHandlerTest {
     public void shouldPutNoChildrenOnFeedClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
 
-        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claim);
 
         ArgumentCaptor<EmailMessagePayload> argumentCaptor = ArgumentCaptor.forClass(EmailMessagePayload.class);
         verify(messageQueueClient).sendMessage(argumentCaptor.capture(), eq(SEND_EMAIL));
@@ -71,7 +71,7 @@ class DetermineEntitlementNotificationHandlerTest {
     public void shouldNotPutNoChildrenOnFeedClaimNoLongerEligibleMessageOnQueue() {
         Claim claim = aValidClaim();
         claim.getClaimant().setEmailAddress(null);
-        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claim);
         verifyNoInteractions(messageQueueClient);
 
     }

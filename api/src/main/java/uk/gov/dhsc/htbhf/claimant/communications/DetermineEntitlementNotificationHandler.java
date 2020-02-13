@@ -20,14 +20,14 @@ public class DetermineEntitlementNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
 
-    public void sendClaimNoLongerEligibleEmail(Claim claim) {
+    public void sendClaimNoLongerEligibleEmailIfPresent(Claim claim) {
         if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
             MessagePayload messagePayload = buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);
             messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
         }
     }
 
-    public void sendNoChildrenOnFeedClaimNoLongerEligibleEmail(Claim claim) {
+    public void sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(Claim claim) {
         if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
             MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);
             messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);
