@@ -406,6 +406,22 @@ class ClaimServiceTest {
     }
 
     @Test
+    void shouldNotReportClaimWhenTheClaimIsRejectedWithoutNino() {
+        //given
+        // an INELIGIBLE response will cause a claim to be rejected
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
+        ClaimRequest request = aValidClaimRequest();
+        request.getClaimant().setNino(null);
+
+        //when
+        claimService.createClaim(request);
+
+        // then
+        verifyNoInteractions(claimMessageSender);
+    }
+
+    @Test
     void shouldHandleNullDeviceFingerprint() {
         //given
         Claimant claimant = aValidClaimant();

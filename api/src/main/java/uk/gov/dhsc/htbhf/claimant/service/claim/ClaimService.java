@@ -76,7 +76,9 @@ public class ClaimService {
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);
             }
 
-            sendMessagesForRejectedClaim(identityAndEligibilityResponse, verificationResult, claim);
+            if (StringUtils.isNotEmpty(claim.getClaimant().getNino())) {
+                sendMessagesForRejectedClaimIfNinoPresent(identityAndEligibilityResponse, verificationResult, claim);
+            }
             return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
@@ -112,9 +114,9 @@ public class ClaimService {
         claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
     }
 
-    private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
-                                              VerificationResult verificationResult,
-                                              Claim claim) {
+    private void sendMessagesForRejectedClaimIfNinoPresent(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                                           VerificationResult verificationResult,
+                                                           Claim claim) {
         if (verificationResult.isAddressMismatch()) {
             if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
                 claimMessageSender.sendDecisionPendingEmailMessage(claim);
