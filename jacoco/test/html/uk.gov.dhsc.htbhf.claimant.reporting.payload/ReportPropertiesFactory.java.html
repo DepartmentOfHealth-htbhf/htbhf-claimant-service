@@ -87,58 +87,61 @@ public abstract class ReportPropertiesFactory {
 
 <span class="fc" id="L88">        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = context.getIdentityAndEligibilityResponse();</span>
 <span class="fc" id="L89">        List&lt;LocalDate&gt; dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, identityAndEligibilityResponse);</span>
+        //current identity and eligibility response will be null in case of duplicate rejected claims
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        QualifyingReason qualifyingReason = claim.getCurrentIdentityAndEligibilityResponse() == null</span>
+<span class="pc" id="L92">                ? QualifyingReason.NOT_SET : claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason();</span>
 
-<span class="fc" id="L91">        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(</span>
-<span class="fc" id="L92">                        claim.getClaimant(),</span>
+<span class="fc" id="L94">        ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(</span>
+<span class="fc" id="L95">                        claim.getClaimant(),</span>
                         dobOfChildrenUnder4,
-<span class="fc" id="L94">                        context.getTimestamp().toLocalDate(),</span>
-<span class="fc" id="L95">                        claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason());</span>
+<span class="fc" id="L97">                        context.getTimestamp().toLocalDate(),</span>
+                        qualifyingReason);
 
-<span class="fc" id="L97">        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());</span>
-<span class="fc" id="L98">        PostcodeData postcodeData = claim.getPostcodeData();</span>
-<span class="fc" id="L99">        customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());</span>
-<span class="fc" id="L100">        customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());</span>
-<span class="fc" id="L101">        customDimensions.put(COUNTRY.getFieldName(), postcodeData.getCountry());</span>
-<span class="fc" id="L102">        customDimensions.put(POSTCODE_OUTCODE.getFieldName(), postcodeData.getOutcode());</span>
-<span class="fc" id="L103">        customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());</span>
-<span class="fc" id="L104">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());</span>
-<span class="fc" id="L105">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());</span>
-<span class="fc" id="L106">        customDimensions.put(QUALIFYING_REASON.getFieldName(), getQualifyingReason(identityAndEligibilityResponse));</span>
+<span class="fc" id="L100">        customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());</span>
+<span class="fc" id="L101">        PostcodeData postcodeData = claim.getPostcodeData();</span>
+<span class="fc" id="L102">        customDimensions.put(LOCAL_AUTHORITY.getFieldName(), postcodeData.getAdminDistrict());</span>
+<span class="fc" id="L103">        customDimensions.put(LOCAL_AUTHORITY_CODE.getFieldName(), postcodeData.getCodes().getAdminDistrict());</span>
+<span class="fc" id="L104">        customDimensions.put(COUNTRY.getFieldName(), postcodeData.getCountry());</span>
+<span class="fc" id="L105">        customDimensions.put(POSTCODE_OUTCODE.getFieldName(), postcodeData.getOutcode());</span>
+<span class="fc" id="L106">        customDimensions.put(WESTMINSTER_PARLIAMENTARY_CONSTITUENCY.getFieldName(), postcodeData.getParliamentaryConstituency());</span>
+<span class="fc" id="L107">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP.getFieldName(), postcodeData.getCcg());</span>
+<span class="fc" id="L108">        customDimensions.put(CLINICAL_COMMISSIONING_GROUP_CODE.getFieldName(), postcodeData.getCodes().getCcg());</span>
+<span class="fc" id="L109">        customDimensions.put(QUALIFYING_REASON.getFieldName(), getQualifyingReason(identityAndEligibilityResponse));</span>
 
-<span class="fc" id="L108">        return customDimensions;</span>
+<span class="fc" id="L111">        return customDimensions;</span>
     }
 
     private List&lt;LocalDate&gt; getDobOfChildrenUnder4(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        return identityAndEligibilityResponse == null</span>
-<span class="fc" id="L113">                ? claim.getClaimant().getInitiallyDeclaredChildrenDob()</span>
-<span class="fc" id="L114">                : identityAndEligibilityResponse.getDobOfChildrenUnder4();</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        return identityAndEligibilityResponse == null</span>
+<span class="fc" id="L116">                ? claim.getClaimant().getInitiallyDeclaredChildrenDob()</span>
+<span class="fc" id="L117">                : identityAndEligibilityResponse.getDobOfChildrenUnder4();</span>
     }
 
     private QualifyingReason getQualifyingReason(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-<span class="fc bfc" id="L118" title="All 2 branches covered.">        return identityAndEligibilityResponse == null</span>
-<span class="fc" id="L119">                ? QualifyingReason.NOT_SET</span>
-<span class="fc" id="L120">                : identityAndEligibilityResponse.getQualifyingReason();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        return identityAndEligibilityResponse == null</span>
+<span class="fc" id="L122">                ? QualifyingReason.NOT_SET</span>
+<span class="fc" id="L123">                : identityAndEligibilityResponse.getQualifyingReason();</span>
     }
 
     protected Map&lt;String, Object&gt; createCommonCustomMetrics(ReportEventMessageContext context) {
-<span class="fc" id="L124">        Map&lt;String, Object&gt; customMetrics = new TreeMap&lt;&gt;();</span>
-<span class="fc" id="L125">        Claim claim = context.getClaim();</span>
-<span class="fc" id="L126">        Claimant claimant = claim.getClaimant();</span>
-<span class="fc" id="L127">        LocalDate atDate = context.getTimestamp().toLocalDate();</span>
-<span class="fc" id="L128">        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());</span>
-<span class="fc" id="L129">        List&lt;LocalDate&gt; dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, context.getIdentityAndEligibilityResponse());</span>
-<span class="fc" id="L130">        long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, atDate);</span>
-<span class="fc" id="L131">        long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, atDate);</span>
-<span class="fc" id="L132">        customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);</span>
-<span class="fc" id="L133">        customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);</span>
-<span class="fc" id="L134">        LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();</span>
-<span class="fc bfc" id="L135" title="All 2 branches covered.">        int pregnanciesValue = isClaimantPregnant(expectedDeliveryDate, atDate) ? 1 : 0;</span>
-<span class="fc" id="L136">        customMetrics.put(PREGNANCIES.getFieldName(), pregnanciesValue);</span>
-<span class="fc" id="L137">        return customMetrics;</span>
+<span class="fc" id="L127">        Map&lt;String, Object&gt; customMetrics = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L128">        Claim claim = context.getClaim();</span>
+<span class="fc" id="L129">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L130">        LocalDate atDate = context.getTimestamp().toLocalDate();</span>
+<span class="fc" id="L131">        customMetrics.put(CLAIMANT_AGE.getFieldName(), Period.between(claimant.getDateOfBirth(), atDate).getYears());</span>
+<span class="fc" id="L132">        List&lt;LocalDate&gt; dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, context.getIdentityAndEligibilityResponse());</span>
+<span class="fc" id="L133">        long childrenUnder4 = getNumberOfChildrenUnderFour(dobOfChildrenUnder4, atDate);</span>
+<span class="fc" id="L134">        long childrenUnder1 = getNumberOfChildrenUnderOne(dobOfChildrenUnder4, atDate);</span>
+<span class="fc" id="L135">        customMetrics.put(CHILDREN_UNDER_ONE.getFieldName(), childrenUnder1);</span>
+<span class="fc" id="L136">        customMetrics.put(CHILDREN_BETWEEN_ONE_AND_FOUR.getFieldName(), childrenUnder4 - childrenUnder1);</span>
+<span class="fc" id="L137">        LocalDate expectedDeliveryDate = claimant.getExpectedDeliveryDate();</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">        int pregnanciesValue = isClaimantPregnant(expectedDeliveryDate, atDate) ? 1 : 0;</span>
+<span class="fc" id="L139">        customMetrics.put(PREGNANCIES.getFieldName(), pregnanciesValue);</span>
+<span class="fc" id="L140">        return customMetrics;</span>
     }
 
     protected boolean isClaimantPregnant(LocalDate expectedDeliveryDate, LocalDate atDate) {
-<span class="fc bfc" id="L141" title="All 4 branches covered.">        return expectedDeliveryDate != null &amp;&amp; !expectedDeliveryDate.isBefore(atDate);</span>
+<span class="fc bfc" id="L144" title="All 4 branches covered.">        return expectedDeliveryDate != null &amp;&amp; !expectedDeliveryDate.isBefore(atDate);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

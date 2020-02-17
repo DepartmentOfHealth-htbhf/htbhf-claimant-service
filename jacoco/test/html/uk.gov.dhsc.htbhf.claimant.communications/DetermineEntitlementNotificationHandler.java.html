@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DetermineEntitlementNotificationHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.communications</a> &gt; <span class="el_source">DetermineEntitlementNotificationHandler.java</span></div><h1>DetermineEntitlementNotificationHandler.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
@@ -19,31 +20,35 @@ public class DetermineEntitlementNotificationHandler {
 
     private final MessageQueueClient messageQueueClient;
 
-    public void sendClaimNoLongerEligibleEmail(Claim claim) {
-<span class="fc" id="L23">        MessagePayload messagePayload = buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);</span>
-<span class="fc" id="L24">        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
-<span class="fc" id="L25">    }</span>
+    public void sendClaimNoLongerEligibleEmailIfPresent(Claim claim) {
+<span class="fc bfc" id="L24" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {</span>
+<span class="fc" id="L25">            MessagePayload messagePayload = buildClaimIsNoLongerEligibleNotificationEmailPayload(claim);</span>
+<span class="fc" id="L26">            messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
+        }
+<span class="fc" id="L28">    }</span>
 
-    public void sendNoChildrenOnFeedClaimNoLongerEligibleEmail(Claim claim) {
-<span class="fc" id="L28">        MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);</span>
-<span class="fc" id="L29">        messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
-<span class="fc" id="L30">    }</span>
+    public void sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(Claim claim) {
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {</span>
+<span class="fc" id="L32">            MessagePayload messagePayload = buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(claim);</span>
+<span class="fc" id="L33">            messageQueueClient.sendMessage(messagePayload, SEND_EMAIL);</span>
+        }
+<span class="fc" id="L35">    }</span>
 
     private EmailMessagePayload buildClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {
-<span class="fc" id="L33">        return buildNoLongerEligibleEmailPayload(claim, EmailType.CLAIM_NO_LONGER_ELIGIBLE);</span>
+<span class="fc" id="L38">        return buildNoLongerEligibleEmailPayload(claim, EmailType.CLAIM_NO_LONGER_ELIGIBLE);</span>
     }
 
     private EmailMessagePayload buildNoChildrenOnFeedClaimIsNoLongerEligibleNotificationEmailPayload(Claim claim) {
-<span class="fc" id="L37">        return buildNoLongerEligibleEmailPayload(claim, EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);</span>
+<span class="fc" id="L42">        return buildNoLongerEligibleEmailPayload(claim, EmailType.NO_CHILD_ON_FEED_NO_LONGER_ELIGIBLE);</span>
     }
 
     private EmailMessagePayload buildNoLongerEligibleEmailPayload(Claim claim, EmailType emailType) {
-<span class="fc" id="L41">        Map&lt;String, Object&gt; emailPersonalisation = createEmailPersonalisationWithFirstAndLastNameOnly(claim.getClaimant());</span>
-<span class="fc" id="L42">        return EmailMessagePayload.builder()</span>
-<span class="fc" id="L43">                .claimId(claim.getId())</span>
-<span class="fc" id="L44">                .emailType(emailType)</span>
-<span class="fc" id="L45">                .emailPersonalisation(emailPersonalisation)</span>
-<span class="fc" id="L46">                .build();</span>
+<span class="fc" id="L46">        Map&lt;String, Object&gt; emailPersonalisation = createEmailPersonalisationWithFirstAndLastNameOnly(claim.getClaimant());</span>
+<span class="fc" id="L47">        return EmailMessagePayload.builder()</span>
+<span class="fc" id="L48">                .claimId(claim.getId())</span>
+<span class="fc" id="L49">                .emailType(emailType)</span>
+<span class="fc" id="L50">                .emailPersonalisation(emailPersonalisation)</span>
+<span class="fc" id="L51">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
