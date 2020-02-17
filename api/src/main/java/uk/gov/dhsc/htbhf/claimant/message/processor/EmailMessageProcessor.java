@@ -1,8 +1,10 @@
 package uk.gov.dhsc.htbhf.claimant.message.processor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.Message;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
@@ -37,19 +39,22 @@ public class EmailMessageProcessor implements MessageTypeProcessor {
     public MessageStatus processMessage(Message message) {
         EmailMessageContext messageContext = messageContextLoader.loadEmailMessageContext(message);
         UUID messageReference = UUID.randomUUID();
-        try {
-            SendEmailResponse sendEmailResponse = client.sendEmail(
-                    messageContext.getEmailType().getTemplateId(),
-                    messageContext.getClaim().getClaimant().getEmailAddress(),
-                    messageContext.getEmailPersonalisation(),
-                    messageReference.toString(),
-                    replyToAddressId
-            );
-            log.debug("{} email sent, reference={}, id={}", messageContext.getEmailType(), messageReference, sendEmailResponse.getNotificationId());
-        } catch (NotificationClientException e) {
-            log.error("Failed to send email message", e);
-            String failureMessage = String.format("Failed to send %s email message, exception is: %s", messageContext.getEmailType(), e.getMessage());
-            throw new EventFailedException(buildFailedEmailEvent(messageContext), e, failureMessage);
+        Claimant claimant = messageContext.getClaim().getClaimant();
+        if (StringUtils.isNotEmpty(claimant.getEmailAddress())) {
+            try {
+                SendEmailResponse sendEmailResponse = client.sendEmail(
+                        messageContext.getEmailType().getTemplateId(),
+                        messageContext.getClaim().getClaimant().getEmailAddress(),
+                        messageContext.getEmailPersonalisation(),
+                        messageReference.toString(),
+                        replyToAddressId
+                );
+                log.debug("{} email sent, reference={}, id={}", messageContext.getEmailType(), messageReference, sendEmailResponse.getNotificationId());
+            } catch (NotificationClientException e) {
+                log.error("Failed to send email message", e);
+                String failureMessage = String.format("Failed to send %s email message, exception is: %s", messageContext.getEmailType(), e.getMessage());
+                throw new EventFailedException(buildFailedEmailEvent(messageContext), e, failureMessage);
+            }
         }
         return MessageStatus.COMPLETED;
     }

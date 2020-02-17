@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.eligibility;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.DetermineEntitlementNotificationHandler;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
@@ -54,7 +55,8 @@ public class EligibilityDecisionHandler {
             createMakeRestartedPaymentMessage(currentPaymentCycle);
         }
 
-        if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)) {
+        if (pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle)
+                && StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
             // Email is worded such that we don't need to check if a new child from pregnancy has already appeared.
             claimMessageSender.sendReportABirthEmailMessage(claim);
         }
@@ -80,7 +82,7 @@ public class EligibilityDecisionHandler {
             handleLossOfQualifyingReasonStatus(claim, decision.getIdentityAndEligibilityResponse());
         } else {
             expireClaim(claim, decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_EXPIRED);
-            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claim);
+            determineEntitlementNotificationHandler.sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claim);
         }
     }
 
@@ -111,7 +113,7 @@ public class EligibilityDecisionHandler {
 
     private void handleLossOfQualifyingReasonStatus(Claim claim, CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
         updateClaimAndCardStatus(claim, PENDING_EXPIRY, PENDING_CANCELLATION);
-        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmail(claim);
+        determineEntitlementNotificationHandler.sendClaimNoLongerEligibleEmailIfPresent(claim);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);
     }
 

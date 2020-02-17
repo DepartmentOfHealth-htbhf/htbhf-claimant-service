@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.model;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -87,6 +88,7 @@ class ClaimantDTOTest extends AbstractValidationTest {
         assertThat(violations).hasSingleConstraintViolation("size must be between 1 and 500", "lastName");
     }
 
+    @Disabled("nino is optional for private beta  and unique key is yet to be decided")
     @Test
     void shouldFailValidationWithNullNino() {
         //Given
@@ -95,6 +97,26 @@ class ClaimantDTOTest extends AbstractValidationTest {
         Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
         //Then
         assertThat(violations).hasSingleConstraintViolation("must not be null", "nino");
+    }
+
+    @Test
+    void shouldValidateWithoutNino() {
+        //Given
+        ClaimantDTO claimant = aClaimantDTOWithNino(null);
+        //When
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
+    }
+
+    @Test
+    void shouldValidateWithoutEmailAddressAndPhoneNumber() {
+        //Given
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddressAndPhoneNumber(null, null);
+        //When
+        Set<ConstraintViolation<ClaimantDTO>> violations = validator.validate(claimant);
+        //Then
+        assertThat(violations).hasNoViolations();
     }
 
     @ParameterizedTest

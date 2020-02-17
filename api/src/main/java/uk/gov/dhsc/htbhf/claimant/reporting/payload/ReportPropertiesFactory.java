@@ -87,12 +87,15 @@ public abstract class ReportPropertiesFactory {
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = context.getIdentityAndEligibilityResponse();
         List<LocalDate> dobOfChildrenUnder4 = getDobOfChildrenUnder4(claim, identityAndEligibilityResponse);
+        //current identity and eligibility response will be null in case of duplicate rejected claims
+        QualifyingReason qualifyingReason = claim.getCurrentIdentityAndEligibilityResponse() == null
+                ? QualifyingReason.NOT_SET : claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason();
 
         ClaimantCategory claimantCategory = claimantCategoryCalculator.determineClaimantCategory(
                         claim.getClaimant(),
                         dobOfChildrenUnder4,
                         context.getTimestamp().toLocalDate(),
-                        claim.getCurrentIdentityAndEligibilityResponse().getQualifyingReason());
+                        qualifyingReason);
 
         customDimensions.put(CLAIMANT_CATEGORY.getFieldName(), claimantCategory.getDescription());
         PostcodeData postcodeData = claim.getPostcodeData();

@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.service.claim;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,6 +79,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataF
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.MATCHED;
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_SUPPLIED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.INELIGIBLE;
@@ -239,9 +241,11 @@ class ClaimServiceTest {
                                                                                                                   VerificationOutcome phoneVerification,
                                                                                                                   List<LocalDate> declaredChildrenDob,
                                                                                                                   List<LocalDate> benefitAgencyChildrenDob,
-                                                                                                                  LetterType letterType) {
+                                                                                                                  LetterType letterType,
+                                                                                                                  String emailAddress,
+                                                                                                                  String phoneNumber) {
         //given
-        ClaimRequest request = aClaimRequestForClaimant(aClaimantWithChildrenDob(declaredChildrenDob));
+        ClaimRequest request = aClaimRequestForClaimant(aClaimantWithChildrenDobAndEmailAddressAndPhoneNumber(declaredChildrenDob, emailAddress, phoneNumber));
         EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, anIdMatchedEligibilityConfirmedUCResponseWithMatches(
                 phoneVerification, emailVerification, benefitAgencyChildrenDob));
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
@@ -257,7 +261,11 @@ class ClaimServiceTest {
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(claim);
         verify(eventAuditor).auditNewClaim(claim);
-        verify(claimMessageSender).sendDecisionPendingEmailMessage(claim);
+
+        if (StringUtils.isNotEmpty(emailAddress)) {
+            verify(claimMessageSender).sendDecisionPendingEmailMessage(claim);
+        }
+
         verify(claimMessageSender).sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
         verify(claimMessageSender).sendNewCardMessage(claim, decision);
         verify(claimMessageSender).sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -268,13 +276,20 @@ class ClaimServiceTest {
     private static Stream<Arguments> emailOrPhoneMismatchArguments() {
         return Stream.of(
                 // email match, phone match, declared children dob, benefit agency dob, letter type
-                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH),
-                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH)
+                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
+                        HOMER_EMAIL, HOMER_MOBILE),
+                // commented below line, currently only email matched check is added to send email and below test case won't send pending decision email in
+                // case of children mismatch however it does send only letter with partial children match
+                // Arguments.of(MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
+                        HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, emptyList(), APPLICATION_SUCCESS_CHILDREN_MISMATCH, HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH,
+                        HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_SUPPLIED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, HOMER_MOBILE),
+                Arguments.of(NOT_SUPPLIED, NOT_SUPPLIED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, null)
         );
     }
 
@@ -388,6 +403,22 @@ class ClaimServiceTest {
         // then
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    @Test
+    void shouldNotReportClaimWhenTheClaimIsRejectedWithoutNino() {
+        //given
+        // an INELIGIBLE response will cause a claim to be rejected
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatus(INELIGIBLE);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
+        ClaimRequest request = aValidClaimRequest();
+        request.getClaimant().setNino(null);
+
+        //when
+        claimService.createClaim(request);
+
+        // then
+        verifyNoInteractions(claimMessageSender);
     }
 
     @Test

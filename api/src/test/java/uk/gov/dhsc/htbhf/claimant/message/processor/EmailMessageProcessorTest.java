@@ -85,6 +85,27 @@ class EmailMessageProcessorTest {
     }
 
     @Test
+    void shouldNotSendMessageForMissingEmail() throws NotificationClientException {
+        //Given
+        Claim claim = aValidClaim();
+        claim.getClaimant().setEmailAddress(null);
+        Map<String, Object> emailPersonalisation = buildEmailPersonalisation();
+        EmailMessageContext context = EmailMessageContext.builder()
+                .claim(claim)
+                .emailPersonalisation(emailPersonalisation)
+                .emailType(INSTANT_SUCCESS)
+                .build();
+        given(messageContextLoader.loadEmailMessageContext(any())).willReturn(context);
+        Message message = aValidMessageWithType(SEND_EMAIL);
+
+        //When
+        emailMessageProcessor.processMessage(message);
+
+        //Then
+        verifyNoInteractions(client);
+    }
+
+    @Test
     void shouldNotLogEmailBodyOrSubject() throws NotificationClientException {
         //Given
         Claim claim = aValidClaim();

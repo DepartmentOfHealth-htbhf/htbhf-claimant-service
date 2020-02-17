@@ -1,6 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.communications;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entitlement.PregnancyEntitlementCalculator;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -31,7 +32,7 @@ public class PaymentCycleNotificationHandler {
         EmailType emailType = voucherEntitlementIndicatesNewChildFromPregnancy(paymentCycle)
                 ? EmailType.NEW_CHILD_FROM_PREGNANCY
                 : EmailType.REGULAR_PAYMENT;
-        sendNotificationEmail(paymentCycle, emailType);
+        sendNotificationEmailIfPresent(paymentCycle, emailType);
     }
 
     /**
@@ -41,13 +42,15 @@ public class PaymentCycleNotificationHandler {
      * @param paymentCycle the current payment cycle
      */
     public void sendNotificationEmailsForRestartedPayment(PaymentCycle paymentCycle) {
-        sendNotificationEmail(paymentCycle, EmailType.RESTARTED_PAYMENT);
+        sendNotificationEmailIfPresent(paymentCycle, EmailType.RESTARTED_PAYMENT);
     }
 
-    private void sendNotificationEmail(PaymentCycle paymentCycle, EmailType emailType) {
-        EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
-        messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
-        handleUpcomingBirthdayEmails(paymentCycle);
+    private void sendNotificationEmailIfPresent(PaymentCycle paymentCycle, EmailType emailType) {
+        if (StringUtils.isNotEmpty(paymentCycle.getClaim().getClaimant().getEmailAddress())) {
+            EmailMessagePayload messagePayload = emailMessagePayloadFactory.buildEmailMessagePayload(paymentCycle, emailType);
+            messageQueueClient.sendMessage(messagePayload, MessageType.SEND_EMAIL);
+            handleUpcomingBirthdayEmails(paymentCycle);
+        }
     }
 
     private boolean voucherEntitlementIndicatesNewChildFromPregnancy(PaymentCycle paymentCycle) {

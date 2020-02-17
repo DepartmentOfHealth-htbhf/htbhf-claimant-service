@@ -1,5 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.eligibility;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -107,10 +108,12 @@ class EligibilityDecisionHandlerTest {
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
     }
 
-    @Test
-    void shouldSendReportABirthReminderEmailWhenClaimantReceivesSecondToLastPregnancyVouchers() {
+    @ParameterizedTest
+    @MethodSource("emailAddresses")
+    void shouldSendReportABirthReminderEmailWhenClaimantReceivesSecondToLastPregnancyVouchers(String emailAddress) {
         // Given
         Claim claim = aValidClaim();
+        claim.getClaimant().setEmailAddress(emailAddress);
         PaymentCycle currentPaymentCycle = aPaymentCycleWithClaim(claim);
         // current payment cycle is second to last one with vouchers
         given(pregnancyEntitlementCalculator.currentCycleIsSecondToLastCycleWithPregnancyVouchers(any())).willReturn(true);
@@ -120,7 +123,19 @@ class EligibilityDecisionHandlerTest {
 
         // Then
         verify(pregnancyEntitlementCalculator).currentCycleIsSecondToLastCycleWithPregnancyVouchers(currentPaymentCycle);
-        verify(claimMessageSender).sendReportABirthEmailMessage(claim);
+        if (StringUtils.isEmpty(emailAddress)) {
+            verifyNoInteractions(claimMessageSender);
+        } else {
+            verify(claimMessageSender).sendReportABirthEmailMessage(claim);
+        }
+    }
+
+    private static Stream<Arguments> emailAddresses() {
+
+        return Stream.of(
+                Arguments.of(HOMER_EMAIL),
+                Arguments.of("")
+        );
     }
 
     //Test for HTBHF-2182 has the following context:
@@ -185,7 +200,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.EXPIRED, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendNoChildrenOnFeedClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         LocalDate currentPaymentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
@@ -222,7 +237,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         LocalDate currentCycleStartDate = currentPaymentCycle.getCycleStartDate();
         verify(childDateOfBirthCalculator).hadChildrenUnder4AtStartOfPaymentCycle(previousPaymentCycle);
         verify(childDateOfBirthCalculator).hasChildrenUnderFourAtGivenDate(ONE_CHILD_UNDER_ONE_AND_ONE_CHILD_BETWEEN_ONE_AND_FOUR, currentCycleStartDate);
@@ -252,7 +267,7 @@ class EligibilityDecisionHandlerTest {
 
         //Then
         verifyClaimSavedWithStatus(ClaimStatus.PENDING_EXPIRY, PENDING_CANCELLATION);
-        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmail(claimAtCurrentCycle);
+        verify(determineEntitlementNotificationHandler).sendClaimNoLongerEligibleEmailIfPresent(claimAtCurrentCycle);
         verify(pregnancyEntitlementCalculator).claimantIsPregnantInCycle(currentPaymentCycle);
         verify(claimMessageSender).sendReportClaimMessage(claimAtCurrentCycle,
                 decision.getIdentityAndEligibilityResponse(), UPDATED_FROM_ACTIVE_TO_PENDING_EXPIRY);

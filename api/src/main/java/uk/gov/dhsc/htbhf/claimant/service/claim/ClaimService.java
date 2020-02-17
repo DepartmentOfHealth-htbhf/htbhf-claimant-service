@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -20,6 +21,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.EligibilityAndEntitlementService;
 import uk.gov.dhsc.htbhf.claimant.service.audit.EventAuditor;
 import uk.gov.dhsc.htbhf.claimant.service.audit.NewClaimEvent;
+import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -74,7 +76,9 @@ public class ClaimService {
                 return ClaimResult.withEntitlement(claim, weeklyEntitlement, verificationResult);
             }
 
-            sendMessagesForRejectedClaim(identityAndEligibilityResponse, verificationResult, claim);
+            if (StringUtils.isNotEmpty(claim.getClaimant().getNino())) {
+                sendMessagesForRejectedClaimIfNinoPresent(identityAndEligibilityResponse, verificationResult, claim);
+            }
             return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
             handleFailedClaim(claimRequest, e);
@@ -85,7 +89,7 @@ public class ClaimService {
     private void sendMessagesForNewClaim(EligibilityAndEntitlementDecision decision,
                                          CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
                                          Claim claim) {
-        if (identityAndEligibilityResponse.isEmailAndPhoneMatched()) {
+        if (identityAndEligibilityResponse.getEmailAddressMatch() == VerificationOutcome.MATCHED) {
             EmailType emailType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
                     ? EmailType.INSTANT_SUCCESS
                     : EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
@@ -93,6 +97,7 @@ public class ClaimService {
         } else {
             sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }
+
         claimMessageSender.sendNewCardMessage(claim, decision);
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.NEW);
     }
@@ -100,19 +105,22 @@ public class ClaimService {
     private void sendMessagesForPhoneOrEmailMismatch(Claim claim,
                                                      EligibilityAndEntitlementDecision decision,
                                                      CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse) {
-        claimMessageSender.sendDecisionPendingEmailMessage(claim);
-
+        if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
+            claimMessageSender.sendDecisionPendingEmailMessage(claim);
+        }
         LetterType letterType = registeredChildrenContainAllDeclaredChildren(identityAndEligibilityResponse, claim)
                 ? LetterType.APPLICATION_SUCCESS_CHILDREN_MATCH
                 : LetterType.APPLICATION_SUCCESS_CHILDREN_MISMATCH;
         claimMessageSender.sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, letterType);
     }
 
-    private void sendMessagesForRejectedClaim(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
-                                              VerificationResult verificationResult,
-                                              Claim claim) {
+    private void sendMessagesForRejectedClaimIfNinoPresent(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse,
+                                                           VerificationResult verificationResult,
+                                                           Claim claim) {
         if (verificationResult.isAddressMismatch()) {
-            claimMessageSender.sendDecisionPendingEmailMessage(claim);
+            if (StringUtils.isNotEmpty(claim.getClaimant().getEmailAddress())) {
+                claimMessageSender.sendDecisionPendingEmailMessage(claim);
+            }
             claimMessageSender.sendLetterWithAddressOnlyMessage(claim, LetterType.UPDATE_YOUR_ADDRESS);
         }
         claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);

@@ -54,13 +54,16 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.a
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddressAndPhoneNumber;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithLastName;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithNino;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResultWithPhoneAndEmail;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_SUPPLIED;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.DUPLICATE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ELIGIBLE;
 import static uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus.ERROR;
@@ -317,12 +320,30 @@ class ClaimantServiceIntegrationTests {
     @Test
     void shouldFailWithClaimantValidationError() {
         //Given
-        ClaimantDTO claimant = aClaimantDTOWithPhoneNumber(null);
+        ClaimantDTO claimant = aClaimantDTOWithLastName(null);
         NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
         //When
         ResponseEntity<ErrorResponse> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ErrorResponse.class);
         //Then
-        assertValidationErrorInResponse(response, "claimant.phoneNumber", "must not be null");
+        assertValidationErrorInResponse(response, "claimant.lastName", "must not be null");
+    }
+
+    @Test
+    void shouldValidateClaimantWithoutPhoneNumberAndEmail() throws JsonProcessingException {
+        //Given
+        ClaimantDTO claimant = aClaimantDTOWithEmailAddressAndPhoneNumber(null, null);
+        NewClaimDTO claim = aClaimDTOWithClaimant(claimant);
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches().toBuilder()
+                .mobilePhoneMatch(NOT_SUPPLIED)
+                .emailAddressMatch(NOT_SUPPLIED)
+                .build();
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntity(claim), ClaimResultDTO.class);
+        //Then
+        assertThatClaimResultHasNewClaimWithoutPhoneAndEmail(response);
+        wiremockManager.assertThatEligibilityRequestMade();
     }
 
     @Test
@@ -387,13 +408,22 @@ class ClaimantServiceIntegrationTests {
         assertThat(response.getBody().getVoucherEntitlement()).isNull();
     }
 
+    private void assertThatClaimResultHasNewClaimWithoutPhoneAndEmail(ResponseEntity<ClaimResultDTO> response) {
+        assertThatValidClaimResult(response);
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResultWithPhoneAndEmail(NOT_SUPPLIED, NOT_SUPPLIED));
+    }
+
     private void assertThatClaimResultHasNewClaim(ResponseEntity<ClaimResultDTO> response) {
+        assertThatValidClaimResult(response);
+        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
+    }
+
+    private void assertThatValidClaimResult(ResponseEntity<ClaimResultDTO> response) {
         assertThat(response.getStatusCode()).isEqualTo(CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
         assertThat(response.getBody().getEligibilityStatus()).isEqualTo(ELIGIBLE);
         assertThat(response.getBody().getVoucherEntitlement()).isEqualTo(aValidVoucherEntitlementDTO());
-        assertThat(response.getBody().getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
     }
 
     private void assertClaimPersistedSuccessfully(NewClaimDTO newClaimDTO,
