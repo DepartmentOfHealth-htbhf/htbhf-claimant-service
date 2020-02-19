@@ -35,6 +35,9 @@ import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HOME_CLAIM_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MARGE_CLAIM_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -99,6 +102,32 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(claimIds).isEmpty();
+    }
+
+    @Test
+    void shouldReturnEmptyClaimWhenReferenceDoesNotExist() {
+        //Given
+        String reference = aValidClaim().getReference();
+
+        //When
+        Optional<Claim> claim = claimRepository.findByReference(reference);
+
+        //Then
+        assertThat(claim).isNotPresent();
+    }
+
+    @Test
+    void shouldReturnClaimWhenReferenceExist() {
+
+        //Given
+        Claim claim = aValidClaim();
+
+        //When
+        Claim savedClaim = claimRepository.save(claim);
+        Optional<Claim> claimReference = claimRepository.findByReference(savedClaim.getReference());
+
+        //Then
+        assertThat(claimReference).isPresent();
     }
 
     @ParameterizedTest(name = "Should return id of existing claim with matching NINO when claim status is {0}")
@@ -249,8 +278,8 @@ class ClaimRepositoryTest {
     @Transactional
     void shouldReturnNewClaimIds() {
         //Given
-        Claim newClaim = aClaimWithNinoAndClaimStatus(HOMER_NINO, ClaimStatus.NEW);
-        Claim pendingClaim = aClaimWithNinoAndClaimStatus(MARGE_NINO, PENDING);
+        Claim newClaim = aClaimWithNinoAndClaimStatus(HOMER_NINO, ClaimStatus.NEW, NED_CLAIM_REFERENCE);
+        Claim pendingClaim = aClaimWithNinoAndClaimStatus(MARGE_NINO, PENDING, HOME_CLAIM_REFERENCE);
         claimRepository.saveAll(Arrays.asList(newClaim, pendingClaim));
 
         //When
@@ -330,9 +359,11 @@ class ClaimRepositoryTest {
     void shouldGetClaimsThatHaveBeenInPendingCancellationForMoreThanGivenPeriod() {
         int numberOfWeeks = 16;
         LocalDateTime now = LocalDateTime.now();
-        Claim activeClaim = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(HOMER_NINO, CardStatus.ACTIVE, now.minusWeeks(17));
-        Claim pendingClaimOlderThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(MARGE_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(17));
-        Claim pendingClaimLessThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(NED_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(15));
+        Claim activeClaim = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(HOMER_NINO, CardStatus.ACTIVE, now.minusWeeks(17), HOME_CLAIM_REFERENCE);
+        Claim pendingClaimOlderThan16Weeks
+                = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(MARGE_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(17), MARGE_CLAIM_REFERENCE);
+        Claim pendingClaimLessThan16Weeks
+                = aClaimWithNinoAndCardStatusAndCardStatusTimestamp(NED_NINO, CardStatus.PENDING_CANCELLATION, now.minusWeeks(15), NED_CLAIM_REFERENCE);
         claimRepository.saveAll(List.of(activeClaim, pendingClaimOlderThan16Weeks, pendingClaimLessThan16Weeks));
 
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(numberOfWeeks));

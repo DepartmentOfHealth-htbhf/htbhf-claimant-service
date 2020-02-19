@@ -21,6 +21,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aVa
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
 
 public class ClaimTestDataFactory {
@@ -62,8 +63,15 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-    public static Claim aClaimWithNinoAndClaimStatus(String nino, ClaimStatus claimStatus) {
+    public static Claim aClaimWithReference(String reference) {
+        return aValidClaimBuilder()
+                .reference(reference)
+                .build();
+    }
+
+    public static Claim aClaimWithNinoAndClaimStatus(String nino, ClaimStatus claimStatus, String reference) {
         return aValidClaimBuilderWithStatus(claimStatus)
+                .reference(reference)
                 .claimant(aValidClaimantWithNino(nino))
                 .build();
     }
@@ -121,11 +129,15 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-    public static Claim aClaimWithNinoAndCardStatusAndCardStatusTimestamp(String nino, CardStatus cardStatus, LocalDateTime cardStatusTimestamp) {
+    public static Claim aClaimWithNinoAndCardStatusAndCardStatusTimestamp(String nino,
+                                                                          CardStatus cardStatus,
+                                                                          LocalDateTime cardStatusTimestamp,
+                                                                          String reference) {
         return aValidClaimBuilder()
                 .cardStatus(cardStatus)
                 .cardStatusTimestamp(cardStatusTimestamp)
                 .claimant(aValidClaimantWithNino(nino))
+                .reference(reference)
                 .build();
     }
 
@@ -150,7 +162,8 @@ public class ClaimTestDataFactory {
                 .cardStatus(CardStatus.ACTIVE)
                 .initialIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
                 .currentIdentityAndEligibilityResponse(anIdMatchedEligibilityConfirmedUCResponseWithAllMatches())
-                .cardStatusTimestamp(LocalDateTime.now());
+                .cardStatusTimestamp(LocalDateTime.now())
+                .reference(NED_CLAIM_REFERENCE);
     }
 
 }

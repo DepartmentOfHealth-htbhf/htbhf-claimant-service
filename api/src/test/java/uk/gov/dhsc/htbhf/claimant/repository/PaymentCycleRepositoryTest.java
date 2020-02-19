@@ -2,11 +2,13 @@ package uk.gov.dhsc.htbhf.claimant.repository;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Payment;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
@@ -30,6 +32,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aPaymentCycleWithPaymentAndClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentTestDataFactory.aPaymentWithClaim;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HOME_CLAIM_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MARGE_CLAIM_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
 
 @SpringBootTest
 @AutoConfigureEmbeddedDatabase
@@ -151,14 +156,25 @@ class PaymentCycleRepositoryTest {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
         LocalDate tomorrow = today.plusDays(1);
-        createAndSavePaymentCycleEnding(today, createAndSaveClaimWithNino(MARGE_NINO));
-        createAndSavePaymentCycleEnding(yesterday, createAndSaveClaimWithNino(HOMER_NINO));
-        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NED_NINO));
+        createAndSavePaymentCycleEnding(today, createAndSaveClaimWithNino(MARGE_NINO, MARGE_CLAIM_REFERENCE));
+        createAndSavePaymentCycleEnding(yesterday, createAndSaveClaimWithNino(HOMER_NINO, HOME_CLAIM_REFERENCE));
+        createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NED_NINO, NED_CLAIM_REFERENCE));
 
         List<ClosingPaymentCycle> result = paymentCycleRepository.findActiveClaimsWithCycleEndingOnOrBefore(today);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void shouldFailToSavePaymentCyclesWithDuplicateReference() {
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+        PaymentCycle paymentCycle = createAndSavePaymentCycleEnding(today, createAndSaveClaimWithNino(MARGE_NINO, MARGE_CLAIM_REFERENCE));
+        paymentCycle.getClaim().getClaimant().setNino(NED_NINO);
+        Assertions.assertThrows(DataIntegrityViolationException.class, () -> {
+            createAndSavePaymentCycleEnding(tomorrow, createAndSaveClaimWithNino(NED_NINO, MARGE_CLAIM_REFERENCE));
+        });
     }
 
     @Test
@@ -187,8 +203,8 @@ class PaymentCycleRepositoryTest {
 
     @Test
     void shouldFindLatestCycleForClaim() {
-        Claim claim = createAndSaveClaimWithNino(HOMER_NINO);
-        Claim otherClaim = createAndSaveClaimWithNino(MARGE_NINO);
+        Claim claim = createAndSaveClaimWithNino(HOMER_NINO, HOME_CLAIM_REFERENCE);
+        Claim otherClaim = createAndSaveClaimWithNino(MARGE_NINO, MARGE_CLAIM_REFERENCE);
         createAndSavePaymentCycleEnding(LocalDate.now().minusDays(28), claim);
         createAndSavePaymentCycleEnding(LocalDate.now().plusDays(28), otherClaim);
         PaymentCycle expectedCycle = createAndSavePaymentCycleEnding(LocalDate.now(), claim);
@@ -216,8 +232,8 @@ class PaymentCycleRepositoryTest {
         return claim;
     }
 
-    private Claim createAndSaveClaimWithNino(String nino) {
-        Claim claim = aClaimWithNinoAndClaimStatus(nino, ClaimStatus.ACTIVE);
+    private Claim createAndSaveClaimWithNino(String nino, String reference) {
+        Claim claim = aClaimWithNinoAndClaimStatus(nino, ClaimStatus.ACTIVE, reference);
         claimRepository.save(claim);
         return claim;
     }
