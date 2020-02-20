@@ -69,7 +69,7 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-    public static Claim aClaimWithNinoAndClaimStatus(String nino, ClaimStatus claimStatus, String reference) {
+    public static Claim aClaimWithNinoAndClaimStatusAndReference(String nino, ClaimStatus claimStatus, String reference) {
         return aValidClaimBuilderWithStatus(claimStatus)
                 .reference(reference)
                 .claimant(aValidClaimantWithNino(nino))
@@ -129,10 +129,10 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-    public static Claim aClaimWithNinoAndCardStatusAndCardStatusTimestamp(String nino,
-                                                                          CardStatus cardStatus,
-                                                                          LocalDateTime cardStatusTimestamp,
-                                                                          String reference) {
+    public static Claim aClaimWithNinoAndCardStatusAndCardStatusTimestampAndReference(String nino,
+                                                                                      CardStatus cardStatus,
+                                                                                      LocalDateTime cardStatusTimestamp,
+                                                                                      String reference) {
         return aValidClaimBuilder()
                 .cardStatus(cardStatus)
                 .cardStatusTimestamp(cardStatusTimestamp)
