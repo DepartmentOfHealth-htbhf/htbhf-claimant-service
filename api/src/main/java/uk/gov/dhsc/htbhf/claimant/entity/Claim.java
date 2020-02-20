@@ -95,6 +95,10 @@ public class Claim extends VersionedEntity {
     @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
 
+    @NotNull
+    @Column(name = "reference")
+    private String reference;
+
     public void updateClaimStatus(ClaimStatus newStatus) {
         if (claimStatus != newStatus) {
             claimStatusTimestamp = LocalDateTime.now();

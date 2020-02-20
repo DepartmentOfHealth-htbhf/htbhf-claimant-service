@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -25,11 +26,13 @@ import uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome;
 import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
+import uk.gov.dhsc.htbhf.reference.ReferenceGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -47,6 +50,9 @@ public class ClaimService {
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
     private final ClaimMessageSender claimMessageSender;
+
+    @Value("${claim-reference.size:10}")
+    private int claimReferenceSize;
 
     private static final Map<EligibilityStatus, ClaimStatus> STATUS_MAP = Map.of(
             EligibilityStatus.ELIGIBLE, ClaimStatus.NEW,
@@ -167,6 +173,7 @@ public class ClaimService {
         LocalDateTime currentDateTime = LocalDateTime.now();
         Map<String, Object> deviceFingerprint = claimRequest.getDeviceFingerprint();
         String fingerprintHash = isEmpty(deviceFingerprint) ? null : DigestUtils.md5Hex(deviceFingerprint.toString());
+        String reference = checkAndReturnUniqueReferenceForClaim();
         return Claim.builder()
                 .dwpHouseholdIdentifier(decision.getDwpHouseholdIdentifier())
                 .hmrcHouseholdIdentifier(decision.getHmrcHouseholdIdentifier())
@@ -181,7 +188,24 @@ public class ClaimService {
                 .initialIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
                 .currentIdentityAndEligibilityResponse(decision.getIdentityAndEligibilityResponse())
                 .eligibilityOverride(claimRequest.getEligibilityOverride())
+                .reference(reference)
                 .build();
+    }
+
+    private String checkAndReturnUniqueReferenceForClaim() {
+        String reference;
+        boolean isReferenceDuplicate;
+        do {
+            reference = ReferenceGenerator.generateReference(claimReferenceSize);
+            isReferenceDuplicate = false;
+            Optional<Claim> claim = claimRepository.findByReference(reference);
+            if (claim.isPresent()) {
+                isReferenceDuplicate = true;
+            }
+
+        } while (isReferenceDuplicate);
+
+        return reference;
     }
 
     private ClaimStatus getClaimStatus(EligibilityStatus eligibilityStatus, VerificationResult verificationResult) {

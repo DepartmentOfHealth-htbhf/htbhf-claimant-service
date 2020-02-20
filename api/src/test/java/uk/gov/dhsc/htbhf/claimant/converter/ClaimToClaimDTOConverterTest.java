@@ -21,6 +21,7 @@ import static uk.gov.dhsc.htbhf.TestConstants.MAGGIE_AND_LISA_DOBS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.aValidAddressDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideDTOTestDataFactory.aConfirmedEligibilityOverrideDTOWithChildren;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimToClaimDTOConverterTest {
@@ -45,10 +46,11 @@ class ClaimToClaimDTOConverterTest {
         assertThat(claimDTO).isEqualToComparingOnlyGivenFields(claim,
                 "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
                 "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
-                "initialIdentityAndEligibilityResponse");
+                "initialIdentityAndEligibilityResponse", "reference");
         assertThat(claimDTO.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimDTO.getClaimant().getAddress()).isEqualTo(address);
         assertThat(claimDTO.getEligibilityOverride()).isEqualTo(eligibilityOverrideDTO);
+        assertThat(claimDTO.getReference()).isEqualTo(NED_CLAIM_REFERENCE);
         verify(addressToAddressDTOConverter).convert(claim.getClaimant().getAddress());
         verify(eligibilityOverrideDTOConverter).convert(claim.getEligibilityOverride());
     }

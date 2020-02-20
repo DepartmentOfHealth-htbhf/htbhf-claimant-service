@@ -31,5 +31,8 @@ public class TestConstants {
     public static final LocalDate OVERRIDE_UNTIL_FIVE_YEARS = LocalDate.now().plusYears(5);
     public static final LocalDate OVERRIDE_UNTIL_TWENTY_NINE_WEEKS = LocalDate.now().plusWeeks(29);
     public static final List<LocalDate> CHILD_BORN_IN_FUTURE = singletonList(LocalDate.now().plusDays(1));
+    public static final String NED_CLAIM_REFERENCE = "0E1567C0B2";
+    public static final String HOMER_CLAIM_REFERENCE = "0E1567C0B3";
+    public static final String MARGE_CLAIM_REFERENCE = "0E1567C0B4";
 
 }

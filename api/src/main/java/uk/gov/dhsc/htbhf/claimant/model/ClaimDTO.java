@@ -74,4 +74,8 @@ public class ClaimDTO {
     @ApiModelProperty(notes = "An override of the DWP/HMRC eligibility decision")
     @JsonProperty("eligibilityOverride")
     private EligibilityOverrideDTO eligibilityOverride;
+
+    @ApiModelProperty(notes = "Unique reference for claim", example = "0E1567C0B2")
+    @JsonProperty("reference")
+    private String reference;
 }

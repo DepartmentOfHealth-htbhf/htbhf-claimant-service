@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service.claim;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -112,6 +114,11 @@ class ClaimServiceTest {
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
+    @BeforeEach
+    public void setUp() {
+        ReflectionTestUtils.setField(claimService, "claimReferenceSize", 10);
+    }
+
     @ParameterizedTest(name = "Initially declared children dobs: {0}, eligibility response children: {1}")
     @MethodSource("provideAllChildrenRegisteredChildrenDobs")
     void shouldSaveNewEligibleClaimantAndSendMessagesAllDeclaredChildrenPresentInEligibilityResponse(List<LocalDate> initiallyDeclaredChildren,
@@ -132,6 +139,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -156,6 +164,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -181,6 +190,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, eligibilityOverride);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -207,6 +217,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
@@ -260,6 +271,7 @@ class ClaimServiceTest {
         Claim claim = result.getClaim();
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(claim);
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(claim);
 
         if (StringUtils.isNotEmpty(emailAddress)) {
@@ -314,6 +326,7 @@ class ClaimServiceTest {
         assertIneligibleClaimResult(eligibilityStatus, claimStatus, eligibility.getIdentityAndEligibilityResponse(), result);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
     }
 
@@ -360,6 +373,7 @@ class ClaimServiceTest {
 
         //then
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
         assertCorrectVerificationStatus(eligibilityStatus, result);
         verify(eventAuditor).auditNewClaim(result.getClaim());
@@ -385,6 +399,7 @@ class ClaimServiceTest {
 
         //then
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
     }
@@ -494,6 +509,7 @@ class ClaimServiceTest {
         assertIneligibleClaimResult(INELIGIBLE, ClaimStatus.REJECTED, decision.getIdentityAndEligibilityResponse(), result);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
     }
 
@@ -558,6 +574,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
@@ -582,6 +599,7 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(eventAuditor).auditNewClaim(result.getClaim());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), response, ClaimAction.REJECTED);
         verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());

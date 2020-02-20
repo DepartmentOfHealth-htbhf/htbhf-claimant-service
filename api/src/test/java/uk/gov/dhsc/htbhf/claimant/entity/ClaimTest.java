@@ -41,6 +41,16 @@ class ClaimTest extends AbstractValidationTest {
     }
 
     @Test
+    void shouldFailToValidateClaimWithoutReference() {
+        //Given
+        Claim claim = aClaimWithReference(null);
+        //When
+        Set<ConstraintViolation<Claim>> violations = validator.validate(claim);
+        //Then
+        assertThat(violations).hasSingleConstraintViolation("must not be null", "reference");
+    }
+
+    @Test
     void shouldFailToValidateClaimWithoutEligibilityStatus() {
         //Given
         Claim claim = aClaimWithEligibilityStatus(null);

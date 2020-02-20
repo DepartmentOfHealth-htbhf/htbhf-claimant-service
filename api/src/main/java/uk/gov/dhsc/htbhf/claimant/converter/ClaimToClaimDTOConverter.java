@@ -31,6 +31,7 @@ public class ClaimToClaimDTOConverter {
                 .initialIdentityAndEligibilityResponse(claim.getInitialIdentityAndEligibilityResponse())
                 .claimant(convert(claim.getClaimant()))
                 .eligibilityOverride(eligibilityOverrideDTOConverter.convert(claim.getEligibilityOverride()))
+                .reference(claim.getReference())
                 .build();
     }
 

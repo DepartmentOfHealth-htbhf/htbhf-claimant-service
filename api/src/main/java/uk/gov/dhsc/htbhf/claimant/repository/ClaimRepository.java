@@ -83,4 +83,12 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
         }
         return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));
     }
+
+    /**
+     * finds a claim by reference.
+     *
+     * @param reference this is newly generated reference to be checked against existing claim for uniqueness.
+     * @return claim for given reference.
+     */
+    Optional<Claim> findByReference(String reference);
 }
