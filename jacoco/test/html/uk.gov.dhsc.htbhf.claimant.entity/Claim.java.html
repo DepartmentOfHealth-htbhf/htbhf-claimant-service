@@ -95,25 +95,29 @@ public class Claim extends VersionedEntity {
     @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
 
+    @NotNull
+    @Column(name = &quot;reference&quot;)
+    private String reference;
+
     public void updateClaimStatus(ClaimStatus newStatus) {
-<span class="fc bfc" id="L99" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
-<span class="fc" id="L100">            claimStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (claimStatus != newStatus) {</span>
+<span class="fc" id="L104">            claimStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L102">        claimStatus = newStatus;</span>
-<span class="fc" id="L103">    }</span>
+<span class="fc" id="L106">        claimStatus = newStatus;</span>
+<span class="fc" id="L107">    }</span>
 
     public void updateEligibilityStatus(EligibilityStatus newStatus) {
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
-<span class="fc" id="L107">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (eligibilityStatus != newStatus) {</span>
+<span class="fc" id="L111">            eligibilityStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L109">        eligibilityStatus = newStatus;</span>
-<span class="fc" id="L110">    }</span>
+<span class="fc" id="L113">        eligibilityStatus = newStatus;</span>
+<span class="fc" id="L114">    }</span>
 
     public void updateCardStatus(CardStatus newStatus) {
-<span class="fc bfc" id="L113" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
-<span class="fc" id="L114">            cardStatusTimestamp = LocalDateTime.now();</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        if (cardStatus != newStatus) {</span>
+<span class="fc" id="L118">            cardStatusTimestamp = LocalDateTime.now();</span>
         }
-<span class="fc" id="L116">        cardStatus = newStatus;</span>
-<span class="fc" id="L117">    }</span>
+<span class="fc" id="L120">        cardStatus = newStatus;</span>
+<span class="fc" id="L121">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

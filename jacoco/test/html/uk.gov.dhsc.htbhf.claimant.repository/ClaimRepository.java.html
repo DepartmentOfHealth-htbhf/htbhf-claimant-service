@@ -83,5 +83,13 @@ public interface ClaimRepository extends CrudRepository&lt;Claim, UUID&gt;, Clai
         }
 <span class="fc bfc" id="L84" title="All 2 branches covered.">        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));</span>
     }
+
+    /**
+     * finds a claim by reference.
+     *
+     * @param reference this is newly generated reference to be checked against existing claim for uniqueness.
+     * @return claim for given reference.
+     */
+    Optional&lt;Claim&gt; findByReference(String reference);
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -31,22 +31,23 @@ public class ClaimToClaimDTOConverter {
 <span class="fc" id="L31">                .initialIdentityAndEligibilityResponse(claim.getInitialIdentityAndEligibilityResponse())</span>
 <span class="fc" id="L32">                .claimant(convert(claim.getClaimant()))</span>
 <span class="fc" id="L33">                .eligibilityOverride(eligibilityOverrideDTOConverter.convert(claim.getEligibilityOverride()))</span>
-<span class="fc" id="L34">                .build();</span>
+<span class="fc" id="L34">                .reference(claim.getReference())</span>
+<span class="fc" id="L35">                .build();</span>
     }
 
     private ClaimantDTO convert(Claimant claimant) {
-<span class="fc" id="L38">        AddressDTO addressDTO = addressToAddressDTOConverter.convert(claimant.getAddress());</span>
-<span class="fc" id="L39">        return ClaimantDTO.builder()</span>
-<span class="fc" id="L40">                .initiallyDeclaredChildrenDob(claimant.getInitiallyDeclaredChildrenDob())</span>
-<span class="fc" id="L41">                .dateOfBirth(claimant.getDateOfBirth())</span>
-<span class="fc" id="L42">                .expectedDeliveryDate(claimant.getExpectedDeliveryDate())</span>
-<span class="fc" id="L43">                .address(addressDTO)</span>
-<span class="fc" id="L44">                .emailAddress(claimant.getEmailAddress())</span>
-<span class="fc" id="L45">                .firstName(claimant.getFirstName())</span>
-<span class="fc" id="L46">                .lastName(claimant.getLastName())</span>
-<span class="fc" id="L47">                .nino(claimant.getNino())</span>
-<span class="fc" id="L48">                .phoneNumber(claimant.getPhoneNumber())</span>
-<span class="fc" id="L49">                .build();</span>
+<span class="fc" id="L39">        AddressDTO addressDTO = addressToAddressDTOConverter.convert(claimant.getAddress());</span>
+<span class="fc" id="L40">        return ClaimantDTO.builder()</span>
+<span class="fc" id="L41">                .initiallyDeclaredChildrenDob(claimant.getInitiallyDeclaredChildrenDob())</span>
+<span class="fc" id="L42">                .dateOfBirth(claimant.getDateOfBirth())</span>
+<span class="fc" id="L43">                .expectedDeliveryDate(claimant.getExpectedDeliveryDate())</span>
+<span class="fc" id="L44">                .address(addressDTO)</span>
+<span class="fc" id="L45">                .emailAddress(claimant.getEmailAddress())</span>
+<span class="fc" id="L46">                .firstName(claimant.getFirstName())</span>
+<span class="fc" id="L47">                .lastName(claimant.getLastName())</span>
+<span class="fc" id="L48">                .nino(claimant.getNino())</span>
+<span class="fc" id="L49">                .phoneNumber(claimant.getPhoneNumber())</span>
+<span class="fc" id="L50">                .build();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
