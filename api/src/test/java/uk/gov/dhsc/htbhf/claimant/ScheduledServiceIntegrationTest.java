@@ -14,17 +14,16 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.message.EmailTemplateKey;
+import uk.gov.dhsc.htbhf.claimant.message.TextTemplateKey;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
 import uk.gov.dhsc.htbhf.claimant.scheduler.CardCancellationScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.MessageProcessorScheduler;
 import uk.gov.dhsc.htbhf.claimant.scheduler.PaymentCycleScheduler;
 import uk.gov.dhsc.htbhf.claimant.testsupport.RepositoryMediator;
 import uk.gov.dhsc.htbhf.claimant.testsupport.WiremockManager;
-import uk.gov.service.notify.NotificationClient;
-import uk.gov.service.notify.NotificationClientException;
-import uk.gov.service.notify.SendEmailResponse;
-import uk.gov.service.notify.SendLetterResponse;
+import uk.gov.service.notify.*;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -69,6 +68,8 @@ abstract class ScheduledServiceIntegrationTest {
     private SendEmailResponse sendEmailResponse;
     @Mock
     private SendLetterResponse sendLetterResponse;
+    @Mock
+    private SendSmsResponse sendSmsResponse;
 
     @BeforeEach
     void setup() {
@@ -87,6 +88,10 @@ abstract class ScheduledServiceIntegrationTest {
 
     void stubNotificationLetterResponse() throws NotificationClientException {
         when(notificationClient.sendLetter(any(), any(), any())).thenReturn(sendLetterResponse);
+    }
+
+    void stubNotificationTextResponse() throws NotificationClientException {
+        when(notificationClient.sendSms(any(), any(), any(), any())).thenReturn(sendSmsResponse);
     }
 
     void stubNotificationEmailError() throws NotificationClientException {
@@ -166,6 +171,17 @@ abstract class ScheduledServiceIntegrationTest {
 
     void assertThatClaimNoLongerEligibleEmailWasSent(Claim claim) throws NotificationClientException {
         assertThatEmailWithNameOnlyWasSent(claim, CLAIM_NO_LONGER_ELIGIBLE);
+    }
+
+    void assertThatInstantSuccessTextSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {
+        ArgumentCaptor<Map> mapArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notificationClient).sendSms(
+                eq(TextType.INSTANT_SUCCESS_TEXT.getTemplateId()), eq(claim.getClaimant().getPhoneNumber()), mapArgumentCaptor.capture(), any());
+        Map personalisationMap = mapArgumentCaptor.getValue();
+        assertThat(personalisationMap.get(TextTemplateKey.PAYMENT_AMOUNT.getTemplateKeyName()))
+                .isEqualTo(formatVoucherAmount(paymentCycle.getTotalVouchers()));
+        assertThat(personalisationMap.get(TextTemplateKey.REFERENCE_NUMBER.getTemplateKeyName()))
+                .isEqualTo(claim.getReference());
     }
 
     void assertThatInstantSuccessEmailSentCorrectly(Claim claim, PaymentCycle paymentCycle) throws NotificationClientException {

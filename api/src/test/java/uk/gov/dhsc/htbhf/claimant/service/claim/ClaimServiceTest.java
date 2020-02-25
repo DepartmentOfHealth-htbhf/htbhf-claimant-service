@@ -21,6 +21,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.entity.EligibilityOverride;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -172,6 +173,56 @@ class ClaimServiceTest {
         verifyNoMoreInteractions(claimMessageSender);
     }
 
+    @ParameterizedTest
+    @MethodSource("mobileAndEmailMatches")
+    void shouldSaveNewEligibleClaimantWithPhoneOrEmailMatch(VerificationOutcome mobileVerification, VerificationOutcome emailVerification) {
+        //given
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithMatches(mobileVerification, emailVerification, NO_CHILDREN);
+        EligibilityAndEntitlementDecision decision = aDecisionWithStatusAndResponse(ELIGIBLE, identityAndEligibilityResponse);
+        given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
+        String emailAddress = emailVerification == MATCHED ? HOMER_EMAIL : null;
+        String phoneNumber = mobileVerification == MATCHED ? HOMER_MOBILE : null;
+        Claimant pregnantOnlyClaimant = aClaimantWithChildrenDobAndEmailAddressAndPhoneNumber(NULL_CHILDREN, emailAddress, phoneNumber);
+        ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
+
+        //when
+        ClaimResult result = claimService.createClaim(request);
+        Claim claim = result.getClaim();
+
+        //then
+        assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
+
+        verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, NO_ELIGIBILITY_OVERRIDE);
+        verify(claimRepository).save(claim);
+        verify(claimRepository).findByReference(claim.getReference());
+        verify(eventAuditor).auditNewClaim(claim);
+        if (identityAndEligibilityResponse.getEmailAddressMatch() == MATCHED) {
+            verify(claimMessageSender).sendInstantSuccessEmail(claim, decision, EmailType.INSTANT_SUCCESS);
+        } else if (identityAndEligibilityResponse.getMobilePhoneMatch() == MATCHED) {
+            verify(claimMessageSender).sendInstantSuccessText(claim, decision, TextType.INSTANT_SUCCESS_TEXT);
+        } else {
+            verify(claimMessageSender).sendLetterWithAddressAndPaymentFieldsMessage(claim, decision, APPLICATION_SUCCESS_CHILDREN_MATCH);
+        }
+
+        verify(claimMessageSender).sendNewCardMessage(claim, decision);
+        verify(claimMessageSender).sendReportClaimMessage(claim, decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
+        verifyNoMoreInteractions(claimMessageSender);
+    }
+
+    private static Stream<Arguments> mobileAndEmailMatches() {
+        return Stream.of(
+                Arguments.of(NOT_MATCHED, MATCHED),
+                Arguments.of(MATCHED, NOT_MATCHED),
+                Arguments.of(NOT_MATCHED, NOT_MATCHED),
+                Arguments.of(NOT_SUPPLIED, NOT_SUPPLIED),
+                Arguments.of(NOT_HELD, NOT_HELD),
+                Arguments.of(NOT_SUPPLIED, MATCHED),
+                Arguments.of(MATCHED, NOT_SUPPLIED)
+        );
+    }
+
+
     @Test
     void shouldSaveNewClaimantWithEligibilityOverrideThatIsPregnantWithNoChildren() {
         //given
@@ -288,8 +339,9 @@ class ClaimServiceTest {
     private static Stream<Arguments> emailOrPhoneMismatchArguments() {
         return Stream.of(
                 // email match, phone match, declared children dob, benefit agency dob, letter type
-                Arguments.of(NOT_MATCHED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
-                Arguments.of(NOT_HELD, MATCHED, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
+                Arguments.of(NOT_MATCHED, NOT_SUPPLIED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH,
+                        HOMER_EMAIL, HOMER_MOBILE),
+                Arguments.of(NOT_HELD, NOT_HELD, MAGGIE_AND_LISA_DOBS, List.of(MAGGIE_DATE_OF_BIRTH), APPLICATION_SUCCESS_CHILDREN_MISMATCH,
                         HOMER_EMAIL, HOMER_MOBILE),
                 // commented below line, currently only email matched check is added to send email and below test case won't send pending decision email in
                 // case of children mismatch however it does send only letter with partial children match
@@ -300,7 +352,7 @@ class ClaimServiceTest {
                 Arguments.of(NOT_MATCHED, NOT_MATCHED, emptyList(), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, HOMER_EMAIL, HOMER_MOBILE),
                 Arguments.of(NOT_MATCHED, NOT_MATCHED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH,
                         HOMER_EMAIL, HOMER_MOBILE),
-                Arguments.of(NOT_SUPPLIED, MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, HOMER_MOBILE),
+                Arguments.of(NOT_SUPPLIED, NOT_MATCHED, MAGGIE_AND_LISA_DOBS, MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, HOMER_MOBILE),
                 Arguments.of(NOT_SUPPLIED, NOT_SUPPLIED, List.of(MAGGIE_DATE_OF_BIRTH), MAGGIE_AND_LISA_DOBS, APPLICATION_SUCCESS_CHILDREN_MATCH, null, null)
         );
     }
@@ -617,7 +669,9 @@ class ClaimServiceTest {
 
     private void assertEligibleClaimResult(CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse, ClaimResult result,
                                            EligibilityOverride eligibilityOverride) {
-        VerificationResult expectedVerificationResult = anAllMatchedVerificationResult();
+        VerificationResult expectedVerificationResult =
+                anAllMatchedVerificationResultWithPhoneAndEmail(identityAndEligibilityResponse.getMobilePhoneMatch(),
+                                                                identityAndEligibilityResponse.getEmailAddressMatch());
         assertEligibleClaimResult(identityAndEligibilityResponse, result, expectedVerificationResult, eligibilityOverride);
     }
 

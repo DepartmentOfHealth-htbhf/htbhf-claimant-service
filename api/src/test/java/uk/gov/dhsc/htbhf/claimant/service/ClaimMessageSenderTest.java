@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.communications.TextMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
@@ -36,6 +37,7 @@ import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCE
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.PENDING_DECISION;
 import static uk.gov.dhsc.htbhf.claimant.message.payload.EmailType.REPORT_A_BIRTH_REMINDER;
+import static uk.gov.dhsc.htbhf.claimant.message.payload.TextType.INSTANT_SUCCESS_TEXT;
 import static uk.gov.dhsc.htbhf.claimant.model.UpdatableClaimantField.LAST_NAME;
 import static uk.gov.dhsc.htbhf.claimant.reporting.ClaimAction.UPDATED;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
@@ -54,13 +56,20 @@ class ClaimMessageSenderTest {
     private MessageQueueClient messageQueueClient;
     @Mock
     private EmailMessagePayloadFactory emailMessagePayloadFactory;
+    @Mock
+    private TextMessagePayloadFactory textMessagePayloadFactory;
 
     @InjectMocks
     private ClaimMessageSender claimMessageSender;
 
     @BeforeEach
     void setup() {
-        claimMessageSender = new ClaimMessageSender(messageQueueClient, emailMessagePayloadFactory, CYCLE_DURATION_IN_DAYS, REPORT_A_BIRTH_MESSAGE_DELAY);
+        claimMessageSender = new ClaimMessageSender(
+                messageQueueClient,
+                emailMessagePayloadFactory,
+                textMessagePayloadFactory,
+                CYCLE_DURATION_IN_DAYS,
+                REPORT_A_BIRTH_MESSAGE_DELAY);
     }
 
     @Test
@@ -138,6 +147,19 @@ class ClaimMessageSenderTest {
         verify(messageQueueClient).sendMessage(payload, SEND_EMAIL);
         LocalDate expectedNextPaymentDate = claim.getClaimStatusTimestamp().toLocalDate().plusDays(CYCLE_DURATION_IN_DAYS);
         verify(emailMessagePayloadFactory).buildEmailMessagePayload(claim, decision.getVoucherEntitlement(), expectedNextPaymentDate, INSTANT_SUCCESS);
+    }
+
+    @Test
+    void shouldSendInstantSuccessTextMessage() {
+        Claim claim = aValidClaim();
+        TextMessagePayload payload = mock(TextMessagePayload.class);
+        given(textMessagePayloadFactory.buildTextMessagePayload(any(), any(), any())).willReturn(payload);
+        EligibilityAndEntitlementDecision decision = EligibilityAndEntitlementTestDataFactory.aDecisionWithStatus(ELIGIBLE);
+
+        claimMessageSender.sendInstantSuccessText(claim, decision, INSTANT_SUCCESS_TEXT);
+
+        verify(messageQueueClient).sendMessage(payload, SEND_TEXT);
+        verify(textMessagePayloadFactory).buildTextMessagePayload(claim, decision.getVoucherEntitlement(), INSTANT_SUCCESS_TEXT);
     }
 
     @Test
