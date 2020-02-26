@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimDTOConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.NewClaimDTOToClaimRequestConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -17,6 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -34,6 +36,7 @@ public class ClaimController {
     private final VoucherEntitlementToDTOConverter voucherConverter;
     private final ClaimRepository claimRepository;
     private final ClaimToClaimDTOConverter claimToClaimDTOConverter;
+    private final ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
     private final NewClaimDTOToClaimRequestConverter claimRequestConverter;
 
     private final Map<ClaimStatus, HttpStatus> statusMap = Map.of(
@@ -67,6 +70,16 @@ public class ClaimController {
         Claim claim = claimRepository.findClaim(id);
 
         return claimToClaimDTOConverter.convert(claim);
+    }
+
+    @GetMapping
+    @ApiOperation("Retrieve all claims.")
+    public List<ClaimResponseDTO> retrieveAllClaims() {
+        log.debug("Retrieve all claims");
+
+        List<Claim> claims = claimRepository.findAll();
+
+        return claimToClaimResponseDTOConverter.convert(claims);
     }
 
     private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {

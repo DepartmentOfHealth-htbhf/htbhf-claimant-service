@@ -133,7 +133,6 @@ class ClaimServiceTest {
 
         //when
         ClaimResult result = claimService.createClaim(request);
-
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
 
@@ -158,7 +157,6 @@ class ClaimServiceTest {
 
         //when
         ClaimResult result = claimService.createClaim(request);
-
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
 
@@ -672,5 +670,6 @@ class ClaimServiceTest {
             assertThat(result.getVerificationResult()).isEqualTo(expectedVerificationResult);
         }
     }
+
 
 }
