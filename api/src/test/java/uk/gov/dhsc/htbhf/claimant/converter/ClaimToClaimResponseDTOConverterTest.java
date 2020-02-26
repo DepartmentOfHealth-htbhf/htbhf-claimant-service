@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.dhsc.htbhf.TestConstants;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimResponseDTO;
 
@@ -14,6 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
 import static uk.gov.dhsc.htbhf.TestConstants.MARGE_NINO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimWithNinoAndRefernce;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HOMER_CLAIM_REFERENCE;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MARGE_CLAIM_REFERENCE;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -24,8 +25,8 @@ class ClaimToClaimResponseDTOConverterTest {
 
     @Test
     void shouldConvertClaimToClaimDTO() {
-        Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, TestConstants.HOMER_CLAIM_REFERENCE);
-        Claim margeClaim = aValidClaimWithNinoAndRefernce(MARGE_NINO, TestConstants.MARGE_CLAIM_REFERENCE);
+        Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
+        Claim margeClaim = aValidClaimWithNinoAndRefernce(MARGE_NINO, MARGE_CLAIM_REFERENCE);
 
 
         List<ClaimResponseDTO> claimResponse = converter.convert(List.of(homerClaim, margeClaim));
