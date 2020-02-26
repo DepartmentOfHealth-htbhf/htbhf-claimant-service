@@ -251,8 +251,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
         stubNotificationTextResponse();
         assertFirstCyclePaidCorrectlyWithInstantSuccessText(claimId, NO_CHILDREN);
-        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but does not send an email
-        // reminding them to contact their benefit agency about a new child.
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers
         expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 8);
 
 
