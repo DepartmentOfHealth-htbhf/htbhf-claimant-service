@@ -66,9 +66,11 @@ public class ClaimService {
 
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
+
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(),
                     claimRequest.getEligibilityOverride());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
+
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createDuplicateClaim(claimRequest, decision);
                 claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
@@ -164,7 +166,7 @@ public class ClaimService {
 
     private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
         Claim claim = buildClaim(claimStatus, claimRequest, decision);
-        log.info("Saving new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
+        log.info("Saving new claim: {} with status {} and reference {}", claim.getId(), claim.getEligibilityStatus(), claim.getReference());
         claimRepository.save(claim);
         eventAuditor.auditNewClaim(claim);
         return claim;

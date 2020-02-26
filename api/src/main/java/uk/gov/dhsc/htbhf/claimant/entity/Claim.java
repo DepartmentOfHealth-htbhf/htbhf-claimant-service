@@ -79,7 +79,7 @@ public class Claim extends VersionedEntity {
     @Column(name = "initial_identity_and_eligibility_response")
     @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse initialIdentityAndEligibilityResponse;
-    
+
     @Column(name = "current_identity_and_eligibility_response")
     @Type(type = JSON_TYPE)
     private CombinedIdentityAndEligibilityResponse currentIdentityAndEligibilityResponse;
@@ -91,7 +91,7 @@ public class Claim extends VersionedEntity {
     private Claimant claimant;
 
     @Valid
-    @Column(name  = "eligibility_override")
+    @Column(name = "eligibility_override")
     @Type(type = JSON_TYPE)
     private EligibilityOverride eligibilityOverride;
 

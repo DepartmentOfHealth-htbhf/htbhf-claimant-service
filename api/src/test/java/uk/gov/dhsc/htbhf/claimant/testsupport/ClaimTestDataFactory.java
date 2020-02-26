@@ -12,17 +12,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.SIMPSONS_POSTCODE;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDate;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithExpectedDeliveryDateAndChildrenDob;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantWithNino;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithAllMatches;
+
 
 public class ClaimTestDataFactory {
 
@@ -140,6 +136,14 @@ public class ClaimTestDataFactory {
                 .reference(reference)
                 .build();
     }
+
+    public static Claim aValidClaimWithNinoAndRefernce(String nino,String reference) {
+        return aValidClaimBuilder()
+                .claimant(aValidClaimantWithNino(nino))
+                .reference(reference)
+                .build();
+    }
+
 
     public static Claim.ClaimBuilder aValidClaimBuilder() {
         return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE);

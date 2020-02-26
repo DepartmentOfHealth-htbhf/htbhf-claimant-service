@@ -14,8 +14,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
@@ -40,19 +42,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildRetrieveClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddressAndPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithLastName;
@@ -90,6 +87,9 @@ class ClaimantServiceIntegrationTests {
     @Autowired
     WiremockManager wiremockManager;
 
+    @Autowired
+    ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
+
     @BeforeEach
     void setup() {
         wiremockManager.startWireMock();
@@ -114,11 +114,44 @@ class ClaimantServiceIntegrationTests {
         ClaimDTO claimResponse = response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isEqualToComparingOnlyGivenFields(claim,
-                "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
-                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
+                "id", "cardAccountId", "cardStatus", "claimStatus", "currentIdentityAndEligibilityResponse",
+                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier", "eligibilityStatus",
                 "initialIdentityAndEligibilityResponse");
+        assertThat(claimResponse.getCardStatusTimestamp()).isEqualToIgnoringNanos(claim.getCardStatusTimestamp());
         assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
+    }
+
+    @Test
+    void shouldGetAllClaims() {
+        // Given
+        Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
+        claimRepository.saveAll(List.of(homerClaim));
+        List<ClaimResponseDTO> claimResponseDTO = claimToClaimResponseDTOConverter.convert(List.of(homerClaim));
+
+        // When
+        ResponseEntity<List<ClaimResponseDTO>> response =
+                restTemplate.exchange(buildRetrieveAllClaimEntity(), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {});
+
+        // Then
+        List<ClaimResponseDTO> claimResponse = response.getBody();
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        assertThat(claimResponse).isNotNull();
+        assertThat(claimResponse).hasSameSizeAs(List.of(homerClaim));
+        assertThat(claimResponse.get(0)).isEqualToComparingOnlyGivenFields(claimResponseDTO.get(0),
+                "id", "claimStatus", "firstName", "lastName", "dateOfBirth", "addressLine1", "postcode", "reference");
+        assertThat(claimResponse.get(0).getFirstName()).isEqualTo(homerClaim.getClaimant().getFirstName());
+        assertThat(claimResponse.get(0).getReference()).isEqualTo(homerClaim.getReference());
+    }
+
+    @Test
+    void shouldReturnAnEmptyListWhenNoClaimsExists() {
+        //when
+        ResponseEntity<List<ClaimResponseDTO>> response =
+                restTemplate.exchange(buildRetrieveAllClaimEntity(), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {});
+
+        //then
+        assertThat(response.getBody()).isEmpty();
     }
 
     @Test
@@ -200,8 +233,8 @@ class ClaimantServiceIntegrationTests {
 
     private static Stream<Arguments> provideArgumentsForMissingAddressFields() {
         return Stream.of(
-            Arguments.of(""),
-            Arguments.of((Object) null)
+                Arguments.of(""),
+                Arguments.of((Object) null)
         );
     }
 
