@@ -114,10 +114,9 @@ class ClaimantServiceIntegrationTests {
         ClaimDTO claimResponse = response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isEqualToComparingOnlyGivenFields(claim,
-                "id", "cardAccountId", "cardStatus", "claimStatus", "currentIdentityAndEligibilityResponse",
-                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier", "eligibilityStatus",
+                "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
+                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
                 "initialIdentityAndEligibilityResponse");
-        assertThat(claimResponse.getCardStatusTimestamp()).isEqualToIgnoringNanos(claim.getCardStatusTimestamp());
         assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
     }
