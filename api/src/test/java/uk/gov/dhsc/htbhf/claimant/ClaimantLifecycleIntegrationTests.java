@@ -211,8 +211,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         String nino = null;
         String emailAdress = null;
         String phoneNumber = null;
-        UUID claimId
-                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, phoneNumber);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(
+                                                                                                                  expectedDeliveryDate,
+                                                                                                                  nino,
+                                                                                                                  emailAdress,
+                                                                                                                  phoneNumber);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
@@ -237,8 +240,11 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
         String nino = null;
         String emailAdress = null;
-        UUID claimId
-                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, HOMER_MOBILE);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(
+                                                                                                                  expectedDeliveryDate,
+                                                                                                                  nino,
+                                                                                                                  emailAdress,
+                                                                                                                  HOMER_MOBILE);
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
                 = anIdMatchedEligibilityConfirmedUCResponseWithMatches(MATCHED, NOT_MATCHED, NO_CHILDREN);
