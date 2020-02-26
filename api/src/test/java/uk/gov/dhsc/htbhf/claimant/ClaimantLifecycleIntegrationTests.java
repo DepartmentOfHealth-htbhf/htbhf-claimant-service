@@ -212,7 +212,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         String emailAdress = null;
         String phoneNumber = null;
         UUID claimId
-                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, phoneNumber);
+                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, phoneNumber);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
@@ -238,15 +238,15 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         String nino = null;
         String emailAdress = null;
         UUID claimId
-                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, HOMER_MOBILE);
+                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, HOMER_MOBILE);
 
         CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
                 = anIdMatchedEligibilityConfirmedUCResponseWithMatches(MATCHED, NOT_MATCHED, NO_CHILDREN);
         wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
         stubNotificationTextResponse();
         assertFirstCyclePaidCorrectlyWithInstantSuccessText(claimId, NO_CHILDREN);
-        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
-        // to contact their benefit agency about a new child.
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but does not send an email
+        // reminding them to contact their benefit agency about a new child.
         expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 8);
 
 
@@ -586,10 +586,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
-    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
-                                                                                                       String nino,
-                                                                                                       String emailAddress,
-                                                                                                       String phoneNumber)
+    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
+                                                                                                            String nino,
+                                                                                                            String emailAddress,
+                                                                                                            String phoneNumber)
             throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideAndNinoAndEmailAndPhone(
                 expectedDeliveryDate,
