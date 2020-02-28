@@ -3,6 +3,7 @@ package uk.gov.dhsc.htbhf.claimant.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.communications.EmailMessagePayloadFactory;
+import uk.gov.dhsc.htbhf.claimant.communications.TextMessagePayloadFactory;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.MessageQueueClient;
 import uk.gov.dhsc.htbhf.claimant.message.payload.*;
@@ -33,15 +34,18 @@ public class ClaimMessageSender {
 
     private final MessageQueueClient messageQueueClient;
     private final EmailMessagePayloadFactory emailMessagePayloadFactory;
+    private final TextMessagePayloadFactory textMessagePayloadFactory;
     private final Integer cycleDurationInDays;
     private final Duration reportABirthMessageDelay;
 
     public ClaimMessageSender(MessageQueueClient messageQueueClient,
                               EmailMessagePayloadFactory emailMessagePayloadFactory,
+                              TextMessagePayloadFactory textMessagePayloadFactory,
                               @Value("${payment-cycle.cycle-duration-in-days}") Integer cycleDurationInDays,
                               @Value("${payment-cycle.report-a-birth-message-delay}") Duration reportABirthMessageDelay) {
         this.messageQueueClient = messageQueueClient;
         this.emailMessagePayloadFactory = emailMessagePayloadFactory;
+        this.textMessagePayloadFactory = textMessagePayloadFactory;
         this.cycleDurationInDays = cycleDurationInDays;
         this.reportABirthMessageDelay = reportABirthMessageDelay;
     }
@@ -78,6 +82,12 @@ public class ClaimMessageSender {
     public void sendReportABirthEmailMessage(Claim claim) {
         MessagePayload payload = buildEmailMessagePayloadWithFirstAndLastNameOnly(claim, REPORT_A_BIRTH_REMINDER);
         messageQueueClient.sendMessageWithDelay(payload, SEND_EMAIL, reportABirthMessageDelay);
+    }
+
+    public void sendInstantSuccessText(Claim claim, EligibilityAndEntitlementDecision decision, TextType textType) {
+        TextMessagePayload messagePayload = textMessagePayloadFactory.buildTextMessagePayload(
+                claim, decision.getVoucherEntitlement(), textType);
+        messageQueueClient.sendMessage(messagePayload, SEND_TEXT);
     }
 
     public void sendDecisionPendingEmailMessage(Claim claim) {

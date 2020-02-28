@@ -22,6 +22,17 @@ public class PersonalisationMapTestDataFactory {
     }
 
     /**
+     * Builds test text personalisation for text parameterisation.
+     *
+     * @return The Map of text parameters and their values for testing.
+     */
+    public static Map<String, Object> buildTextPersonalisation() {
+        return Map.of(
+                "payment_amount", "£13.60",
+                "reference_number", "0E1567C0B2");
+    }
+
+    /**
      * Builds test personalisation for letter parameterisation.
      *
      * @return The Map of parameters and their values for testing.

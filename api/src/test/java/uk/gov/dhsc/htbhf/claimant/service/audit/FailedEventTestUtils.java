@@ -5,6 +5,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
 import uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants;
 import uk.gov.dhsc.htbhf.logging.event.CommonEventType;
 import uk.gov.dhsc.htbhf.logging.event.FailureEvent;
@@ -52,6 +53,20 @@ public class FailedEventTestUtils {
         assertThat(metadata).contains(
                 entry(TEMPLATE_ID.getKey(), templateId),
                 entry(EMAIL_TYPE.getKey(), EmailType.INSTANT_SUCCESS.name()));
+    }
+
+    public static void verifySendTextEventFailExceptionAndEventAreCorrect(Claim claim,
+                                                                           NotificationClientException testException,
+                                                                           EventFailedException exception,
+                                                                           String templateId) {
+        String expectedFailureMessage = "Failed to send INSTANT_SUCCESS_TEXT text message, exception is: Test exception from message send";
+        verifyCommonEventFailureDetail(exception, testException, expectedFailureMessage, claim, ClaimEventType.FAILED_TEXT);
+        Map<String, Object> metadata = exception.getFailureEvent().getEventMetadata();
+        assertExceptionDetailCorrect(metadata, "Test exception from message send", "TextMessageProcessor.processMessage");
+        assertThat(metadata).contains(
+                entry(TEMPLATE_ID.getKey(), templateId),
+                entry(TEXT_TYPE.getKey(), TextType.INSTANT_SUCCESS_TEXT.name()));
+
     }
 
     public static void verifySendLetterEventFailExceptionAndEventAreCorrect(Claim claim,
