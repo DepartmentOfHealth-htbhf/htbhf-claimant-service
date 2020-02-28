@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TextMessagePayloadFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.communications</a> &gt; <span class="el_source">TextMessagePayloadFactory.java</span></div><h1>TextMessagePayloadFactory.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.communications;
+
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entitlement.PaymentCycleVoucherEntitlement;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextMessagePayload;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static uk.gov.dhsc.htbhf.claimant.message.MoneyUtils.convertPenceToPounds;
+import static uk.gov.dhsc.htbhf.claimant.message.TextTemplateKey.PAYMENT_AMOUNT;
+import static uk.gov.dhsc.htbhf.claimant.message.TextTemplateKey.REFERENCE_NUMBER;
+
+/**
+ * Builds the message payload required to send an text message. The text template has parameterised values
+ * which are contained in the textPersonalisation Map. All monetary amounts are formatted into pounds.
+ */
+@Component
+<span class="fc" id="L21">public class TextMessagePayloadFactory {</span>
+
+    public TextMessagePayload buildTextMessagePayload(Claim claim, PaymentCycleVoucherEntitlement voucherEntitlement, TextType textType) {
+<span class="fc" id="L24">        Map&lt;String, Object&gt; textPersonalisation = createPaymentTextPersonalisationMap(voucherEntitlement, claim);</span>
+<span class="fc" id="L25">        return TextMessagePayload.builder()</span>
+<span class="fc" id="L26">                .claimId(claim.getId())</span>
+<span class="fc" id="L27">                .textType(textType)</span>
+<span class="fc" id="L28">                .textPersonalisation(textPersonalisation)</span>
+<span class="fc" id="L29">                .build();</span>
+    }
+
+    private Map&lt;String, Object&gt; createPaymentTextPersonalisationMap(PaymentCycleVoucherEntitlement voucherEntitlement, Claim claim) {
+<span class="fc" id="L33">        Map&lt;String, Object&gt; textPersonalisation = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L34">        String paymentAmount = convertPenceToPounds(voucherEntitlement.getTotalVoucherValueInPence());</span>
+<span class="fc" id="L35">        textPersonalisation.put(PAYMENT_AMOUNT.getTemplateKeyName(), paymentAmount);</span>
+<span class="fc" id="L36">        textPersonalisation.put(REFERENCE_NUMBER.getTemplateKeyName(), claim.getReference());</span>
+
+<span class="fc" id="L38">        return textPersonalisation;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

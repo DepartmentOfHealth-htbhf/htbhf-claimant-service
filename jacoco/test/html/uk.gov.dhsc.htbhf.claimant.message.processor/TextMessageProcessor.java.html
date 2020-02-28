@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TextMessageProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.message.processor</a> &gt; <span class="el_source">TextMessageProcessor.java</span></div><h1>TextMessageProcessor.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.message.processor;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.entity.Message;
+import uk.gov.dhsc.htbhf.claimant.exception.EventFailedException;
+import uk.gov.dhsc.htbhf.claimant.message.MessageStatus;
+import uk.gov.dhsc.htbhf.claimant.message.MessageType;
+import uk.gov.dhsc.htbhf.claimant.message.MessageTypeProcessor;
+import uk.gov.dhsc.htbhf.claimant.message.context.MessageContextLoader;
+import uk.gov.dhsc.htbhf.claimant.message.context.TextMessageContext;
+import uk.gov.dhsc.htbhf.claimant.service.audit.FailedTextEvent;
+import uk.gov.service.notify.NotificationClient;
+import uk.gov.service.notify.NotificationClientException;
+import uk.gov.service.notify.SendSmsResponse;
+
+import java.util.UUID;
+
+<span class="fc" id="L21">@Slf4j</span>
+@Component
+public class TextMessageProcessor implements MessageTypeProcessor {
+
+    private final NotificationClient client;
+    private final MessageContextLoader messageContextLoader;
+
+    public TextMessageProcessor(NotificationClient client,
+<span class="fc" id="L29">                                MessageContextLoader messageContextLoader) {</span>
+<span class="fc" id="L30">        this.client = client;</span>
+<span class="fc" id="L31">        this.messageContextLoader = messageContextLoader;</span>
+<span class="fc" id="L32">    }</span>
+
+    @Override
+    public MessageStatus processMessage(Message message) {
+
+<span class="fc" id="L37">        TextMessageContext textMessageContext = messageContextLoader.loadTextMessageContext(message);</span>
+<span class="fc" id="L38">        UUID textReference = UUID.randomUUID();</span>
+<span class="fc" id="L39">        Claimant claimant = textMessageContext.getClaim().getClaimant();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        if (StringUtils.isNotEmpty(claimant.getPhoneNumber())) {</span>
+            try {
+<span class="fc" id="L42">                SendSmsResponse sendSmsResponse = client.sendSms(</span>
+<span class="fc" id="L43">                        textMessageContext.getTextType().getTemplateId(),</span>
+<span class="fc" id="L44">                        textMessageContext.getClaim().getClaimant().getPhoneNumber(),</span>
+<span class="fc" id="L45">                        textMessageContext.getTextPersonalisation(),</span>
+<span class="fc" id="L46">                        textReference.toString()</span>
+                );
+
+<span class="fc" id="L49">                log.debug(&quot;{} text sent, reference={}, id={}&quot;,textMessageContext.getTextType(), textReference, sendSmsResponse.getNotificationId());</span>
+<span class="fc" id="L50">            } catch (NotificationClientException e) {</span>
+<span class="fc" id="L51">                log.error(&quot;Failed to send text message&quot;, e);</span>
+<span class="fc" id="L52">                String failureMessage = String.format(&quot;Failed to send %s text message, exception is: %s&quot;, textMessageContext.getTextType(), e.getMessage());</span>
+<span class="fc" id="L53">                throw new EventFailedException(buildFailedTextEvent(textMessageContext), e, failureMessage);</span>
+<span class="fc" id="L54">            }</span>
+        }
+<span class="fc" id="L56">        return MessageStatus.COMPLETED;</span>
+    }
+
+    private FailedTextEvent buildFailedTextEvent(TextMessageContext context) {
+<span class="fc" id="L60">        return FailedTextEvent.builder()</span>
+<span class="fc" id="L61">                .claimId(context.getClaim().getId())</span>
+<span class="fc" id="L62">                .textType(context.getTextType())</span>
+<span class="fc" id="L63">                .templateId(context.getTextType().getTemplateId())</span>
+<span class="fc" id="L64">                .build();</span>
+    }
+
+    @Override
+    public MessageType supportsMessageType() {
+<span class="fc" id="L69">        return MessageType.SEND_TEXT;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
