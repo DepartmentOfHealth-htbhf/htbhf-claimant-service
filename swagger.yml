@@ -18,27 +18,6 @@ tags:
   description: "Endpoints for dealing with claims, e.g. persisting a claim."
 paths:
   /v3/claims:
-    get:
-      tags:
-      - "claim-controller"
-      summary: "Retrieve all claims."
-      operationId: "retrieveAllClaimsUsingGET"
-      produces:
-      - "application/json"
-      responses:
-        "200":
-          description: "OK"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/ClaimResponseDTO"
-        "401":
-          description: "Unauthorized"
-        "403":
-          description: "Forbidden"
-        "404":
-          description: "Not Found"
-      deprecated: false
     post:
       tags:
       - "claim-controller"
@@ -60,6 +39,45 @@ paths:
           description: "OK"
           schema:
             $ref: "#/definitions/ClaimResultDTO"
+        "201":
+          description: "Created"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not Found"
+      deprecated: false
+  /v3/claims/search:
+    post:
+      tags:
+      - "claim-controller"
+      summary: "Retrieve Claims."
+      operationId: "retrieveAllClaimsUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "json"
+        description: "retrieve claims"
+        required: false
+        schema:
+          type: "object"
+          additionalProperties:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ClaimResponseDTO"
         "201":
           description: "Created"
         "400":
@@ -266,7 +284,7 @@ definitions:
         example: "0E1567C0B2"
         description: "Unique reference for claim"
     title: "ClaimResponseDTO"
-    description: "Existing claim for Apply for healthy start."
+    description: "Claims created for Apply for healthy start"
   ClaimResultDTO:
     type: "object"
     properties:
