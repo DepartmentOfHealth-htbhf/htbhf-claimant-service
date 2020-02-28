@@ -29,7 +29,9 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -109,29 +111,38 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         // When
-        ResponseEntity<ClaimDTO> response = restTemplate.exchange(buildRetrieveClaimRequestEntity(claim.getId()), ClaimDTO.class);
+        ResponseEntity<ClaimDTO> response =
+                restTemplate.exchange(buildRetrieveClaimRequestEntity(claim.getId()), ClaimDTO.class);
 
         // Then
         ClaimDTO claimResponse = response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isEqualToComparingOnlyGivenFields(claim,
                 "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
-                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
+                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier", "eligibilityStatus", "eligibilityStatusTimestamp",
                 "initialIdentityAndEligibilityResponse");
         assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
     }
 
+    /**
+     * should get all the existing claims.
+     *
+     * @result list of all the claim with response as 200,
+     *         comparing the fields and their values.
+     */
     @Test
     void shouldGetAllClaims() {
         // Given
         Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
-        claimRepository.saveAll(List.of(homerClaim));
+        claimRepository.save(homerClaim);
         List<ClaimResponseDTO> claimResponseDTO = claimToClaimResponseDTOConverter.convert(List.of(homerClaim));
+        Map<String, String> json = new HashMap<>();
 
         // When
         ResponseEntity<List<ClaimResponseDTO>> response =
-                restTemplate.exchange(buildRetrieveAllClaimEntity(), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {});
+                restTemplate.exchange(buildRetrieveAllClaimEntities(json), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {
+                });
 
         // Then
         List<ClaimResponseDTO> claimResponse = response.getBody();
@@ -144,11 +155,18 @@ class ClaimantServiceIntegrationTests {
         assertThat(claimResponse.get(0).getReference()).isEqualTo(homerClaim.getReference());
     }
 
+    /**
+     * should return an empty list when there are no claims.
+     *
+     * @result Empty list with response code 200.
+     */
     @Test
     void shouldReturnAnEmptyListWhenNoClaimsExists() {
+        Map<String, String> json = new HashMap<>();
         //when
         ResponseEntity<List<ClaimResponseDTO>> response =
-                restTemplate.exchange(buildRetrieveAllClaimEntity(), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {});
+                restTemplate.exchange(buildRetrieveAllClaimEntities(json), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {
+                });
 
         //then
         assertThat(response.getBody()).isEmpty();

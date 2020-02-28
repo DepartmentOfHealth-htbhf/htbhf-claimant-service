@@ -4,7 +4,6 @@ import org.springframework.http.*;
 import uk.gov.dhsc.htbhf.claimant.entity.*;
 import uk.gov.dhsc.htbhf.claimant.model.AddressDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimDTO;
-import uk.gov.dhsc.htbhf.claimant.model.ClaimResponseDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 
 import java.math.BigDecimal;
@@ -48,9 +47,9 @@ public class ClaimantServiceAssertionUtils {
         return new RequestEntity<ClaimDTO>(headers, HttpMethod.GET, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/" + claimId));
     }
 
-    public static RequestEntity buildRetrieveAllClaimEntity() {
+    public static RequestEntity buildRetrieveAllClaimEntities(Object requestObject) {
         HttpHeaders headers = headersWithJsonContentType();
-        return new RequestEntity<List<ClaimResponseDTO>>(headers, HttpMethod.GET, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/"));
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/search"));
     }
 
     public static String formatVoucherAmount(int voucherCount) {

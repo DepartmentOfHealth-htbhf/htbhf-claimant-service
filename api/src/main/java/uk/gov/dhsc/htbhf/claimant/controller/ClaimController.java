@@ -72,14 +72,17 @@ public class ClaimController {
         return claimToClaimDTOConverter.convert(claim);
     }
 
-    @GetMapping
-    @ApiOperation("Retrieve all claims.")
-    public List<ClaimResponseDTO> retrieveAllClaims() {
-        log.debug("Retrieve all claims");
+    @PostMapping("/search")
+    @ApiOperation("Retrieve Claims.")
+    @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
+    public ResponseEntity<List<ClaimResponseDTO>> retrieveAllClaims(@RequestBody @Valid @ApiParam("retrieve claims") Map<String, String> json) {
+        log.debug("Retrieve claims");
 
-        List<Claim> claims = claimRepository.findAll();
+        Iterable<Claim> claims = claimRepository.findAll();
 
-        return claimToClaimResponseDTOConverter.convert(claims);
+        List<ClaimResponseDTO> result = claimToClaimResponseDTOConverter.convert(claims);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     private ResponseEntity<ClaimResultDTO> createResponse(ClaimResult result) {
@@ -94,6 +97,7 @@ public class ClaimController {
                 .build();
         return new ResponseEntity<>(body, statusCode);
     }
+
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
         return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);

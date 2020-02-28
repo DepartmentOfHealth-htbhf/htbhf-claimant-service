@@ -14,7 +14,7 @@ import java.util.UUID;
 @Value
 @Builder
 @AllArgsConstructor(onConstructor_ = {@JsonCreator})
-@ApiModel(description = "Existing claim for Apply for healthy start.")
+@ApiModel(description = "List of Claims created for Apply for healthy start")
 public class ClaimResponseDTO {
 
     @ApiModelProperty(notes = "The claim's unique id.", example = "96c3f8c0-f6d9-4ad4-9ed9-72fcbd8d692d")

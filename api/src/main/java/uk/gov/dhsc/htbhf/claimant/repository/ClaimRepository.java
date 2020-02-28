@@ -92,12 +92,4 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
      */
     Optional<Claim> findByReference(String reference);
 
-    /**
-     * gets all claims.
-     *
-     * @return list of all existing claims.
-     */
-    @Override
-    List<Claim> findAll();
-
 }

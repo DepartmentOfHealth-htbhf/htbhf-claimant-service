@@ -65,7 +65,6 @@ public class ClaimService {
 
     public ClaimResult createClaim(ClaimRequest claimRequest) {
         try {
-
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(),
                     claimRequest.getEligibilityOverride());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
