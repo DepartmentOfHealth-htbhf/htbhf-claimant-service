@@ -17,6 +17,7 @@ public enum ClaimEventMetadataKey {
     BALANCE_ON_CARD("balanceOnCard"),
     UPDATED_FIELDS("updatedFields"),
     EMAIL_TYPE("emailType"),
+    TEXT_TYPE("textType"),
     LETTER_TYPE("letterType"),
     TEMPLATE_ID("templateId");
 

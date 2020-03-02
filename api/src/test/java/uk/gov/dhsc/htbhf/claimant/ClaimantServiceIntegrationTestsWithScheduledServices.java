@@ -16,6 +16,7 @@ import uk.gov.dhsc.htbhf.claimant.entity.PaymentCycle;
 import uk.gov.dhsc.htbhf.claimant.entity.PaymentStatus;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.model.*;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -37,6 +38,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithNoNullFields;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlementTestDataFactory.aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PostcodeDataTestDataFactory.aPostcodeDataObjectForPostcode;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.MATCHED;
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_HELD;
 import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
 import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedAddressNotMatchedResponse;
@@ -77,6 +79,44 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
 
         assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
+        wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
+        wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
+        verifyNoMoreInteractions(notificationClient);
+    }
+
+    @Test
+    void shouldRequestNewCardAndSendTextMessageForSuccessfulClaim() throws JsonProcessingException, NotificationClientException {
+        NewClaimDTO newClaimDTO = aValidClaimDTOWithNoNullFields();
+        newClaimDTO.getClaimant().setEmailAddress(null);
+        ClaimantDTO claimant = newClaimDTO.getClaimant();
+        List<LocalDate> childrenDob = claimant.getInitiallyDeclaredChildrenDob();
+        String cardAccountId = UUID.randomUUID().toString();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithMatches(MATCHED, NOT_MATCHED, childrenDob);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+        wiremockManager.stubSuccessfulNewCardResponse(cardAccountId);
+        wiremockManager.stubSuccessfulDepositResponse(cardAccountId);
+        stubNotificationTextResponse();
+
+        ResponseEntity<ClaimResultDTO> response
+                = restTemplate.exchange(buildCreateClaimRequestEntity(newClaimDTO), ClaimResultDTO.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(CREATED);
+        assertThat(response.getBody().getClaimStatus()).isEqualTo(ClaimStatus.NEW);
+
+        invokeAllSchedulers();
+
+        Claim claim = repositoryMediator.getClaimForNino(claimant.getNino());
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        PaymentCycleVoucherEntitlement expectedEntitlement =
+                aPaymentCycleVoucherEntitlementMatchingChildrenAndPregnancy(LocalDate.now(), childrenDob, claim.getClaimant().getExpectedDeliveryDate());
+        assertThat(paymentCycle.getVoucherEntitlement()).isEqualTo(expectedEntitlement);
+        assertThat(paymentCycle.getPayments()).isNotEmpty();
+        Payment payment = paymentCycle.getPayments().iterator().next();
+        assertThat(payment.getPaymentAmountInPence()).isEqualTo(expectedEntitlement.getTotalVoucherValueInPence());
+
+        assertThatInstantSuccessTextSentCorrectly(claim, paymentCycle);
         wiremockManager.assertThatNewCardRequestMadeForClaim(claim);
         wiremockManager.assertThatDepositFundsRequestMadeForPayment(payment);
         verifyNoMoreInteractions(notificationClient);
@@ -246,6 +286,7 @@ public class ClaimantServiceIntegrationTestsWithScheduledServices extends Schedu
         messageProcessorScheduler.processRequestPaymentMessages();
         messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processSendTextMessages();
         messageProcessorScheduler.processSendLetterMessages();
         messageProcessorScheduler.processReportClaimMessages();
     }

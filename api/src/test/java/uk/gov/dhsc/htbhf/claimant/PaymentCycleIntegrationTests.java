@@ -713,6 +713,7 @@ class PaymentCycleIntegrationTests extends ScheduledServiceIntegrationTest {
         messageProcessorScheduler.processRequestPaymentMessages();
         messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processSendTextMessages();
         messageProcessorScheduler.processReportPaymentMessages();
         messageProcessorScheduler.processReportClaimMessages();
         cardCancellationScheduler.handleCardsPendingCancellation();

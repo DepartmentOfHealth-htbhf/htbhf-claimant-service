@@ -11,6 +11,7 @@ import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
+import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -101,6 +102,8 @@ public class ClaimService {
                     ? EmailType.INSTANT_SUCCESS
                     : EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH;
             claimMessageSender.sendInstantSuccessEmail(claim, decision, emailType);
+        } else if (identityAndEligibilityResponse.getMobilePhoneMatch() == VerificationOutcome.MATCHED) {
+            claimMessageSender.sendInstantSuccessText(claim, decision, TextType.INSTANT_SUCCESS_TEXT);
         } else {
             sendMessagesForPhoneOrEmailMismatch(claim, decision, identityAndEligibilityResponse);
         }

@@ -13,6 +13,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimantDTO;
 import uk.gov.dhsc.htbhf.claimant.model.NewClaimDTO;
 import uk.gov.dhsc.htbhf.dwp.model.EligibilityOutcome;
+import uk.gov.dhsc.htbhf.eligibility.model.CombinedIdentityAndEligibilityResponse;
 import uk.gov.service.notify.NotificationClientException;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static uk.gov.dhsc.htbhf.TestConstants.HOMER_MOBILE;
 import static uk.gov.dhsc.htbhf.TestConstants.NO_CHILDREN;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_SIX_MONTH_OLD;
 import static uk.gov.dhsc.htbhf.TestConstants.SINGLE_THREE_YEAR_OLD;
@@ -55,6 +57,9 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleVoucherEntitlem
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NOT_PREGNANT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_TWENTY_NINE_WEEKS;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.MATCHED;
+import static uk.gov.dhsc.htbhf.dwp.model.VerificationOutcome.NOT_MATCHED;
+import static uk.gov.dhsc.htbhf.eligibility.model.testhelper.CombinedIdAndEligibilityResponseTestDataFactory.anIdMatchedEligibilityConfirmedUCResponseWithMatches;
 
 /**
  * Runs a claim through the entire lifecycle, preforming (limited) tests at each payment cycle to confirm the correct
@@ -206,14 +211,49 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         String nino = null;
         String emailAdress = null;
         String phoneNumber = null;
-        UUID claimId
-                = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(expectedDeliveryDate, nino, emailAdress, phoneNumber);
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(
+                                                                                                                  expectedDeliveryDate,
+                                                                                                                  nino,
+                                                                                                                  emailAdress,
+                                                                                                                  phoneNumber);
 
         // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers but get an email reminding them
         // to contact their benefit agency about a new child.
         expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 8);
 
         verifyNoMoreInteractions(notificationClient);
+
+        // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
+        progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 1);
+        verifyNoMoreInteractions(notificationClient);
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        claim = repositoryMediator.loadClaim(claimId);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertThat(claim.getClaimStatusTimestamp()).isBefore(LocalDateTime.now().minusWeeks(36));
+        progressClaimThroughExpiry(claimId, false);
+
+    }
+
+    @Test
+    void shouldProcessClaimWithEligibilityOverrideAndSendTextMessage()
+            throws JsonProcessingException, NotificationClientException {
+        LocalDate expectedDeliveryDate = LocalDate.now().plusWeeks(25);
+        String nino = null;
+        String emailAdress = null;
+        UUID claimId = applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(
+                                                                                                                  expectedDeliveryDate,
+                                                                                                                  nino,
+                                                                                                                  emailAdress,
+                                                                                                                  HOMER_MOBILE);
+
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse
+                = anIdMatchedEligibilityConfirmedUCResponseWithMatches(MATCHED, NOT_MATCHED, NO_CHILDREN);
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+        stubNotificationTextResponse();
+        assertFirstCyclePaidCorrectlyWithInstantSuccessText(claimId, NO_CHILDREN);
+        // claimant's due date is in 25 weeks time. After 8 cycles (32 weeks), the claimant will still get pregnancy vouchers
+        expectedDeliveryDate = progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 8);
+
 
         // claim should be active for 36 weeks now as nine cycles have passed. This is the final cycle that they are eligible for vouchers
         progressThroughPaymentCyclesForPregnancyWithEligibilityOverrideAndNoEmail(expectedDeliveryDate, claimId, 1);
@@ -551,10 +591,10 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         return applyForHealthyStart(newClaimDTO, NO_CHILDREN);
     }
 
-    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithoutNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
-                                                                                                       String nino,
-                                                                                                       String emailAddress,
-                                                                                                       String phoneNumber)
+    private UUID applyForHealthyStartOverridingEligibilityForAPregnantWomanWithOptionalNinoAndEmailAndPhone(LocalDate expectedDeliveryDate,
+                                                                                                            String nino,
+                                                                                                            String emailAddress,
+                                                                                                            String phoneNumber)
             throws JsonProcessingException, NotificationClientException {
         NewClaimDTO newClaimDTO = aValidClaimDTOWithEligibilityOverrideAndNinoAndEmailAndPhone(
                 expectedDeliveryDate,
@@ -626,6 +666,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         wiremockManager.stubGoogleAnalyticsCall();
         stubNotificationEmailResponse();
         stubNotificationLetterResponse();
+        stubNotificationTextResponse();
     }
 
     private List<LocalDate> ageByOneCycle(List<LocalDate> initialChildrenDobs) throws JsonProcessingException {
@@ -666,6 +707,20 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
         assertPaymentHasCorrectAmount(claim, paymentCycle, datesOfBirthOfChildren);
         assertThatInstantSuccessEmailSentCorrectly(claim, paymentCycle);
+        verifyNoMoreInteractions(notificationClient);
+        // invoke scheduler to report payment
+        invokeAllSchedulers();
+        wiremockManager.verifyGoogleAnalyticsCalledForPaymentEvent(claim, INITIAL_PAYMENT, paymentCycle.getTotalEntitlementAmountInPence(),
+                datesOfBirthOfChildren);
+    }
+
+    private void assertFirstCyclePaidCorrectlyWithInstantSuccessText(UUID claimId, List<LocalDate> datesOfBirthOfChildren)
+            throws NotificationClientException {
+        Claim claim = repositoryMediator.loadClaim(claimId);
+        PaymentCycle paymentCycle = repositoryMediator.getCurrentPaymentCycleForClaim(claim);
+        assertThat(claim.getClaimStatus()).isEqualTo(ClaimStatus.ACTIVE);
+        assertPaymentHasCorrectAmount(claim, paymentCycle, datesOfBirthOfChildren);
+        assertThatInstantSuccessTextSentCorrectly(claim, paymentCycle);
         verifyNoMoreInteractions(notificationClient);
         // invoke scheduler to report payment
         invokeAllSchedulers();
@@ -756,6 +811,7 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         messageProcessorScheduler.processRequestPaymentMessages();
         messageProcessorScheduler.processCompletePaymentMessages();
         messageProcessorScheduler.processSendEmailMessages();
+        messageProcessorScheduler.processSendTextMessages();
         messageProcessorScheduler.processSendLetterMessages();
         cardCancellationScheduler.handleCardsPendingCancellation();
         messageProcessorScheduler.processReportClaimMessages();
@@ -766,5 +822,6 @@ public class ClaimantLifecycleIntegrationTests extends ScheduledServiceIntegrati
         Mockito.reset(notificationClient);
         stubNotificationEmailResponse();
         stubNotificationLetterResponse();
+        stubNotificationTextResponse();
     }
 }

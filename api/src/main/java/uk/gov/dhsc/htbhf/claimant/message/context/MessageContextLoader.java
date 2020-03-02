@@ -76,6 +76,17 @@ public class MessageContextLoader {
                 .build();
     }
 
+    public TextMessageContext loadTextMessageContext(Message message) {
+        TextMessagePayload payload = payloadMapper.getPayload(message, TextMessagePayload.class);
+
+        Claim claim = getAndCheckClaim(payload.getClaimId());
+        return TextMessageContext.builder()
+                .claim(claim)
+                .textPersonalisation(payload.getTextPersonalisation())
+                .textType(payload.getTextType())
+                .build();
+    }
+
     public LetterMessageContext loadLetterMessageContext(Message message) {
         LetterMessagePayload payload = payloadMapper.getPayload(message, LetterMessagePayload.class);
 
