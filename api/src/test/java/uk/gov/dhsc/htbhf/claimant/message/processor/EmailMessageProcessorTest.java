@@ -85,7 +85,7 @@ class EmailMessageProcessorTest {
     }
 
     @Test
-    void shouldNotSendMessageForMissingEmail() throws NotificationClientException {
+    void shouldNotSendMessageForMissingEmail() {
         //Given
         Claim claim = aValidClaim();
         claim.getClaimant().setEmailAddress(null);
