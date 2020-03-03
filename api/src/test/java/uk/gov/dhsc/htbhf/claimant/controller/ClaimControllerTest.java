@@ -36,6 +36,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTOWithEligibilityOverride;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.EXPECTED_DELIVERY_DATE_IN_TWO_MONTHS;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.OVERRIDE_UNTIL_FIVE_YEARS;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.USER_SYSTEM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementTestDataFactory.aValidVoucherEntitlement;
 
@@ -69,17 +70,17 @@ class ClaimControllerTest {
         VoucherEntitlementDTO entitlementDTO = aValidVoucherEntitlementDTO();
         given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
-        given(claimService.createClaim(any())).willReturn(claimResult);
+        given(claimService.createClaim(any(), any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto, USER_SYSTEM);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verify(claimRequestConverter).convert(dto);
-        verify(claimService).createClaim(claimRequest);
+        verify(claimService).createClaim(claimRequest, USER_SYSTEM);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -102,17 +103,17 @@ class ClaimControllerTest {
         ClaimRequest claimRequest = aValidClaimRequest();
         given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         given(entitlementConverter.convert(any())).willReturn(entitlementDTO);
-        given(claimService.createClaim(any())).willReturn(claimResult);
+        given(claimService.createClaim(any(), any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto, USER_SYSTEM);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatus(claimStatus));
         verify(claimRequestConverter).convert(dto);
-        verify(claimService).createClaim(claimRequest);
+        verify(claimService).createClaim(claimRequest, USER_SYSTEM);
         verify(entitlementConverter).convert(claimResult.getVoucherEntitlement().get());
     }
 
@@ -128,37 +129,36 @@ class ClaimControllerTest {
         ClaimResult claimResult = aClaimResult(claimStatus, Optional.empty());
         ClaimRequest claimRequest = aValidClaimRequest();
         given(claimRequestConverter.convert(any())).willReturn(claimRequest);
-        given(claimService.createClaim(any())).willReturn(claimResult);
+        given(claimService.createClaim(any(), any())).willReturn(claimResult);
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto, USER_SYSTEM);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(httpStatus);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(claimStatus));
         verify(claimRequestConverter).convert(dto);
-        verify(claimService).createClaim(claimRequest);
+        verify(claimService).createClaim(claimRequest, USER_SYSTEM);
         verifyNoInteractions(entitlementConverter);
     }
 
     @Test
     void shouldReturnInternalServerErrorStatusWhenEligibilityStatusIsError() {
         // Given
-        given(claimService.createClaim(any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
+        given(claimService.createClaim(any(), any())).willReturn(aClaimResult(ClaimStatus.ERROR, Optional.empty()));
         ClaimRequest claimRequest = aValidClaimRequest();
         given(claimRequestConverter.convert(any())).willReturn(claimRequest);
         NewClaimDTO dto = aValidClaimDTO();
 
         // When
-        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto);
+        ResponseEntity<ClaimResultDTO> response = controller.createClaim(dto, USER_SYSTEM);
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isEqualTo(aClaimResultDTOWithClaimStatusAndNoVoucherEntitlement(ClaimStatus.ERROR));
-        verify(claimService).createClaim(claimRequest);
+        verify(claimService).createClaim(claimRequest, USER_SYSTEM);
         verify(claimRequestConverter).convert(dto);
     }
-
 }

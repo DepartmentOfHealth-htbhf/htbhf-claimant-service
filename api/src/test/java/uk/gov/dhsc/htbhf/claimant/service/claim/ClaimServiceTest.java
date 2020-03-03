@@ -2,6 +2,7 @@ package uk.gov.dhsc.htbhf.claimant.service.claim;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.javers.core.Javers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +76,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityAndEntitlementTe
 import static uk.gov.dhsc.htbhf.claimant.testsupport.EligibilityOverrideTestDataFactory.aConfirmedEligibilityOverrideWithNoChildren;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.DEVICE_FINGERPRINT;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.TEST_EXCEPTION;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.USER_SYSTEM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResultWithPhoneAndEmail;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anIdMatchedEligibilityNotConfirmedVerificationResult;
@@ -112,6 +114,9 @@ class ClaimServiceTest {
     @Mock
     ClaimMessageSender claimMessageSender;
 
+    @Mock
+    Javers javers;
+
     private final Map<String, Object> deviceFingerprint = DEVICE_FINGERPRINT;
     private final String deviceFingerprintHash = DigestUtils.md5Hex(DEVICE_FINGERPRINT.toString());
 
@@ -133,15 +138,16 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -158,15 +164,16 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -187,7 +194,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(pregnantOnlyClaimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
         Claim claim = result.getClaim();
 
         //then
@@ -195,8 +202,9 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(claim);
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(claim.getReference());
-        verify(eventAuditor).auditNewClaim(claim);
+        verify(eventAuditor).auditNewClaim(claim, USER_SYSTEM);
         if (identityAndEligibilityResponse.getEmailAddressMatch() == MATCHED) {
             verify(claimMessageSender).sendInstantSuccessEmail(claim, decision, EmailType.INSTANT_SUCCESS);
         } else if (identityAndEligibilityResponse.getMobilePhoneMatch() == MATCHED) {
@@ -234,15 +242,16 @@ class ClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, eligibilityOverride);
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(pregnantOnlyClaimant, eligibilityOverride);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -261,15 +270,16 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertEligibleClaimResult(decision.getIdentityAndEligibilityResponse(), result, NO_ELIGIBILITY_OVERRIDE);
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS_PARTIAL_CHILDREN_MATCH);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -313,7 +323,7 @@ class ClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         VerificationResult expectedVerificationResult = anAllMatchedVerificationResultWithPhoneAndEmail(phoneVerification, emailVerification);
@@ -322,8 +332,9 @@ class ClaimServiceTest {
         Claim claim = result.getClaim();
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(claim);
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(claim);
+        verify(eventAuditor).auditNewClaim(claim, USER_SYSTEM);
 
         if (StringUtils.isNotEmpty(emailAddress)) {
             verify(claimMessageSender).sendDecisionPendingEmailMessage(claim);
@@ -372,14 +383,15 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertIneligibleClaimResult(eligibilityStatus, claimStatus, eligibility.getIdentityAndEligibilityResponse(), result);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
     }
 
     @Test
@@ -391,7 +403,7 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -399,7 +411,8 @@ class ClaimServiceTest {
         assertThat(result.getVerificationResult()).isEqualTo(anAllMatchedVerificationResult());
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
         verify(claimMessageSender).sendNewCardMessage(result.getClaim(), decision);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.NEW);
@@ -421,14 +434,15 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
         assertThat(result.getClaim().getClaimStatus()).isNotNull();
         assertCorrectVerificationStatus(eligibilityStatus, result);
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         if (eligibilityStatus == ELIGIBLE) {
             verify(claimMessageSender).sendInstantSuccessEmail(result.getClaim(), decision, EmailType.INSTANT_SUCCESS);
@@ -447,10 +461,11 @@ class ClaimServiceTest {
         given(eligibilityAndEntitlementService.evaluateNewClaimant(any(), any())).willReturn(decision);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
@@ -465,7 +480,7 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         // then
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
@@ -482,7 +497,7 @@ class ClaimServiceTest {
         request.getClaimant().setNino(null);
 
         //when
-        claimService.createClaim(request);
+        claimService.createClaim(request, USER_SYSTEM);
 
         // then
         verifyNoInteractions(claimMessageSender);
@@ -498,7 +513,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -517,7 +532,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -536,7 +551,7 @@ class ClaimServiceTest {
                 .build();
 
         //when
-        ClaimResult result = claimService.createClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -555,14 +570,15 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(newClaimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertIneligibleClaimResult(INELIGIBLE, ClaimStatus.REJECTED, decision.getIdentityAndEligibilityResponse(), result);
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(newClaimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
     }
 
     /**
@@ -577,7 +593,7 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(request), RuntimeException.class);
+        RuntimeException thrown = catchThrowableOfType(() -> claimService.createClaim(request, USER_SYSTEM), RuntimeException.class);
 
         //then
         assertThat(thrown).isEqualTo(TEST_EXCEPTION);
@@ -615,7 +631,7 @@ class ClaimServiceTest {
         ClaimRequest request = aClaimRequestForClaimant(claimant);
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -626,8 +642,9 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(claimant, NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), decision.getIdentityAndEligibilityResponse(), ClaimAction.REJECTED);
         verifyNoMoreInteractions(claimMessageSender);
     }
@@ -641,7 +658,7 @@ class ClaimServiceTest {
         ClaimRequest request = aValidClaimRequest();
 
         //when
-        ClaimResult result = claimService.createClaim(request);
+        ClaimResult result = claimService.createClaim(request, USER_SYSTEM);
 
         //then
         assertThat(result).isNotNull();
@@ -651,8 +668,9 @@ class ClaimServiceTest {
 
         verify(eligibilityAndEntitlementService).evaluateNewClaimant(request.getClaimant(), NO_ELIGIBILITY_OVERRIDE);
         verify(claimRepository).save(result.getClaim());
+        verify(javers).commit(USER_SYSTEM, result.getClaim());
         verify(claimRepository).findByReference(result.getClaim().getReference());
-        verify(eventAuditor).auditNewClaim(result.getClaim());
+        verify(eventAuditor).auditNewClaim(result.getClaim(), USER_SYSTEM);
         verify(claimMessageSender).sendReportClaimMessage(result.getClaim(), response, ClaimAction.REJECTED);
         verify(claimMessageSender).sendDecisionPendingEmailMessage(result.getClaim());
         verify(claimMessageSender).sendLetterWithAddressOnlyMessage(result.getClaim(), UPDATE_YOUR_ADDRESS);

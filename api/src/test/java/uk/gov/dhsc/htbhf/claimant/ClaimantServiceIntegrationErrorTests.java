@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.aValidClaimDTO;
 
 /**
@@ -48,7 +49,8 @@ class ClaimantServiceIntegrationErrorTests {
         NewClaimDTO claim = aValidClaimDTO();
 
         stubFor(post(urlEqualTo("/v2/eligibility")).willReturn(aResponse().withStatus(INTERNAL_SERVER_ERROR.value())));
-        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI_V3, claim, ErrorResponse.class);
+        ResponseEntity<ErrorResponse> response
+                = restTemplate.postForEntity(CLAIMANT_ENDPOINT_URI_V3, buildCreateClaimRequestEntity(claim), ErrorResponse.class);
 
         assertInternalServerErrorResponse(response);
     }

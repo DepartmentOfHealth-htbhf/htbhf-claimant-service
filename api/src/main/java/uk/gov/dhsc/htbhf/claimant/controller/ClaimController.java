@@ -49,11 +49,12 @@ public class ClaimController {
     @PostMapping
     @ApiOperation("Create a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO) {
+    public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO,
+                                                      @RequestHeader("user") String user) {
         log.debug("Received claim");
 
         ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);
-        ClaimResult result = claimService.createClaim(claimRequest);
+        ClaimResult result = claimService.createClaim(claimRequest, user);
 
         return createResponse(result);
     }

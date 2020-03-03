@@ -35,4 +35,6 @@ public class TestConstants {
     public static final String HOMER_CLAIM_REFERENCE = "0E1567C0B3";
     public static final String MARGE_CLAIM_REFERENCE = "0E1567C0B4";
 
+    public static final String USER_SYSTEM = "SYSTEM";
+
 }

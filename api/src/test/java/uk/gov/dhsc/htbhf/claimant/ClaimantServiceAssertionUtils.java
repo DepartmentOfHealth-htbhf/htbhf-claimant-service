@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.USER_SYSTEM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 public class ClaimantServiceAssertionUtils {
@@ -64,6 +65,7 @@ public class ClaimantServiceAssertionUtils {
     private static HttpHeaders headersWithJsonContentType() {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("user", USER_SYSTEM);
         return headers;
     }
 

@@ -19,7 +19,8 @@ public enum ClaimEventMetadataKey {
     EMAIL_TYPE("emailType"),
     TEXT_TYPE("textType"),
     LETTER_TYPE("letterType"),
-    TEMPLATE_ID("templateId");
+    TEMPLATE_ID("templateId"),
+    USER("user");
 
     private String key;
 
