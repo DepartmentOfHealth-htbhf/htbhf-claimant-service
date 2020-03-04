@@ -1,8 +1,8 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
 import org.javers.spring.annotation.JaversSpringDataAuditable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -25,7 +25,7 @@ import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
  * @see <a href="https://javers.org/">https://javers.org/</a> for more information.
  */
 @JaversSpringDataAuditable
-public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyLoader {
+public interface ClaimRepository extends JpaRepository<Claim, UUID>, ClaimLazyLoader {
 
     @Query("SELECT claim.id "
             + "FROM Claim claim "
@@ -91,5 +91,4 @@ public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyL
      * @return claim for given reference.
      */
     Optional<Claim> findByReference(String reference);
-
 }
