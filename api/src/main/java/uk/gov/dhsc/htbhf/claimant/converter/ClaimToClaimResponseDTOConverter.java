@@ -1,6 +1,5 @@
 package uk.gov.dhsc.htbhf.claimant.converter;
 
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
@@ -11,7 +10,6 @@ import java.util.List;
 
 
 @Component
-@AllArgsConstructor
 public class ClaimToClaimResponseDTOConverter {
 
     public List<ClaimResponseDTO> convert(Iterable<Claim> claims) {

@@ -136,7 +136,6 @@ class ClaimantServiceIntegrationTests {
         // Given
         Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
         claimRepository.save(homerClaim);
-        List<ClaimResponseDTO> claimResponseDTO = claimToClaimResponseDTOConverter.convert(List.of(homerClaim));
         Map<String, String> json = new HashMap<>();
 
         // When
@@ -146,13 +145,16 @@ class ClaimantServiceIntegrationTests {
 
         // Then
         List<ClaimResponseDTO> claimResponse = response.getBody();
+        ClaimResponseDTO claimResponseDTO=claimResponse.get(0);
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isNotNull();
         assertThat(claimResponse).hasSameSizeAs(List.of(homerClaim));
-        assertThat(claimResponse.get(0)).isEqualToComparingOnlyGivenFields(claimResponseDTO.get(0),
-                "id", "claimStatus", "firstName", "lastName", "dateOfBirth", "addressLine1", "postcode", "reference");
-        assertThat(claimResponse.get(0).getFirstName()).isEqualTo(homerClaim.getClaimant().getFirstName());
-        assertThat(claimResponse.get(0).getReference()).isEqualTo(homerClaim.getReference());
+        assertThat(claimResponseDTO.getFirstName()).isEqualTo(homerClaim.getClaimant().getFirstName());
+        assertThat(claimResponseDTO.getReference()).isEqualTo(homerClaim.getReference());
+        assertThat(claimResponseDTO.getClaimStatus()).isEqualTo(homerClaim.getClaimStatus());
+        assertThat(claimResponseDTO.getDateOfBirth()).isEqualTo(homerClaim.getClaimant().getDateOfBirth());
+        assertThat(claimResponseDTO.getLastName()).isEqualTo(homerClaim.getClaimant().getLastName());
+        assertThat(claimResponseDTO.getAddressLine1()).isEqualTo(homerClaim.getClaimant().getAddress().getAddressLine1());
     }
 
     /**

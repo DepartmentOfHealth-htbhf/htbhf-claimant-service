@@ -75,12 +75,10 @@ public class ClaimController {
     @PostMapping("/search")
     @ApiOperation("Retrieve Claims.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
-    public ResponseEntity<List<ClaimResponseDTO>> retrieveAllClaims(@RequestBody @Valid @ApiParam("retrieve claims") Map<String, String> json) {
+    public ResponseEntity<List<ClaimResponseDTO>> retrieveAllClaims(@RequestBody @Valid @ApiParam("retrieve claims") Map<String, String> claimFilter) {
         log.debug("Retrieve claims");
 
-        Iterable<Claim> claims = claimRepository.findAll();
-
-        List<ClaimResponseDTO> result = claimToClaimResponseDTOConverter.convert(claims);
+        List<ClaimResponseDTO> result=claimService.findClaims();
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
