@@ -96,7 +96,6 @@ public class ClaimController {
         return new ResponseEntity<>(body, statusCode);
     }
 
-
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
         return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);
     }

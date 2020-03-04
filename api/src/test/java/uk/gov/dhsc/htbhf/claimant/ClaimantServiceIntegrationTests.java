@@ -17,7 +17,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
 import uk.gov.dhsc.htbhf.claimant.model.*;
@@ -89,9 +88,6 @@ class ClaimantServiceIntegrationTests {
 
     @Autowired
     WiremockManager wiremockManager;
-
-    @Autowired
-    ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
 
     @BeforeEach
     void setup() {

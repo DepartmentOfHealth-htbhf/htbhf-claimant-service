@@ -8,7 +8,6 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimResponseDTO;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Component
 public class ClaimToClaimResponseDTOConverter {
 

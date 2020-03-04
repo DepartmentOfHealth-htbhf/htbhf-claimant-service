@@ -28,10 +28,14 @@ class ClaimToClaimResponseDTOConverterTest {
         Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
         Claim margeClaim = aValidClaimWithNinoAndRefernce(MARGE_NINO, MARGE_CLAIM_REFERENCE);
 
-
         List<ClaimResponseDTO> claimResponse = converter.convert(List.of(homerClaim, margeClaim));
 
         assertThat(claimResponse).hasSameSizeAs(List.of(homerClaim, margeClaim));
+        assertThat(claimResponse.get(0).getFirstName()).isEqualTo(homerClaim.getClaimant().getFirstName());
+        assertThat(claimResponse.get(0).getLastName()).isEqualTo(homerClaim.getClaimant().getLastName());
+        assertThat(claimResponse.get(0).getReference()).isEqualTo(homerClaim.getReference());
+        assertThat(claimResponse.get(0).getDateOfBirth()).isEqualTo(homerClaim.getClaimant().getDateOfBirth());
+
 
     }
 

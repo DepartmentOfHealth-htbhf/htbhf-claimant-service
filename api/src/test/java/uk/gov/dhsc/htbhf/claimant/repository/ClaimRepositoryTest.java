@@ -347,7 +347,7 @@ class ClaimRepositoryTest {
         claimRepository.saveAll(List.of(oldClaim, newClaim));
 
         //When
-        Iterable<Claim> result = claimRepository.findAll();
+        List<Claim> result = claimRepository.findAll();
 
         //Then
         assertThat(result).isEqualTo(List.of(oldClaim, newClaim));
@@ -357,7 +357,7 @@ class ClaimRepositoryTest {
     void shouldReturnEmptyListIfNoClaimsAreCreated() {
 
         //When
-        Iterable<Claim> result = claimRepository.findAll();
+        List<Claim> result = claimRepository.findAll();
 
         //Then
         assertThat(result).isEmpty();
