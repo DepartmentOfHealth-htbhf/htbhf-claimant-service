@@ -145,7 +145,7 @@ class ClaimantServiceIntegrationTests {
 
         // Then
         List<ClaimResponseDTO> claimResponse = response.getBody();
-        ClaimResponseDTO claimResponseDTO=claimResponse.get(0);
+        ClaimResponseDTO claimResponseDTO = claimResponse.get(0);
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isNotNull();
         assertThat(claimResponse).hasSameSizeAs(List.of(homerClaim));

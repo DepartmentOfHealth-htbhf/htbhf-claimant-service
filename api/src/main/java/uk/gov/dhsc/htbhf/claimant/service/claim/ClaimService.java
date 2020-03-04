@@ -97,7 +97,7 @@ public class ClaimService {
         }
     }
 
-    public List<ClaimResponseDTO> findClaims(){
+    public List<ClaimResponseDTO> findClaims() {
         List<Claim> claims = claimRepository.findAll();
         return claimToClaimResponseDTOConverter.convert(claims);
     }
