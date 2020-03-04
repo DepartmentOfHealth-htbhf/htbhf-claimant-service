@@ -78,7 +78,7 @@ public class ClaimController {
     public ResponseEntity<List<ClaimResponseDTO>> retrieveAllClaims(@RequestBody @Valid @ApiParam("retrieve claims") Map<String, String> claimFilter) {
         log.debug("Retrieve claims");
 
-        List<ClaimResponseDTO> result=claimService.findClaims();
+        List<ClaimResponseDTO> result = claimService.findClaims();
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
