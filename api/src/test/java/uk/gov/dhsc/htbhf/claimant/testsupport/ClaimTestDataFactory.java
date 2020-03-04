@@ -144,7 +144,6 @@ public class ClaimTestDataFactory {
                 .build();
     }
 
-
     public static Claim.ClaimBuilder aValidClaimBuilder() {
         return aValidClaimBuilderWithStatus(ClaimStatus.ACTIVE);
     }
