@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -27,7 +28,9 @@ import uk.gov.dhsc.htbhf.eligibility.model.EligibilityStatus;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -40,19 +43,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.dhsc.htbhf.TestConstants.DWP_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HMRC_HOUSEHOLD_IDENTIFIER;
-import static uk.gov.dhsc.htbhf.TestConstants.HOMER_NINO;
+import static uk.gov.dhsc.htbhf.TestConstants.*;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertInternalServerErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertRequestCouldNotBeParsedErrorResponse;
 import static uk.gov.dhsc.htbhf.assertions.IntegrationTestAssertions.assertValidationErrorInResponse;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.assertClaimantMatchesClaimantDTO;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildCreateClaimRequestEntity;
-import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.buildRetrieveClaimRequestEntity;
+import static uk.gov.dhsc.htbhf.claimant.ClaimantServiceAssertionUtils.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithLine1;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.AddressDTOTestDataFactory.anAddressDTOWithPostcode;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaim;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.aValidClaimBuilder;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithAddress;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithEmailAddressAndPhoneNumber;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.aClaimantDTOWithLastName;
@@ -60,6 +58,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantDTOTestDataFactory.
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aClaimantWithNino;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimantInSameHouseholdBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.NewClaimDTOTestDataFactory.*;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HOMER_CLAIM_REFERENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResult;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VerificationResultTestDataFactory.anAllMatchedVerificationResultWithPhoneAndEmail;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.VoucherEntitlementDTOTestDataFactory.aValidVoucherEntitlementDTO;
@@ -108,17 +107,67 @@ class ClaimantServiceIntegrationTests {
         claimRepository.save(claim);
 
         // When
-        ResponseEntity<ClaimDTO> response = restTemplate.exchange(buildRetrieveClaimRequestEntity(claim.getId()), ClaimDTO.class);
+        ResponseEntity<ClaimDTO> response =
+                restTemplate.exchange(buildRetrieveClaimRequestEntity(claim.getId()), ClaimDTO.class);
 
         // Then
         ClaimDTO claimResponse = response.getBody();
         assertThat(response.getStatusCode()).isEqualTo(OK);
         assertThat(claimResponse).isEqualToComparingOnlyGivenFields(claim,
                 "id", "cardAccountId", "cardStatus", "cardStatusTimestamp", "claimStatus", "claimStatusTimestamp", "currentIdentityAndEligibilityResponse",
-                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier",  "eligibilityStatus", "eligibilityStatusTimestamp",
+                "dwpHouseholdIdentifier", "hmrcHouseholdIdentifier", "eligibilityStatus", "eligibilityStatusTimestamp",
                 "initialIdentityAndEligibilityResponse");
         assertThat(claimResponse.getClaimant()).isEqualToIgnoringGivenFields(claim.getClaimant(), "address");
         assertThat(claimResponse.getClaimant().getAddress()).isEqualToComparingFieldByField(claim.getClaimant().getAddress());
+    }
+
+    /**
+     * should get all the existing claims.
+     *
+     * @result list of all the claim with response as 200,
+     *         comparing the fields and their values.
+     */
+    @Test
+    void shouldGetAllClaims() {
+        // Given
+        Claim homerClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
+        claimRepository.save(homerClaim);
+        Map<String, String> json = new HashMap<>();
+
+        // When
+        ResponseEntity<List<ClaimResponseDTO>> response =
+                restTemplate.exchange(buildRetrieveAllClaimEntities(json), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {
+                });
+
+        // Then
+        List<ClaimResponseDTO> claimResponse = response.getBody();
+        ClaimResponseDTO claimResponseDTO = claimResponse.get(0);
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+        assertThat(claimResponse).isNotNull();
+        assertThat(claimResponse).hasSameSizeAs(List.of(homerClaim));
+        assertThat(claimResponseDTO.getFirstName()).isEqualTo(homerClaim.getClaimant().getFirstName());
+        assertThat(claimResponseDTO.getReference()).isEqualTo(homerClaim.getReference());
+        assertThat(claimResponseDTO.getClaimStatus()).isEqualTo(homerClaim.getClaimStatus());
+        assertThat(claimResponseDTO.getDateOfBirth()).isEqualTo(homerClaim.getClaimant().getDateOfBirth());
+        assertThat(claimResponseDTO.getLastName()).isEqualTo(homerClaim.getClaimant().getLastName());
+        assertThat(claimResponseDTO.getAddressLine1()).isEqualTo(homerClaim.getClaimant().getAddress().getAddressLine1());
+    }
+
+    /**
+     * should return an empty list when there are no claims.
+     *
+     * @result Empty list with response code 200.
+     */
+    @Test
+    void shouldReturnAnEmptyListWhenNoClaimsExists() {
+        Map<String, String> json = new HashMap<>();
+        //when
+        ResponseEntity<List<ClaimResponseDTO>> response =
+                restTemplate.exchange(buildRetrieveAllClaimEntities(json), new ParameterizedTypeReference<List<ClaimResponseDTO>>() {
+                });
+
+        //then
+        assertThat(response.getBody()).isEmpty();
     }
 
     @Test
@@ -200,8 +249,8 @@ class ClaimantServiceIntegrationTests {
 
     private static Stream<Arguments> provideArgumentsForMissingAddressFields() {
         return Stream.of(
-            Arguments.of(""),
-            Arguments.of((Object) null)
+                Arguments.of(""),
+                Arguments.of((Object) null)
         );
     }
 

@@ -57,6 +57,45 @@ paths:
         "404":
           description: "Not Found"
       deprecated: false
+  /v3/claims/search:
+    post:
+      tags:
+      - "claim-controller"
+      summary: "Retrieve Claims."
+      operationId: "retrieveAllClaimsUsingPOST"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "claimFilter"
+        description: "retrieve claims"
+        required: false
+        schema:
+          type: "object"
+          additionalProperties:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ClaimResponseDTO"
+        "201":
+          description: "Created"
+        "400":
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        "401":
+          description: "Unauthorized"
+        "403":
+          description: "Forbidden"
+        "404":
+          description: "Not Found"
+      deprecated: false
   /v3/claims/{id}:
     get:
       tags:
@@ -205,6 +244,52 @@ definitions:
         description: "Unique reference for claim"
     title: "ClaimDTO"
     description: "An existing claim for Apply for healthy start."
+  ClaimResponseDTO:
+    type: "object"
+    properties:
+      addressLine1:
+        type: "string"
+        example: "Flat B"
+        description: "First line of the address"
+      claimStatus:
+        type: "string"
+        description: "The claim's current status"
+        enum:
+        - "REJECTED"
+        - "NEW"
+        - "PENDING"
+        - "ACTIVE"
+        - "PENDING_EXPIRY"
+        - "EXPIRED"
+        - "ERROR"
+      dateOfBirth:
+        type: "string"
+        format: "date"
+        example: "1985-12-30"
+        description: "The date of birth, in the format YYYY-MM-DD"
+      firstName:
+        type: "string"
+        example: "Jo"
+        description: "First (given) name"
+      id:
+        type: "string"
+        format: "uuid"
+        example: "96c3f8c0-f6d9-4ad4-9ed9-72fcbd8d692d"
+        description: "The claim's unique id."
+      lastName:
+        type: "string"
+        example: "Bloggs"
+        description: "Last (surname or family) name"
+      postcode:
+        type: "string"
+        example: "AA1 1AA"
+        description: "The postcode of the address."
+      reference:
+        type: "string"
+        example: "0E1567C0B2"
+        description: "Unique reference for claim"
+    title: "ClaimResponseDTO"
+    description: "List of Claims created for Apply for healthy start"
   ClaimResultDTO:
     type: "object"
     properties:

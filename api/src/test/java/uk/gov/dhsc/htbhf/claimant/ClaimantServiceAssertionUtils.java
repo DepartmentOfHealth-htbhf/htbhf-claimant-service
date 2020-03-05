@@ -48,6 +48,11 @@ public class ClaimantServiceAssertionUtils {
         return new RequestEntity<ClaimDTO>(headers, HttpMethod.GET, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/" + claimId));
     }
 
+    public static RequestEntity buildRetrieveAllClaimEntities(Object requestObject) {
+        HttpHeaders headers = headersWithJsonContentType();
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, URI.create(CLAIMANT_ENDPOINT_URI_V3 + "/search"));
+    }
+
     public static String formatVoucherAmount(int voucherCount) {
         return (voucherCount == 0) ? "" : CURRENCY_FORMAT.get().format(new BigDecimal(voucherCount * VOUCHER_VALUE_IN_PENCE).divide(ONE_HUNDRED));
     }

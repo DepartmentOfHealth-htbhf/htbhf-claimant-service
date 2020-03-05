@@ -14,10 +14,7 @@ import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import javax.validation.ConstraintViolationException;
 
 import static com.google.common.collect.Iterables.size;
@@ -294,6 +291,30 @@ class ClaimRepositoryTest {
     }
 
     @Test
+    void shouldReturnExistingClaims() {
+        //Given
+        Claim oldClaim = aValidClaimWithNinoAndRefernce(MARGE_NINO, MARGE_CLAIM_REFERENCE);
+        Claim newClaim = aValidClaimWithNinoAndRefernce(HOMER_NINO, HOMER_CLAIM_REFERENCE);
+        claimRepository.saveAll(List.of(oldClaim, newClaim));
+
+        //When
+        List<Claim> result = claimRepository.findAll();
+
+        //Then
+        assertThat(result).isEqualTo(List.of(oldClaim, newClaim));
+    }
+
+    @Test
+    void shouldReturnEmptyListIfNoClaimsAreCreated() {
+
+        //When
+        List<Claim> result = claimRepository.findAll();
+
+        //Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void shouldThrowExceptionWhenClaimDoesNotExist() {
         //Given
         UUID claimId = UUID.randomUUID();
@@ -313,15 +334,15 @@ class ClaimRepositoryTest {
         Claim activeClaim
                 = aClaimWithNinoAndCardStatusAndCardStatusTimestampAndReference(HOMER_NINO, CardStatus.ACTIVE, now.minusWeeks(17), HOMER_CLAIM_REFERENCE);
         Claim pendingClaimOlderThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestampAndReference(
-                    MARGE_NINO,
-                    CardStatus.PENDING_CANCELLATION,
-                    now.minusWeeks(17),
-                    MARGE_CLAIM_REFERENCE);
+                MARGE_NINO,
+                CardStatus.PENDING_CANCELLATION,
+                now.minusWeeks(17),
+                MARGE_CLAIM_REFERENCE);
         Claim pendingClaimLessThan16Weeks = aClaimWithNinoAndCardStatusAndCardStatusTimestampAndReference(
-                    NED_NINO,
-                    CardStatus.PENDING_CANCELLATION,
-                    now.minusWeeks(15),
-                    NED_CLAIM_REFERENCE);
+                NED_NINO,
+                CardStatus.PENDING_CANCELLATION,
+                now.minusWeeks(15),
+                NED_CLAIM_REFERENCE);
         claimRepository.saveAll(List.of(activeClaim, pendingClaimOlderThan16Weeks, pendingClaimLessThan16Weeks));
 
         List<Claim> claims = claimRepository.getClaimsWithCardStatusPendingCancellationOlderThan(Period.ofWeeks(numberOfWeeks));

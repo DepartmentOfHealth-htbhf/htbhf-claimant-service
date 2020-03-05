@@ -8,11 +8,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.javers.core.Javers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entitlement.VoucherEntitlement;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.message.payload.EmailType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.LetterType;
 import uk.gov.dhsc.htbhf.claimant.message.payload.TextType;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResponseDTO;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
 import uk.gov.dhsc.htbhf.claimant.model.VerificationResult;
 import uk.gov.dhsc.htbhf.claimant.model.eligibility.EligibilityAndEntitlementDecision;
@@ -53,6 +55,7 @@ public class ClaimService {
     private final EventAuditor eventAuditor;
     private final ClaimMessageSender claimMessageSender;
     private final Javers javers;
+    private final ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
 
     @Value("${claim-reference.size:10}")
     private int claimReferenceSize;
@@ -71,6 +74,7 @@ public class ClaimService {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(),
                     claimRequest.getEligibilityOverride());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
+
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
                 Claim claim = createDuplicateClaim(claimRequest, decision, user);
                 claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
@@ -93,6 +97,11 @@ public class ClaimService {
             handleFailedClaim(claimRequest, user, e);
             throw e;
         }
+    }
+
+    public List<ClaimResponseDTO> findClaims() {
+        List<Claim> claims = claimRepository.findAll();
+        return claimToClaimResponseDTOConverter.convert(claims);
     }
 
     private void sendMessagesForNewClaim(EligibilityAndEntitlementDecision decision,
@@ -167,7 +176,7 @@ public class ClaimService {
 
     private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, String user) {
         Claim claim = buildClaim(claimStatus, claimRequest, decision);
-        log.info("Saving new claim: {} with status {}", claim.getId(), claim.getEligibilityStatus());
+        log.info("Saving new claim: {} with status {} and reference {}", claim.getId(), claim.getEligibilityStatus(), claim.getReference());
         claimRepository.save(claim);
         javers.commit(user, claim);
         eventAuditor.auditNewClaim(claim, user);

@@ -1,7 +1,7 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -20,10 +20,8 @@ import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
  * JPA repository for the Claim table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  * All updates to a {@link Claim} and it's child entities are audited using Javers.
- *
- * @see <a href="https://javers.org/">https://javers.org/</a> for more information.
  */
-public interface ClaimRepository extends CrudRepository<Claim, UUID>, ClaimLazyLoader {
+public interface ClaimRepository extends JpaRepository<Claim, UUID>, ClaimLazyLoader {
 
     @Query("SELECT claim.id "
             + "FROM Claim claim "
