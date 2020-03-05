@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimDTOConverter;
+import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.NewClaimDTOToClaimRequestConverter;
 import uk.gov.dhsc.htbhf.claimant.converter.VoucherEntitlementToDTOConverter;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
@@ -17,6 +18,7 @@ import uk.gov.dhsc.htbhf.claimant.service.ClaimResult;
 import uk.gov.dhsc.htbhf.claimant.service.claim.ClaimService;
 import uk.gov.dhsc.htbhf.errorhandler.ErrorResponse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.validation.Valid;
@@ -26,7 +28,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(value = &quot;/v3/claims&quot;, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
-<span class="fc" id="L29">@Slf4j</span>
+<span class="fc" id="L31">@Slf4j</span>
 @Api(description = &quot;Endpoints for dealing with claims, e.g. persisting a claim.&quot;)
 public class ClaimController {
 
@@ -34,6 +36,7 @@ public class ClaimController {
     private final VoucherEntitlementToDTOConverter voucherConverter;
     private final ClaimRepository claimRepository;
     private final ClaimToClaimDTOConverter claimToClaimDTOConverter;
+    private final ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
     private final NewClaimDTOToClaimRequestConverter claimRequestConverter;
 
     private final Map&lt;ClaimStatus, HttpStatus&gt; statusMap = Map.of(
@@ -50,50 +53,61 @@ public class ClaimController {
     @ApiOperation(&quot;Create a claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) NewClaimDTO newClaimDTO) {
-<span class="fc" id="L53">        log.debug(&quot;Received claim&quot;);</span>
+<span class="fc" id="L56">        log.debug(&quot;Received claim&quot;);</span>
 
-<span class="fc" id="L55">        ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);</span>
-<span class="fc" id="L56">        ClaimResult result = claimService.createClaim(claimRequest);</span>
+<span class="fc" id="L58">        ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);</span>
+<span class="fc" id="L59">        ClaimResult result = claimService.createClaim(claimRequest);</span>
 
-<span class="fc" id="L58">        return createResponse(result);</span>
+<span class="fc" id="L61">        return createResponse(result);</span>
     }
 
     @GetMapping(&quot;/{id}&quot;)
     @ApiOperation(&quot;Retrieve a claim by id.&quot;)
     @ApiResponses({@ApiResponse(code = 404, message = &quot;Claim not found&quot;, response = ErrorResponse.class)})
     public ClaimDTO retrieveClaimById(@PathVariable(&quot;id&quot;) UUID id) {
-<span class="fc" id="L65">        log.debug(&quot;Retrieve claim by id {}&quot;, id);</span>
+<span class="fc" id="L68">        log.debug(&quot;Retrieve claim by id {}&quot;, id);</span>
 
-<span class="fc" id="L67">        Claim claim = claimRepository.findClaim(id);</span>
+<span class="fc" id="L70">        Claim claim = claimRepository.findClaim(id);</span>
 
-<span class="fc" id="L69">        return claimToClaimDTOConverter.convert(claim);</span>
+<span class="fc" id="L72">        return claimToClaimDTOConverter.convert(claim);</span>
+    }
+
+    @PostMapping(&quot;/search&quot;)
+    @ApiOperation(&quot;Retrieve Claims.&quot;)
+    @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
+    public ResponseEntity&lt;List&lt;ClaimResponseDTO&gt;&gt; retrieveAllClaims(@RequestBody @Valid @ApiParam(&quot;retrieve claims&quot;) Map&lt;String, String&gt; claimFilter) {
+<span class="fc" id="L79">        log.debug(&quot;Retrieve claims&quot;);</span>
+
+<span class="fc" id="L81">        List&lt;ClaimResponseDTO&gt; result = claimService.findClaims();</span>
+
+<span class="fc" id="L83">        return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
     }
 
     private ResponseEntity&lt;ClaimResultDTO&gt; createResponse(ClaimResult result) {
-<span class="fc" id="L73">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
-<span class="fc" id="L74">        HttpStatus statusCode = getHttpStatus(result);</span>
-<span class="fc" id="L75">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
-<span class="fc" id="L76">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
-<span class="fc" id="L77">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L78">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
-<span class="fc" id="L79">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L80">                .verificationResult(result.getVerificationResult())</span>
-<span class="fc" id="L81">                .build();</span>
-<span class="fc" id="L82">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L87">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
+<span class="fc" id="L88">        HttpStatus statusCode = getHttpStatus(result);</span>
+<span class="fc" id="L89">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
+<span class="fc" id="L90">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
+<span class="fc" id="L91">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L92">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
+<span class="fc" id="L93">                .voucherEntitlement(entitlement)</span>
+<span class="fc" id="L94">                .verificationResult(result.getVerificationResult())</span>
+<span class="fc" id="L95">                .build();</span>
+<span class="fc" id="L96">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
-<span class="fc" id="L86">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
+<span class="fc" id="L100">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-<span class="fc" id="L90">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
-<span class="fc" id="L91">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (statusCode == null) {</span>
-<span class="nc" id="L93">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
-<span class="nc" id="L94">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="fc" id="L104">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
+<span class="fc" id="L105">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (statusCode == null) {</span>
+<span class="nc" id="L107">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="nc" id="L108">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L96">        return statusCode;</span>
+<span class="fc" id="L110">        return statusCode;</span>
     }
 
 }

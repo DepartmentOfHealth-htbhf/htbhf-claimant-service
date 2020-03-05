@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimToClaimResponseDTOConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.converter</a> &gt; <span class="el_source">ClaimToClaimResponseDTOConverter.java</span></div><h1>ClaimToClaimResponseDTOConverter.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.converter;
+
+import org.springframework.stereotype.Component;
+import uk.gov.dhsc.htbhf.claimant.entity.Claim;
+import uk.gov.dhsc.htbhf.claimant.entity.Claimant;
+import uk.gov.dhsc.htbhf.claimant.model.ClaimResponseDTO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+<span class="fc" id="L12">public class ClaimToClaimResponseDTOConverter {</span>
+
+    public List&lt;ClaimResponseDTO&gt; convert(Iterable&lt;Claim&gt; claims) {
+<span class="fc" id="L15">        List&lt;ClaimResponseDTO&gt; claimResponseList = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L16" title="All 2 branches covered.">        for (Claim claim : claims) {</span>
+<span class="fc" id="L17">            claimResponseList.add(aValidClaimResponseDTO(claim));</span>
+<span class="fc" id="L18">        }</span>
+<span class="fc" id="L19">        return claimResponseList;</span>
+    }
+
+    private ClaimResponseDTO aValidClaimResponseDTO(Claim claim) {
+<span class="fc" id="L23">        Claimant claimant = claim.getClaimant();</span>
+<span class="fc" id="L24">        return ClaimResponseDTO.builder()</span>
+<span class="fc" id="L25">                .id(claim.getId())</span>
+<span class="fc" id="L26">                .claimStatus(claim.getClaimStatus())</span>
+<span class="fc" id="L27">                .firstName(claimant.getFirstName())</span>
+<span class="fc" id="L28">                .lastName(claimant.getLastName())</span>
+<span class="fc" id="L29">                .dateOfBirth(claimant.getDateOfBirth())</span>
+<span class="fc" id="L30">                .postcode(claimant.getAddress().getPostcode())</span>
+<span class="fc" id="L31">                .reference(claim.getReference())</span>
+<span class="fc" id="L32">                .addressLine1(claimant.getAddress().getAddressLine1())</span>
+<span class="fc" id="L33">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
