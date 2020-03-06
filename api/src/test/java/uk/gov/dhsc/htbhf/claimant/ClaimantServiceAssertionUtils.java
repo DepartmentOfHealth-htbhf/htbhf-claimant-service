@@ -39,6 +39,11 @@ public class ClaimantServiceAssertionUtils {
     }
 
     public static RequestEntity buildCreateClaimRequestEntity(Object requestObject) {
+        HttpHeaders headers = headersWithJsonContentAndUserType();
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
+    }
+
+    public static RequestEntity buildCreateClaimRequestEntityWithDefaultUser(Object requestObject) {
         HttpHeaders headers = headersWithJsonContentType();
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
     }
@@ -67,10 +72,16 @@ public class ClaimantServiceAssertionUtils {
         assertThat(failedPayments).hasSize(expectedFailureCount);
     }
 
-    private static HttpHeaders headersWithJsonContentType() {
+    private static HttpHeaders headersWithJsonContentAndUserType() {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("user", USER_SYSTEM);
+        return headers;
+    }
+
+    private static HttpHeaders headersWithJsonContentType() {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 

@@ -53,7 +53,7 @@ public class ClaimController {
     @ApiOperation("Create a claim.")
     @ApiResponses({@ApiResponse(code = 400, message = "Bad request", response = ErrorResponse.class)})
     public ResponseEntity<ClaimResultDTO> createClaim(@RequestBody @Valid @ApiParam("The claim to persist") NewClaimDTO newClaimDTO,
-                                                      @RequestHeader(name = "user",required = false,defaultValue = "SYSTEM") String user) {
+                                                      @RequestHeader(name = "user",defaultValue = "SYSTEM") String user) {
         log.debug("Received claim");
 
         ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);

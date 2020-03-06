@@ -198,6 +198,20 @@ class ClaimantServiceIntegrationTests {
     }
 
     @Test
+    void shouldAcceptAndCreateANewValidClaimWithDefaultUserAndNoNullFields() throws JsonProcessingException {
+        //Given
+        NewClaimDTO claim = aValidClaimDTOWithNoNullFields();
+        CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = anIdMatchedEligibilityConfirmedUCResponseWithAllMatches();
+        wiremockManager.stubEligibilityResponse(identityAndEligibilityResponse);
+        //When
+        ResponseEntity<ClaimResultDTO> response = restTemplate.exchange(buildCreateClaimRequestEntityWithDefaultUser(claim), ClaimResultDTO.class);
+        //Then
+        assertThatClaimResultHasNewClaim(response);
+        assertClaimPersistedSuccessfully(claim, ELIGIBLE);
+        wiremockManager.assertThatEligibilityRequestMade();
+    }
+
+    @Test
     void shouldIgnoreUnknownFieldsInValidClaimRequest() throws JsonProcessingException {
         //Given
         NewClaimDTO claim = aValidClaimDTOWithNoNullFields();
