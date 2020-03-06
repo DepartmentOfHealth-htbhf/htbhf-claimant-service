@@ -52,62 +52,63 @@ public class ClaimController {
     @PostMapping
     @ApiOperation(&quot;Create a claim.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
-    public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) NewClaimDTO newClaimDTO) {
-<span class="fc" id="L56">        log.debug(&quot;Received claim&quot;);</span>
+    public ResponseEntity&lt;ClaimResultDTO&gt; createClaim(@RequestBody @Valid @ApiParam(&quot;The claim to persist&quot;) NewClaimDTO newClaimDTO,
+                                                      @RequestHeader(name = &quot;user&quot;,defaultValue = &quot;SYSTEM&quot;) String user) {
+<span class="fc" id="L57">        log.debug(&quot;Received claim&quot;);</span>
 
-<span class="fc" id="L58">        ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);</span>
-<span class="fc" id="L59">        ClaimResult result = claimService.createClaim(claimRequest);</span>
+<span class="fc" id="L59">        ClaimRequest claimRequest = claimRequestConverter.convert(newClaimDTO);</span>
+<span class="fc" id="L60">        ClaimResult result = claimService.createClaim(claimRequest, user);</span>
 
-<span class="fc" id="L61">        return createResponse(result);</span>
+<span class="fc" id="L62">        return createResponse(result);</span>
     }
 
     @GetMapping(&quot;/{id}&quot;)
     @ApiOperation(&quot;Retrieve a claim by id.&quot;)
     @ApiResponses({@ApiResponse(code = 404, message = &quot;Claim not found&quot;, response = ErrorResponse.class)})
     public ClaimDTO retrieveClaimById(@PathVariable(&quot;id&quot;) UUID id) {
-<span class="fc" id="L68">        log.debug(&quot;Retrieve claim by id {}&quot;, id);</span>
+<span class="fc" id="L69">        log.debug(&quot;Retrieve claim by id {}&quot;, id);</span>
 
-<span class="fc" id="L70">        Claim claim = claimRepository.findClaim(id);</span>
+<span class="fc" id="L71">        Claim claim = claimRepository.findClaim(id);</span>
 
-<span class="fc" id="L72">        return claimToClaimDTOConverter.convert(claim);</span>
+<span class="fc" id="L73">        return claimToClaimDTOConverter.convert(claim);</span>
     }
 
     @PostMapping(&quot;/search&quot;)
     @ApiOperation(&quot;Retrieve Claims.&quot;)
     @ApiResponses({@ApiResponse(code = 400, message = &quot;Bad request&quot;, response = ErrorResponse.class)})
     public ResponseEntity&lt;List&lt;ClaimResponseDTO&gt;&gt; retrieveAllClaims(@RequestBody @Valid @ApiParam(&quot;retrieve claims&quot;) Map&lt;String, String&gt; claimFilter) {
-<span class="fc" id="L79">        log.debug(&quot;Retrieve claims&quot;);</span>
+<span class="fc" id="L80">        log.debug(&quot;Retrieve claims&quot;);</span>
 
-<span class="fc" id="L81">        List&lt;ClaimResponseDTO&gt; result = claimService.findClaims();</span>
+<span class="fc" id="L82">        List&lt;ClaimResponseDTO&gt; result = claimService.findClaims();</span>
 
-<span class="fc" id="L83">        return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
+<span class="fc" id="L84">        return new ResponseEntity&lt;&gt;(result, HttpStatus.OK);</span>
     }
 
     private ResponseEntity&lt;ClaimResultDTO&gt; createResponse(ClaimResult result) {
-<span class="fc" id="L87">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
-<span class="fc" id="L88">        HttpStatus statusCode = getHttpStatus(result);</span>
-<span class="fc" id="L89">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
-<span class="fc" id="L90">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
-<span class="fc" id="L91">                .claimStatus(claimStatus)</span>
-<span class="fc" id="L92">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
-<span class="fc" id="L93">                .voucherEntitlement(entitlement)</span>
-<span class="fc" id="L94">                .verificationResult(result.getVerificationResult())</span>
-<span class="fc" id="L95">                .build();</span>
-<span class="fc" id="L96">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
+<span class="fc" id="L88">        ClaimStatus claimStatus = result.getClaim().getClaimStatus();</span>
+<span class="fc" id="L89">        HttpStatus statusCode = getHttpStatus(result);</span>
+<span class="fc" id="L90">        VoucherEntitlementDTO entitlement = getEntitlement(result);</span>
+<span class="fc" id="L91">        ClaimResultDTO body = ClaimResultDTO.builder()</span>
+<span class="fc" id="L92">                .claimStatus(claimStatus)</span>
+<span class="fc" id="L93">                .eligibilityStatus(result.getClaim().getEligibilityStatus())</span>
+<span class="fc" id="L94">                .voucherEntitlement(entitlement)</span>
+<span class="fc" id="L95">                .verificationResult(result.getVerificationResult())</span>
+<span class="fc" id="L96">                .build();</span>
+<span class="fc" id="L97">        return new ResponseEntity&lt;&gt;(body, statusCode);</span>
     }
 
     private VoucherEntitlementDTO getEntitlement(ClaimResult result) {
-<span class="fc" id="L100">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
+<span class="fc" id="L101">        return result.getVoucherEntitlement().map(voucherConverter::convert).orElse(null);</span>
     }
 
     private HttpStatus getHttpStatus(ClaimResult claimResult) {
-<span class="fc" id="L104">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
-<span class="fc" id="L105">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (statusCode == null) {</span>
-<span class="nc" id="L107">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
-<span class="nc" id="L108">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="fc" id="L105">        ClaimStatus claimStatus = claimResult.getClaim().getClaimStatus();</span>
+<span class="fc" id="L106">        HttpStatus statusCode = statusMap.get(claimStatus);</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">        if (statusCode == null) {</span>
+<span class="nc" id="L108">            log.warn(&quot;claim status without HttpStatus: {}&quot;, claimStatus);</span>
+<span class="nc" id="L109">            return HttpStatus.INTERNAL_SERVER_ERROR;</span>
         }
-<span class="fc" id="L110">        return statusCode;</span>
+<span class="fc" id="L111">        return statusCode;</span>
     }
 
 }

@@ -13,27 +13,29 @@ import java.util.UUID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_ID;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.CLAIM_STATUS;
 import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.ELIGIBILITY_STATUS;
+import static uk.gov.dhsc.htbhf.claimant.service.audit.ClaimEventMetadataKey.USER;
 
 public class NewClaimEvent extends Event {
 
-    public NewClaimEvent(Claim claim) {
-<span class="fc" id="L20">        this(claim.getId(), claim.getClaimStatus(), claim.getEligibilityStatus());</span>
-<span class="fc" id="L21">    }</span>
+    public NewClaimEvent(Claim claim, String user) {
+<span class="fc" id="L21">        this(claim.getId(), claim.getClaimStatus(), claim.getEligibilityStatus(), user);</span>
+<span class="fc" id="L22">    }</span>
 
     @Builder
-    public NewClaimEvent(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L25">        super(</span>
+    public NewClaimEvent(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus, String user) {
+<span class="fc" id="L26">        super(</span>
                 ClaimEventType.NEW_CLAIM,
-<span class="fc" id="L27">                LocalDateTime.now(),</span>
-<span class="fc" id="L28">                constructMetadata(claimId, claimStatus, eligibilityStatus)</span>
+<span class="fc" id="L28">                LocalDateTime.now(),</span>
+<span class="fc" id="L29">                constructMetadata(claimId, claimStatus, eligibilityStatus, user)</span>
         );
-<span class="fc" id="L30">    }</span>
+<span class="fc" id="L31">    }</span>
 
-    private static Map&lt;String, Object&gt; constructMetadata(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus) {
-<span class="fc" id="L33">        return Map.of(</span>
-<span class="fc" id="L34">                CLAIM_ID.getKey(), claimId,</span>
-<span class="fc" id="L35">                CLAIM_STATUS.getKey(), claimStatus,</span>
-<span class="fc" id="L36">                ELIGIBILITY_STATUS.getKey(), eligibilityStatus</span>
+    private static Map&lt;String, Object&gt; constructMetadata(UUID claimId, ClaimStatus claimStatus, EligibilityStatus eligibilityStatus, String user) {
+<span class="fc" id="L34">        return Map.of(</span>
+<span class="fc" id="L35">                USER.getKey(), user,</span>
+<span class="fc" id="L36">                CLAIM_ID.getKey(), claimId,</span>
+<span class="fc" id="L37">                CLAIM_STATUS.getKey(), claimStatus,</span>
+<span class="fc" id="L38">                ELIGIBILITY_STATUS.getKey(), eligibilityStatus</span>
         );
     }
 

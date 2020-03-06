@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClaimRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">htbhf-claimant-service</a> &gt; <a href="index.source.html" class="el_package">uk.gov.dhsc.htbhf.claimant.repository</a> &gt; <span class="el_source">ClaimRepository.java</span></div><h1>ClaimRepository.java</h1><pre class="source lang-java linenums">package uk.gov.dhsc.htbhf.claimant.repository;
 
-import org.javers.spring.annotation.JaversSpringDataAuditable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,10 +20,7 @@ import static uk.gov.dhsc.htbhf.claimant.entity.CardStatus.PENDING_CANCELLATION;
  * JPA repository for the Claim table.
  * For all methods regarding live claims, a claim is live if it's claim status is one of 'NEW', 'ACTIVE', 'PENDING' or 'PENDING_EXPIRY'.
  * All updates to a {@link Claim} and it's child entities are audited using Javers.
- *
- * @see &lt;a href=&quot;https://javers.org/&quot;&gt;https://javers.org/&lt;/a&gt; for more information.
  */
-@JaversSpringDataAuditable
 public interface ClaimRepository extends JpaRepository&lt;Claim, UUID&gt;, ClaimLazyLoader {
 
     @Query(&quot;SELECT claim.id &quot;
@@ -56,32 +52,32 @@ public interface ClaimRepository extends JpaRepository&lt;Claim, UUID&gt;, Claim
      * @return list of claims
      */
     default List&lt;Claim&gt; getClaimsWithCardStatusPendingCancellationOlderThan(Period period) {
-<span class="fc" id="L59">        LocalDateTime timestamp = LocalDateTime.now().minus(period);</span>
-<span class="fc" id="L60">        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);</span>
+<span class="fc" id="L55">        LocalDateTime timestamp = LocalDateTime.now().minus(period);</span>
+<span class="fc" id="L56">        return getClaimsWithCardStatusBeforeGivenTimestamp(PENDING_CANCELLATION, timestamp);</span>
     }
 
     @Query(&quot;SELECT claim FROM Claim claim where claim.cardStatus = :cardStatus and claim.cardStatusTimestamp &lt;= :date&quot;)
     List&lt;Claim&gt; getClaimsWithCardStatusBeforeGivenTimestamp(@Param(&quot;cardStatus&quot;) CardStatus cardStatus, @Param(&quot;date&quot;) LocalDateTime localDateTime);
 
     default boolean liveClaimExistsForDwpHousehold(String dwpHouseholdIdentifier) {
-<span class="fc bfc" id="L67" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        return countLiveClaimsWithDwpHouseholdIdentifier(dwpHouseholdIdentifier) != 0;</span>
     }
 
     default boolean liveClaimExistsForHmrcHousehold(String hmrcHouseholdIdentifier) {
-<span class="fc bfc" id="L71" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        return countLiveClaimsWithHmrcHouseholdIdentifier(hmrcHouseholdIdentifier) != 0;</span>
     }
 
     default Claim findClaim(UUID claimId) {
-<span class="fc" id="L75">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
-<span class="fc" id="L76">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
+<span class="fc" id="L71">        Optional&lt;Claim&gt; optionalClaim = findById(claimId);</span>
+<span class="fc" id="L72">        return optionalClaim.orElseThrow(() -&gt; new EntityNotFoundException(&quot;Unable to find claim with id &quot; + claimId));</span>
     }
 
     default Optional&lt;UUID&gt; findLiveClaimWithNino(String nino) {
-<span class="fc" id="L80">        List&lt;UUID&gt; liveClaimsWithNino = findLiveClaimsWithNino(nino);</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (liveClaimsWithNino.size() &gt; 1) {</span>
-<span class="nc" id="L82">            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);</span>
+<span class="fc" id="L76">        List&lt;UUID&gt; liveClaimsWithNino = findLiveClaimsWithNino(nino);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (liveClaimsWithNino.size() &gt; 1) {</span>
+<span class="nc" id="L78">            throw new MultipleClaimsWithSameNinoException(liveClaimsWithNino);</span>
         }
-<span class="fc bfc" id="L84" title="All 2 branches covered.">        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">        return liveClaimsWithNino.isEmpty() ? Optional.empty() : Optional.of(liveClaimsWithNino.get(0));</span>
     }
 
     /**
