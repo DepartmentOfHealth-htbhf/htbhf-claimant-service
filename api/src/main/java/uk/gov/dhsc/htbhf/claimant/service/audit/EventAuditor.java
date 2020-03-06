@@ -27,13 +27,14 @@ public class EventAuditor {
      * Audit a new claim event.
      *
      * @param claim The claim to audit
+     * @param user  cypher id of logged-in user
      */
-    public void auditNewClaim(Claim claim) {
+    public void auditNewClaim(Claim claim, String user) {
         if (claim == null) {
             log.warn("Unable to audit null Claim");
             return;
         }
-        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
+        NewClaimEvent newClaimEvent = new NewClaimEvent(claim, user);
         eventLogger.logEvent(newClaimEvent);
     }
 

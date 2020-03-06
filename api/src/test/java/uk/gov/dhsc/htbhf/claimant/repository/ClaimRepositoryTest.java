@@ -1,10 +1,6 @@
 package uk.gov.dhsc.htbhf.claimant.repository;
 
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.javers.core.Changes;
-import org.javers.core.Javers;
-import org.javers.repository.jql.JqlQuery;
-import org.javers.repository.jql.QueryBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,7 +8,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.dhsc.htbhf.claimant.entity.Address;
 import uk.gov.dhsc.htbhf.claimant.entity.CardStatus;
 import uk.gov.dhsc.htbhf.claimant.entity.Claim;
 import uk.gov.dhsc.htbhf.claimant.model.ClaimStatus;
@@ -31,7 +26,6 @@ import static uk.gov.dhsc.htbhf.TestConstants.NED_NINO;
 import static uk.gov.dhsc.htbhf.claimant.model.ClaimStatus.PENDING;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimTestDataFactory.*;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.ClaimantTestDataFactory.aValidClaimant;
-import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.HOMER_CLAIM_REFERENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.MARGE_CLAIM_REFERENCE;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.NED_CLAIM_REFERENCE;
@@ -42,9 +36,6 @@ class ClaimRepositoryTest {
 
     @Autowired
     private ClaimRepository claimRepository;
-
-    @Autowired
-    private Javers javers;
 
     @AfterEach
     void afterEach() {
@@ -284,46 +275,6 @@ class ClaimRepositoryTest {
 
         //Then
         assertThat(result).containsOnly(newClaim.getId());
-    }
-
-    @Test
-    void shouldAuditClaimUpdate() {
-        //Given
-        // with a versioned entity, the returned object will have an incremented version number, the object passed into save will not
-        Claim claim = aValidClaim();
-        claim = claimRepository.save(claim);
-        claim.setCardAccountId("ID1");
-        claim = claimRepository.save(claim);
-        claim.setCardAccountId("ID2");
-        claimRepository.save(claim);
-
-        //When
-        JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getId(), Claim.class).build();
-        Changes changes = javers.findChanges(jqlQuery);
-
-        //Then
-        assertThat(changes.size()).isEqualTo(2);
-        // most recent change first
-        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from 'ID1' to 'ID2' }");
-        assertThat(changes.get(1).toString()).isEqualTo("ValueChange{ 'cardAccountId' value changed from '" + CARD_ACCOUNT_ID + "' to 'ID1' }");
-    }
-
-    @Test
-    void shouldAuditAddressUpdate() {
-        //Given
-        Claim claim = aValidClaim();
-        claimRepository.save(claim);
-        Address address = claim.getClaimant().getAddress();
-        address.setAddressLine1("test");
-        claimRepository.save(claim);
-
-        //When
-        JqlQuery jqlQuery = QueryBuilder.byInstanceId(claim.getClaimant().getAddress().getId(), Address.class).build();
-        Changes changes = javers.findChanges(jqlQuery);
-
-        //Then
-        assertThat(changes.size()).isEqualTo(1);
-        assertThat(changes.get(0).toString()).isEqualTo("ValueChange{ 'addressLine1' value changed from '742 Evergreen Terrace' to 'test' }");
     }
 
     @Test

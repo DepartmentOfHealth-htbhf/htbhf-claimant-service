@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.USER_SYSTEM;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.VOUCHER_VALUE_IN_PENCE;
 
 public class ClaimantServiceAssertionUtils {
@@ -38,6 +39,11 @@ public class ClaimantServiceAssertionUtils {
     }
 
     public static RequestEntity buildCreateClaimRequestEntity(Object requestObject) {
+        HttpHeaders headers = headersWithJsonContentAndUserType();
+        return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
+    }
+
+    public static RequestEntity buildCreateClaimRequestEntityWithDefaultUser(Object requestObject) {
         HttpHeaders headers = headersWithJsonContentType();
         return new RequestEntity<>(requestObject, headers, HttpMethod.POST, CLAIMANT_ENDPOINT_URI_V3);
     }
@@ -64,6 +70,13 @@ public class ClaimantServiceAssertionUtils {
         assertThat(paymentCycle.getPayments()).isNotEmpty();
         List<Payment> failedPayments = getPaymentsWithStatus(paymentCycle, PaymentStatus.FAILURE);
         assertThat(failedPayments).hasSize(expectedFailureCount);
+    }
+
+    private static HttpHeaders headersWithJsonContentAndUserType() {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("user", USER_SYSTEM);
+        return headers;
     }
 
     private static HttpHeaders headersWithJsonContentType() {

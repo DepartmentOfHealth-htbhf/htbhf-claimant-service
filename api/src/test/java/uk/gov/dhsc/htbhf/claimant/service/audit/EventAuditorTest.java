@@ -31,6 +31,7 @@ import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycle;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.PaymentCycleTestDataFactory.aValidPaymentCycleBuilder;
 import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.CARD_ACCOUNT_ID;
+import static uk.gov.dhsc.htbhf.claimant.testsupport.TestConstants.USER_SYSTEM;
 
 @ExtendWith(MockitoExtension.class)
 class EventAuditorTest {
@@ -48,7 +49,7 @@ class EventAuditorTest {
         //Given
         Claim claim = aValidClaim();
         //When
-        eventAuditor.auditNewClaim(claim);
+        eventAuditor.auditNewClaim(claim, USER_SYSTEM);
         //Then
         UUID claimId = claim.getId();
         ArgumentCaptor<Event> eventArgumentCaptor = ArgumentCaptor.forClass(Event.class);
@@ -58,17 +59,18 @@ class EventAuditorTest {
         assertThat(actualEvent.getTimestamp()).isAfter(testStart);
         assertThat(actualEvent.getEventMetadata())
                 .isNotNull()
-                .hasSize(3)
+                .hasSize(4)
                 .containsExactly(
                         entry(ClaimEventMetadataKey.CLAIM_ID.getKey(), claimId),
                         entry(ClaimEventMetadataKey.CLAIM_STATUS.getKey(), ClaimStatus.ACTIVE),
-                        entry(ClaimEventMetadataKey.ELIGIBILITY_STATUS.getKey(), EligibilityStatus.ELIGIBLE));
+                        entry(ClaimEventMetadataKey.ELIGIBILITY_STATUS.getKey(), EligibilityStatus.ELIGIBLE),
+                        entry(ClaimEventMetadataKey.USER.getKey(), USER_SYSTEM));
     }
 
     @Test
     void shouldNotLogEventForNullClaimant() {
         //When
-        eventAuditor.auditNewClaim(null);
+        eventAuditor.auditNewClaim(null, null);
         //Then
         verifyNoMoreInteractions(eventLogger);
     }

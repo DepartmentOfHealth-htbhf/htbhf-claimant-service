@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.javers.core.Javers;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.dhsc.htbhf.claimant.converter.ClaimToClaimResponseDTOConverter;
@@ -53,6 +54,7 @@ public class ClaimService {
     private final EligibilityAndEntitlementService eligibilityAndEntitlementService;
     private final EventAuditor eventAuditor;
     private final ClaimMessageSender claimMessageSender;
+    private final Javers javers;
     private final ClaimToClaimResponseDTOConverter claimToClaimResponseDTOConverter;
 
     @Value("${claim-reference.size:10}")
@@ -67,20 +69,20 @@ public class ClaimService {
             EligibilityStatus.INELIGIBLE, ClaimStatus.REJECTED
     );
 
-    public ClaimResult createClaim(ClaimRequest claimRequest) {
+    public ClaimResult createClaim(ClaimRequest claimRequest, String user) {
         try {
             EligibilityAndEntitlementDecision decision = eligibilityAndEntitlementService.evaluateNewClaimant(claimRequest.getClaimant(),
                     claimRequest.getEligibilityOverride());
             CombinedIdentityAndEligibilityResponse identityAndEligibilityResponse = decision.getIdentityAndEligibilityResponse();
 
             if (decision.getEligibilityStatus() == EligibilityStatus.DUPLICATE) {
-                Claim claim = createDuplicateClaim(claimRequest, decision);
+                Claim claim = createDuplicateClaim(claimRequest, decision, user);
                 claimMessageSender.sendReportClaimMessage(claim, identityAndEligibilityResponse, ClaimAction.REJECTED);
                 return ClaimResult.withNoEntitlement(claim);
             }
 
             VerificationResult verificationResult = buildVerificationResult(claimRequest.getClaimant(), identityAndEligibilityResponse);
-            Claim claim = createNewClaim(claimRequest, decision, verificationResult);
+            Claim claim = createNewClaim(claimRequest, decision, verificationResult, user);
             if (claim.getClaimStatus() == ClaimStatus.NEW) {
                 sendMessagesForNewClaim(decision, identityAndEligibilityResponse, claim);
                 VoucherEntitlement weeklyEntitlement = decision.getVoucherEntitlement().getFirstVoucherEntitlementForCycle();
@@ -92,7 +94,7 @@ public class ClaimService {
             }
             return ClaimResult.withNoEntitlement(claim, verificationResult);
         } catch (RuntimeException e) {
-            handleFailedClaim(claimRequest, e);
+            handleFailedClaim(claimRequest, user, e);
             throw e;
         }
     }
@@ -149,10 +151,10 @@ public class ClaimService {
         claimRepository.save(claim);
     }
 
-    private void handleFailedClaim(ClaimRequest claimRequest, RuntimeException e) {
+    private void handleFailedClaim(ClaimRequest claimRequest, String user, RuntimeException e) {
         EligibilityAndEntitlementDecision decision = buildWithStatus(EligibilityStatus.ERROR);
         Claim claim = buildClaim(ClaimStatus.ERROR, claimRequest, decision);
-        NewClaimEvent newClaimEvent = new NewClaimEvent(claim);
+        NewClaimEvent newClaimEvent = new NewClaimEvent(claim, user);
         FailureEvent failureEvent = FailureEvent.builder()
                 .failureDescription("Unable to create (or update) claim")
                 .failedEvent(newClaimEvent)
@@ -160,22 +162,24 @@ public class ClaimService {
                 .build();
         eventAuditor.auditFailedEvent(failureEvent);
         claimRepository.save(claim);
+        javers.commit(user, claim);
     }
 
-    private Claim createDuplicateClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
-        return buildAndSaveClaim(ClaimStatus.REJECTED, claimRequest, decision);
+    private Claim createDuplicateClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, String user) {
+        return buildAndSaveClaim(ClaimStatus.REJECTED, claimRequest, decision, user);
     }
 
-    private Claim createNewClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, VerificationResult verificationResult) {
+    private Claim createNewClaim(ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, VerificationResult verificationResult, String user) {
         ClaimStatus claimStatus = getClaimStatus(decision.getEligibilityStatus(), verificationResult);
-        return buildAndSaveClaim(claimStatus, claimRequest, decision);
+        return buildAndSaveClaim(claimStatus, claimRequest, decision, user);
     }
 
-    private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision) {
+    private Claim buildAndSaveClaim(ClaimStatus claimStatus, ClaimRequest claimRequest, EligibilityAndEntitlementDecision decision, String user) {
         Claim claim = buildClaim(claimStatus, claimRequest, decision);
         log.info("Saving new claim: {} with status {} and reference {}", claim.getId(), claim.getEligibilityStatus(), claim.getReference());
         claimRepository.save(claim);
-        eventAuditor.auditNewClaim(claim);
+        javers.commit(user, claim);
+        eventAuditor.auditNewClaim(claim, user);
         return claim;
     }
 
